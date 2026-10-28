@@ -254,6 +254,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     player.engineRunning = true;
     player.lowFuelWarned = false;
     player.tailDamage = player.wingPull = player.tumble = 0;
+    player.propBent = false;
     rearmFully(player);
     say('Plane repaired and rearmed');
   }

@@ -33,11 +33,6 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   const hp = Math.max(0, plane.hp / plane.def.hp);
   drawText(ctx, 'DMG', x, y, '#c8d0c0');
   bar(ctx, x + 14, y + 1, 30, hp, hp < 0.35 ? '#e05040' : hp < 0.6 ? '#e0a040' : '#80d070');
-  if (plane.burning && Math.floor(performance.now() / 200) % 2) drawText(ctx, 'FIRE', x + 48, y, '#ff7040');
-  else if (plane.tailDamage > 0.05 || Math.abs(plane.wingPull) > 0.02) {
-    const parts = [plane.tailDamage > 0.05 ? 'TAIL' : '', Math.abs(plane.wingPull) > 0.02 ? (plane.wingPull > 0 ? 'WING<' : 'WING>') : ''];
-    drawText(ctx, parts.filter(Boolean).join(' '), x + 48, y, '#e0b040');
-  }
   y += 7;
   const rounds = plane.guns.reduce((n, g) => n + g.ammo, 0);
   drawText(ctx, `GUN ${Math.floor(rounds)}`, x, y, rounds > 0 ? '#e8f0e0' : '#e05040');
@@ -74,6 +69,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   else if (plane.state === 'ground') groundMessage(ctx, world, plane, centre);
 
   serviceBar(ctx, world, plane, W);
+  damageReport(ctx, plane, W, H);
 
   if (showHelp) {
     const lines = [
@@ -110,4 +106,47 @@ function serviceBar(ctx, world, plane, W) {
   if (s.wait > 0 || s.phase === 'done') return;
   const w = 80;
   bar(ctx, Math.round((W - w) / 2) - 1, y + 8, w, serviceProgress(plane, world), '#e8c860');
+}
+
+const RED = '#ff6a50';
+const AMBER = '#e8b048';
+
+// What's wrong with the plane, worst first. Each line stays as long as the damage does: until the
+// plane is lost or the ground crew repair it.
+function damageLines(plane) {
+  const lines = [];
+  const blink = Math.floor(performance.now() / 250) % 2 === 0;
+  if (plane.burning) lines.push(['ON FIRE!', blink ? RED : '#ffc0a0']);
+  if (plane.hp / plane.def.hp < 0.3) lines.push(['AIRFRAME CRITICAL', RED]);
+  if (plane.tailDamage >= 0.5) lines.push(['TAIL SHREDDED - STEERING WEAK', RED]);
+  else if (plane.tailDamage > 0.05) lines.push(['TAIL DAMAGED', AMBER]);
+  if (Math.abs(plane.wingPull) > 0.02) {
+    // Positive pull drags the nose counter-clockwise, so hold D (clockwise) against it.
+    const counter = plane.wingPull > 0 ? 'HOLD D' : 'HOLD A';
+    const torn = Math.abs(plane.wingPull) > 0.3;
+    lines.push([`${torn ? 'WING TORN' : 'WING DAMAGED'} - PULLS, ${counter}`, torn ? RED : AMBER]);
+  }
+  if (plane.propBent) lines.push(['PROPELLER BENT', AMBER]);
+  if (!plane.engineRunning && !plane.belly) lines.push([plane.fuel <= 0 ? 'OUT OF FUEL' : 'ENGINE DEAD', RED]);
+  else if (plane.engineDamage > 0.5) lines.push(['ENGINE BADLY HIT', RED]);
+  else if (plane.engineDamage > 0.1) lines.push(['ENGINE DAMAGED', AMBER]);
+  if (plane.belly) lines.push(['ON ITS BELLY', AMBER]);
+  return lines;
+}
+
+function damageReport(ctx, plane, W, H) {
+  if (plane.state === 'dead') return;
+  const lines = damageLines(plane);
+  if (!lines.length) return;
+  const widest = Math.max(textWidth('DAMAGE REPORT'), ...lines.map(([t]) => textWidth(t)));
+  const x = W - widest - 8;
+  let y = H - 8 - lines.length * 7 - 8;
+  ctx.fillStyle = 'rgba(10,8,6,0.45)';
+  ctx.fillRect(x - 3, y - 3, widest + 6, lines.length * 7 + 13);
+  drawText(ctx, 'DAMAGE REPORT', x, y, '#c8c0a8');
+  y += 9;
+  for (const [text, colour] of lines) {
+    drawText(ctx, text, W - textWidth(text) - 8, y, colour);
+    y += 7;
+  }
 }

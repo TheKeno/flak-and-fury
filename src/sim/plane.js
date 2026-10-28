@@ -84,6 +84,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     tumbleSpin: 0,
     tailDamage: 0, // 0..1: lost rudder/elevator authority
     wingPull: 0, // rad/s of drift from a damaged wing (sign = direction)
+    propBent: false,
   };
 }
 
@@ -114,6 +115,7 @@ export function spawnAtAirfield(p, world) {
   p.gearManual = p.gearWarning = p.belly = false;
   p.strandedTimer = 0;
   p.tumble = p.tumbleSpin = p.tailDamage = p.wingPull = 0;
+  p.propBent = false;
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
 }
@@ -216,6 +218,7 @@ function bellyLand(p, world, groundY) {
   p.engineRunning = false;
   p.starved = false;
   p.engineDamage = clamp(p.engineDamage + 0.3, 0, 1);
+  p.propBent = true;
   p.hp -= 12 + p.speed * 0.25;
   world.events.push({ type: 'bellyLanding', plane: p.id, x: p.x, y: p.y, speed: p.speed, collapsed });
   if (p.hp <= 0) crash(p, world);

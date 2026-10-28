@@ -111,7 +111,10 @@ function resolve(world, a, b, cfg, dist) {
     const dmg = (base * 2 * share) / toughness;
     startTumble(world, p, tumble * (0.5 + share), spin * (0.6 + share));
     knock(world, p, dirToOther, cfg.pushApart * (2 + share * 4), (severity === 'hard' ? 0.15 : 0.05) * share * 2);
-    if (rammer) p.engineDamage = clamp(p.engineDamage + 0.35, 0, 1); // bent propeller
+    if (rammer) {
+      p.engineDamage = clamp(p.engineDamage + 0.35, 0, 1); // bent propeller
+      p.propBent = true;
+    }
     if (rammed) p.tailDamage = clamp(p.tailDamage + cfg.tailDamage, 0, 1);
     else if (zone === 'tail') p.tailDamage = clamp(p.tailDamage + cfg.tailDamage * 0.4 * share * 2, 0, 1);
     if (zone === 'wing') {
