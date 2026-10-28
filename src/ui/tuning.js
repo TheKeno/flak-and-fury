@@ -70,6 +70,11 @@ const COLLISION_FIELDS = [
   ['pushApart', 'Push apart', 0, 4, 0.1, 'How hard colliding planes are shoved away from each other.'],
   ['grace', 'Re-collide delay', 0, 3, 0.1, 'Seconds before the same two planes can collide again.'],
 ];
+const RADAR_FIELDS = [
+  ['sweepTime', 'Sweep time', 0.3, 8, 0.1, 'Seconds for the radar beam to cross the map. Contacts only update when the beam passes them.'],
+  ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
+  ['lowGap', 'Low-level gap', 0, 150, 5, 'Enemies flying lower than this above the ground are invisible to radar (and so are you).'],
+];
 const AUDIO_FIELDS = [
   ['master', 'Master volume', 0, 1, 0.01, '1.0 = full loudness.'],
   ['engine', 'Engines & wind', 0, 1.5, 0.01, ''],
@@ -193,6 +198,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     el('label', { class: 'row check', title: 'Propeller into a tail wrecks the tail and bends the propeller (the Soviet "taran").' }, el('span', {}, 'Propeller strikes (taran)'), propBox),
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
+  const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
   const audioSection = section(
     'Sound',
@@ -231,6 +237,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.audio, saved.settings.audio);
     Object.assign(settings.servicing, saved.settings.servicing);
     Object.assign(settings.collisions, saved.settings.collisions);
+    Object.assign(settings.radar, saved.settings.radar);
     propBox.checked = settings.collisions.propStrikes;
     for (const p of world.planes) p.guns.forEach(updateGunRates);
     getMixer()?.applyLevels();
@@ -276,6 +283,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     ...gunSections,
     bombSection,
     collisionSection,
+    radarSection,
     servicingSection,
     cameraSection,
     audioSection,

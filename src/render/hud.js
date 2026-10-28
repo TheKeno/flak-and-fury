@@ -3,8 +3,6 @@ import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
 
 const JOBS = { repair: 'REPAIRING', refuel: 'REFUELLING', rearm: 'REARMING' };
 
-const TEAM_COLOURS = ['#7fb2ff', '#ff7a6a', '#ffd25a', '#8be08b'];
-
 function bar(ctx, x, y, w, value, colour) {
   ctx.fillStyle = 'rgba(0,0,0,0.45)';
   ctx.fillRect(x, y, w + 2, 4);
@@ -12,37 +10,7 @@ function bar(ctx, x, y, w, value, colour) {
   ctx.fillRect(x + 1, y + 1, Math.round(w * value), 2);
 }
 
-function radar(ctx, world, W, focus) {
-  const rw = 200;
-  const rh = 14;
-  const rx = Math.round((W - rw) / 2);
-  const ry = 3;
-  const sx = rw / world.map.width;
-  const top = world.map.ceiling + 80;
-  const sy = rh / top;
-  ctx.fillStyle = 'rgba(10,16,20,0.55)';
-  ctx.fillRect(rx - 1, ry - 1, rw + 2, rh + 2);
-  ctx.fillStyle = 'rgba(60,80,50,0.9)';
-  for (let x = 0; x < rw; x++) {
-    const h = world.terrain.heightAt(x / sx) * sy;
-    ctx.fillRect(rx + x, ry + rh - Math.round(h), 1, Math.round(h));
-  }
-  ctx.fillStyle = 'rgba(255,255,255,0.18)';
-  ctx.fillRect(rx, ry + rh - Math.round(world.map.ceiling * sy), rw, 1);
-  for (const af of world.map.airfields) {
-    ctx.fillStyle = TEAM_COLOURS[af.team];
-    ctx.fillRect(rx + Math.round((af.x + af.width / 2) * sx) - 2, ry + rh - Math.round(af.height * sy) - 1, 4, 1);
-  }
-  for (const p of world.planes) {
-    if (p.state === 'dead') continue;
-    const blink = p === focus && Math.floor(performance.now() / 250) % 2;
-    ctx.fillStyle = blink ? '#ffffff' : TEAM_COLOURS[p.team];
-    ctx.fillRect(rx + Math.round(p.x * sx) - 1, ry + rh - Math.round(Math.min(p.y, top) * sy) - 1, 2, 2);
-  }
-}
-
 export function drawHud(ctx, world, plane, W, H, { showHelp }) {
-  radar(ctx, world, W, plane);
   if (!plane) return;
 
   const x = 6;

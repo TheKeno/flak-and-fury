@@ -70,6 +70,7 @@ function handleEvents() {
   }
 }
 
+let lastSweeps = 0;
 let last = performance.now();
 let acc = 0;
 function frame(now) {
@@ -83,6 +84,10 @@ function frame(now) {
     acc -= DT;
   }
   renderer.render(player, dt, { showHelp });
+  if (renderer.radarSweeps !== lastSweeps) {
+    lastSweeps = renderer.radarSweeps;
+    sound?.radarTick();
+  }
   sound?.update(player, renderer.centre(), dt);
   requestAnimationFrame(frame);
 }

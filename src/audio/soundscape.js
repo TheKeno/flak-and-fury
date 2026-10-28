@@ -19,6 +19,21 @@ export function createSoundscape(mixer, world) {
   const crews = new Map();
   const scrapes = new Map();
   let nextHorn = 0;
+
+  // Radar scope: a faint mains hum from the CRT set in the ops room.
+  {
+    const hum = mixer.ctx.createGain();
+    hum.gain.value = 0.025;
+    hum.connect(mixer.buses.ambience);
+    for (const [f, g] of [[100, 1], [200, 0.4], [300, 0.15]]) {
+      const o = mixer.ctx.createOscillator();
+      o.frequency.value = f;
+      const og = mixer.ctx.createGain();
+      og.gain.value = g;
+      o.connect(og).connect(hum);
+      o.start();
+    }
+  }
   const snapped = new Set();
   const airflow = createAirflow(mixer);
   const body = createBody(mixer);
@@ -130,6 +145,10 @@ export function createSoundscape(mixer, world) {
 
   return {
     listener,
+    // A soft tick as the radar beam starts a new sweep.
+    radarTick() {
+      sfx.play(mixer, voices.click, ME, { gain: 0.12, rate: 0.6, bus: 'ambience' });
+    },
     // Ears ride with the focused plane; while it's down they stay at the camera.
     update(focus, camCentre, dt = 1 / 60) {
       focusId = focus?.id ?? null;

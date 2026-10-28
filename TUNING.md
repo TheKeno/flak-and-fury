@@ -56,6 +56,9 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 `servicing`: `crewDelay` (seconds before the crew start), `repairPerSec` (hit points per second),
 `refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings.
 
+`radar`: `sweepTime` (seconds for the beam to cross the map), `afterglow` (seconds a plot glows),
+`lowGap` (enemies lower than this above the ground don't show on radar, and neither do you).
+
 `collisions`: how deadly mid-air collisions are. Head-on above `headOnSpeed` closing speed, or any
 angle above `fatalSpeed`, kills both planes. Below that, `hardSpeed` separates a graze from a hard
 hit. Damage is split between the planes: `driveWeight` puts more on whoever drove into the other,

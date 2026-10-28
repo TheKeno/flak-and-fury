@@ -39,5 +39,10 @@
     "wingPull": 0.6,
     "pushApart": 1,
     "grace": 1
+  },
+  "radar": {
+    "sweepTime": 2.5,
+    "afterglow": 3.2,
+    "lowGap": 35
   }
 }

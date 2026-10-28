@@ -9,7 +9,8 @@ import { createRng, clamp } from '../sim/math.js';
 import { frameIndex } from './sprites.js';
 import { drawHud } from './hud.js';
 import { createParticles } from './particles.js';
-import { drawText } from './font.js';
+import { drawText, textWidth } from './font.js';
+import { createRadar, SCOPE } from './radar.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
@@ -134,6 +135,7 @@ export function createRenderer(canvas, world, assets) {
   }));
 
   const particles = createParticles();
+  const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
   const cam = { x: 0, y: 0, leadX: 0, leadY: 0, snapped: false };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
@@ -437,6 +439,9 @@ export function createRenderer(canvas, world, assets) {
   return {
     cam,
     particles,
+    get radarSweeps() {
+      return radar.sweeps;
+    },
     get zoom() {
       return zoom;
     },
@@ -498,6 +503,11 @@ export function createRenderer(canvas, world, assets) {
       hud.clearRect(0, 0, W, H);
       drawHud(hud, world, focus, W, H, { showHelp });
       drawMessages();
+      if (focus && radar.belowRadar(focus)) {
+        const label = 'BELOW RADAR';
+        drawText(hud, label, SCOPE.x + Math.round((SCOPE.w - textWidth(label)) / 2), SCOPE.y + SCOPE.h + 2, '#8fe8a0');
+      }
+      radar.update(dt, focus);
 
       const k = canvas.width / bw;
       const ox = shake > 0.2 ? (Math.random() - 0.5) * 2 * shake * k : 0;
@@ -509,6 +519,11 @@ export function createRenderer(canvas, world, assets) {
       }
       out.drawImage(buffer, 0, 0, bw, bh, ox, oy, canvas.width, canvas.height);
       out.drawImage(hudLayer, 0, 0, canvas.width, canvas.height);
+      // The radar scope is scaled up smoothly for a soft phosphor glow.
+      const hk = canvas.width / W;
+      out.imageSmoothingEnabled = true;
+      out.drawImage(radar.draw(performance.now() / 1000), SCOPE.x * hk, SCOPE.y * hk, SCOPE.w * hk, SCOPE.h * hk);
+      out.imageSmoothingEnabled = false;
     },
   };
 }
