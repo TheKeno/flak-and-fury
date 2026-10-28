@@ -37,7 +37,7 @@ later.
   - Graded collisions (fatal / hard / graze) with uneven damage shares, the taran prop-into-tail
     strike and wing pull.
   - WWII radar CRT: sweep, afterglow, IFF pulse, low-level gap.
-  - Mouse look (hold right mouse + drag; up, down and back only; per-plane rear visibility).
+  - Looking around with the arrow keys or right mouse + drag (per-plane rear visibility).
   - Persistent damage report and LAST FLIGHT report with cause of death.
   - Live tuning panel with Save to files; synthesized sound for engines, guns, crew, body, gear,
     collisions.

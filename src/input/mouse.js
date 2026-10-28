@@ -1,4 +1,4 @@
-// Mouse look: hold the right mouse button and drag to turn your head (up, down or back).
+// Mouse look: hold the right mouse button and drag to turn your head (any way; back over the tail is limited by the plane).
 // Relative, not absolute: where the mouse is when you press becomes the anchor, and only moving away
 // from it turns your head. `cfg.lookSensitivity` is the drag distance (CSS pixels) for a full look.
 // The result is a vector of length 0..1. (Left click stays free for aiming turrets later.)
