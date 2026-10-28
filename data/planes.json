@@ -1,0 +1,59 @@
+{
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. pivot is in sprite pixels (sprites are drawn at 2 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot.",
+  "fighter_v12": {
+    "name": "Inline fighter",
+    "role": "fighter",
+    "sprite": "fighter",
+    "pivot": [
+      24,
+      10
+    ],
+    "noseOffset": [
+      12,
+      0
+    ],
+    "exhaustOffset": [
+      7,
+      0.5
+    ],
+    "thrust": 85,
+    "dragCoef": 0.00378,
+    "groundFriction": 18,
+    "turnRate": 1.5,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.4,
+    "slowTurnBonus": 0.8,
+    "slowTurnSpeed": 110,
+    "stallSpeed": 55,
+    "takeoffSpeed": 52,
+    "maxLandingSpeed": 95,
+    "maxSpeed": 150,
+    "hp": 100,
+    "hitRadius": 7,
+    "bombOffset": [
+      0,
+      -4
+    ],
+    "armament": {
+      "guns": [
+        {
+          "weapon": "browning_303",
+          "count": 8
+        }
+      ],
+      "bombs": {
+        "weapon": "gp_250",
+        "count": 2
+      }
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 900,
+      "cruiseRpm": 2650,
+      "maxRpm": 3000,
+      "propBlades": 3,
+      "gearRatio": 0.477
+    }
+  }
+}

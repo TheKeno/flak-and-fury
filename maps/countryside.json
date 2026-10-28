@@ -1,0 +1,21 @@
+{
+  "_note": "Interim map format for milestone 1. Replaced by an LDtk project once maps carry placed objects (milestone 3-4).",
+  "name": "Countryside",
+  "width": 3600,
+  "ceiling": 720,
+  "seed": 1944,
+  "terrain": {
+    "base": 30,
+    "amplitude": 70,
+    "features": 5
+  },
+  "airfields": [
+    { "x": 220, "width": 420, "team": 0, "nation": "uk" },
+    { "x": 2960, "width": 420, "team": 1, "nation": "germany" }
+  ],
+  "sky": {
+    "low": "#9cc4d8",
+    "high": "#3e6f9a",
+    "space": "#1d3654"
+  }
+}

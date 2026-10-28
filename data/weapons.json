@@ -1,0 +1,107 @@
+{
+  "_notes": [
+    "Guns: rpm and ammo are per gun, as historically. The game merges a battery of guns into a few projectiles per second; damage is per real round.",
+    "velocity in px/s (1 px ~ 0.4 m, scaled down for gameplay), drop = fraction of gravity felt by the round, life = seconds before the round is spent.",
+    "voice picks the gun sound: rifle | heavy | cannon20 | cannon30."
+  ],
+  "browning_303": {
+    "name": ".303 Browning",
+    "type": "gun",
+    "class": "rifle-calibre MG",
+    "rpm": 1150,
+    "damage": 0.248,
+    "velocity": 440,
+    "spread": 0.015,
+    "drop": 0.12,
+    "life": 1,
+    "ammo": 300,
+    "voice": "rifle"
+  },
+  "mg17": {
+    "name": "MG 17",
+    "type": "gun",
+    "class": "rifle-calibre MG",
+    "rpm": 1200,
+    "damage": 0.248,
+    "velocity": 450,
+    "spread": 0.014,
+    "drop": 0.12,
+    "life": 1,
+    "ammo": 500,
+    "voice": "rifle"
+  },
+  "shkas": {
+    "name": "ShKAS",
+    "type": "gun",
+    "class": "rifle-calibre MG",
+    "rpm": 1800,
+    "damage": 0.22,
+    "velocity": 430,
+    "spread": 0.0175,
+    "drop": 0.12,
+    "life": 1,
+    "ammo": 750,
+    "voice": "rifle"
+  },
+  "m2_browning": {
+    "name": ".50 M2 Browning",
+    "type": "gun",
+    "class": "heavy MG",
+    "rpm": 800,
+    "damage": 0.77,
+    "velocity": 470,
+    "spread": 0.011,
+    "drop": 0.1,
+    "life": 1.2,
+    "ammo": 350,
+    "voice": "heavy"
+  },
+  "hispano_20": {
+    "name": "Hispano Mk II 20 mm",
+    "type": "gun",
+    "class": "20 mm cannon",
+    "rpm": 650,
+    "damage": 2.475,
+    "velocity": 440,
+    "spread": 0.015,
+    "drop": 0.15,
+    "life": 1.1,
+    "ammo": 120,
+    "voice": "cannon20"
+  },
+  "type99_20": {
+    "name": "Type 99 20 mm",
+    "type": "gun",
+    "class": "20 mm cannon (low velocity)",
+    "rpm": 520,
+    "damage": 2.31,
+    "velocity": 300,
+    "spread": 0.0175,
+    "drop": 0.45,
+    "life": 1.3,
+    "ammo": 60,
+    "voice": "cannon20"
+  },
+  "mk108_30": {
+    "name": "MK 108 30 mm",
+    "type": "gun",
+    "class": "heavy cannon",
+    "rpm": 600,
+    "damage": 7.7,
+    "velocity": 260,
+    "spread": 0.02,
+    "drop": 0.55,
+    "life": 1,
+    "ammo": 60,
+    "voice": "cannon30"
+  },
+  "gp_250": {
+    "name": "250 lb GP bomb",
+    "type": "bomb",
+    "blastRadius": 34,
+    "blastDamage": 120,
+    "craterRadius": 16,
+    "craterDepth": 7,
+    "drag": 0.12
+  }
+}

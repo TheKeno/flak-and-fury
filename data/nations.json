@@ -1,0 +1,26 @@
+{
+  "uk": {
+    "name": "United Kingdom",
+    "paint": { "base": "#5b6b3f", "under": "#a9b4a0", "nose": "#c9c3a6", "marking": "#2f4a8a" }
+  },
+  "usa": {
+    "name": "United States",
+    "paint": { "base": "#9aa3a8", "under": "#c5ccd0", "nose": "#d6c23a", "marking": "#2b3f7a" }
+  },
+  "germany": {
+    "name": "Germany",
+    "paint": { "base": "#5e6650", "under": "#8fa8bf", "nose": "#d8c04a", "marking": "#1e1e1e" }
+  },
+  "japan": {
+    "name": "Japan",
+    "paint": { "base": "#4d5a3a", "under": "#b8b49a", "nose": "#2a2a2a", "marking": "#c0262b" }
+  },
+  "finland": {
+    "name": "Finland",
+    "paint": { "base": "#4f5e3c", "under": "#a6b1a4", "nose": "#d9c54a", "marking": "#2d5fa8" }
+  },
+  "ussr": {
+    "name": "Soviet Union",
+    "paint": { "base": "#4f6040", "under": "#9db3c2", "nose": "#b8322c", "marking": "#c62a2a" }
+  }
+}
