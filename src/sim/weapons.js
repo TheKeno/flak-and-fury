@@ -2,7 +2,7 @@
 import { clamp } from './math.js';
 import { GRAVITY } from './plane.js';
 
-const MAX_VOLLEYS_PER_SEC = 24; // a battery of guns is simulated as at most this many projectiles per second
+const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
 const TRACER_EVERY = 3;
 const FIRE_DAMAGE_PER_SEC = 3;

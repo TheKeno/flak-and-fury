@@ -39,7 +39,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 
 | Field | What it does |
 |---|---|
-| `rpm` | Rounds per minute **per gun** (historical). |
+| `rpm` | Rounds per minute **per gun** (about 60% of the historical figure, for gameplay). |
 | `damage` | Damage per round, randomised ±50% per hit. |
 | `velocity` | Muzzle speed. Lower = you have to lead targets more. |
 | `spread` | Random aim error (rad). Lower = tighter grouping. |

@@ -30,7 +30,7 @@ export function botCommand(world, p, skillName = 'target') {
   } else if (enemy) {
     // Lead the target by the bullet's flight time.
     const dist = Math.hypot(enemy.x - p.x, enemy.y - p.y);
-    const t = dist / 440;
+    const t = dist / (p.guns[0]?.def.velocity ?? 300);
     desired = Math.atan2(enemy.y + enemy.vy * t - p.y, enemy.x + enemy.vx * t - p.x);
     const aimError = Math.abs(angleDiff(desired, p.angle));
     cmd.fire = dist < skill.fireRange && aimError < skill.aimTolerance;
