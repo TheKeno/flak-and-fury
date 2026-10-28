@@ -30,6 +30,7 @@
     "maxSpeed": 150,
     "hp": 100,
     "toughness": 1,
+    "rearView": 0.8,
     "hitRadius": 7,
     "endurance": 300,
     "bombOffset": [
@@ -90,6 +91,7 @@
     "maxSpeed": 155,
     "hp": 90,
     "toughness": 0.95,
+    "rearView": 0.45,
     "hitRadius": 6.5,
     "endurance": 240,
     "bombOffset": [

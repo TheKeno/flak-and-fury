@@ -8,7 +8,10 @@
     "zoomMax": 1.35,
     "zoomStartSpeed": 100,
     "zoomFullSpeed": 175,
-    "zoomSpeed": 1.2
+    "zoomSpeed": 1.2,
+    "lookRange": 0.33,
+    "lookSpeed": 6,
+    "lookZoom": 0.12
   },
   "audio": {
     "master": 0.25,

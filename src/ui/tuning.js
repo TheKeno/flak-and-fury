@@ -20,6 +20,7 @@ const PLANE_FIELDS = [
   ['hp', 'Hit points', 20, 400, 5, 'How much damage the plane takes before it goes down.'],
   ['hitRadius', 'Hit size', 3, 14, 0.5, 'Size of the plane for bullets (px). Smaller = harder to hit.'],
   ['toughness', 'Airframe toughness', 0.3, 3, 0.05, 'Divides collision damage. 1 = normal, higher = sturdier.'],
+  ['rearView', 'Rear visibility', 0, 1, 0.05, 'How far mouse look can swing back over the tail. Cramped canopies (the 109) see less.'],
   ['endurance', 'Fuel endurance', 30, 900, 10, 'Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much.'],
 ];
 const GUN_FIELDS = [
@@ -43,6 +44,9 @@ const CAMERA_FIELDS = [
   ['leadY', 'Look-ahead (up/down)', 0, 0.35, 0.01, 'Vertical look-ahead when climbing or diving, as a share of screen height.'],
   ['leadSpeed', 'Swing speed', 0.2, 6, 0.1, 'How quickly the look-ahead swings across when you change direction.'],
   ['height', 'Plane height on screen', 0.2, 0.8, 0.01, 'Where the plane sits vertically (0 = bottom, 1 = top).'],
+  ['lookRange', 'Mouse look: reach', 0, 0.5, 0.01, 'How far the camera slides when you hold right mouse and point (share of the view).'],
+  ['lookSpeed', 'Mouse look: speed', 0.5, 15, 0.5, 'How quickly the view follows the pointer and eases back.'],
+  ['lookZoom', 'Mouse look: zoom-out', 0, 0.4, 0.01, 'Extra zoom-out while looking around.'],
   ['zoomMax', 'Speed zoom: max zoom-out', 1, 1.8, 0.01, '1 = no zoom. 1.35 = see 35% more of the world at top speed.'],
   ['zoomStartSpeed', 'Speed zoom: starts at', 0, 250, 5, 'Speed (px/s) where the view begins to widen. Level top speed is about 150.'],
   ['zoomFullSpeed', 'Speed zoom: full at', 0, 300, 5, 'Speed (px/s) where the view is fully zoomed out. Dives reach about 200.'],

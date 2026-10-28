@@ -137,7 +137,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, snapped: false };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, snapped: false };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -153,6 +153,7 @@ export function createRenderer(canvas, world, assets) {
       const t = clamp((focus.speed - camCfg.zoomStartSpeed) / span, 0, 1);
       target = 1 + (camCfg.zoomMax - 1) * t * t * (3 - 2 * t);
     }
+    target += camCfg.lookZoom * Math.min(1, Math.hypot(cam.lookX, cam.lookY)); // glancing around widens the view
     const k = cam.snapped ? 1 - Math.exp(-dt * camCfg.zoomSpeed) : 1;
     zoom += (clamp(target, 1, MAX_ZOOM) - zoom) * k;
     bw = Math.round(W * zoom * SCALE);
@@ -163,17 +164,34 @@ export function createRenderer(canvas, world, assets) {
 
   // The camera looks ahead: the plane sits towards the back of the screen so you see what you're
   // flying into. When the plane turns around, the look-ahead swings smoothly to the other side.
-  function updateCamera(focus, dt) {
+  // Mouse look (hold right button): the camera slides towards where you point, up to lookRange of the
+  // view. Looking back over your tail is limited by the plane's rearView (cramped canopies see less).
+  function updateLook(focus, dt, look) {
+    const facing = Math.cos(focus.angle) >= 0 ? 1 : -1;
+    let tx = look?.active ? look.x : 0;
+    const ty = look?.active ? -look.y : 0;
+    if (tx * facing < 0) tx *= focus.def.rearView ?? 1;
+    const k = 1 - Math.exp(-dt * camCfg.lookSpeed);
+    cam.lookX += (tx - cam.lookX) * k;
+    cam.lookY += (ty - cam.lookY) * k;
+  }
+
+  function updateCamera(focus, dt, look) {
     if (!focus) return;
     if (focus.state !== 'dead') {
+      updateLook(focus, dt, look);
       updateZoom(focus, dt);
       const targetX = Math.cos(focus.angle) * vw * camCfg.leadX;
       const targetY = Math.sin(focus.angle) * vh * camCfg.leadY;
       const k = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeed) : 1;
       cam.leadX += (targetX - cam.leadX) * k;
       cam.leadY += (targetY - cam.leadY) * k;
-      cam.x = focus.x + cam.leadX - vw / 2;
-      cam.y = focus.y + cam.leadY - vh * camCfg.height;
+      cam.x = focus.x + cam.leadX + cam.lookX * vw * camCfg.lookRange - vw / 2;
+      cam.y = focus.y + cam.leadY + cam.lookY * vh * camCfg.lookRange - vh * camCfg.height;
+      // However you look, your own plane stays on screen.
+      const margin = 0.08;
+      cam.x = clamp(cam.x, focus.x - vw * (1 - margin), focus.x - vw * margin);
+      cam.y = clamp(cam.y, focus.y - vh * (1 - margin), focus.y - vh * margin);
       cam.snapped = true;
     }
     cam.x = clamp(cam.x, 0, map.width - vw);
@@ -491,10 +509,10 @@ export function createRenderer(canvas, world, assets) {
         for (let i = 0; i < 6; i++) particles.spawn('dust', e.x, e.y - 3, (Math.random() - 0.5) * 30, 8, 0.8, 0.8);
       }
     },
-    render(focus, dt, { showHelp }) {
+    render(focus, dt, { showHelp, look }) {
       frame++;
       fitDisplay();
-      updateCamera(focus, dt);
+      updateCamera(focus, dt, look);
       for (const p of world.planes) emitEffects(p, dt);
       particles.update(dt, world.terrain);
 

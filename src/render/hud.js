@@ -77,6 +77,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
       'W/S  THROTTLE',
       'L.SHIFT  ROLL / TURN ON GROUND',
       'SPACE  GUNS   E  BOMBS   G  GEAR',
+      'RIGHT MOUSE  LOOK AROUND',
       'M  MUTE   T  TUNING   H  HIDE HELP',
     ];
     lines.forEach((l, i) => drawText(ctx, l, 6, H - 8 - (lines.length - 1 - i) * 7, '#f0f0e0'));

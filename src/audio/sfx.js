@@ -145,6 +145,16 @@ export function midair(mixer, where, severity, taran) {
   }
 }
 
+// Craning your head round in the cockpit: a soft creak of leather helmet and harness.
+export function helmetCreak(mixer) {
+  const at = mixer.now;
+  const dest = mixer.buses.body;
+  for (let i = 0; i < 5; i++) {
+    noiseBurst(mixer, dest, at + i * 0.03 + Math.random() * 0.02, 0.05, { type: 'bandpass', from: 700 + Math.random() * 500, to: 500, q: 5, vol: 0.06 });
+  }
+  noiseBurst(mixer, dest, at, 0.25, { type: 'bandpass', from: 1400, to: 900, q: 1.2, vol: 0.03, attack: 0.08 });
+}
+
 // Cockpit warning horn: pulsing, impossible to ignore.
 export function gearHorn(mixer) {
   const { ctx } = mixer;

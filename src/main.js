@@ -1,6 +1,7 @@
 import { loadContent } from './content/load.js';
 import { createWorld, addPlane, stepWorld, DT } from './sim/world.js';
 import { createKeyboard } from './input/keyboard.js';
+import { createMouseLook } from './input/mouse.js';
 import { createRenderer } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
@@ -22,6 +23,7 @@ const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', con
 addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'uk', controller: 'bot:target' });
 const renderer = createRenderer(canvas, world, content);
 const keyboard = createKeyboard();
+const look = createMouseLook(canvas);
 
 let showHelp = true;
 let paused = false;
@@ -83,7 +85,8 @@ function frame(now) {
     handleEvents();
     acc -= DT;
   }
-  renderer.render(player, dt, { showHelp });
+  renderer.render(player, dt, { showHelp, look });
+  sound?.setLook(renderer.cam.lookX, look.active);
   if (renderer.radarSweeps !== lastSweeps) {
     lastSweeps = renderer.radarSweeps;
     sound?.radarTick();

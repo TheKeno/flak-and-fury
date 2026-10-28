@@ -19,6 +19,8 @@ export function createSoundscape(mixer, world) {
   const crews = new Map();
   const scrapes = new Map();
   let nextHorn = 0;
+  let lookX = 0; // head turned: -1 looking left .. 1 looking right
+  let looking = false;
   const snapped = new Set();
   const airflow = createAirflow(mixer);
   const body = createBody(mixer);
@@ -52,7 +54,8 @@ export function createSoundscape(mixer, world) {
         // Out of fuel nothing fires (only the windmilling prop is heard); starving, it coughs.
         misfire: !p.engineRunning ? 1 : p.starved ? 0.95 : p.engineDamage * 0.22 + (p.dying ? 0.55 : 0),
         gain: where.gain,
-        pan: where.pan,
+        // Turning your head shifts your own engine slightly to the other ear.
+        pan: p.id === focusId ? -lookX * 0.25 : where.pan,
         cutoff: where.cutoff,
         doppler: where.doppler,
       });
@@ -130,6 +133,12 @@ export function createSoundscape(mixer, world) {
 
   return {
     listener,
+    // Mouse look: smoothed head direction, and a creak when you start craning round.
+    setLook(x, active) {
+      lookX = x;
+      if (active && !looking) sfx.helmetCreak(mixer);
+      looking = active;
+    },
     // A soft tick as the radar beam starts a new sweep.
     radarTick() {
       sfx.play(mixer, voices.click, ME, { gain: 0.12, rate: 0.6, bus: 'ambience' });

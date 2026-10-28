@@ -29,6 +29,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundFriction` | How quickly the plane slows when rolling. | 10 – 30 |
 | `toughness` | Divides collision damage. 1 = normal, higher = sturdier. | 0.7 – 1.5 |
+| `rearView` | How far mouse look can swing back over the tail (0..1). | 0.3 – 1 |
 | `endurance` | Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much. | 120 – 600 |
 | `hp` | Hit points. Higher = takes more hits. | 60 – 200 |
 | `hitRadius` | Size of the plane for bullets (px). Smaller = harder to hit. | 5 – 10 |
