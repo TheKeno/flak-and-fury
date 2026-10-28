@@ -3,7 +3,7 @@
   "camera": {
     "leadX": 0.3,
     "leadY": 0.12,
-    "leadSpeed": 1.3,
+    "leadSpeed": 2,
     "height": 0.45,
     "zoomMax": 1.35,
     "zoomStartSpeed": 100,
@@ -43,6 +43,6 @@
   "radar": {
     "sweepTime": 2.5,
     "afterglow": 3.2,
-    "lowGap": 35
+    "lowGap": 60
   }
 }

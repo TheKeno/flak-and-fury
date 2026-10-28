@@ -439,6 +439,9 @@ export function createRenderer(canvas, world, assets) {
   return {
     cam,
     particles,
+    get radar() {
+      return radar;
+    },
     get radarSweeps() {
       return radar.sweeps;
     },

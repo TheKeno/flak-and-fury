@@ -3,8 +3,8 @@
 // Like WWII radar it isn't a live picture: a beam sweeps across the map and each contact is only
 // plotted when the beam passes over it, then glows and fades on the phosphor until the next sweep.
 // Friendly aircraft carry IFF, so their echoes pulse; unknowns don't. Everything is the same green.
-// Ground radar can't see aircraft flying very low (the low-level gap that Chain Home suffered from),
-// so enemies hugging the ground vanish from your scope, and you vanish from theirs.
+// Ground radar can't see aircraft flying very low (the low-level gap that Chain Home suffered from):
+// any plane hugging the ground, friend or foe, drops off the scope when the beam next passes it.
 //
 // Drawn into its own small canvas, then scaled up smoothly onto the screen for a soft CRT glow.
 
@@ -90,6 +90,10 @@ export function createRadar(world, cfg) {
 
   return {
     canvas,
+    // Plane ids currently plotted (for tests).
+    get plotted() {
+      return [...plots.keys()];
+    },
     get sweeps() {
       return sweeps;
     },
@@ -110,7 +114,11 @@ export function createRadar(world, cfg) {
         if (p.state === 'dead' || !crossed(p.x / world.map.width)) continue;
         const friendly = focus && p.team === focus.team;
         const low = p.y - world.terrain.heightAt(p.x) < cfg.lowGap;
-        if (!friendly && low) continue; // in the low-level gap: no echo
+        if (low) {
+          // In the low-level gap: no echo, and the beam passing wipes the old one.
+          plots.delete(p.id);
+          continue;
+        }
         plots.set(p.id, { x: p.x, y: p.y, glow: 1, friendly, mine: p === focus, seed: Math.random() * 10 });
       }
       for (const [id, plot] of plots) {

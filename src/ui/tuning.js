@@ -73,7 +73,7 @@ const COLLISION_FIELDS = [
 const RADAR_FIELDS = [
   ['sweepTime', 'Sweep time', 0.3, 8, 0.1, 'Seconds for the radar beam to cross the map. Contacts only update when the beam passes them.'],
   ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
-  ['lowGap', 'Low-level gap', 0, 150, 5, 'Enemies flying lower than this above the ground are invisible to radar (and so are you).'],
+  ['lowGap', 'Low-level gap', 0, 150, 5, 'Planes flying lower than this above the ground drop off the radar, friend or foe (you too).'],
 ];
 const AUDIO_FIELDS = [
   ['master', 'Master volume', 0, 1, 0.01, '1.0 = full loudness.'],
