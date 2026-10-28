@@ -1,13 +1,16 @@
-// Mouse look: hold the right mouse button and point where you want to look (up, down or back).
-// The direction is the pointer's offset from the centre of the game screen, as a vector of length 0..1.
-// (Left click stays free for aiming turrets later.)
-export function createMouseLook(canvas) {
+// Mouse look: hold the right mouse button and drag to turn your head (up, down or back).
+// Relative, not absolute: where the mouse is when you press becomes the anchor, and only moving away
+// from it turns your head. `cfg.lookSensitivity` is the drag distance (CSS pixels) for a full look.
+// The result is a vector of length 0..1. (Left click stays free for aiming turrets later.)
+export function createMouseLook(canvas, cfg) {
   const look = { active: false, x: 0, y: 0 };
+  let ax = 0;
+  let ay = 0;
 
-  const aim = (e) => {
-    const r = canvas.getBoundingClientRect();
-    let x = (e.clientX - r.left - r.width / 2) / (r.width / 2);
-    let y = (e.clientY - r.top - r.height / 2) / (r.height / 2);
+  const drag = (e) => {
+    const reach = Math.max(20, cfg.lookSensitivity);
+    let x = (e.clientX - ax) / reach;
+    let y = (e.clientY - ay) / reach;
     const len = Math.hypot(x, y);
     if (len > 1) {
       x /= len;
@@ -22,11 +25,13 @@ export function createMouseLook(canvas) {
   canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 2) return;
     look.active = true;
-    aim(e);
+    ax = e.clientX;
+    ay = e.clientY;
+    look.x = look.y = 0;
     canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener('pointermove', (e) => {
-    if (look.active) aim(e);
+    if (look.active) drag(e);
   });
   canvas.addEventListener('pointerup', (e) => {
     if (e.button === 2) look.active = false;

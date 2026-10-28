@@ -54,6 +54,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   if (plane.consciousness < 1) {
     drawText(ctx, 'PLT', x, y, '#c8d0c0');
     bar(ctx, x + 14, y + 1, 30, plane.consciousness, plane.consciousness < 0.4 ? '#e05040' : '#80c0e0');
+    y += 7;
   }
 
   const blink = Math.floor(performance.now() / 300) % 2 === 0;
@@ -69,7 +70,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   else if (plane.state === 'ground') groundMessage(ctx, world, plane, centre);
 
   serviceBar(ctx, world, plane, W);
-  damageReport(ctx, plane, W, H);
+  damageReport(ctx, plane, x, y + 4); // under the plane stats
 
   if (showHelp) {
     const lines = [
@@ -77,7 +78,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
       'W/S  THROTTLE',
       'L.SHIFT  ROLL / TURN ON GROUND',
       'SPACE  GUNS   E  BOMBS   G  GEAR',
-      'RIGHT MOUSE  LOOK AROUND',
+      'HOLD RIGHT MOUSE + DRAG  LOOK AROUND',
       'M  MUTE   T  TUNING   H  HIDE HELP',
     ];
     lines.forEach((l, i) => drawText(ctx, l, 6, H - 8 - (lines.length - 1 - i) * 7, '#f0f0e0'));
@@ -135,19 +136,17 @@ function damageLines(plane) {
   return lines;
 }
 
-function damageReport(ctx, plane, W, H) {
+function damageReport(ctx, plane, x, y) {
   if (plane.state === 'dead') return;
   const lines = damageLines(plane);
   if (!lines.length) return;
   const widest = Math.max(textWidth('DAMAGE REPORT'), ...lines.map(([t]) => textWidth(t)));
-  const x = W - widest - 8;
-  let y = H - 8 - lines.length * 7 - 8;
   ctx.fillStyle = 'rgba(10,8,6,0.45)';
   ctx.fillRect(x - 3, y - 3, widest + 6, lines.length * 7 + 13);
   drawText(ctx, 'DAMAGE REPORT', x, y, '#c8c0a8');
   y += 9;
   for (const [text, colour] of lines) {
-    drawText(ctx, text, W - textWidth(text) - 8, y, colour);
+    drawText(ctx, text, x, y, colour);
     y += 7;
   }
 }

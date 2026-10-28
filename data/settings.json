@@ -11,7 +11,8 @@
     "zoomSpeed": 1.2,
     "lookRange": 0.33,
     "lookSpeed": 4.5,
-    "lookZoom": 0.12
+    "lookZoom": 0.12,
+    "lookSensitivity": 200
   },
   "audio": {
     "master": 0.25,

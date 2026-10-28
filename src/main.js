@@ -23,7 +23,7 @@ const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', con
 addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'uk', controller: 'bot:target' });
 const renderer = createRenderer(canvas, world, content);
 const keyboard = createKeyboard();
-const look = createMouseLook(canvas);
+const look = createMouseLook(canvas, content.settings.camera);
 
 let showHelp = true;
 let paused = false;
