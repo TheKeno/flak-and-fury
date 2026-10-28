@@ -807,10 +807,16 @@ export function createRenderer(canvas, world, assets) {
       }
       drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight });
       drawMessages();
-      if (focus && radar.belowRadar(focus)) {
-        const label = 'BELOW RADAR';
-        drawText(hud, label, SCOPE.x + Math.round((SCOPE.w - textWidth(label)) / 2), SCOPE.y + SCOPE.h + 2, '#8fe8a0');
-      }
+      // Under the scope: the state of your own radar, then whether you're under the enemy's.
+      const labels = [];
+      if (radar.health <= 0) {
+        if (Math.floor(performance.now() / 500) % 2) labels.push(['NO SIGNAL - RADAR STATION LOST', '#ff7050']);
+        else labels.push(['', '']);
+      } else if (radar.health < 1) labels.push(['RADAR DAMAGED', '#e8b060']);
+      if (focus && radar.belowRadar(focus)) labels.push(['BELOW RADAR', '#8fe8a0']);
+      labels.forEach(([label, colour], i) => {
+        if (label) drawText(hud, label, SCOPE.x + Math.round((SCOPE.w - textWidth(label)) / 2), SCOPE.y + SCOPE.h + 2 + i * 7, colour);
+      });
       radar.update(dt, focus);
 
       const k = canvas.width / bw;

@@ -48,7 +48,8 @@
   "radar": {
     "sweepTime": 2.5,
     "afterglow": 3.2,
-    "lowGap": 60
+    "lowGap": 60,
+    "dropout": 0.6
   },
   "hud": {
     "lastFlightTime": 8

@@ -83,6 +83,7 @@ const RADAR_FIELDS = [
   ['sweepTime', 'Sweep time', 0.3, 8, 0.1, 'Seconds for the radar beam to cross the map. Contacts only update when the beam passes them.'],
   ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
   ['lowGap', 'Low-level gap', 0, 150, 5, 'Planes flying lower than this above the ground drop off the radar, friend or foe (you too).'],
+  ['dropout', 'Damaged: echoes lost', 0, 1, 0.05, 'Share of echoes a radar loses when its station is nearly destroyed (less when lightly damaged). Damage also adds noise, blotches, a stuttering sweep and misplaced echoes.'],
 ];
 const GROUND_FIELDS = [
   ['hp', 'Hit points', 1, 400, 1, 'Damage it takes to destroy (infantry: per soldier). Applies when targets are restored.'],

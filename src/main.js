@@ -74,6 +74,7 @@ function causeText(e) {
   return (CAUSES[e.cause] ?? CAUSES.ground)(name, e);
 }
 
+let radarWarnAt = 0;
 function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
@@ -97,6 +98,18 @@ function handleEvents() {
     }
     if (e.by === player.id && e.type === 'groundDestroyed') {
       renderer.message(`${world.groundDefs[e.kind].name.toUpperCase()} DESTROYED +${e.points}`, '#e8c860');
+    }
+    if (e.type === 'groundDestroyed' && e.kind === 'radar') {
+      const ours = world.ground.find((o) => o.id === e.id)?.team === player.team;
+      if (ours) renderer.message('OUR RADAR STATION IS DOWN!', '#ff8070');
+      else if (e.by !== player.id) renderer.message('ENEMY RADAR DESTROYED', '#e8c860');
+    }
+    // Warn (not too often) when your own radar station is under attack.
+    if (e.type === 'groundHit' && e.kind === 'radar' && performance.now() > radarWarnAt) {
+      if (world.ground.find((o) => o.id === e.id)?.team === player.team) {
+        renderer.message('RADAR STATION UNDER ATTACK', '#ffb070');
+        radarWarnAt = performance.now() + 10000;
+      }
     }
     if (e.by === player.id && e.type === 'squadWiped') renderer.message('INFANTRY SQUAD WIPED OUT', '#e8c860');
     if (e.type === 'shotDown') {

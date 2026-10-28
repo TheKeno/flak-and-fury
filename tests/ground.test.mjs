@@ -106,3 +106,19 @@ test('flying into a watchtower wrecks the plane', () => {
   assert.equal(crash.what, 'Watchtower');
   assert.ok(tower.hp < tower.maxHp);
 });
+
+test('radar health follows the radar station and fails when it is destroyed', async () => {
+  const { radarHealth, damageGround } = await import('../src/sim/ground.js');
+  const { world, player } = makeWorld();
+  const station = find(world, 'radar', 1);
+  assert.equal(radarHealth(world, 1), 1);
+  damageGround(world, station, station.maxHp / 2, player.id);
+  assert.equal(radarHealth(world, 1), 0.5);
+  assert.equal(radarHealth(world, 0), 1, 'the other side is unaffected');
+  const [, , , top] = groundBox(world, station);
+  world.bombsInFlight.push({ id: world.nextId++, owner: player.id, team: 0, def: world.weapons.sc_250, x: station.x, y: top + 40, vx: 0, vy: -50 });
+  run(world, 2);
+  assert.equal(station.alive, false);
+  assert.equal(radarHealth(world, 1), 0);
+  assert.equal(player.score, world.groundDefs.radar.points);
+});

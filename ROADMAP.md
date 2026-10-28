@@ -48,7 +48,8 @@ later.
    - ✓ Flak (slow, accurate, high ceiling, sets you on fire: fly low), MG nests (fast bursts, low
      ceiling: fly high), infantry (weak, dangerous in groups), tents and towers as targets. They
      shoot at planes in the air and on the ground.
-   - **Radar stations** as bombable targets: destroy the enemy's and their scope goes dark; lose yours
+   - ✓ **Radar stations** as bombable targets: damage degrades the scope (noise, blotches, stuttering
+     sweep, lost and misplaced echoes); destroy the enemy's and their scope goes dark; lose yours
      and you're blind.
    - ✓ Map format switched to LDtk projects (`maps/*.ldtk`) with an importer; destructible ground
      targets with points and wrecks; planes crash into towers, buildings and masts.

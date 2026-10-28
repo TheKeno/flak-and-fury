@@ -6,7 +6,12 @@
 // Ground radar can't see aircraft flying very low (the low-level gap that Chain Home suffered from):
 // any plane hugging the ground, friend or foe, drops off the scope when the beam next passes it.
 //
+// The scope is fed by your side's radar station. As the station is damaged the picture degrades: more
+// noise, blotches on the phosphor, a stuttering sweep, echoes that drop out or show in the wrong place.
+// When it's destroyed the tube collapses to a dot and only static is left.
+//
 // Drawn into its own small canvas, then scaled up smoothly onto the screen for a soft CRT glow.
+import { radarHealth } from '../sim/ground.js';
 
 export const SCOPE = { x: 132, y: 2, w: 216, h: 24 }; // position on the 480x270 HUD
 const RES = 4; // scope canvas pixels per HUD pixel
@@ -31,6 +36,10 @@ export function createRadar(world, cfg) {
 
   let sweep = 0; // beam position across the map, 0..1
   let sweeps = 0;
+  let health = 1; // of your side's radar, 0..1
+  let stall = 0; // seconds the damaged beam hangs before moving on
+  let lostAt = null; // time (s) the radar failed, for the tube-collapse animation
+  let blotches = []; // burned or glowing patches on a damaged tube
   const plots = new Map(); // plane id -> { x, y, glow, friendly, mine }
 
   // Static parts (bezel, faint grid, ground line) drawn once.
@@ -88,6 +97,63 @@ export function createRadar(world, cfg) {
     }
   }
 
+  // Blotches on the tube: burned dark patches and smeary bright ones that drift and come and go, plus
+  // now and then a band of interference rolling through the picture.
+  function drawDamage(t, d) {
+    const want = Math.round(d * 9);
+    if (blotches.length !== want || Math.random() < 0.004) {
+      blotches = Array.from({ length: want }, () => ({
+        x: pad + Math.random() * (cw - pad * 2),
+        y: pad + Math.random() * (ch - pad * 2),
+        r: RES * (3 + Math.random() * 9),
+        dark: Math.random() < 0.55,
+        drift: (Math.random() - 0.5) * RES * 3,
+        phase: Math.random() * 6,
+      }));
+    }
+    for (const b of blotches) {
+      const x = b.x + Math.sin(t * 0.4 + b.phase) * b.drift;
+      const a = (b.dark ? 0.55 : 0.14 + 0.1 * Math.sin(t * 3 + b.phase)) * (0.5 + 0.5 * d);
+      const g = ctx.createRadialGradient(x, b.y, 0, x, b.y, b.r);
+      g.addColorStop(0, b.dark ? `rgba(0,0,0,${a.toFixed(3)})` : rgba(a));
+      g.addColorStop(1, b.dark ? 'rgba(0,0,0,0)' : rgba(0));
+      ctx.fillStyle = g;
+      ctx.fillRect(x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+    }
+    if (Math.sin(t * 1.7) + Math.sin(t * 4.3) > 2 - d * 1.6) {
+      const y = ((t * 90) % (ch + 40)) - 20;
+      ctx.fillStyle = rgba(0.06 + 0.12 * d);
+      ctx.fillRect(pad, y, cw - pad * 2, RES * (1 + 2 * Math.random()));
+    }
+  }
+
+  // Radar lost: the picture collapses to a bright line, then a dot, then the tube shows only faint
+  // static and the odd flash as it tries to come back.
+  function drawDead(t) {
+    if (lostAt === null) lostAt = t;
+    const since = t - lostAt;
+    ctx.fillStyle = 'rgba(2,6,3,0.85)';
+    ctx.fillRect(pad, pad, cw - pad * 2, ch - pad * 2);
+    if (since < 0.9) {
+      const k = since / 0.9;
+      const w = (cw - pad * 2) * Math.max(0.01, 1 - k * 1.6);
+      const h = RES * Math.max(0.4, 3 * (1 - k * 3));
+      ctx.fillStyle = rgba(Math.max(0, 1 - k * 0.8));
+      ctx.fillRect(cw / 2 - w / 2, ch / 2 - h / 2, w, h);
+    }
+    for (let i = 0; i < 140; i++) {
+      ctx.fillStyle = rgba(Math.random() * 0.12);
+      ctx.fillRect(pad + Math.random() * (cw - pad * 2), pad + Math.random() * (ch - pad * 2), RES * 0.5, RES * 0.5);
+    }
+    if (Math.random() < 0.02) {
+      ctx.fillStyle = rgba(0.08);
+      ctx.fillRect(pad, pad + Math.random() * (ch - pad * 2), cw - pad * 2, RES);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    for (let y = 0; y < ch; y += 3) ctx.fillRect(0, y, cw, 1);
+    return canvas;
+  }
+
   return {
     canvas,
     // Plane ids currently plotted (for tests).
@@ -100,9 +166,27 @@ export function createRadar(world, cfg) {
     // Is this plane currently below the enemy's radar?
     belowRadar: (p) => p.state === 'air' && p.y - world.terrain.heightAt(p.x) < cfg.lowGap,
 
+    get health() {
+      return health;
+    },
+
     update(dt, focus) {
+      health = focus ? radarHealth(world, focus.team) : 1;
+      const d = 1 - health;
+      if (health <= 0) {
+        // No signal: no sweep, and the last echoes die away quickly.
+        for (const [id, plot] of plots) if ((plot.glow -= dt * 2.5) <= 0) plots.delete(id);
+        return;
+      }
+      lostAt = null;
+      // A damaged set loses its timing now and then: the beam hangs, then lurches on.
+      const hanging = stall > 0;
+      if (hanging) {
+        stall -= dt;
+        if (stall <= 0) sweep = (sweep + Math.random() * 0.06 * d) % 1;
+      } else if (Math.random() < d * d * dt * 2.5) stall = (0.1 + Math.random() * 0.5) * d;
       const prev = sweep;
-      sweep += dt / Math.max(0.2, cfg.sweepTime);
+      if (!hanging) sweep += dt / Math.max(0.2, cfg.sweepTime);
       const wrapped = sweep >= 1;
       if (wrapped) {
         sweep -= 1;
@@ -119,7 +203,11 @@ export function createRadar(world, cfg) {
           plots.delete(p.id);
           continue;
         }
-        plots.set(p.id, { x: p.x, y: p.y, glow: 1, friendly, mine: p === focus, seed: Math.random() * 10 });
+        // Damage loses some echoes altogether and throws others off.
+        if (Math.random() < d * cfg.dropout) continue;
+        const ex = p.x + (Math.random() - 0.5) * d * 160;
+        const ey = p.y + (Math.random() - 0.5) * d * 70;
+        plots.set(p.id, { x: ex, y: ey, glow: 1, friendly, mine: p === focus, seed: Math.random() * 10 });
       }
       for (const [id, plot] of plots) {
         plot.glow -= dt / Math.max(0.2, cfg.afterglow);
@@ -129,12 +217,15 @@ export function createRadar(world, cfg) {
 
     draw(t) {
       ctx.drawImage(back, 0, 0);
+      if (health <= 0) return drawDead(t);
+      const d = 1 - health;
+      const bright = 1 - 0.45 * d; // a failing set gives a dimmer picture
       drawGround();
 
       // Echoes: soft blobs that flare when swept and fade on the phosphor. Friendlies pulse (IFF).
       for (const plot of plots.values()) {
         const pulse = plot.friendly ? 0.55 + 0.45 * Math.sin(t * 2 * Math.PI * 2 + plot.seed) : 1;
-        const a = Math.max(0, plot.glow) ** 1.3 * pulse;
+        const a = Math.max(0, plot.glow) ** 1.3 * pulse * bright;
         const x = toX(plot.x) + (Math.random() - 0.5) * RES * 0.4;
         const y = toY(plot.y) + (Math.random() - 0.5) * RES * 0.4;
         const r = RES * (2 + plot.glow);
@@ -157,22 +248,25 @@ export function createRadar(world, cfg) {
       const trail = cw * 0.07;
       const tg = ctx.createLinearGradient(bx - trail, 0, bx, 0);
       tg.addColorStop(0, rgba(0));
-      tg.addColorStop(1, rgba(0.16));
+      tg.addColorStop(1, rgba(0.16 * bright));
       ctx.fillStyle = tg;
       ctx.fillRect(bx - trail, pad, trail, ch - pad * 2);
-      ctx.fillStyle = rgba(0.55);
+      ctx.fillStyle = rgba((stall > 0 ? 0.8 : 0.55) * bright);
       ctx.fillRect(bx - RES * 0.3, pad, RES * 0.6, ch - pad * 2);
 
       // "Grass": the flickering noise trace along the baseline, plus stray speckles.
+      // Damage makes it taller and adds far more speckle.
       ctx.fillStyle = rgba(0.35);
       for (let x = pad; x < cw - pad; x += RES) {
-        const h = Math.random() ** 3 * RES * 2.5;
+        const h = Math.random() ** (3 - 1.5 * d) * RES * (2.5 + 6 * d);
         ctx.fillRect(x, ch - pad - h, RES * 0.5, h);
       }
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 6 + 90 * d; i++) {
         ctx.fillStyle = rgba(Math.random() * 0.25);
         ctx.fillRect(pad + Math.random() * (cw - pad * 2), pad + Math.random() * (ch - pad * 2), RES * 0.6, RES * 0.6);
       }
+
+      if (d > 0.05) drawDamage(t, d);
 
       // Scanlines and a slight overall flicker.
       ctx.fillStyle = 'rgba(0,0,0,0.22)';

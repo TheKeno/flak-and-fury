@@ -61,6 +61,10 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 
 `radar`: `sweepTime` (seconds for the beam to cross the map), `afterglow` (seconds a plot glows),
 `lowGap` (planes lower than this above the ground drop off the radar, friend or foe).
+The scope is fed by your side's radar station: as it's damaged the picture gets noisy and blotchy,
+the sweep stutters and echoes drift or vanish (`dropout` = share of echoes lost when it's nearly
+destroyed); when it's destroyed the scope goes dark for the rest of the match. The station's hit
+points are under Ground targets.
 
 `collisions`: how deadly mid-air collisions are. Head-on above `headOnSpeed` closing speed, or any
 angle above `fatalSpeed`, kills both planes. Below that, `hardSpeed` separates a graze from a hard

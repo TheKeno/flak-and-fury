@@ -32,6 +32,15 @@ export function groundBox(world, obj) {
   return [obj.x - half, y - 1, obj.x + half, y + obj.def.height];
 }
 
+// How well a team's radar works, 0..1: the scope is fed by the best of its radar stations, so it
+// degrades as they are damaged and fails when the last one is destroyed. A team the map gives no
+// radar station has a radar that can't be knocked out.
+export function radarHealth(world, team) {
+  const stations = world.ground.filter((o) => o.type === 'radar' && o.team === team);
+  if (!stations.length) return 1;
+  return Math.max(...stations.map((o) => (o.alive ? Math.max(0, o.hp / o.maxHp) : 0)));
+}
+
 const isEnemy = (world, obj, team) => world.rules.friendlyFire || obj.team !== team;
 
 function award(world, byId, obj, points) {
@@ -133,7 +142,10 @@ export function blastGround(world, x, y, def, ownerId, team) {
     }
     const [l, b, r, t] = groundBox(world, obj);
     const d = Math.hypot(x - clamp(x, l, r), y - clamp(y, b, t));
-    if (d < def.blastRadius) damageGround(world, obj, def.blastDamage * (1 - d / def.blastRadius), ownerId);
+    if (d >= def.blastRadius) continue;
+    const dmg = def.blastDamage * (1 - d / def.blastRadius);
+    world.events.push({ type: 'groundHit', id: obj.id, kind: obj.type, x: clamp(x, l, r), y: clamp(y, b, t), damage: dmg });
+    damageGround(world, obj, dmg, ownerId);
   }
 }
 
