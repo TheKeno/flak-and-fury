@@ -188,11 +188,16 @@ export function createRenderer(canvas, world, assets) {
     if (focus.state !== 'dead') {
       updateLook(focus, dt, look);
       updateZoom(focus, dt);
+      // Sideways the view leads where the nose points; up and down it leads along the flight path,
+      // so a stalling plane that's sinking nose-up still shows the ground it's falling towards.
+      const speed = Math.hypot(focus.vx, focus.vy);
+      const climb = speed > 20 ? focus.vy / speed : Math.sin(focus.angle);
       const targetX = Math.cos(focus.angle) * vw * camCfg.leadX;
-      const targetY = Math.sin(focus.angle) * vh * camCfg.leadY;
+      const targetY = climb * vh * camCfg.leadY;
       const k = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeed) : 1;
+      const ky = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeedY) : 1;
       cam.leadX += (targetX - cam.leadX) * k;
-      cam.leadY += (targetY - cam.leadY) * k;
+      cam.leadY += (targetY - cam.leadY) * ky;
       cam.x = focus.x + cam.leadX + cam.lookX * vw * camCfg.lookRange - vw / 2;
       cam.y = focus.y + cam.leadY + cam.lookY * vh * camCfg.lookRange - vh * camCfg.height;
       // However you look, your own plane stays on screen.

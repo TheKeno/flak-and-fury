@@ -41,8 +41,9 @@ const BOMB_FIELDS = [
 ];
 const CAMERA_FIELDS = [
   ['leadX', 'Look-ahead (sideways)', 0, 0.45, 0.01, 'How far ahead of the plane the camera looks, as a share of screen width.'],
-  ['leadY', 'Look-ahead (up/down)', 0, 0.35, 0.01, 'Vertical look-ahead when climbing or diving, as a share of screen height.'],
+  ['leadY', 'Look-ahead (up/down)', 0, 0.35, 0.01, 'How far the view leads up into a climb or down into a dive (follows your flight path), as a share of screen height.'],
   ['leadSpeed', 'Swing speed', 0.2, 6, 0.1, 'How quickly the look-ahead swings across when you change direction.'],
+  ['leadSpeedY', 'Swing speed (up/down)', 0.2, 8, 0.1, 'How quickly the view swings up into a climb or down into a dive.'],
   ['height', 'Plane height on screen', 0.2, 0.8, 0.01, 'Where the plane sits vertically (0 = bottom, 1 = top).'],
   ['lookRange', 'Mouse look: reach', 0, 0.5, 0.01, 'How far the camera slides when you hold right mouse and point (share of the view).'],
   ['lookSensitivity', 'Mouse look: drag for full look', 40, 600, 10, 'How far (screen pixels) you drag with right mouse held to turn your head all the way. Lower = more sensitive.'],

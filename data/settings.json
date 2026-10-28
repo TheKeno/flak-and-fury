@@ -2,8 +2,9 @@
   "_notes": "Camera and audio settings. Editable live in the game's tuning panel (press T).",
   "camera": {
     "leadX": 0.3,
-    "leadY": 0.12,
+    "leadY": 0.3,
     "leadSpeed": 2,
+    "leadSpeedY": 3,
     "height": 0.45,
     "zoomMax": 1.35,
     "zoomStartSpeed": 100,
