@@ -22,6 +22,8 @@ const BELLY_HEIGHT = 2.5; // pivot height when lying on the belly
 const BELLY_FRICTION = 55;
 const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the normal landing speed
 const STRANDED_TIME = 5; // seconds stopped away from home before the plane is recovered
+const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
+const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
 
 export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false });
 
@@ -254,20 +256,48 @@ function stepGround(p, cmd, world, dt) {
 
   const slope = world.terrain.slopeAngle(p.x);
   const heading = facingRight ? slope : Math.PI + slope;
-  const friction = p.speed <= 0 ? 0 : p.belly ? BELLY_FRICTION : d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1);
+  const onRunway = world.map.airfields.some((a) => p.x >= a.x && p.x <= a.x + a.width);
+  const rolling = p.belly ? BELLY_FRICTION : d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1) * (onRunway ? 1 : GRASS_FRICTION);
+  const friction = p.speed <= 0 ? 0 : rolling;
   const thrust = d.thrust * p.throttle * p.power;
   p.speed += (thrust - d.dragCoef * p.speed * p.speed - friction - GRAVITY * Math.sin(heading)) * dt;
   p.speed = Math.max(0, p.speed);
 
+  const lift = p.belly ? BELLY_HEIGHT : GEAR_HEIGHT;
+  const oldX = p.x;
+  const oldY = p.y;
   p.angle = heading;
   p.x += Math.cos(heading) * p.speed * dt;
   if (p.x < EDGE_MARGIN || p.x > world.map.width - EDGE_MARGIN) {
     p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
     p.speed = 0;
   }
-  p.y = world.terrain.heightAt(p.x) + (p.belly ? BELLY_HEIGHT : GEAR_HEIGHT);
   p.vx = Math.cos(heading) * p.speed;
   p.vy = Math.sin(heading) * p.speed;
+  const groundY = world.terrain.heightAt(p.x) + lift;
+
+  // A plane isn't a car. Near take-off speed the wings carry most of its weight, so where the
+  // ground curves away (a crest, the drop at the end of the runway) it flies off along its path
+  // instead of hugging the slope. Where the ground curves sharply upwards, the gear takes the jolt,
+  // and too hard a jolt is a crash.
+  const dx = p.x - oldX;
+  if (Math.abs(dx) > 0.01) {
+    const curvature = (world.terrain.slopeAngle(p.x) - slope) / dx; // > 0: the ground bends upwards
+    const wingLift = p.belly ? 0 : clamp((p.speed / d.takeoffSpeed) ** 2, 0, 1);
+    const weight = GRAVITY * (1 - 0.9 * wingLift) * Math.cos(slope);
+    const pull = p.speed * p.speed * curvature; // acceleration needed to follow the ground
+    if (!p.belly && -pull > weight) {
+      p.state = 'air';
+      p.y = Math.max(oldY + p.vy * dt, groundY + 0.1);
+      world.events.push({ type: 'leftGround', plane: p.id, x: p.x, y: p.y, speed: p.speed });
+      return;
+    }
+    if (pull > GEAR_JOLT_LIMIT) {
+      crash(p, world);
+      return;
+    }
+  }
+  p.y = groundY;
 
   // Rotating the nose upwards at flying speed lifts off: counter-clockwise facing right, clockwise facing left.
   const noseUp = facingRight ? 1 : -1;

@@ -303,11 +303,18 @@ export function createRenderer(canvas, world, assets) {
       const [bx, by] = at([g.stowed[0] + (g.wheel[0] - g.stowed[0]) * e, g.stowed[1] + (g.wheel[1] - g.stowed[1]) * e]);
       ctx.fillStyle = '#3a3a36';
       for (let t = 0; t <= 1; t += 0.25) ctx.fillRect(Math.round(ax + (bx - ax) * t), Math.round(ay + (by - ay) * t), 1, 1);
-      const rr = Math.max(1, Math.round(g.r * SCALE));
-      ctx.fillStyle = '#1e1c1a';
-      ctx.fillRect(Math.round(bx) - rr + 1, Math.round(by) - rr + 1, rr * 2 - 1, rr * 2 - 1);
-      ctx.fillStyle = '#8a8a82';
-      ctx.fillRect(Math.round(bx), Math.round(by), 1, 1);
+      // Round pixel tyre with a lighter hub.
+      const cx = Math.round(bx);
+      const cy = Math.round(by);
+      const r = g.r * SCALE + 0.5;
+      for (let dy = -Math.ceil(r); dy <= Math.ceil(r); dy++) {
+        for (let dx = -Math.ceil(r); dx <= Math.ceil(r); dx++) {
+          const d2 = dx * dx + dy * dy;
+          if (d2 > r * r) continue;
+          ctx.fillStyle = d2 <= (r * 0.45) ** 2 ? '#8a8a82' : d2 <= (r * 0.6) ** 2 ? '#4a4844' : '#1e1c1a';
+          ctx.fillRect(cx + dx, cy + dy, 1, 1);
+        }
+      }
     }
   }
 
