@@ -143,6 +143,17 @@ export function createSoundscape(mixer, world) {
         case 'roll':
           sfx.rollWhoosh(mixer, where);
           break;
+        case 'gearMove': {
+          // Run the pump for as long as the gear still has to travel.
+          const travel = p ? (e.down ? 1 - p.gear : p.gear) * (p.def.gearTime ?? 1.6) : 1.6;
+          sfx.gearMotor(mixer, where, Math.max(0.2, travel), e.down);
+          break;
+        }
+        case 'gearLocked':
+          // Up: one solid clunk into the wing. Down: the lock pins snapping home.
+          sfx.play(mixer, voices.thunk, where, { gain: mine ? 0.45 : 0.6, rate: 0.85 });
+          if (e.down) sfx.play(mixer, voices.clank, where, { gain: 0.25, rate: 0.7, offset: 0.06 });
+          break;
         case 'engineStart':
           engines.get(e.plane)?.start();
           break;

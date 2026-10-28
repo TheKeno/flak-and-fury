@@ -281,21 +281,23 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // Main wheels and tail wheel, down on the ground and when flying low and slow (about to land).
+  // Main wheels and tail wheel. They're drawn behind the plane, so as the gear retracts (p.gear 1 -> 0)
+  // the wheels slide up along their legs and disappear into the wing and fuselage.
   const GEAR = [
-    { leg: [3, -2], wheel: [3.5, -3.6], r: 1.4 },
-    { leg: [-10, -0.5], wheel: [-10.5, -1.6], r: 0.8 },
+    { leg: [3, -2], wheel: [3.5, -3.6], stowed: [3.5, -0.8], r: 1.4 },
+    { leg: [-10, -0.5], wheel: [-10.5, -1.6], stowed: [-10.5, -0.1], r: 0.8, tail: true },
   ];
   function drawGear(p, sx, sy) {
-    const low = p.y - world.terrain.heightAt(p.x) < 30 && p.speed < 110;
-    if (p.state !== 'ground' && !low) return;
     const c = Math.cos(p.angle);
     const s = Math.sin(p.angle);
     const f = p.inverted ? -1 : 1;
     const at = ([lx, ly]) => [sx + (c * lx - s * ly * f) * SCALE, sy - (s * lx + c * ly * f) * SCALE];
     for (const g of GEAR) {
+      const out = g.tail && p.def.fixedTailWheel ? 1 : p.gear;
+      if (out <= 0.02) continue;
+      const e = out * out * (3 - 2 * out); // ease in and out
       const [ax, ay] = at(g.leg);
-      const [bx, by] = at(g.wheel);
+      const [bx, by] = at([g.stowed[0] + (g.wheel[0] - g.stowed[0]) * e, g.stowed[1] + (g.wheel[1] - g.stowed[1]) * e]);
       ctx.fillStyle = '#3a3a36';
       for (let t = 0; t <= 1; t += 0.25) ctx.fillRect(Math.round(ax + (bx - ax) * t), Math.round(ay + (by - ay) * t), 1, 1);
       const rr = Math.max(1, Math.round(g.r * SCALE));

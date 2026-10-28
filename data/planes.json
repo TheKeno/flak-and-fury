@@ -35,6 +35,8 @@
       0,
       -4
     ],
+    "gearTime": 1.6,
+    "fixedTailWheel": false,
     "armament": {
       "guns": [
         {
@@ -92,6 +94,8 @@
       0,
       -4
     ],
+    "gearTime": 1.8,
+    "fixedTailWheel": true,
     "armament": {
       "guns": [
         {

@@ -11,6 +11,12 @@ const STALL_RECOVERY = 1.15; // stall clears at 115% of stall speed
 const EDGE_MARGIN = 12;
 const LOW_FUEL = 0.15; // warning level
 const STARVE_FUEL = 0.04; // below this the engine coughs and cuts in and out
+// Landing gear comes up once climbing away and goes down when low and slow (with a gap between the
+// two thresholds so it doesn't flip back and forth).
+const GEAR_UP_ALT = 60;
+const GEAR_UP_SPEED = 120;
+const GEAR_DOWN_ALT = 25;
+const GEAR_DOWN_SPEED = 105;
 
 export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false });
 
@@ -59,6 +65,8 @@ export function createPlane(id, def, { team, nation, seats }) {
     lowFuelWarned: false,
     power: 1, // share of engine power reaching the propeller
     service: null, // ground crew at work: { wait, phase, rearmT }
+    gear: 1, // 0 = retracted, 1 = down and locked
+    gearDown: true, // where the gear is heading
   };
 }
 
@@ -84,6 +92,8 @@ export function spawnAtAirfield(p, world) {
   p.engineRunning = true;
   p.starved = p.lowFuelWarned = false;
   p.service = null;
+  p.gear = 1;
+  p.gearDown = true;
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
 }
@@ -132,6 +142,23 @@ function updateEngine(p, world, dt) {
   }
   p.rpm += (target - p.rpm) * Math.min(1, dt * (firing ? 2.2 : 0.8));
   p.load += (p.throttle * (firing ? 1 : 0) - p.load) * Math.min(1, dt * 5);
+}
+
+function updateGear(p, world, dt) {
+  const alt = p.y - world.terrain.heightAt(p.x) - GEAR_HEIGHT;
+  let want = p.gearDown;
+  if (p.state === 'ground') want = true;
+  else if (p.gearDown && (alt > GEAR_UP_ALT || p.speed > GEAR_UP_SPEED)) want = false;
+  else if (!p.gearDown && alt < GEAR_DOWN_ALT && p.speed < GEAR_DOWN_SPEED) want = true;
+  if (want !== p.gearDown) {
+    p.gearDown = want;
+    world.events.push({ type: 'gearMove', plane: p.id, down: want, x: p.x, y: p.y });
+  }
+  const target = p.gearDown ? 1 : 0;
+  if (p.gear === target) return;
+  const step = dt / (p.def.gearTime ?? 1.6);
+  p.gear = p.gearDown ? Math.min(1, p.gear + step) : Math.max(0, p.gear - step);
+  if (p.gear === target) world.events.push({ type: 'gearLocked', plane: p.id, down: p.gearDown, x: p.x, y: p.y });
 }
 
 function updateConsciousness(p, cmd, world, dt) {
@@ -293,6 +320,7 @@ export function stepPlane(p, cmd, world, dt) {
   else stepAir(p, cmd, world, dt);
   if (p.state !== 'dead') updateWeapons(p, cmd, world, dt);
   if (p.state !== 'dead') updateServicing(p, world, dt);
+  if (p.state !== 'dead') updateGear(p, world, dt);
 
   p.prevRoll = cmd.roll;
 }

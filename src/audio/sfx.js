@@ -92,6 +92,30 @@ export function touchdown(mixer, where, speed) {
   noiseBurst(mixer, dest, at + 0.18, 0.08, { type: 'bandpass', from: 2200, to: 1500, q: 3, vol: 0.2 * v });
 }
 
+// Landing gear moving: a hydraulic pump whine with hiss. Raising, the pump works harder and the pitch
+// climbs; lowering, gravity helps and it sags.
+export function gearMotor(mixer, where, dur, down) {
+  const { ctx } = mixer;
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.05);
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(down ? 210 : 150, at);
+  osc.frequency.linearRampToValueAtTime(down ? 160 : 235, at + dur);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 650;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(0.11, at + 0.12);
+  g.gain.setValueAtTime(0.11, at + dur - 0.15);
+  g.gain.linearRampToValueAtTime(0, at + dur);
+  osc.connect(lp).connect(g).connect(dest);
+  osc.start(at);
+  osc.stop(at + dur + 0.05);
+  noiseBurst(mixer, dest, at, dur, { type: 'bandpass', from: 2400, to: 1800, q: 2, vol: 0.06, attack: 0.15 });
+}
+
 // Fuel catching fire: a soft whoomph.
 export function ignite(mixer, where) {
   const at = mixer.now + where.delay;
