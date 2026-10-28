@@ -137,7 +137,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, snapped: false };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -171,9 +171,14 @@ export function createRenderer(canvas, world, assets) {
     let tx = look?.active ? look.x : 0;
     const ty = look?.active ? -look.y : 0;
     if (tx * facing < 0) tx *= focus.def.rearView ?? 1;
-    const k = 1 - Math.exp(-dt * camCfg.lookSpeed);
-    cam.lookX += (tx - cam.lookX) * k;
-    cam.lookY += (ty - cam.lookY) * k;
+    // A critically damped spring rather than a straight chase: the head starts turning slowly, builds
+    // up and settles, which feels like turning against resistance. lookSpeed is the spring's stiffness.
+    const w = camCfg.lookSpeed;
+    const step = Math.min(dt, 0.05);
+    cam.lookVX += (w * w * (tx - cam.lookX) - 2 * w * cam.lookVX) * step;
+    cam.lookVY += (w * w * (ty - cam.lookY) - 2 * w * cam.lookVY) * step;
+    cam.lookX += cam.lookVX * step;
+    cam.lookY += cam.lookVY * step;
   }
 
   function updateCamera(focus, dt, look) {
