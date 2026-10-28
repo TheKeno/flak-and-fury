@@ -8,6 +8,7 @@ export const DEFAULT_BINDINGS = {
   roll: ['ShiftLeft'],
   fire: ['Space'],
   bomb: ['KeyE'],
+  gear: ['KeyG'],
 };
 
 const held = new Set();
@@ -35,6 +36,7 @@ export function createKeyboard(bindings = DEFAULT_BINDINGS) {
         roll: any(bindings.roll),
         fire: any(bindings.fire),
         bomb: any(bindings.bomb),
+        gear: any(bindings.gear),
       };
     },
   };

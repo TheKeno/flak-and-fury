@@ -164,6 +164,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     el('label', { class: 'row select', title: 'Turn the enemy AI off or make it harmless while you test.' }, el('span', {}, 'Enemy AI'), botSelect),
     toggle('ramming', 'Mid-air collisions', 'Planes that touch both go down.'),
     toggle('friendlyFire', 'Friendly fire', 'Your rounds and bombs can hit your own side.'),
+    toggle('autoGear', 'Automatic landing gear', 'Gear raises after take-off and lowers on approach. G always overrides for the rest of the flight. Off: G only.'),
   );
 
   const cameraSection = section('Camera', true, ...CAMERA_FIELDS.map((f) => add(slider(settings.camera, f))));

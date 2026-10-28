@@ -116,6 +116,37 @@ export function gearMotor(mixer, where, dur, down) {
   noiseBurst(mixer, dest, at, dur, { type: 'bandpass', from: 2400, to: 1800, q: 2, vol: 0.06, attack: 0.15 });
 }
 
+// Belly landing impact: a heavy crunch and the propeller blades hammering the ground.
+export function bellyCrunch(mixer, where, speed) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.25);
+  const v = Math.min(1, speed / 90);
+  tone(mixer, dest, at, 0.35, { from: 85, to: 35, vol: 0.9 * v + 0.3 });
+  noiseBurst(mixer, dest, at, 0.5, { from: 2500, to: 300, vol: 0.8 * v + 0.2 });
+  for (let i = 0; i < 4; i++) noiseBurst(mixer, dest, at + 0.03 + i * 0.045, 0.05, { type: 'bandpass', from: 1500, to: 900, q: 3, vol: 0.5 });
+  mixer.duck(0.4, 0.1, 0.6, at);
+}
+
+// Cockpit warning horn: pulsing, impossible to ignore.
+export function gearHorn(mixer) {
+  const { ctx } = mixer;
+  const at = mixer.now;
+  const o = ctx.createOscillator();
+  o.type = 'square';
+  o.frequency.value = 520;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 1800;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(0.07, at + 0.01);
+  g.gain.setValueAtTime(0.07, at + 0.22);
+  g.gain.linearRampToValueAtTime(0, at + 0.25);
+  o.connect(lp).connect(g).connect(mixer.buses.body);
+  o.start(at);
+  o.stop(at + 0.3);
+}
+
 // Fuel catching fire: a soft whoomph.
 export function ignite(mixer, where) {
   const at = mixer.now + where.delay;

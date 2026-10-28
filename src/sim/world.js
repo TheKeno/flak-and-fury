@@ -12,7 +12,8 @@ export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
 
 // bots: 'on' (fly and fight), 'passive' (fly but never shoot or bomb), 'off' (stay parked).
-export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on' };
+// autoGear: landing gear raises and lowers itself (G still overrides).
+export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', autoGear: true };
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 export function createWorld({ map, planeDefs, weapons, rules = {}, servicing = { ...DEFAULT_SERVICING } }) {

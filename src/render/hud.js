@@ -74,6 +74,14 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
     drawText(ctx, `BMB ${plane.bombs.count}`, x, y, plane.bombs.count > 0 ? '#e8f0e0' : '#808880');
     y += 7;
   }
+  // Gear lamp: green down and locked, amber moving, red up.
+  const gearText = plane.belly ? 'BELLY' : plane.gear >= 1 ? 'DOWN' : plane.gear <= 0 ? 'UP' : 'MOVING';
+  const gearColour = plane.belly ? '#e05040' : plane.gear >= 1 ? '#80d070' : plane.gear <= 0 ? '#d06050' : '#e0b040';
+  drawText(ctx, 'GEAR', x, y, '#c8d0c0');
+  ctx.fillStyle = gearColour;
+  ctx.fillRect(x + 18, y + 1, 3, 3);
+  drawText(ctx, gearText + (plane.gearManual ? ' (MAN)' : ''), x + 24, y, gearColour);
+  y += 7;
   drawText(ctx, `KILLS ${plane.kills}  LOST ${plane.deaths}`, x, y, '#e8c860');
   y += 8;
   if (plane.consciousness < 1) {
@@ -88,6 +96,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   else if (plane.blackout) centre('BLACKOUT - TAP A/D!', 60, blink ? '#ff6050' : '#ffb0a0');
   else if (plane.y > world.map.ceiling) centre('TOO HIGH', 60, blink ? '#ffd060' : '#fff0c0');
   else if (plane.stalled && plane.state === 'air') centre('STALL', 60, blink ? '#ff6050' : '#ffc0b0');
+  else if (plane.gearWarning) centre('GEAR UP!  (G)', 60, blink ? '#ff5040' : '#ffd0b0');
   else if (!plane.engineRunning && plane.state === 'air') centre('ENGINE OUT - GLIDE HOME!', 60, blink ? '#ff9050' : '#ffd0b0');
   else if (plane.state === 'ground') groundMessage(ctx, world, plane, centre);
 
@@ -98,7 +107,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
       'A/D  ROTATE LEFT / RIGHT',
       'W/S  THROTTLE',
       'L.SHIFT  ROLL / TURN ON GROUND',
-      'SPACE  GUNS   E  BOMBS',
+      'SPACE  GUNS   E  BOMBS   G  GEAR',
       'M  MUTE   T  TUNING   H  HIDE HELP',
     ];
     lines.forEach((l, i) => drawText(ctx, l, 6, H - 8 - (lines.length - 1 - i) * 7, '#f0f0e0'));
@@ -108,7 +117,11 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
 function groundMessage(ctx, world, plane, centre) {
   const home = ownAirfieldAt(world, plane);
   if (plane.service) return; // the service bar says what's happening
-  if (!plane.engineRunning) centre(home ? 'OUT OF FUEL - THROTTLE TO IDLE FOR THE CREW' : 'OUT OF FUEL - STRANDED', 60, '#ffb090');
+  if (plane.strandedTimer > 0) {
+    const left = Math.max(1, Math.ceil(5 - plane.strandedTimer));
+    centre(`${plane.belly ? 'ON YOUR BELLY' : 'OUT OF FUEL'} - STRANDED. RECOVERY IN ${left}`, 60, '#ffb090');
+  } else if (plane.belly && !home) centre('BELLY LANDING!', 60, '#ff9070');
+  else if (!plane.engineRunning) centre(home ? 'ENGINE STOPPED - THROTTLE TO IDLE FOR THE CREW' : 'OUT OF FUEL', 60, '#ffb090');
   else if (home && plane.speed < 2 && plane.throttle >= 0.05) centre('THROTTLE TO IDLE (S) FOR GROUND CREW', 60, '#f0f0e0');
   else if (plane.speed < 1 && plane.throttle < 0.05) centre('HOLD W TO OPEN THROTTLE', 60, '#f0f0e0');
 }

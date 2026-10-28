@@ -51,6 +51,8 @@ function handleEvents() {
       if (e.type === 'fuelLow') renderer.message('LOW FUEL - HEAD HOME', '#ffb070');
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
+      if (e.type === 'bellyLanding') renderer.message(e.collapsed ? 'GEAR COLLAPSED!' : 'BELLY LANDING!', '#ff9070');
+      if (e.type === 'recovered') renderer.message('RECOVERED TO BASE', '#f0e8c0');
     }
     if (e.type === 'shotDown') {
       if (e.by === player.id) renderer.message('ENEMY SHOT DOWN!', '#e8c860');

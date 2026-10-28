@@ -12,8 +12,9 @@ export const ownAirfieldAt = (world, p) =>
   world.map.airfields.find((a) => a.team === p.team && p.x >= a.x && p.x <= a.x + a.width);
 
 function needs(p, serviced) {
-  if (p.hp < p.def.hp || p.engineDamage > 0 || p.burning) return 'repair';
-  if (p.fuel < (serviced ? TOP_UP_BELOW : FULL_TANK)) return 'refuel';
+  if (p.hp < p.def.hp || p.engineDamage > 0 || p.burning || p.belly) return 'repair';
+  // A stopped engine is started at the end of refuelling, even when the tank is already full.
+  if (p.fuel < (serviced ? TOP_UP_BELOW : FULL_TANK) || !p.engineRunning) return 'refuel';
   const fullBombs = p.def.armament?.bombs?.count ?? 0;
   if (p.guns.some((g) => g.ammo < g.def.ammo * g.count) || (p.bombs && p.bombs.count < fullBombs)) return 'rearm';
   return 'done';
@@ -36,7 +37,9 @@ export function serviceProgress(p, world) {
 
 export function updateServicing(p, world, dt) {
   const cfg = world.servicing;
-  const parked = p.state === 'ground' && !p.dying && p.speed < 2 && p.throttle < 0.05 && ownAirfieldAt(world, p);
+  // With the engine stopped the throttle does nothing, so it needn't be at idle.
+  const idle = p.throttle < 0.05 || !p.engineRunning;
+  const parked = p.state === 'ground' && !p.dying && p.speed < 2 && idle && ownAirfieldAt(world, p);
   if (!parked) {
     if (p.service && p.service.phase && p.service.phase !== 'done') world.events.push({ type: 'serviceAbort', plane: p.id });
     p.service = null;
@@ -63,6 +66,13 @@ export function updateServicing(p, world, dt) {
     p.burning = false;
     p.hp = Math.min(p.def.hp, p.hp + cfg.repairPerSec * dt);
     p.engineDamage = Math.max(0, p.engineDamage - (cfg.repairPerSec / p.def.hp) * dt);
+    // Last job after a belly landing: jack the plane up, new propeller, gear down and locked.
+    if (p.belly && p.hp >= p.def.hp && p.engineDamage <= 0) {
+      p.belly = false;
+      p.gear = 1;
+      p.gearDown = true;
+      world.events.push({ type: 'gearLocked', plane: p.id, down: true, x: p.x, y: p.y });
+    }
   } else if (phase === 'refuel') {
     p.fuel = Math.min(1, p.fuel + dt / cfg.refuelTime);
     if (p.fuel >= FULL_TANK) {

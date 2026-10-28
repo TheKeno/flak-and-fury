@@ -412,6 +412,10 @@ export function createRenderer(canvas, world, assets) {
     if (p.burning && Math.random() < 0.8 * dt * 60) {
       particles.spawn('fire', wx + (Math.random() - 0.5) * 3, wy, p.vx * 0.3, p.vy * 0.3, 0.15 + Math.random() * 0.25, 1.5);
     }
+    if (p.state === 'ground' && p.belly && p.speed > 3) {
+      for (let i = 0; i < 3; i++) particles.spawn('spark', p.x - c * (2 + Math.random() * 8), p.y - 2.5, -c * p.speed * (0.2 + Math.random() * 0.4), 10 + Math.random() * 30, 0.15 + Math.random() * 0.25, 0.5);
+      if (Math.random() < 0.7) particles.spawn('dust', p.x - c * 8, p.y - 2, -c * p.speed * 0.2, 5 + Math.random() * 10, 0.8 + Math.random(), 1.2);
+    }
     if (p.state === 'ground' && p.speed > 12 && Math.random() < p.speed / 120) {
       particles.spawn('dust', p.x - c * 6, p.y - 3, -c * p.speed * 0.15, 6 + Math.random() * 8, 0.6 + Math.random() * 0.6, 0.8);
     }
@@ -441,6 +445,10 @@ export function createRenderer(canvas, world, assets) {
         if (onGround) particles.dirtSpray(e.x, e.y, 1.2);
       }
       if (e.type === 'shotDown' || e.type === 'collision') particles.explosion(e.x, e.y, 0.5);
+      if (e.type === 'bellyLanding') {
+        particles.sparks(e.x, e.y - 2, 14);
+        particles.dirtSpray(e.x, e.y - 2, 0.4);
+      }
       if (e.type === 'touchdown' && e.speed > 40) {
         for (let i = 0; i < 6; i++) particles.spawn('dust', e.x, e.y - 3, (Math.random() - 0.5) * 30, 8, 0.8, 0.8);
       }

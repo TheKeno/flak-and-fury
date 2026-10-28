@@ -1,6 +1,6 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage } from './weapons.js';
-import { updateServicing } from './airfield.js';
+import { updateServicing, ownAirfieldAt } from './airfield.js';
 
 export const GRAVITY = 90;
 const GEAR_HEIGHT = 4; // pivot height above the ground when parked
@@ -17,8 +17,15 @@ const GEAR_UP_ALT = 60;
 const GEAR_UP_SPEED = 120;
 const GEAR_DOWN_ALT = 25;
 const GEAR_DOWN_SPEED = 105;
+const GEAR_DRAG = 0.3; // gear fully down adds 30% drag
+const BELLY_HEIGHT = 2.5; // pivot height when lying on the belly
+const BELLY_FRICTION = 55;
+const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the normal landing speed
+const STRANDED_TIME = 5; // seconds stopped away from home before the plane is recovered
 
-export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false });
+export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false });
+
+const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 
 // "Upright" means the pilot's head points at the sky: flying right normally, or flying left after a roll.
 export const isUpright = (p) => Math.cos(p.angle) >= 0 !== p.inverted;
@@ -67,6 +74,11 @@ export function createPlane(id, def, { team, nation, seats }) {
     service: null, // ground crew at work: { wait, phase, rearmT }
     gear: 1, // 0 = retracted, 1 = down and locked
     gearDown: true, // where the gear is heading
+    gearManual: false, // pilot has taken over the gear with G this flight
+    prevGear: false,
+    gearWarning: false, // low and slow with the gear up
+    belly: false, // landed (or slid to a stop) on its belly
+    strandedTimer: 0,
   };
 }
 
@@ -94,6 +106,8 @@ export function spawnAtAirfield(p, world) {
   p.service = null;
   p.gear = 1;
   p.gearDown = true;
+  p.gearManual = p.gearWarning = p.belly = false;
+  p.strandedTimer = 0;
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
 }
@@ -144,21 +158,61 @@ function updateEngine(p, world, dt) {
   p.load += (p.throttle * (firing ? 1 : 0) - p.load) * Math.min(1, dt * 5);
 }
 
-function updateGear(p, world, dt) {
+// Landing gear. Automatic by default: up once climbing away, down when low and slow. Pressing G takes
+// over for the rest of the flight (bots always use automatic). The gear can't be raised on the ground.
+function updateGear(p, cmd, world, dt) {
+  const pressed = cmd.gear && !p.prevGear;
+  p.prevGear = cmd.gear;
+  if (p.belly) {
+    p.gearWarning = false;
+    return;
+  }
   const alt = p.y - world.terrain.heightAt(p.x) - GEAR_HEIGHT;
   let want = p.gearDown;
-  if (p.state === 'ground') want = true;
-  else if (p.gearDown && (alt > GEAR_UP_ALT || p.speed > GEAR_UP_SPEED)) want = false;
-  else if (!p.gearDown && alt < GEAR_DOWN_ALT && p.speed < GEAR_DOWN_SPEED) want = true;
+  if (p.state === 'ground') {
+    want = true;
+    p.gearManual = false;
+  } else if (pressed && !p.dying) {
+    want = !p.gearDown;
+    p.gearManual = true;
+  } else if ((world.rules.autoGear || isBot(p)) && !p.gearManual) {
+    if (p.gearDown && (alt > GEAR_UP_ALT || p.speed > GEAR_UP_SPEED)) want = false;
+    else if (!p.gearDown && alt < GEAR_DOWN_ALT && p.speed < GEAR_DOWN_SPEED) want = true;
+  }
   if (want !== p.gearDown) {
     p.gearDown = want;
     world.events.push({ type: 'gearMove', plane: p.id, down: want, x: p.x, y: p.y });
   }
+
+  // Warning horn: throttled back, low and slow, and the gear isn't coming down.
+  const warn = p.state === 'air' && !p.gearDown && alt < GEAR_DOWN_ALT && p.speed < GEAR_DOWN_SPEED && p.throttle < 0.5;
+  if (warn && !p.gearWarning) world.events.push({ type: 'gearWarning', plane: p.id });
+  p.gearWarning = warn;
+
   const target = p.gearDown ? 1 : 0;
   if (p.gear === target) return;
   const step = dt / (p.def.gearTime ?? 1.6);
   p.gear = p.gearDown ? Math.min(1, p.gear + step) : Math.max(0, p.gear - step);
   if (p.gear === target) world.events.push({ type: 'gearLocked', plane: p.id, down: p.gearDown, x: p.x, y: p.y });
+}
+
+// Wheels-up landing: the propeller strikes and stops, the airframe is damaged and the plane slides
+// to a stop. A gear caught half-way collapses.
+function bellyLand(p, world, groundY) {
+  const collapsed = p.gear > 0.1;
+  p.state = 'ground';
+  p.belly = true;
+  p.gear = 0;
+  p.gearDown = false;
+  p.y = groundY;
+  p.sink = 0;
+  p.stalled = false;
+  p.engineRunning = false;
+  p.starved = false;
+  p.engineDamage = clamp(p.engineDamage + 0.3, 0, 1);
+  p.hp -= 12 + p.speed * 0.25;
+  world.events.push({ type: 'bellyLanding', plane: p.id, x: p.x, y: p.y, speed: p.speed, collapsed });
+  if (p.hp <= 0) crash(p, world);
 }
 
 function updateConsciousness(p, cmd, world, dt) {
@@ -184,14 +238,14 @@ function stepGround(p, cmd, world, dt) {
   const facingRight = Math.cos(p.angle) >= 0;
 
   // Turn around when (nearly) stopped.
-  if (cmd.roll && !p.prevRoll && p.speed < 5) {
+  if (cmd.roll && !p.prevRoll && p.speed < 5 && !p.belly) {
     p.angle = wrapAngle(p.angle + Math.PI);
     p.inverted = !p.inverted;
   }
 
   const slope = world.terrain.slopeAngle(p.x);
   const heading = facingRight ? slope : Math.PI + slope;
-  const friction = p.speed > 0 ? d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1) : 0;
+  const friction = p.speed <= 0 ? 0 : p.belly ? BELLY_FRICTION : d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1);
   const thrust = d.thrust * p.throttle * p.power;
   p.speed += (thrust - d.dragCoef * p.speed * p.speed - friction - GRAVITY * Math.sin(heading)) * dt;
   p.speed = Math.max(0, p.speed);
@@ -202,13 +256,13 @@ function stepGround(p, cmd, world, dt) {
     p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
     p.speed = 0;
   }
-  p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  p.y = world.terrain.heightAt(p.x) + (p.belly ? BELLY_HEIGHT : GEAR_HEIGHT);
   p.vx = Math.cos(heading) * p.speed;
   p.vy = Math.sin(heading) * p.speed;
 
   // Rotating the nose upwards at flying speed lifts off: counter-clockwise facing right, clockwise facing left.
   const noseUp = facingRight ? 1 : -1;
-  if (cmd.turn * noseUp > 0 && p.speed >= d.takeoffSpeed) {
+  if (cmd.turn * noseUp > 0 && p.speed >= d.takeoffSpeed && !p.belly) {
     p.state = 'air';
     p.angle = wrapAngle(p.angle + noseUp * 0.1);
     p.y += 1;
@@ -262,7 +316,7 @@ function stepAir(p, cmd, world, dt) {
   p.angle = wrapAngle(p.angle + turn * dt);
 
   const thrust = d.thrust * p.throttle * p.power;
-  const drag = d.dragCoef * p.speed * p.speed;
+  const drag = d.dragCoef * p.speed * p.speed * (1 + GEAR_DRAG * p.gear);
   const induced = Math.abs(turn) * p.speed * 0.12; // hard turns bleed speed
   p.speed += (thrust - drag - induced - GRAVITY * Math.sin(p.angle)) * dt;
   p.speed = Math.max(0, p.speed);
@@ -284,13 +338,18 @@ function stepAir(p, cmd, world, dt) {
     p.inverted = !p.inverted;
   }
 
-  const ground = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  const gearReady = p.gear >= 0.9;
+  const ground = world.terrain.heightAt(p.x) + (gearReady ? GEAR_HEIGHT : BELLY_HEIGHT);
   if (p.y <= ground) {
     const facingRight = Math.cos(p.angle) >= 0;
     const slope = world.terrain.slopeAngle(p.x);
     const groundHeading = facingRight ? slope : Math.PI + slope;
     const misalign = Math.abs(angleDiff(groundHeading, p.angle));
-    if (isUpright(p) && !p.blackout && !p.dying && misalign < 0.35 && p.speed < d.maxLandingSpeed) {
+    const controlled = isUpright(p) && !p.blackout && !p.dying && misalign < 0.35;
+    if (controlled && !gearReady && p.speed < d.maxLandingSpeed * BELLY_SPEED_MARGIN) {
+      p.angle = groundHeading;
+      bellyLand(p, world, ground);
+    } else if (controlled && p.speed < d.maxLandingSpeed) {
       p.state = 'ground';
       p.y = ground;
       p.angle = groundHeading;
@@ -300,6 +359,17 @@ function stepAir(p, cmd, world, dt) {
     } else {
       crash(p, world);
     }
+  }
+}
+
+// Stopped away from home with a dead engine or on the belly: after a few seconds the plane is
+// recovered to its own airfield (it isn't counted as lost).
+function updateStranded(p, world, dt) {
+  const stuck = p.speed < 1 && (p.belly || !p.engineRunning) && !ownAirfieldAt(world, p);
+  p.strandedTimer = stuck ? p.strandedTimer + dt : 0;
+  if (p.strandedTimer >= STRANDED_TIME) {
+    world.events.push({ type: 'recovered', plane: p.id, x: p.x, y: p.y });
+    spawnAtAirfield(p, world);
   }
 }
 
@@ -320,7 +390,8 @@ export function stepPlane(p, cmd, world, dt) {
   else stepAir(p, cmd, world, dt);
   if (p.state !== 'dead') updateWeapons(p, cmd, world, dt);
   if (p.state !== 'dead') updateServicing(p, world, dt);
-  if (p.state !== 'dead') updateGear(p, world, dt);
+  if (p.state !== 'dead') updateGear(p, cmd, world, dt);
+  if (p.state === 'ground') updateStranded(p, world, dt);
 
   p.prevRoll = cmd.roll;
 }

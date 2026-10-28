@@ -4,7 +4,7 @@ import { createEngineVoice } from './engine-synth.js';
 import { createAirflow } from './airflow.js';
 import { createBody } from './body.js';
 import { buildVoices } from './gun-voices.js';
-import { createBombWhistle, createFire } from './loops.js';
+import { createBombWhistle, createFire, createScrape } from './loops.js';
 import { createCrew } from './crew.js';
 import { spatialize } from './spatial.js';
 import * as sfx from './sfx.js';
@@ -17,6 +17,8 @@ export function createSoundscape(mixer, world) {
   const fires = new Map();
   const whistles = new Map();
   const crews = new Map();
+  const scrapes = new Map();
+  let nextHorn = 0;
   const snapped = new Set();
   const airflow = createAirflow(mixer);
   const body = createBody(mixer);
@@ -73,6 +75,24 @@ export function createSoundscape(mixer, world) {
     }
   }
 
+  // Sliding on the belly, and the gear-up warning horn for the plane being listened from.
+  function updateBellies(focus) {
+    for (const p of world.planes) {
+      const sliding = p.state === 'ground' && p.belly && p.speed > 1;
+      let s = scrapes.get(p.id);
+      if (sliding && !s) scrapes.set(p.id, (s = createScrape(mixer)));
+      if (!sliding && s) {
+        s.stop();
+        scrapes.delete(p.id);
+      }
+      s?.update(whereOf(p), p.speed);
+    }
+    if (focus?.gearWarning && mixer.now >= nextHorn) {
+      sfx.gearHorn(mixer);
+      nextHorn = mixer.now + 0.5;
+    }
+  }
+
   function updateFires() {
     for (const p of world.planes) {
       const burning = p.burning && p.state !== 'dead';
@@ -120,6 +140,7 @@ export function createSoundscape(mixer, world) {
       updateEngines();
       updateFires();
       updateCrews();
+      updateBellies(focus);
       updateWhistles();
       updateNearMisses(focus);
       airflow.update(focus);
@@ -149,6 +170,9 @@ export function createSoundscape(mixer, world) {
           sfx.gearMotor(mixer, where, Math.max(0.2, travel), e.down);
           break;
         }
+        case 'bellyLanding':
+          sfx.bellyCrunch(mixer, where, e.speed);
+          break;
         case 'gearLocked':
           // Up: one solid clunk into the wing. Down: the lock pins snapping home.
           sfx.play(mixer, voices.thunk, where, { gain: mine ? 0.45 : 0.6, rate: 0.85 });

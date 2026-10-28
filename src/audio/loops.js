@@ -75,6 +75,38 @@ export function createBombWhistle(mixer) {
   };
 }
 
+// Metal scraping along the ground on the belly: grinding noise with screeches, louder with speed.
+export function createScrape(mixer) {
+  const { ctx } = mixer;
+  const chain = spatialChain(mixer);
+  const src = ctx.createBufferSource();
+  src.buffer = mixer.noise;
+  src.loop = true;
+  const grind = ctx.createBiquadFilter();
+  grind.type = 'bandpass';
+  grind.frequency.value = 700;
+  grind.Q.value = 0.9;
+  const screech = ctx.createBiquadFilter();
+  screech.type = 'bandpass';
+  screech.Q.value = 14;
+  const screechGain = ctx.createGain();
+  src.connect(grind).connect(chain.input);
+  src.connect(screech).connect(screechGain).connect(chain.input);
+  src.start(0, Math.random());
+  return {
+    update(where, speed) {
+      const v = Math.min(1, speed / 80);
+      setT(ctx, grind.frequency, 400 + v * 900, 0.05);
+      setT(ctx, screech.frequency, 2200 + Math.random() * 1600, 0.02);
+      setT(ctx, screechGain.gain, Math.random() < 0.2 ? 1.5 * v : 0.2 * v, 0.01);
+      chain.place(where, 1.1 * v);
+    },
+    stop() {
+      chain.fade(() => src.stop());
+    },
+  };
+}
+
 // Burning fuel: a low roar with random crackles.
 export function createFire(mixer) {
   const { ctx } = mixer;
