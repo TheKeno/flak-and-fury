@@ -306,6 +306,41 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
+  // Ground crew: two mechanics walk out from the hangar side and work at the nose and the wing.
+  const CREW = [
+    { at: 9, from: -34, overalls: '#3c4a5c', bob: 0 },
+    { at: -3, from: -46, overalls: '#5a5446', bob: 7 },
+  ];
+  function drawCrew(p) {
+    const s = p.service;
+    if (!s || s.phase === 'done' || p.state !== 'ground') return;
+    const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
+    const walk = s.wait > 0 ? 1 - s.wait / world.servicing.crewDelay : 1;
+    for (const c of CREW) {
+      const wx = p.x + dir * (c.at + (c.from - c.at) * (1 - walk));
+      const gx = Math.round(toScreenX(wx));
+      const gy = Math.round(toScreenY(world.terrain.heightAt(wx)));
+      const walking = walk < 1;
+      const step = Math.floor((frame + c.bob) / 6) % 2;
+      const working = !walking && Math.floor((frame + c.bob) / 10) % 2; // arm moving at the job
+      // legs
+      ctx.fillStyle = '#2a2622';
+      ctx.fillRect(gx - 1, gy - 3, 1, 3 - (walking && step ? 1 : 0));
+      ctx.fillRect(gx + 1, gy - 3, 1, 3 - (walking && !step ? 1 : 0));
+      // overalls
+      ctx.fillStyle = c.overalls;
+      ctx.fillRect(gx - 1, gy - 8, 3, 5);
+      // arm reaching towards the plane while working
+      const toward = -Math.sign(dir * c.at);
+      ctx.fillRect(gx + toward * 2, gy - 7 - (working ? 1 : 0), 1, 2);
+      // head and cap
+      ctx.fillStyle = '#d6a77e';
+      ctx.fillRect(gx - 1, gy - 10, 2, 2);
+      ctx.fillStyle = '#26221e';
+      ctx.fillRect(gx - 1, gy - 11, 3, 1);
+    }
+  }
+
   const flashes = new Map(); // plane id -> frames of muzzle flash left
   const messages = [];
 
@@ -421,6 +456,7 @@ export function createRenderer(canvas, world, assets) {
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       drawProjectiles();
       for (const p of world.planes) drawPlane(p);
+      for (const p of world.planes) drawCrew(p);
 
       if (focus && focus.consciousness < 1) {
         ctx.fillStyle = `rgba(16,0,0,${((1 - focus.consciousness) * 0.88).toFixed(3)})`;

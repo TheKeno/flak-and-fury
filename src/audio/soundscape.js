@@ -5,6 +5,7 @@ import { createAirflow } from './airflow.js';
 import { createBody } from './body.js';
 import { buildVoices } from './gun-voices.js';
 import { createBombWhistle, createFire } from './loops.js';
+import { createCrew } from './crew.js';
 import { spatialize } from './spatial.js';
 import * as sfx from './sfx.js';
 
@@ -15,6 +16,7 @@ export function createSoundscape(mixer, world) {
   const engines = new Map();
   const fires = new Map();
   const whistles = new Map();
+  const crews = new Map();
   const snapped = new Set();
   const airflow = createAirflow(mixer);
   const body = createBody(mixer);
@@ -45,12 +47,29 @@ export function createSoundscape(mixer, world) {
         rpm: p.rpm,
         load: p.load,
         roughness: 0.08 + 0.25 * Math.max(0, 1 - p.rpm / cruise) + p.engineDamage * 0.5,
-        misfire: p.engineDamage * 0.22 + (p.dying ? 0.55 : 0),
+        // Out of fuel nothing fires (only the windmilling prop is heard); starving, it coughs.
+        misfire: !p.engineRunning ? 1 : p.starved ? 0.95 : p.engineDamage * 0.22 + (p.dying ? 0.55 : 0),
         gain: where.gain,
         pan: where.pan,
         cutoff: where.cutoff,
         doppler: where.doppler,
       });
+    }
+  }
+
+  // Ground crew sounds, placed beside the plane.
+  function updateCrews() {
+    for (const p of world.planes) {
+      const job = p.service && p.service.wait <= 0 ? p.service.phase : null;
+      let c = crews.get(p.id);
+      if (job && job !== 'done') {
+        if (!c) crews.set(p.id, (c = createCrew(mixer, voices)));
+        const where = whereOf(p);
+        c.update(job, where === ME ? { ...ME, pan: 0.3 * (Math.cos(p.angle) >= 0 ? 1 : -1), gain: 0.8 } : where);
+      } else if (c) {
+        c.stop();
+        crews.delete(p.id);
+      }
     }
   }
 
@@ -100,6 +119,7 @@ export function createSoundscape(mixer, world) {
 
       updateEngines();
       updateFires();
+      updateCrews();
       updateWhistles();
       updateNearMisses(focus);
       airflow.update(focus);
@@ -122,6 +142,16 @@ export function createSoundscape(mixer, world) {
           break;
         case 'roll':
           sfx.rollWhoosh(mixer, where);
+          break;
+        case 'engineStart':
+          engines.get(e.plane)?.start();
+          break;
+        case 'serviceDone':
+          sfx.play(mixer, voices.thunk, where, { gain: 0.5, rate: 1.1 });
+          sfx.play(mixer, voices.thunk, where, { gain: 0.5, rate: 1.1, offset: 0.18 });
+          break;
+        case 'fuelLow':
+          if (mine) for (let i = 0; i < 3; i++) sfx.play(mixer, voices.click, ME, { gain: 0.5, rate: 0.8, offset: i * 0.25 });
           break;
         case 'wake':
           body.gasp();

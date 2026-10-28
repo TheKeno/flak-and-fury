@@ -10,7 +10,12 @@ const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
 
 const content = await loadContent('countryside');
-const world = createWorld({ map: content.map, planeDefs: content.planeDefs, weapons: content.weapons });
+const world = createWorld({
+  map: content.map,
+  planeDefs: content.planeDefs,
+  weapons: content.weapons,
+  servicing: content.settings.servicing,
+});
 const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
 // A sparring partner until real bots arrive in milestone 5.
 addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'uk', controller: 'bot:target' });
@@ -42,6 +47,11 @@ function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
     sound?.onEvent(e);
+    if (e.plane === player.id) {
+      if (e.type === 'fuelLow') renderer.message('LOW FUEL - HEAD HOME', '#ffb070');
+      if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
+      if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
+    }
     if (e.type === 'shotDown') {
       if (e.by === player.id) renderer.message('ENEMY SHOT DOWN!', '#e8c860');
       else if (e.plane === player.id) renderer.message('YOU ARE GOING DOWN', '#ff8070');

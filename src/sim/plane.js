@@ -1,5 +1,6 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage } from './weapons.js';
+import { updateServicing } from './airfield.js';
 
 export const GRAVITY = 90;
 const GEAR_HEIGHT = 4; // pivot height above the ground when parked
@@ -8,6 +9,8 @@ const BLACKOUT_RECOVER = 0.4;
 const BLACKOUT_SINK = 90;
 const STALL_RECOVERY = 1.15; // stall clears at 115% of stall speed
 const EDGE_MARGIN = 12;
+const LOW_FUEL = 0.15; // warning level
+const STARVE_FUEL = 0.04; // below this the engine coughs and cuts in and out
 
 export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false });
 
@@ -50,6 +53,12 @@ export function createPlane(id, def, { team, nation, seats }) {
     deaths: 0,
     guns: [],
     bombs: null,
+    fuel: 1, // 0..1 of a full tank
+    engineRunning: true,
+    starved: false, // momentary fuel starvation (coughing on the last drops)
+    lowFuelWarned: false,
+    power: 1, // share of engine power reaching the propeller
+    service: null, // ground crew at work: { wait, phase, rearmT }
   };
 }
 
@@ -71,6 +80,10 @@ export function spawnAtAirfield(p, world) {
   p.engineDamage = 0;
   p.burning = p.dying = false;
   p.lastHitBy = null;
+  p.fuel = 1;
+  p.engineRunning = true;
+  p.starved = p.lowFuelWarned = false;
+  p.service = null;
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
 }
@@ -83,14 +96,42 @@ function crash(p, world) {
   p.speed = p.vx = p.vy = 0;
 }
 
-function updateEngine(p, dt) {
+// Fuel burns faster at high throttle. On the last drops the engine coughs; when the tank is dry it
+// stops, and the propeller only windmills in the airflow until the plane is refuelled.
+function updateFuel(p, world, dt) {
+  if (!p.engineRunning) return;
+  p.fuel = Math.max(0, p.fuel - ((0.12 + 0.88 * p.throttle) / p.def.endurance) * dt);
+  if (!p.lowFuelWarned && p.fuel < LOW_FUEL) {
+    p.lowFuelWarned = true;
+    world.events.push({ type: 'fuelLow', plane: p.id });
+  }
+  if (p.fuel < STARVE_FUEL) {
+    if (world.rng.next() < dt * 6) p.starved = world.rng.next() < 0.45 + 0.5 * (1 - p.fuel / STARVE_FUEL);
+  } else p.starved = false;
+  if (p.fuel <= 0) {
+    p.engineRunning = false;
+    p.starved = false;
+    world.events.push({ type: 'engineOut', plane: p.id, x: p.x, y: p.y });
+  }
+}
+
+function updateEngine(p, world, dt) {
   const e = p.def.engine;
-  let target = e.idleRpm + (e.cruiseRpm - e.idleRpm) * p.throttle * (1 - p.engineDamage * 0.35);
-  // Airspeed drives the propeller: dives over-rev the engine, slow climbs drag it down.
-  if (p.state === 'air') target += (p.speed / p.def.maxSpeed - 0.75) * 700 * (0.4 + 0.6 * p.throttle);
-  target = clamp(target, e.idleRpm * 0.85, e.maxRpm * 1.1);
-  p.rpm += (target - p.rpm) * Math.min(1, dt * 2.2);
-  p.load += (p.throttle - p.load) * Math.min(1, dt * 5);
+  updateFuel(p, world, dt);
+  const firing = p.engineRunning && !p.starved;
+  p.power = firing ? 1 - p.engineDamage * 0.5 : 0;
+  let target;
+  if (firing) {
+    target = e.idleRpm + (e.cruiseRpm - e.idleRpm) * p.throttle * (1 - p.engineDamage * 0.35);
+    // Airspeed drives the propeller: dives over-rev the engine, slow climbs drag it down.
+    if (p.state === 'air') target += (p.speed / p.def.maxSpeed - 0.75) * 700 * (0.4 + 0.6 * p.throttle);
+    target = clamp(target, e.idleRpm * 0.85, e.maxRpm * 1.1);
+  } else {
+    // Dead engine: the airflow turns the propeller, which stops on the ground.
+    target = p.state === 'air' ? clamp(p.speed / p.def.maxSpeed, 0, 1.3) * e.cruiseRpm * 0.55 : 0;
+  }
+  p.rpm += (target - p.rpm) * Math.min(1, dt * (firing ? 2.2 : 0.8));
+  p.load += (p.throttle * (firing ? 1 : 0) - p.load) * Math.min(1, dt * 5);
 }
 
 function updateConsciousness(p, cmd, world, dt) {
@@ -124,7 +165,7 @@ function stepGround(p, cmd, world, dt) {
   const slope = world.terrain.slopeAngle(p.x);
   const heading = facingRight ? slope : Math.PI + slope;
   const friction = p.speed > 0 ? d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1) : 0;
-  const thrust = d.thrust * p.throttle * (1 - p.engineDamage * 0.5);
+  const thrust = d.thrust * p.throttle * p.power;
   p.speed += (thrust - d.dragCoef * p.speed * p.speed - friction - GRAVITY * Math.sin(heading)) * dt;
   p.speed = Math.max(0, p.speed);
 
@@ -193,7 +234,7 @@ function stepAir(p, cmd, world, dt) {
 
   p.angle = wrapAngle(p.angle + turn * dt);
 
-  const thrust = d.thrust * p.throttle * (1 - p.engineDamage * 0.5);
+  const thrust = d.thrust * p.throttle * p.power;
   const drag = d.dragCoef * p.speed * p.speed;
   const induced = Math.abs(turn) * p.speed * 0.12; // hard turns bleed speed
   p.speed += (thrust - drag - induced - GRAVITY * Math.sin(p.angle)) * dt;
@@ -245,12 +286,13 @@ export function stepPlane(p, cmd, world, dt) {
   if (p.dying) cmd = { ...NO_COMMAND, throttle: -1 };
   p.throttle = clamp(p.throttle + cmd.throttle * 0.7 * dt, 0, 1);
   updateConsciousness(p, cmd, world, dt);
-  updateEngine(p, dt);
+  updateEngine(p, world, dt);
   updateDamage(p, world, dt);
 
   if (p.state === 'ground') stepGround(p, cmd, world, dt);
   else stepAir(p, cmd, world, dt);
   if (p.state !== 'dead') updateWeapons(p, cmd, world, dt);
+  if (p.state !== 'dead') updateServicing(p, world, dt);
 
   p.prevRoll = cmd.roll;
 }

@@ -2,6 +2,7 @@
 // instantly; "Save to files" writes them back to data/*.json through the local dev server.
 import { updateGunRates } from '../sim/weapons.js';
 import { spawnAtAirfield } from '../sim/plane.js';
+import { rearmFully } from '../sim/airfield.js';
 
 // [key, label, min, max, step, help]
 const PLANE_FIELDS = [
@@ -18,6 +19,7 @@ const PLANE_FIELDS = [
   ['groundFriction', 'Ground friction', 5, 40, 1, 'How quickly the plane slows when rolling on the ground.'],
   ['hp', 'Hit points', 20, 400, 5, 'How much damage the plane takes before it goes down.'],
   ['hitRadius', 'Hit size', 3, 14, 0.5, 'Size of the plane for bullets (px). Smaller = harder to hit.'],
+  ['endurance', 'Fuel endurance', 30, 900, 10, 'Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much.'],
 ];
 const GUN_FIELDS = [
   ['rpm', 'Rate of fire (per gun)', 200, 2000, 10, 'Rounds per minute per gun.'],
@@ -44,6 +46,12 @@ const CAMERA_FIELDS = [
   ['zoomStartSpeed', 'Speed zoom: starts at', 0, 250, 5, 'Speed (px/s) where the view begins to widen. Level top speed is about 150.'],
   ['zoomFullSpeed', 'Speed zoom: full at', 0, 300, 5, 'Speed (px/s) where the view is fully zoomed out. Dives reach about 200.'],
   ['zoomSpeed', 'Speed zoom: smoothness', 0.2, 5, 0.1, 'How quickly the zoom follows your speed. Lower = slower, smoother.'],
+];
+const SERVICING_FIELDS = [
+  ['crewDelay', 'Crew walk-out time', 0, 5, 0.1, 'Seconds after you stop before the ground crew start work.'],
+  ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
+  ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
+  ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],
 ];
 const AUDIO_FIELDS = [
   ['master', 'Master volume', 0, 1, 0.01, '1.0 = full loudness.'],
@@ -159,6 +167,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   );
 
   const cameraSection = section('Camera', true, ...CAMERA_FIELDS.map((f) => add(slider(settings.camera, f))));
+  const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
   const audioSection = section(
     'Sound',
     true,
@@ -194,6 +203,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     for (const [k, v] of Object.entries(saved.weapons)) Object.assign(weapons[k], structuredClone(v));
     Object.assign(settings.camera, saved.settings.camera);
     Object.assign(settings.audio, saved.settings.audio);
+    Object.assign(settings.servicing, saved.settings.servicing);
     for (const p of world.planes) p.guns.forEach(updateGunRates);
     getMixer()?.applyLevels();
     rows.forEach((r) => r.refresh());
@@ -205,8 +215,10 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     player.hp = player.def.hp;
     player.engineDamage = 0;
     player.burning = false;
-    for (const g of player.guns) g.ammo = g.def.ammo * g.count;
-    if (player.bombs) player.bombs.count = player.def.armament.bombs.count;
+    player.fuel = 1;
+    player.engineRunning = true;
+    player.lowFuelWarned = false;
+    rearmFully(player);
     say('Plane repaired and rearmed');
   }
 
@@ -234,6 +246,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     planeSection,
     ...gunSections,
     bombSection,
+    servicingSection,
     cameraSection,
     audioSection,
     el('p', { class: 'foot' }, `Editing plane type "${planeId}". Changes apply instantly to every plane of this type.`),

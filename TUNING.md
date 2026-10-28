@@ -28,6 +28,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundFriction` | How quickly the plane slows when rolling. | 10 – 30 |
+| `endurance` | Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much. | 120 – 600 |
 | `hp` | Hit points. Higher = takes more hits. | 60 – 200 |
 | `hitRadius` | Size of the plane for bullets (px). Smaller = harder to hit. | 5 – 10 |
 | `armament.guns` | Which guns (names from `weapons.json`) and how many. | |
@@ -48,6 +49,11 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `voice` | Gun sound: `rifle`, `heavy`, `cannon20`, `cannon30`. |
 | `blastRadius`, `blastDamage` | Bomb explosion size and damage at the centre. |
 | `craterRadius`, `craterDepth` | Size of the hole a bomb digs. |
+
+## Ground crew and camera: `data/settings.json`
+
+`servicing`: `crewDelay` (seconds before the crew start), `repairPerSec` (hit points per second),
+`refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings.
 
 ## Paint: `data/nations.json`
 

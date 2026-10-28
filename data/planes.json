@@ -30,6 +30,7 @@
     "maxSpeed": 150,
     "hp": 100,
     "hitRadius": 7,
+    "endurance": 300,
     "bombOffset": [
       0,
       -4
@@ -86,6 +87,7 @@
     "maxSpeed": 155,
     "hp": 90,
     "hitRadius": 6.5,
+    "endurance": 240,
     "bombOffset": [
       0,
       -4

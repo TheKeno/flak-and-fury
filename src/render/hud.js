@@ -1,4 +1,7 @@
 import { drawText, textWidth } from './font.js';
+import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
+
+const JOBS = { repair: 'REPAIRING', refuel: 'REFUELLING', rearm: 'REARMING' };
 
 const TEAM_COLOURS = ['#7fb2ff', '#ff7a6a', '#ffd25a', '#8be08b'];
 
@@ -54,6 +57,11 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   drawText(ctx, 'THR', x, y, '#c8d0c0');
   bar(ctx, x + 14, y + 1, 30, plane.throttle, '#e8c860');
   y += 7;
+  const lowFuel = plane.fuel < 0.15;
+  drawText(ctx, 'FUL', x, y, '#c8d0c0');
+  bar(ctx, x + 14, y + 1, 30, plane.fuel, lowFuel ? '#e05040' : '#c0a070');
+  if (lowFuel && plane.engineRunning && Math.floor(performance.now() / 250) % 2) drawText(ctx, 'LOW', x + 48, y, '#ff7040');
+  y += 7;
   const hp = Math.max(0, plane.hp / plane.def.hp);
   drawText(ctx, 'DMG', x, y, '#c8d0c0');
   bar(ctx, x + 14, y + 1, 30, hp, hp < 0.35 ? '#e05040' : hp < 0.6 ? '#e0a040' : '#80d070');
@@ -80,7 +88,10 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   else if (plane.blackout) centre('BLACKOUT - TAP A/D!', 60, blink ? '#ff6050' : '#ffb0a0');
   else if (plane.y > world.map.ceiling) centre('TOO HIGH', 60, blink ? '#ffd060' : '#fff0c0');
   else if (plane.stalled && plane.state === 'air') centre('STALL', 60, blink ? '#ff6050' : '#ffc0b0');
-  else if (plane.state === 'ground' && plane.speed < 1 && plane.throttle < 0.05) centre('HOLD W TO OPEN THROTTLE', 60, '#f0f0e0');
+  else if (!plane.engineRunning && plane.state === 'air') centre('ENGINE OUT - GLIDE HOME!', 60, blink ? '#ff9050' : '#ffd0b0');
+  else if (plane.state === 'ground') groundMessage(ctx, world, plane, centre);
+
+  serviceBar(ctx, world, plane, W);
 
   if (showHelp) {
     const lines = [
@@ -92,4 +103,25 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
     ];
     lines.forEach((l, i) => drawText(ctx, l, 6, H - 8 - (lines.length - 1 - i) * 7, '#f0f0e0'));
   }
+}
+
+function groundMessage(ctx, world, plane, centre) {
+  const home = ownAirfieldAt(world, plane);
+  if (plane.service) return; // the service bar says what's happening
+  if (!plane.engineRunning) centre(home ? 'OUT OF FUEL - THROTTLE TO IDLE FOR THE CREW' : 'OUT OF FUEL - STRANDED', 60, '#ffb090');
+  else if (home && plane.speed < 2 && plane.throttle >= 0.05) centre('THROTTLE TO IDLE (S) FOR GROUND CREW', 60, '#f0f0e0');
+  else if (plane.speed < 1 && plane.throttle < 0.05) centre('HOLD W TO OPEN THROTTLE', 60, '#f0f0e0');
+}
+
+// Ground crew progress at the bottom of the screen.
+function serviceBar(ctx, world, plane, W) {
+  const s = plane.service;
+  if (!s) return;
+  const y = 236;
+  const label = s.wait > 0 ? 'GROUND CREW COMING' : s.phase === 'done' ? 'READY - OPEN THROTTLE (W)' : JOBS[s.phase] ?? '';
+  const colour = s.phase === 'done' ? '#a8e090' : '#f0e8c0';
+  drawText(ctx, label, Math.round((W - textWidth(label)) / 2), y, colour);
+  if (s.wait > 0 || s.phase === 'done') return;
+  const w = 80;
+  bar(ctx, Math.round((W - w) / 2) - 1, y + 8, w, serviceProgress(plane, world), '#e8c860');
 }

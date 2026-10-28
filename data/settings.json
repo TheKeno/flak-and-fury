@@ -16,5 +16,11 @@
     "sfx": 1,
     "ambience": 0.5,
     "music": 0.4
+  },
+  "servicing": {
+    "crewDelay": 1.2,
+    "repairPerSec": 25,
+    "refuelTime": 5,
+    "rearmTime": 3
   }
 }

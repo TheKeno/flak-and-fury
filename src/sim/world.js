@@ -6,6 +6,7 @@ import { buildTerrain } from './terrain.js';
 import { createPlane, spawnAtAirfield, stepPlane, NO_COMMAND } from './plane.js';
 import { stepBullets, stepBombs, shootDown } from './weapons.js';
 import { botCommand } from './ai.js';
+import { DEFAULT_SERVICING } from './airfield.js';
 
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
@@ -13,13 +14,15 @@ export const DT = 1 / TICK_RATE;
 // bots: 'on' (fly and fight), 'passive' (fly but never shoot or bomb), 'off' (stay parked).
 export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on' };
 
-export function createWorld({ map, planeDefs, weapons, rules = {} }) {
+// servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
+export function createWorld({ map, planeDefs, weapons, rules = {}, servicing = { ...DEFAULT_SERVICING } }) {
   const world = {
     tick: 0,
     map: structuredClone(map),
     planeDefs,
     weapons,
     rules: { ...DEFAULT_RULES, ...rules },
+    servicing,
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],
     bullets: [],
