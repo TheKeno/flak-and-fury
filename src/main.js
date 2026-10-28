@@ -119,8 +119,10 @@ function frame(now) {
     handleEvents();
     acc -= DT;
   }
-  renderer.render(player, dt, { showHelp, look });
-  sound?.setLook(renderer.cam.lookX, look.active);
+  // Mouse look wins while the right button is held; otherwise the arrow keys look around.
+  const view = look.active ? look : keyboard.readLook();
+  renderer.render(player, dt, { showHelp, look: view });
+  sound?.setLook(renderer.cam.lookX, view.active);
   if (renderer.radarSweeps !== lastSweeps) {
     lastSweeps = renderer.radarSweeps;
     sound?.radarTick();

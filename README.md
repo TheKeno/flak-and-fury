@@ -25,7 +25,7 @@ Then open <http://localhost:8080> and click to start the engine. Headphones reco
 | Space | Guns |
 | E | Bombs |
 | G | Landing gear (overrides the automatic gear) |
-| Right mouse (hold + drag) | Look up, down or back over your tail |
+| Arrow keys, or right mouse (hold + drag) | Look up, down or back over your tail |
 | T | Tuning panel |
 | M | Mute |
 | H | Hide help |
