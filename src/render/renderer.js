@@ -200,10 +200,17 @@ export function createRenderer(canvas, world, assets) {
       const ky = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeedY) : 1;
       cam.leadX += (targetX - cam.leadX) * k;
       cam.leadY += (targetY - cam.leadY) * ky;
-      cam.x = focus.x + cam.leadX + cam.lookX * vw * camCfg.lookRange - vw / 2;
-      cam.y = focus.y + cam.leadY + cam.lookY * vh * camCfg.lookRange - vh * camCfg.height;
-      // However you look, your own plane stays on screen.
+      // However you look, your own plane stays on screen. Sideways, looking ahead on top of the
+      // look-ahead would run into that edge and stop dead, so beyond the normal look-ahead the view
+      // eases into the limit instead.
       const margin = 0.08;
+      const limit = vw * (0.5 - margin);
+      const knee = Math.min(vw * camCfg.leadX, limit * 0.85);
+      const off = cam.leadX + cam.lookX * vw * camCfg.lookRange;
+      const past = Math.abs(off) - knee;
+      const softOff = past <= 0 ? off : Math.sign(off) * (knee + (limit - knee) * Math.tanh(past / (limit - knee)));
+      cam.x = focus.x + softOff - vw / 2;
+      cam.y = focus.y + cam.leadY + cam.lookY * vh * camCfg.lookRange - vh * camCfg.height;
       cam.x = clamp(cam.x, focus.x - vw * (1 - margin), focus.x - vw * margin);
       cam.y = clamp(cam.y, focus.y - vh * (1 - margin), focus.y - vh * margin);
       cam.snapped = true;
