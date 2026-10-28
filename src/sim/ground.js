@@ -2,6 +2,7 @@
 // score for destroying it. Bullets and bomb blasts damage them; a destroyed one stays as a wreck.
 // Solid ones (towers, buildings, radar masts) also stop bombs and wreck planes that fly into them.
 import { clamp } from './math.js';
+import { armGround } from './defences.js';
 
 const PLANE_CRASH_DAMAGE = 60; // what a plane flying into a structure does to it
 
@@ -19,6 +20,7 @@ export function createGround(world) {
       obj.soldiers = Array.from({ length: n }, (_, i) => ({ dx: (i - (n - 1) / 2) * def.spacing, hp: def.hp }));
       obj.hp = obj.maxHp = n * def.hp;
     } else obj.hp = obj.maxHp = def.hp;
+    armGround(world, obj);
     world.ground.push(obj);
   }
 }

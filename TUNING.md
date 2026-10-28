@@ -87,6 +87,26 @@ object at full strength (new hit points only apply then).
 | `solid` | Planes that fly into it crash (and damage it). | |
 | `spacing` | Infantry only: gap between soldiers in a squad. | 3 – 8 |
 
+**Shooting** (flak, MG nests, infantry). Defences shoot at enemy planes in the air and on the ground
+(taxiing or stranded), aiming ahead of the plane. A straight, level pass over the enemy's forward
+defences costs roughly 20 hit points at treetop height, 50–90 at 80–150, 30–60 at 250–400 and little
+above 600; weaving and changing speed throws their aim off.
+
+| Field | What it does | Try |
+|---|---|---|
+| `range` | How far it can engage a plane. For MG nests and infantry this is their ceiling: fly higher. | flak 500 – 900, MG 180 – 350 |
+| `turnRate` | How fast the barrel swings (rad/s). Slow flak can't follow a fast plane crossing close by. | 0.5 – 3 |
+| `spread` | Random aim error (rad). | 0.005 – 0.08 |
+| `velocity` | Muzzle speed. Faster = less lead needed, more accurate at range. | 250 – 400 |
+| `damage` | MG nests and infantry: damage per round (±50%). | 0.5 – 2 |
+| `interval` | Flak: seconds between shots. Infantry: per soldier, varies by half. | 1.5 – 4 |
+| `minAltitude` | Flak: planes lower than this above the ground are ignored. This is why flying low works. | 40 – 100 |
+| `minElevation` | Flak: lowest the barrel can point (rad), so far-off low planes are out of its sights. | 0.2 – 0.5 |
+| `fuseError` | Flak: how far off the time fuse can be, as a share of the shell's flight time. | 0.03 – 0.15 |
+| `burstRadius`, `burstDamage` | Flak: reach of the shrapnel and its damage at the centre. | 18 – 35, 15 – 40 |
+| `fireChance` | Flak: chance a burst right next to you sets the plane on fire (less further out). | 0.1 – 0.4 |
+| `burst`, `pause`, `rpm` | MG nests: seconds of firing, seconds of rest, rounds per minute while firing. | |
+
 ## Paint and uniforms: `data/nations.json`
 
 Colours for each nation's planes (`paint`) and soldiers (`uniform`), as hex codes (`#rrggbb`).

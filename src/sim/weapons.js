@@ -146,7 +146,7 @@ export function stepBullets(world, dt) {
         if (!canHit(world, b.team, b.owner, p)) continue;
         if (segDist(ox, oy, b.x, b.y, p.x, p.y) > p.def.hitRadius) continue;
         const dmg = b.damage * world.rng.range(0.5, 1.5); // the random damage of the old classics
-        damagePlane(world, p, dmg, b.owner, b.x, b.y);
+        damagePlane(world, p, dmg, b.owner, b.x, b.y, b.cause ?? 'guns');
         world.events.push({ type: 'hit', plane: p.id, by: b.owner, x: b.x, y: b.y, damage: dmg });
         gone = true;
         break;

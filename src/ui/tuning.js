@@ -89,6 +89,39 @@ const GROUND_FIELDS = [
   ['points', 'Points', 0, 50, 1, 'Score for destroying it (infantry: per soldier).'],
   ['bulletFactor', 'Bullet damage taken', 0, 1, 0.05, 'Share of bullet damage it takes. Bombs always do full damage. Low = bombs only.'],
 ];
+// Extra sliders for the ground objects that shoot.
+const DEFENCE_FIELDS = {
+  flak: [
+    ['range', 'Reach', 100, 1200, 10, 'How far away it can engage a plane.'],
+    ['minAltitude', 'Blind below', 0, 200, 5, 'Planes lower than this above the ground are ignored. Fly low to dodge flak.'],
+    ['minElevation', 'Lowest barrel angle', 0, 1.2, 0.05, 'The barrel cannot point lower than this (rad), so far-off low planes are safe.'],
+    ['turnRate', 'Barrel swing speed', 0.1, 4, 0.05, 'How fast the gun traverses (rad/s). Low = fast crossing planes outrun it.'],
+    ['interval', 'Time between shots', 0.5, 8, 0.1, 'Seconds to reload.'],
+    ['velocity', 'Shell speed', 100, 600, 5, 'Higher = less lead needed, more accurate at range.'],
+    ['spread', 'Aim error', 0, 0.1, 0.002, 'Random error in where the barrel points (rad).'],
+    ['fuseError', 'Fuse error', 0, 0.4, 0.01, 'How far off the time fuse can be, as a share of the flight time.'],
+    ['burstRadius', 'Burst radius', 5, 80, 1, 'Reach of the shrapnel.'],
+    ['burstDamage', 'Burst damage', 0, 120, 1, 'Damage at the centre of a burst.'],
+    ['fireChance', 'Fire chance', 0, 1, 0.05, 'Chance a burst at the centre sets the plane on fire; less further out.'],
+  ],
+  mgNest: [
+    ['range', 'Reach', 50, 600, 5, 'How far it can shoot. Fly higher than this to stay out of it.'],
+    ['turnRate', 'Swing speed', 0.2, 8, 0.1, 'How fast the gun follows a plane (rad/s).'],
+    ['burst', 'Burst length', 0.1, 5, 0.1, 'Seconds of firing per burst.'],
+    ['pause', 'Pause between bursts', 0, 6, 0.1, 'Seconds of rest between bursts (varies a little).'],
+    ['rpm', 'Rate of fire', 100, 1500, 10, 'Rounds per minute while firing.'],
+    ['velocity', 'Muzzle velocity', 150, 600, 5, ''],
+    ['damage', 'Damage per round', 0, 5, 0.05, 'Randomised +/-50% on each hit.'],
+    ['spread', 'Spread', 0, 0.15, 0.005, 'Random aim error (rad).'],
+  ],
+  infantry: [
+    ['range', 'Reach', 30, 400, 5, 'How far a rifle can reach a plane.'],
+    ['interval', 'Time between shots', 0.3, 8, 0.1, 'Seconds between shots per soldier (varies by half).'],
+    ['velocity', 'Muzzle velocity', 150, 600, 5, ''],
+    ['damage', 'Damage per round', 0, 5, 0.05, 'Randomised +/-50% on each hit.'],
+    ['spread', 'Spread', 0, 0.2, 0.005, 'Random aim error (rad).'],
+  ],
+};
 const HUD_FIELDS = [
   ['lastFlightTime', 'Last-flight report', 0, 30, 1, 'Seconds the LAST FLIGHT damage report stays after you respawn.'],
 ];
@@ -230,7 +263,9 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     'Ground targets',
     false,
     el('div', { class: 'buttons' }, el('button', { onclick: restoreTargets, title: 'Rebuild every ground object at full strength, with the current hit points' }, 'Restore targets')),
-    ...Object.values(groundDefs).map((d) => section(d.name, false, ...GROUND_FIELDS.map((f) => add(slider(d, f))))),
+    ...Object.entries(groundDefs).map(([type, d]) =>
+      section(d.name, false, ...[...GROUND_FIELDS, ...(DEFENCE_FIELDS[type] ?? [])].map((f) => add(slider(d, f)))),
+    ),
   );
   const hudSection = section('HUD', false, ...HUD_FIELDS.map((f) => add(slider(settings.hud, f))));
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));

@@ -45,8 +45,9 @@ later.
 ## Milestones ahead
 
 4. **Ground defences and targets + LDtk maps**
-   - Flak (slow, accurate, high ceiling, sets you on fire: fly low), MG nests (fast bursts, low
-     ceiling: fly high), infantry (weak, dangerous in groups), tents and towers as targets.
+   - ✓ Flak (slow, accurate, high ceiling, sets you on fire: fly low), MG nests (fast bursts, low
+     ceiling: fly high), infantry (weak, dangerous in groups), tents and towers as targets. They
+     shoot at planes in the air and on the ground.
    - **Radar stations** as bombable targets: destroy the enemy's and their scope goes dark; lose yours
      and you're blind.
    - ✓ Map format switched to LDtk projects (`maps/*.ldtk`) with an importer; destructible ground

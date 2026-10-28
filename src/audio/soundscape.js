@@ -236,6 +236,21 @@ export function createSoundscape(mixer, world) {
             sfx.play(mixer, e.kind === 'flak' || e.kind === 'mgNest' || e.kind === 'radar' ? voices.clank : voices.thud, where, { gain: 0.5, reverb: 0.2 });
           }
           break;
+        case 'flakFire':
+          sfx.play(mixer, voices.cannon30, where, { gain: 0.7, rate: 0.55, reverb: 0.4 });
+          break;
+        case 'groundShot':
+          if (impactBudget >= 1) {
+            impactBudget--;
+            sfx.play(mixer, voices.rifle, where, { gain: e.kind === 'infantry' ? 0.35 : 0.55, rate: e.kind === 'infantry' ? 0.8 : 0.9, reverb: 0.3 });
+          }
+          break;
+        case 'flakBurst':
+          sfx.explosion(mixer, whereAt(e.x, e.y), 0.45);
+          break;
+        case 'shrapnel':
+          if (mine) for (let i = 0; i < 3; i++) sfx.play(mixer, voices.clank, { ...ME, pan: (Math.random() - 0.5) * 0.8 }, { gain: 0.35, rate: 1.2 + i * 0.15, offset: i * 0.03 });
+          break;
         case 'groundDestroyed':
           sfx.explosion(mixer, where, 0.8);
           break;

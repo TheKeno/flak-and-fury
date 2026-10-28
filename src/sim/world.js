@@ -9,6 +9,7 @@ import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand } from './ai.js';
 import { DEFAULT_SERVICING } from './airfield.js';
 import { createGround, planesHitStructures } from './ground.js';
+import { stepDefences, stepShells } from './defences.js';
 
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
@@ -42,6 +43,7 @@ export function createWorld({
     planes: [],
     bullets: [],
     bombsInFlight: [],
+    shells: [], // flak shells in flight
     events: [], // things that happened this tick, for sound and effects
     nextId: 1,
   };
@@ -78,7 +80,9 @@ export function stepWorld(world, commands) {
     }
     stepPlane(p, cmd ?? NO_COMMAND, world, DT);
   }
+  stepDefences(world, DT);
   stepBullets(world, DT);
+  stepShells(world, DT);
   stepBombs(world, DT);
   collide(world);
   planesHitStructures(world, crash);

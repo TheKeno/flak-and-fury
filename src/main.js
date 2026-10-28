@@ -62,6 +62,9 @@ const CAUSES = {
   ground: () => 'FLEW INTO THE GROUND',
   belly: () => 'BELLY LANDING WENT WRONG',
   rough: () => 'HIT ROUGH GROUND TOO FAST',
+  flak: () => 'SHOT DOWN BY FLAK',
+  mgNest: () => 'SHOT DOWN BY AN MG NEST',
+  infantry: () => 'SHOT DOWN BY INFANTRY',
   structure: (by, e) => `FLEW INTO A ${(e.what ?? 'BUILDING').toUpperCase()}`,
 };
 

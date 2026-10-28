@@ -296,6 +296,7 @@ export function createRenderer(canvas, world, assets) {
   // Ground objects stand on the ground, sunk in by a pixel. Guns face the enemy's side of the map; their
   // barrels and the radar aerial are drawn here so they can move. A destroyed object leaves a
   // blackened stump of its lower part.
+  const groundFlashes = new Map(); // ground object id (soldiers: "id:index") -> frames of muzzle flash left
   const nationOf = (team) => map.airfields.find((a) => a.team === team)?.nation;
   const facingOf = (obj) => (obj.x < map.width / 2 ? 1 : -1);
   const spriteCache = new Map();
@@ -382,9 +383,18 @@ export function createRenderer(canvas, world, assets) {
       ctx.fillStyle = '#3a3e34'; // helmet
       ctx.fillRect(gx - 2, gy - 12, 4, 1);
       ctx.fillRect(gx - 1, gy - 13, 2, 1);
-      // Rifle held at the port, pointing up towards the enemy side.
+      // Rifle held at the port, or raised at the plane they're shooting at.
       ctx.fillStyle = '#4a3624';
-      for (let k = 0; k < 6; k++) ctx.fillRect(gx + dir * (1 + Math.floor(k / 2)), gy - 6 - k, 1, 1);
+      if (obj.target != null) {
+        const c = Math.cos(obj.aim);
+        const sn = Math.sin(obj.aim);
+        for (let k = 1; k < 7; k++) ctx.fillRect(Math.round(gx + c * k), Math.round(gy - 9 - sn * k), 1, 1);
+      } else for (let k = 0; k < 6; k++) ctx.fillRect(gx + dir * (1 + Math.floor(k / 2)), gy - 6 - k, 1, 1);
+      if (groundFlashes.get(`${obj.id}:${i}`) > 0) {
+        groundFlashes.set(`${obj.id}:${i}`, groundFlashes.get(`${obj.id}:${i}`) - 1);
+        ctx.fillStyle = '#ffd060';
+        ctx.fillRect(Math.round(gx + Math.cos(obj.aim) * 8) - 1, Math.round(gy - 9 - Math.sin(obj.aim) * 8) - 1, 2, 2);
+      }
     });
   }
 
@@ -415,6 +425,17 @@ export function createRenderer(canvas, world, assets) {
       const aim = obj.aim ?? (dir > 0 ? 0.8 : Math.PI - 0.8); // resting elevation until it has a target
       if (obj.type === 'flak') drawBarrel(pivot(14), top + 6, aim, 20, 3, '#3e4630');
       if (obj.type === 'mgNest') drawBarrel(pivot(13), top + 2, aim, 9, 1, '#24261f');
+      const flash = groundFlashes.get(obj.id);
+      if (gun && flash > 0) {
+        groundFlashes.set(obj.id, flash - 1);
+        const [px, py, len, r] = obj.type === 'flak' ? [pivot(14), top + 6, 22, 3] : [pivot(13), top + 2, 11, 2];
+        const fx = Math.round(px + Math.cos(aim) * len);
+        const fy = Math.round(py - Math.sin(aim) * len);
+        ctx.fillStyle = '#ffc850';
+        ctx.fillRect(fx - r, fy - r, r * 2, r * 2);
+        ctx.fillStyle = '#fff6c8';
+        ctx.fillRect(fx - 1, fy - 1, 2, 2);
+      }
       if (obj.type === 'radar') drawAerial(left + 26, top + 5, true);
       if (obj.type === 'tower') drawPennant(left + 10, top, obj.team);
     }
@@ -614,6 +635,8 @@ export function createRenderer(canvas, world, assets) {
         for (let k = 0; k < len; k += 1) dot(k, 2, k < len / 2 ? 'rgba(40,34,26,0.9)' : 'rgba(40,34,26,0.45)');
       }
     }
+    ctx.fillStyle = '#2a2824';
+    for (const s of world.shells) ctx.fillRect(Math.round(toScreenX(s.x)) - 1, Math.round(toScreenY(s.y)) - 1, 2, 2);
     for (const b of world.bombsInFlight) {
       const set = assets.bombSprite;
       const f = set.frames[frameIndex(Math.atan2(b.vy, b.vx))];
@@ -709,6 +732,28 @@ export function createRenderer(canvas, world, assets) {
         particles.explosion(e.x, e.y, BLAST_SIZE[e.kind] ?? 0.6);
         particles.dirtSpray(e.x, e.y, 0.6);
       }
+      if (e.type === 'flakFire') {
+        groundFlashes.set(e.id, 4);
+        for (let i = 0; i < 6; i++) particles.spawn('smoke', e.x, e.y, Math.cos(e.angle) * 20 + (Math.random() - 0.5) * 10, Math.sin(e.angle) * 20, 0.8 + Math.random() * 0.6, 1.4);
+      }
+      if (e.type === 'groundShot') {
+        const obj = world.ground.find((o) => o.id === e.id);
+        if (obj?.soldiers) {
+          const i = obj.soldiers.findIndex((s) => Math.abs(obj.x + s.dx - e.x) < 0.5);
+          groundFlashes.set(`${e.id}:${i}`, 2);
+        } else groundFlashes.set(e.id, 2);
+      }
+      // A flak burst: a flash, then a black puff that hangs in the air.
+      if (e.type === 'flakBurst') {
+        for (let i = 0; i < 8; i++) particles.spawn('fire', e.x, e.y, (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40, 0.08 + Math.random() * 0.12, 2);
+        for (let i = 0; i < 14; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const s = Math.random() * 9;
+          particles.spawn('flakpuff', e.x + Math.cos(a) * 2, e.y + Math.sin(a) * 2, Math.cos(a) * s, Math.sin(a) * s, 2.5 + Math.random() * 2, 2 + Math.random() * 1.5);
+        }
+        particles.sparks(e.x, e.y, 8);
+      }
+      if (e.type === 'shrapnel') particles.sparks(e.x, e.y, 3 + Math.min(6, e.damage / 3));
       if (e.type === 'soldierKilled') particles.spawn('dust', e.x, e.y + 2, 0, 8, 0.5, 0.7);
       if (e.type === 'collision') {
         if (e.severity === 'fatal') particles.explosion(e.x, e.y, 1.2);

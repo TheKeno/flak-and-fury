@@ -2,11 +2,14 @@
   "_notes": [
     "Ground objects placed on the map (LDtk entities). Editable live in the tuning panel (press T).",
     "hp: hit points (infantry: per soldier). points: score for destroying it (infantry: per soldier). width, height: size in world units, also the hit box.",
-    "bulletFactor: share of bullet damage it takes (bombs always do full damage). solid: planes that fly into it crash. spacing: gap between soldiers in a squad."
+    "bulletFactor: share of bullet damage it takes (bombs always do full damage). solid: planes that fly into it crash. spacing: gap between soldiers in a squad.",
+    "Shooting. range: how far it can reach a plane. turnRate: how fast the barrel swings (rad/s). spread: random aim error (rad). velocity: muzzle speed. damage: per round.",
+    "Flak: interval between shots; minAltitude: planes lower than this above the ground are ignored (fly low to dodge); minElevation: lowest the barrel can point (rad); fuseError: share the time fuse is off by; burstRadius, burstDamage (at the centre), fireChance (at the centre) of each shell burst.",
+    "MG nest: burst and pause: seconds firing and resting; rpm while firing. Infantry: each soldier fires once every interval seconds, give or take half."
   ],
-  "flak": { "name": "Flak gun", "sprite": "flak", "hp": 60, "points": 10, "width": 14, "height": 9, "bulletFactor": 0.6, "solid": false },
-  "mgNest": { "name": "MG nest", "sprite": "mgnest", "hp": 40, "points": 5, "width": 12, "height": 5, "bulletFactor": 0.5, "solid": false },
-  "infantry": { "name": "Infantry squad", "hp": 3, "points": 1, "width": 3, "height": 6, "spacing": 5, "bulletFactor": 1, "solid": false },
+  "flak": { "name": "Flak gun", "sprite": "flak", "hp": 60, "points": 10, "width": 14, "height": 9, "bulletFactor": 0.6, "solid": false, "range": 700, "minAltitude": 60, "minElevation": 0.3, "turnRate": 0.9, "interval": 2.6, "velocity": 300, "drop": 0.3, "spread": 0.012, "fuseError": 0.06, "burstRadius": 24, "burstDamage": 24, "fireChance": 0.2 },
+  "mgNest": { "name": "MG nest", "sprite": "mgnest", "hp": 40, "points": 5, "width": 12, "height": 5, "bulletFactor": 0.5, "solid": false, "range": 260, "turnRate": 2.5, "burst": 1.2, "pause": 1.6, "rpm": 600, "velocity": 320, "damage": 0.8, "spread": 0.03 },
+  "infantry": { "name": "Infantry squad", "hp": 3, "points": 1, "width": 3, "height": 6, "spacing": 5, "bulletFactor": 1, "solid": false, "range": 190, "interval": 2.2, "velocity": 300, "damage": 1, "spread": 0.06 },
   "tent": { "name": "Tent", "sprite": "tent", "hp": 20, "points": 2, "width": 16, "height": 8, "bulletFactor": 1, "solid": false },
   "tower": { "name": "Watchtower", "sprite": "tower", "hp": 40, "points": 5, "width": 10, "height": 30, "bulletFactor": 0.5, "solid": true },
   "building": { "name": "Building", "sprite": "building", "hp": 120, "points": 5, "width": 28, "height": 18, "bulletFactor": 0.15, "solid": true },
