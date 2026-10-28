@@ -12,7 +12,7 @@ export const ownAirfieldAt = (world, p) =>
   world.map.airfields.find((a) => a.team === p.team && p.x >= a.x && p.x <= a.x + a.width);
 
 function needs(p, serviced) {
-  if (p.hp < p.def.hp || p.engineDamage > 0 || p.burning || p.belly) return 'repair';
+  if (p.hp < p.def.hp || p.engineDamage > 0 || p.burning || p.belly || p.tailDamage > 0 || p.wingPull !== 0) return 'repair';
   // A stopped engine is started at the end of refuelling, even when the tank is already full.
   if (p.fuel < (serviced ? TOP_UP_BELOW : FULL_TANK) || !p.engineRunning) return 'refuel';
   const fullBombs = p.def.armament?.bombs?.count ?? 0;
@@ -66,6 +66,9 @@ export function updateServicing(p, world, dt) {
     p.burning = false;
     p.hp = Math.min(p.def.hp, p.hp + cfg.repairPerSec * dt);
     p.engineDamage = Math.max(0, p.engineDamage - (cfg.repairPerSec / p.def.hp) * dt);
+    p.tailDamage = Math.max(0, p.tailDamage - (cfg.repairPerSec / p.def.hp) * dt);
+    const wingFix = (cfg.repairPerSec / p.def.hp) * dt;
+    p.wingPull = Math.abs(p.wingPull) <= wingFix ? 0 : p.wingPull - Math.sign(p.wingPull) * wingFix;
     // Last job after a belly landing: jack the plane up, new propeller, gear down and locked.
     if (p.belly && p.hp >= p.def.hp && p.engineDamage <= 0) {
       p.belly = false;

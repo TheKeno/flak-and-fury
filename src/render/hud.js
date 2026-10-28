@@ -66,6 +66,10 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   drawText(ctx, 'DMG', x, y, '#c8d0c0');
   bar(ctx, x + 14, y + 1, 30, hp, hp < 0.35 ? '#e05040' : hp < 0.6 ? '#e0a040' : '#80d070');
   if (plane.burning && Math.floor(performance.now() / 200) % 2) drawText(ctx, 'FIRE', x + 48, y, '#ff7040');
+  else if (plane.tailDamage > 0.05 || Math.abs(plane.wingPull) > 0.02) {
+    const parts = [plane.tailDamage > 0.05 ? 'TAIL' : '', Math.abs(plane.wingPull) > 0.02 ? (plane.wingPull > 0 ? 'WING<' : 'WING>') : ''];
+    drawText(ctx, parts.filter(Boolean).join(' '), x + 48, y, '#e0b040');
+  }
   y += 7;
   const rounds = plane.guns.reduce((n, g) => n + g.ammo, 0);
   drawText(ctx, `GUN ${Math.floor(rounds)}`, x, y, rounds > 0 ? '#e8f0e0' : '#e05040');
@@ -94,6 +98,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   if (plane.state === 'dead') centre('CRASHED - BACK TO THE HANGAR', 60, '#ff9070');
   else if (plane.dying) centre('GOING DOWN!', 60, blink ? '#ff6050' : '#ffb0a0');
   else if (plane.blackout) centre('BLACKOUT - TAP A/D!', 60, blink ? '#ff6050' : '#ffb0a0');
+  else if (plane.tumble > 0) centre('OUT OF CONTROL!', 60, blink ? '#ff8050' : '#ffd0b0');
   else if (plane.y > world.map.ceiling) centre('TOO HIGH', 60, blink ? '#ffd060' : '#fff0c0');
   else if (plane.stalled && plane.state === 'air') centre('STALL', 60, blink ? '#ff6050' : '#ffc0b0');
   else if (plane.gearWarning) centre('GEAR UP!  (G)', 60, blink ? '#ff5040' : '#ffd0b0');

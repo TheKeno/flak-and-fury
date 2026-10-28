@@ -15,6 +15,7 @@ const world = createWorld({
   planeDefs: content.planeDefs,
   weapons: content.weapons,
   servicing: content.settings.servicing,
+  collisions: content.settings.collisions,
 });
 const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
 // A sparring partner until real bots arrive in milestone 5.
@@ -53,6 +54,14 @@ function handleEvents() {
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
       if (e.type === 'bellyLanding') renderer.message(e.collapsed ? 'GEAR COLLAPSED!' : 'BELLY LANDING!', '#ff9070');
       if (e.type === 'recovered') renderer.message('RECOVERED TO BASE', '#f0e8c0');
+    }
+    if (e.type === 'collision' && (e.a === player.id || e.b === player.id)) {
+      renderer.shake(e.severity === 'fatal' ? 8 : e.severity === 'hard' ? 6 : 3);
+      const other = world.planes.find((pl) => pl.id === (e.a === player.id ? e.b : e.a));
+      if (e.severity === 'fatal') renderer.message('MID-AIR COLLISION!', '#ff8070');
+      else if (e.taran && player.engineDamage > 0 && other?.tailDamage > 0) renderer.message('TARAN! YOU CHEWED HIS TAIL', '#e8c860');
+      else if (e.taran) renderer.message('RAMMED! TAIL SHREDDED', '#ff8070');
+      else renderer.message(e.severity === 'hard' ? 'COLLISION!' : 'GRAZED!', '#ffb070');
     }
     if (e.type === 'shotDown') {
       if (e.by === player.id) renderer.message('ENEMY SHOT DOWN!', '#e8c860');

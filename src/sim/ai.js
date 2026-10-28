@@ -38,11 +38,35 @@ export function botCommand(world, p, skillName = 'target') {
     const climb = clamp((skill.cruiseAlt - p.y) / 250, -0.35, 0.45);
     desired = facingRight ? climb : Math.PI - climb;
   }
+  // Break away from a head-on pass: swing the nose off the other plane's line.
+  const threat = headOnThreat(world, p);
+  if (threat) {
+    desired = p.angle + (threat.side > 0 ? -1.2 : 1.2);
+    cmd.fire = false;
+  }
   if (p.stalled) desired = -Math.PI / 2 + (facingRight ? 0.6 : -0.6);
 
   const diff = angleDiff(desired, p.angle);
   cmd.turn = clamp(diff / 0.15, -1, 1);
   return cmd;
+}
+
+const HEAD_ON_LOOKOUT = 150;
+
+function headOnThreat(world, p) {
+  const hx = Math.cos(p.angle);
+  const hy = Math.sin(p.angle);
+  for (const o of world.planes) {
+    if (o === p || o.state !== 'air') continue;
+    const dx = o.x - p.x;
+    const dy = o.y - p.y;
+    const d = Math.hypot(dx, dy);
+    if (d > HEAD_ON_LOOKOUT || d < 1) continue;
+    const ahead = (hx * dx + hy * dy) / d; // other plane in front of me
+    const facing = -(Math.cos(o.angle) * dx + Math.sin(o.angle) * dy) / d; // and pointing back at me
+    if (ahead > 0.8 && facing > 0.6) return { side: Math.sign(hx * dy - hy * dx) || 1 };
+  }
+  return null;
 }
 
 function nearestEnemy(world, p, range) {

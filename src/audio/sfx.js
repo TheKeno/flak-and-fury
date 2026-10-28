@@ -127,6 +127,24 @@ export function bellyCrunch(mixer, where, speed) {
   mixer.duck(0.4, 0.1, 0.6, at);
 }
 
+// Mid-air contact. Hard hits crunch; grazes screech and clang; a propeller chewing into a tail
+// adds a rapid hammering.
+export function midair(mixer, where, severity, taran) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.3);
+  if (severity === 'hard') {
+    tone(mixer, dest, at, 0.4, { from: 110, to: 40, vol: 1 });
+    noiseBurst(mixer, dest, at, 0.6, { from: 3200, to: 400, vol: 0.9 });
+    mixer.duck(0.5, 0.1, 0.8, at);
+  } else {
+    noiseBurst(mixer, dest, at, 0.35, { type: 'bandpass', from: 3400, to: 1800, q: 6, vol: 0.5, attack: 0.01 });
+    tone(mixer, dest, at, 0.25, { from: 1300, to: 900, vol: 0.25, type: 'triangle' });
+  }
+  if (taran) {
+    for (let i = 0; i < 7; i++) noiseBurst(mixer, dest, at + i * 0.035, 0.03, { type: 'bandpass', from: 1700, to: 1100, q: 4, vol: 0.6 });
+  }
+}
+
 // Cockpit warning horn: pulsing, impossible to ignore.
 export function gearHorn(mixer) {
   const { ctx } = mixer;

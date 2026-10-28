@@ -232,9 +232,13 @@ export function createSoundscape(mixer, world) {
         case 'shotDown':
           sfx.play(mixer, voices.thunk, where, { gain: mine ? 0.8 : 0.6, rate: 0.6, bus: mine ? 'body' : 'sfx' });
           break;
-        case 'collision':
-          sfx.explosion(mixer, whereAt(e.x, e.y), 0.9);
+        case 'collision': {
+          const involved = e.a === focusId || e.b === focusId;
+          const at = involved ? ME : whereAt(e.x, e.y);
+          if (e.severity === 'fatal') sfx.explosion(mixer, at, 1.1);
+          else sfx.midair(mixer, at, e.severity, e.taran);
           break;
+        }
       }
     },
   };

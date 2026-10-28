@@ -29,6 +29,7 @@
     "maxLandingSpeed": 95,
     "maxSpeed": 150,
     "hp": 100,
+    "toughness": 1,
     "hitRadius": 7,
     "endurance": 300,
     "bombOffset": [
@@ -88,6 +89,7 @@
     "maxLandingSpeed": 90,
     "maxSpeed": 155,
     "hp": 90,
+    "toughness": 0.95,
     "hitRadius": 6.5,
     "endurance": 240,
     "bombOffset": [

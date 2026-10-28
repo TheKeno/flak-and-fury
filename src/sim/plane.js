@@ -79,6 +79,11 @@ export function createPlane(id, def, { team, nation, seats }) {
     gearWarning: false, // low and slow with the gear up
     belly: false, // landed (or slid to a stop) on its belly
     strandedTimer: 0,
+    tumble: 0, // seconds left out of control after a collision
+    tumbleMax: 0,
+    tumbleSpin: 0,
+    tailDamage: 0, // 0..1: lost rudder/elevator authority
+    wingPull: 0, // rad/s of drift from a damaged wing (sign = direction)
   };
 }
 
@@ -108,6 +113,7 @@ export function spawnAtAirfield(p, world) {
   p.gearDown = true;
   p.gearManual = p.gearWarning = p.belly = false;
   p.strandedTimer = 0;
+  p.tumble = p.tumbleSpin = p.tailDamage = p.wingPull = 0;
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
 }
@@ -294,7 +300,8 @@ function stepAir(p, cmd, world, dt) {
     const t = clamp((d.slowTurnSpeed - p.speed) / Math.max(1, d.slowTurnSpeed - d.stallSpeed), 0, 1);
     authority = 1 + d.slowTurnBonus * t * t * (3 - 2 * t);
   }
-  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * authority * ramp;
+  // A damaged tail answers the controls only weakly; a damaged wing drags the nose round.
+  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;
 
   // Below stall speed the wings stop lifting: controls go soft and the nose falls.
   // The stall only clears once the plane has picked up a margin of speed again.
@@ -307,6 +314,11 @@ function stepAir(p, cmd, world, dt) {
     if (!wasStalled) world.events.push({ type: 'stall', plane: p.id });
   }
   if (p.blackout) turn = 3.2 * p.spinDir;
+  // Knocked about after a collision: the controls don't answer until the tumble dies away.
+  if (p.tumble > 0) {
+    turn = p.tumbleSpin * (0.4 + 0.6 * (p.tumble / p.tumbleMax)) + p.wingPull;
+    p.tumble = Math.max(0, p.tumble - dt);
+  }
   // A shot-down plane noses over and goes in, spinning.
   if (p.dying) {
     const toDown = angleDiff(-Math.PI / 2, p.angle);

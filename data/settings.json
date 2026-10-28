@@ -22,5 +22,22 @@
     "repairPerSec": 25,
     "refuelTime": 5,
     "rearmTime": 3
+  },
+  "collisions": {
+    "headOnSpeed": 110,
+    "fatalSpeed": 180,
+    "hardSpeed": 80,
+    "grazeDamage": 8,
+    "hardDamage": 35,
+    "grazeTumble": 1,
+    "hardTumble": 1.8,
+    "driveWeight": 0.6,
+    "evadeBonus": 0.33,
+    "hardFireChance": 0.35,
+    "propStrikes": true,
+    "tailDamage": 0.6,
+    "wingPull": 0.6,
+    "pushApart": 1,
+    "grace": 1
   }
 }

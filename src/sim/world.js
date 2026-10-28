@@ -4,7 +4,8 @@
 import { createRng } from './math.js';
 import { buildTerrain } from './terrain.js';
 import { createPlane, spawnAtAirfield, stepPlane, NO_COMMAND } from './plane.js';
-import { stepBullets, stepBombs, shootDown } from './weapons.js';
+import { stepBullets, stepBombs } from './weapons.js';
+import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand } from './ai.js';
 import { DEFAULT_SERVICING } from './airfield.js';
 
@@ -16,7 +17,14 @@ export const DT = 1 / TICK_RATE;
 export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', autoGear: true };
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
-export function createWorld({ map, planeDefs, weapons, rules = {}, servicing = { ...DEFAULT_SERVICING } }) {
+export function createWorld({
+  map,
+  planeDefs,
+  weapons,
+  rules = {},
+  servicing = { ...DEFAULT_SERVICING },
+  collisions = { ...DEFAULT_COLLISIONS },
+}) {
   const world = {
     tick: 0,
     map: structuredClone(map),
@@ -24,6 +32,8 @@ export function createWorld({ map, planeDefs, weapons, rules = {}, servicing = {
     weapons,
     rules: { ...DEFAULT_RULES, ...rules },
     servicing,
+    collisions,
+    collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],
     bullets: [],
@@ -47,22 +57,6 @@ export function addPlane(world, { defId, team, nation, controller }) {
   world.planes.push(p);
   spawnAtAirfield(p, world);
   return p;
-}
-
-function collide(world) {
-  if (!world.rules.ramming) return;
-  const air = world.planes.filter((p) => p.state === 'air');
-  for (let i = 0; i < air.length; i++) {
-    for (let j = i + 1; j < air.length; j++) {
-      const a = air[i];
-      const b = air[j];
-      if (a.state !== 'air' || b.state !== 'air' || (a.dying && b.dying)) continue;
-      if (Math.hypot(a.x - b.x, a.y - b.y) > (a.def.hitRadius + b.def.hitRadius) * 0.8) continue;
-      world.events.push({ type: 'collision', a: a.id, b: b.id, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
-      if (!a.dying) shootDown(world, a, b.id);
-      if (!b.dying) shootDown(world, b, a.id);
-    }
-  }
 }
 
 export function stepWorld(world, commands) {

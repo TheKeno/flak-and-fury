@@ -134,6 +134,7 @@ export function createRenderer(canvas, world, assets) {
   }));
 
   const particles = createParticles();
+  let shake = 0; // screen shake strength in buffer pixels, decays quickly
   const cam = { x: 0, y: 0, leadX: 0, leadY: 0, snapped: false };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
@@ -443,6 +444,9 @@ export function createRenderer(canvas, world, assets) {
     centre() {
       return { x: cam.x + vw / 2, y: cam.y + vh / 2 };
     },
+    shake(amount) {
+      shake = Math.max(shake, amount);
+    },
     message(text, colour = '#f0e8c0') {
       messages.push({ text, colour, until: performance.now() + 3500 });
     },
@@ -456,7 +460,14 @@ export function createRenderer(canvas, world, assets) {
         particles.explosion(e.x, e.y, 1.3);
         if (onGround) particles.dirtSpray(e.x, e.y, 1.2);
       }
-      if (e.type === 'shotDown' || e.type === 'collision') particles.explosion(e.x, e.y, 0.5);
+      if (e.type === 'shotDown') particles.explosion(e.x, e.y, 0.5);
+      if (e.type === 'collision') {
+        if (e.severity === 'fatal') particles.explosion(e.x, e.y, 1.2);
+        else if (e.severity === 'hard') {
+          particles.sparks(e.x, e.y, 20);
+          particles.explosion(e.x, e.y, 0.25);
+        } else particles.sparks(e.x, e.y, 8);
+      }
       if (e.type === 'bellyLanding') {
         particles.sparks(e.x, e.y - 2, 14);
         particles.dirtSpray(e.x, e.y - 2, 0.4);
@@ -488,7 +499,15 @@ export function createRenderer(canvas, world, assets) {
       drawHud(hud, world, focus, W, H, { showHelp });
       drawMessages();
 
-      out.drawImage(buffer, 0, 0, bw, bh, 0, 0, canvas.width, canvas.height);
+      const k = canvas.width / bw;
+      const ox = shake > 0.2 ? (Math.random() - 0.5) * 2 * shake * k : 0;
+      const oy = shake > 0.2 ? (Math.random() - 0.5) * 2 * shake * k : 0;
+      shake *= Math.exp(-dt * 7);
+      if (ox || oy) {
+        out.fillStyle = '#000';
+        out.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      out.drawImage(buffer, 0, 0, bw, bh, ox, oy, canvas.width, canvas.height);
       out.drawImage(hudLayer, 0, 0, canvas.width, canvas.height);
     },
   };

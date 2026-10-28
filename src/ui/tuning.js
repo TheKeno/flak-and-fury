@@ -19,6 +19,7 @@ const PLANE_FIELDS = [
   ['groundFriction', 'Ground friction', 5, 40, 1, 'How quickly the plane slows when rolling on the ground.'],
   ['hp', 'Hit points', 20, 400, 5, 'How much damage the plane takes before it goes down.'],
   ['hitRadius', 'Hit size', 3, 14, 0.5, 'Size of the plane for bullets (px). Smaller = harder to hit.'],
+  ['toughness', 'Airframe toughness', 0.3, 3, 0.05, 'Divides collision damage. 1 = normal, higher = sturdier.'],
   ['endurance', 'Fuel endurance', 30, 900, 10, 'Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much.'],
 ];
 const GUN_FIELDS = [
@@ -52,6 +53,22 @@ const SERVICING_FIELDS = [
   ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
   ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
   ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],
+];
+const COLLISION_FIELDS = [
+  ['headOnSpeed', 'Head-on: fatal from', 0, 300, 5, 'Closing speed at which two noses meeting kills both planes.'],
+  ['fatalSpeed', 'Any angle: fatal from', 50, 400, 5, 'Closing speed at which any collision kills both planes.'],
+  ['hardSpeed', 'Hard hit from', 10, 200, 5, 'Closing speed separating a graze from a hard hit.'],
+  ['grazeDamage', 'Graze damage', 0, 40, 1, 'Base damage of a graze (split between the planes).'],
+  ['hardDamage', 'Hard hit damage', 0, 120, 1, 'Base damage of a hard hit (split between the planes).'],
+  ['grazeTumble', 'Graze: out of control', 0, 4, 0.1, 'Seconds without control after a graze.'],
+  ['hardTumble', 'Hard hit: out of control', 0, 6, 0.1, 'Seconds without control after a hard hit.'],
+  ['driveWeight', 'Rammer takes more', 0, 1, 0.05, '0 = damage always shared equally. 1 = all of it on the plane that drove into the other.'],
+  ['evadeBonus', 'Evasion bonus', 0, 1, 0.05, 'Share of damage removed for a plane turning away at the moment of contact.'],
+  ['hardFireChance', 'Hard hit: fire chance', 0, 1, 0.05, 'Chance a hard hit sets a plane on fire.'],
+  ['tailDamage', 'Prop strike: tail damage', 0, 1, 0.05, 'Tail authority lost when a propeller chews into it (1 = none left).'],
+  ['wingPull', 'Damaged wing pull', 0, 2, 0.05, 'How hard a damaged wing drags the nose round (rad/s).'],
+  ['pushApart', 'Push apart', 0, 4, 0.1, 'How hard colliding planes are shoved away from each other.'],
+  ['grace', 'Re-collide delay', 0, 3, 0.1, 'Seconds before the same two planes can collide again.'],
 ];
 const AUDIO_FIELDS = [
   ['master', 'Master volume', 0, 1, 0.01, '1.0 = full loudness.'],
@@ -168,6 +185,14 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   );
 
   const cameraSection = section('Camera', true, ...CAMERA_FIELDS.map((f) => add(slider(settings.camera, f))));
+  const propBox = el('input', { type: 'checkbox', onchange: () => (settings.collisions.propStrikes = propBox.checked) });
+  propBox.checked = settings.collisions.propStrikes;
+  const collisionSection = section(
+    'Collisions',
+    false,
+    el('label', { class: 'row check', title: 'Propeller into a tail wrecks the tail and bends the propeller (the Soviet "taran").' }, el('span', {}, 'Propeller strikes (taran)'), propBox),
+    ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
+  );
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
   const audioSection = section(
     'Sound',
@@ -205,6 +230,8 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.camera, saved.settings.camera);
     Object.assign(settings.audio, saved.settings.audio);
     Object.assign(settings.servicing, saved.settings.servicing);
+    Object.assign(settings.collisions, saved.settings.collisions);
+    propBox.checked = settings.collisions.propStrikes;
     for (const p of world.planes) p.guns.forEach(updateGunRates);
     getMixer()?.applyLevels();
     rows.forEach((r) => r.refresh());
@@ -219,6 +246,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     player.fuel = 1;
     player.engineRunning = true;
     player.lowFuelWarned = false;
+    player.tailDamage = player.wingPull = player.tumble = 0;
     rearmFully(player);
     say('Plane repaired and rearmed');
   }
@@ -247,6 +275,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     planeSection,
     ...gunSections,
     bombSection,
+    collisionSection,
     servicingSection,
     cameraSection,
     audioSection,

@@ -28,6 +28,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundFriction` | How quickly the plane slows when rolling. | 10 – 30 |
+| `toughness` | Divides collision damage. 1 = normal, higher = sturdier. | 0.7 – 1.5 |
 | `endurance` | Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much. | 120 – 600 |
 | `hp` | Hit points. Higher = takes more hits. | 60 – 200 |
 | `hitRadius` | Size of the plane for bullets (px). Smaller = harder to hit. | 5 – 10 |
@@ -54,6 +55,12 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 
 `servicing`: `crewDelay` (seconds before the crew start), `repairPerSec` (hit points per second),
 `refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings.
+
+`collisions`: how deadly mid-air collisions are. Head-on above `headOnSpeed` closing speed, or any
+angle above `fatalSpeed`, kills both planes. Below that, `hardSpeed` separates a graze from a hard
+hit. Damage is split between the planes: `driveWeight` puts more on whoever drove into the other,
+`evadeBonus` removes some from a plane turning away. `propStrikes` turns the propeller-into-tail
+"taran" on or off. All of these are also in the tuning panel's Collisions section.
 
 ## Paint: `data/nations.json`
 
