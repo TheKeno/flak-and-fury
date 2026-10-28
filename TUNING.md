@@ -72,7 +72,44 @@ hit. Damage is split between the planes: `driveWeight` puts more on whoever drov
 
 Colours for each nation's planes, as hex codes (`#rrggbb`).
 
-## Map: `maps/countryside.json`
+## Ground targets: `data/ground.json`
 
-`width` of the world, `ceiling` (blackout altitude), `seed` (change for different hills), terrain
-`base`/`amplitude` (hill height), airfield positions, and sky colours.
+One entry per kind of ground object (`flak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`).
+Also in the tuning panel's **Ground targets** section; its **Restore targets** button rebuilds every
+object at full strength (new hit points only apply then).
+
+| Field | What it does | Try |
+|---|---|---|
+| `hp` | Hit points. For infantry, per soldier. A 250 lb bomb does about 120 at the centre. | 3 – 200 |
+| `points` | Score for destroying it (infantry: per soldier). | 1 – 20 |
+| `bulletFactor` | Share of bullet damage it takes; bombs always do full damage. 0.15 = bombs only, in practice. | 0 – 1 |
+| `width`, `height` | Size in world units, also the hit box. Sprites don't stretch with it. | |
+| `solid` | Planes that fly into it crash (and damage it). | |
+| `spacing` | Infantry only: gap between soldiers in a squad. | 3 – 8 |
+
+## Paint and uniforms: `data/nations.json`
+
+Colours for each nation's planes (`paint`) and soldiers (`uniform`), as hex codes (`#rrggbb`).
+
+## Map: `maps/countryside.ldtk`
+
+The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or remove objects, then save
+(Ctrl+S) and reload the game. One LDtk pixel is one world unit.
+
+- **Level fields** (the level's settings panel): `seed` (change for different hills), `ceiling`
+  (blackout altitude), `terrainBase`/`terrainAmplitude` (hill height) and the three sky colours. The
+  level's width is the world's width.
+- **Objects layer:** `Airfield` (stretch it for a longer runway; `team` and `nation`), `Flak`,
+  `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`. Each has
+  a `team` (Team_0 is the west airfield's side). Only the x position matters: the game stands every
+  object on the ground.
+- **The hills** aren't stored in the map; the game builds them from `seed`. The picture behind the
+  objects (`maps/countryside-guide.png`) shows them so you can see the ground line. After changing the
+  seed, terrain or airfields, redraw it:
+
+```bash
+node tools/map-guide.mjs countryside
+```
+
+`tools/make-map.mjs` wrote the starting map. Don't run it again: it would replace the map and every edit
+made in LDtk (it refuses unless given `--force`).

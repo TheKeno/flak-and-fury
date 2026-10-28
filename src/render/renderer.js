@@ -95,6 +95,9 @@ function buildCloud(rng) {
   return c;
 }
 
+const METAL = new Set(['flak', 'mgNest', 'radar']); // these spark when hit; the rest throw up dust
+const BLAST_SIZE = { flak: 0.8, mgNest: 0.5, tent: 0.5, tower: 0.7, building: 1.1, radar: 1.1 };
+
 const hash = (n) => (Math.imul(n | 0, 2654435761) >>> 0) % 997;
 
 export function createRenderer(canvas, world, assets) {
@@ -287,6 +290,156 @@ export function createRenderer(canvas, world, assets) {
       const sx = Math.round(toScreenX(hx));
       if (sx > bw || sx + img.width < 0) continue;
       ctx.drawImage(img, sx, Math.round(toScreenY(af.height)) - img.height + 2);
+    }
+  }
+
+  // Ground objects stand on the ground, sunk in by a pixel. Guns face the enemy's side of the map; their
+  // barrels and the radar aerial are drawn here so they can move. A destroyed object leaves a
+  // blackened stump of its lower part.
+  const nationOf = (team) => map.airfields.find((a) => a.team === team)?.nation;
+  const facingOf = (obj) => (obj.x < map.width / 2 ? 1 : -1);
+  const spriteCache = new Map();
+  function flipped(name, img) {
+    const key = `${name}|flip`;
+    if (!spriteCache.has(key)) {
+      const c = makeCanvas(img.width, img.height);
+      const g = c.getContext('2d');
+      g.scale(-1, 1);
+      g.drawImage(img, -img.width, 0);
+      spriteCache.set(key, c);
+    }
+    return spriteCache.get(key);
+  }
+  function wreckOf(name, img) {
+    const key = `${name}|wreck`;
+    if (!spriteCache.has(key)) {
+      const h = Math.max(6, Math.round(img.height * 0.35));
+      const c = makeCanvas(img.width, h);
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, img.height - h, img.width, h, 0, 0, img.width, h);
+      // Broken, jagged top edge, then scorch everything that's left.
+      for (let x = 0; x < img.width; x++) g.clearRect(x, 0, 1, hash(x * 31 + h) % Math.ceil(h * 0.6));
+      g.globalCompositeOperation = 'source-atop';
+      g.fillStyle = 'rgba(26,20,16,0.72)';
+      g.fillRect(0, 0, img.width, h);
+      spriteCache.set(key, c);
+    }
+    return spriteCache.get(key);
+  }
+
+  function drawBarrel(x, y, angle, length, thick, colour) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    ctx.fillStyle = colour;
+    for (let k = 0; k <= length; k++) ctx.fillRect(Math.round(x + c * k - thick / 2), Math.round(y - s * k - thick / 2), thick, thick);
+  }
+
+  // Radar aerial: a bedstead array turning on the mast, foreshortened as it rotates.
+  function drawAerial(x, y, alive) {
+    const phase = alive ? performance.now() / 700 : 0.9;
+    const w = Math.max(1, Math.round(Math.abs(Math.cos(phase)) * 16));
+    ctx.fillStyle = Math.cos(phase) > 0 ? '#a8aca4' : '#5a5e58';
+    ctx.fillRect(x - Math.floor(w / 2), y - 8, w, 6);
+    ctx.fillStyle = '#3c3e3a';
+    for (let k = 0; k < w; k += 3) ctx.fillRect(x - Math.floor(w / 2) + k, y - 8, 1, 6);
+    ctx.fillRect(x - Math.floor(w / 2), y - 5, w, 1);
+  }
+
+  function drawPennant(x, y, team) {
+    const colour = assets.nations[nationOf(team)]?.paint.marking ?? '#c03030';
+    ctx.fillStyle = '#3a3026';
+    ctx.fillRect(x, y - 10, 1, 10);
+    const wave = Math.floor(frame / 12) % 2;
+    ctx.fillStyle = colour;
+    ctx.fillRect(x + 1, y - 10, 5, 2);
+    ctx.fillRect(x + 1, y - 8, 4 - wave, 1 + wave);
+  }
+
+  function drawSquad(obj, sx, frameNo) {
+    const uniform = assets.nations[nationOf(obj.team)]?.uniform ?? '#6a6e5e';
+    obj.soldiers.forEach((s, i) => {
+      const wx = obj.x + s.dx;
+      const gx = Math.round(toScreenX(wx));
+      const gy = Math.round(toScreenY(world.terrain.heightAt(wx))) + 1;
+      if (gx < -10 || gx > bw + 10) return;
+      if (s.hp <= 0) {
+        // Fallen: lying flat.
+        ctx.fillStyle = uniform;
+        ctx.fillRect(gx - 3, gy - 2, 5, 2);
+        ctx.fillStyle = '#d6a77e';
+        ctx.fillRect(gx + 2, gy - 2, 2, 2);
+        return;
+      }
+      const dir = facingOf(obj);
+      const shift = Math.floor((frameNo + i * 13) / 40) % 3 === 0 ? 1 : 0; // shuffling feet
+      ctx.fillStyle = '#2a2622';
+      ctx.fillRect(gx - 1, gy - 3, 1, 3);
+      ctx.fillRect(gx + 1, gy - 3 + shift, 1, 3 - shift);
+      ctx.fillStyle = uniform;
+      ctx.fillRect(gx - 1, gy - 9, 3, 6);
+      ctx.fillStyle = '#d6a77e';
+      ctx.fillRect(gx - 1, gy - 11, 2, 2);
+      ctx.fillStyle = '#3a3e34'; // helmet
+      ctx.fillRect(gx - 2, gy - 12, 4, 1);
+      ctx.fillRect(gx - 1, gy - 13, 2, 1);
+      // Rifle held at the port, pointing up towards the enemy side.
+      ctx.fillStyle = '#4a3624';
+      for (let k = 0; k < 6; k++) ctx.fillRect(gx + dir * (1 + Math.floor(k / 2)), gy - 6 - k, 1, 1);
+    });
+  }
+
+  function drawGround() {
+    for (const obj of world.ground) {
+      const sx = Math.round(toScreenX(obj.x));
+      if (sx < -60 || sx > bw + 60) continue;
+      if (obj.soldiers) {
+        drawSquad(obj, sx, frame);
+        continue;
+      }
+      const name = obj.def.sprite;
+      const img = assets.images[name];
+      if (!img) continue;
+      const sy = Math.round(toScreenY(world.terrain.heightAt(obj.x))) + 2;
+      const left = sx - Math.round(img.width / 2);
+      if (!obj.alive) {
+        const w = wreckOf(name, img);
+        ctx.drawImage(w, left, sy - w.height);
+        continue;
+      }
+      const dir = facingOf(obj);
+      const gun = obj.type === 'flak' || obj.type === 'mgNest';
+      ctx.drawImage(gun && dir < 0 ? flipped(name, img) : img, left, sy - img.height);
+      const top = sy - img.height;
+      // Barrel pivots, measured on the right-facing sprite.
+      const pivot = (px) => (dir > 0 ? left + px : left + img.width - 1 - px);
+      const aim = obj.aim ?? (dir > 0 ? 0.8 : Math.PI - 0.8); // resting elevation until it has a target
+      if (obj.type === 'flak') drawBarrel(pivot(14), top + 6, aim, 20, 3, '#3e4630');
+      if (obj.type === 'mgNest') drawBarrel(pivot(13), top + 2, aim, 9, 1, '#24261f');
+      if (obj.type === 'radar') drawAerial(left + 26, top + 5, true);
+      if (obj.type === 'tower') drawPennant(left + 10, top, obj.team);
+    }
+  }
+
+  // Damaged objects smoke; wrecks burn, then smoulder for a while.
+  function emitGroundEffects(dt) {
+    for (const obj of world.ground) {
+      if (obj.soldiers) continue;
+      const gy = world.terrain.heightAt(obj.x);
+      if (obj.alive) {
+        const hurt = 1 - obj.hp / obj.maxHp;
+        if (hurt > 0.5 && Math.random() < (hurt - 0.4) * dt * 6) {
+          particles.spawn('smoke', obj.x + (Math.random() - 0.5) * obj.def.width * 0.6, gy + obj.def.height * 0.7, 0, 6, 1.6 + Math.random(), 1.2);
+        }
+        continue;
+      }
+      const age = (world.tick - obj.wreckedAt) / 60;
+      if (age > 30) continue;
+      if (Math.random() < (1 - age / 30) * dt * 14) {
+        particles.spawn('blacksmoke', obj.x + (Math.random() - 0.5) * obj.def.width * 0.6, gy + 3, (Math.random() - 0.5) * 3, 8, 2 + Math.random() * 1.5, 1.6);
+      }
+      if (age < 8 && Math.random() < dt * 30) {
+        particles.spawn('fire', obj.x + (Math.random() - 0.5) * obj.def.width * 0.7, gy + 2, 0, 10, 0.3 + Math.random() * 0.4, 1.5);
+      }
     }
   }
 
@@ -548,6 +701,15 @@ export function createRenderer(canvas, world, assets) {
         if (onGround) particles.dirtSpray(e.x, e.y, 1.2);
       }
       if (e.type === 'shotDown') particles.explosion(e.x, e.y, 0.5);
+      if (e.type === 'groundHit') {
+        if (METAL.has(e.kind)) particles.sparks(e.x, e.y, 2 + Math.min(4, e.damage));
+        else particles.spawn('dust', e.x, e.y, (Math.random() - 0.5) * 16, 10 + Math.random() * 12, 0.4, 0.6);
+      }
+      if (e.type === 'groundDestroyed') {
+        particles.explosion(e.x, e.y, BLAST_SIZE[e.kind] ?? 0.6);
+        particles.dirtSpray(e.x, e.y, 0.6);
+      }
+      if (e.type === 'soldierKilled') particles.spawn('dust', e.x, e.y + 2, 0, 8, 0.5, 0.7);
       if (e.type === 'collision') {
         if (e.severity === 'fatal') particles.explosion(e.x, e.y, 1.2);
         else if (e.severity === 'hard') {
@@ -569,11 +731,13 @@ export function createRenderer(canvas, world, assets) {
       fitDisplay();
       updateCamera(focus, dt, look);
       for (const p of world.planes) emitEffects(p, dt);
+      emitGroundEffects(dt);
       particles.update(dt, world.terrain);
 
       drawBackground();
       drawTerrain();
       drawAirfieldBuildings();
+      drawGround();
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       drawProjectiles();
       for (const p of world.planes) drawPlane(p);

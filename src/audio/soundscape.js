@@ -229,6 +229,16 @@ export function createSoundscape(mixer, world) {
             sfx.play(mixer, voices.thud, where, { gain: 0.5 });
           }
           break;
+        // Stand-ins until the ground objects get their own sounds (collapses, debris).
+        case 'groundHit':
+          if (impactBudget >= 1) {
+            impactBudget--;
+            sfx.play(mixer, e.kind === 'flak' || e.kind === 'mgNest' || e.kind === 'radar' ? voices.clank : voices.thud, where, { gain: 0.5, reverb: 0.2 });
+          }
+          break;
+        case 'groundDestroyed':
+          sfx.explosion(mixer, where, 0.8);
+          break;
         case 'bombRelease':
           sfx.play(mixer, voices.release, where, { gain: mine ? 0.7 : 0.5, rate: 0.8 });
           break;

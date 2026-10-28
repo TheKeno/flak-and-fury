@@ -49,7 +49,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
   ctx.fillRect(x + 18, y + 1, 3, 3);
   drawText(ctx, gearText + (plane.gearManual ? ' (MAN)' : ''), x + 24, y, gearColour);
   y += 7;
-  drawText(ctx, `KILLS ${plane.kills}  LOST ${plane.deaths}`, x, y, '#e8c860');
+  drawText(ctx, `KILLS ${plane.kills}  LOST ${plane.deaths}  SCORE ${plane.score}`, x, y, '#e8c860');
   y += 8;
   if (plane.consciousness < 1) {
     drawText(ctx, 'PLT', x, y, '#c8d0c0');

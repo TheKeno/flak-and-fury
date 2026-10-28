@@ -15,6 +15,7 @@ const world = createWorld({
   map: content.map,
   planeDefs: content.planeDefs,
   weapons: content.weapons,
+  groundDefs: content.groundDefs,
   servicing: content.settings.servicing,
   collisions: content.settings.collisions,
   rules: content.settings.rules,
@@ -61,12 +62,13 @@ const CAUSES = {
   ground: () => 'FLEW INTO THE GROUND',
   belly: () => 'BELLY LANDING WENT WRONG',
   rough: () => 'HIT ROUGH GROUND TOO FAST',
+  structure: (by, e) => `FLEW INTO A ${(e.what ?? 'BUILDING').toUpperCase()}`,
 };
 
 function causeText(e) {
   const killer = world.planes.find((pl) => pl.id === e.by);
   const name = killer ? `${killer.def.name.toUpperCase()} (${content.nations[killer.nation]?.name.toUpperCase() ?? ''})` : null;
-  return (CAUSES[e.cause] ?? CAUSES.ground)(name);
+  return (CAUSES[e.cause] ?? CAUSES.ground)(name, e);
 }
 
 function handleEvents() {
@@ -90,6 +92,10 @@ function handleEvents() {
       else if (e.taran) renderer.message('RAMMED! TAIL SHREDDED', '#ff8070');
       else renderer.message(e.severity === 'hard' ? 'COLLISION!' : 'GRAZED!', '#ffb070');
     }
+    if (e.by === player.id && e.type === 'groundDestroyed') {
+      renderer.message(`${world.groundDefs[e.kind].name.toUpperCase()} DESTROYED +${e.points}`, '#e8c860');
+    }
+    if (e.by === player.id && e.type === 'squadWiped') renderer.message('INFANTRY SQUAD WIPED OUT', '#e8c860');
     if (e.type === 'shotDown') {
       if (e.by === player.id) renderer.message('ENEMY SHOT DOWN!', '#e8c860');
       else if (e.plane === player.id) renderer.message('YOU ARE GOING DOWN', '#ff8070');

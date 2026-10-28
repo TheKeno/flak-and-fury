@@ -3,11 +3,12 @@
 // so online play only has to deliver those commands.
 import { createRng } from './math.js';
 import { buildTerrain } from './terrain.js';
-import { createPlane, spawnAtAirfield, stepPlane, NO_COMMAND } from './plane.js';
+import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND } from './plane.js';
 import { stepBullets, stepBombs } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand } from './ai.js';
 import { DEFAULT_SERVICING } from './airfield.js';
+import { createGround, planesHitStructures } from './ground.js';
 
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
@@ -17,10 +18,12 @@ export const DT = 1 / TICK_RATE;
 export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', autoGear: true };
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
+// groundDefs: ground object types (data/ground.json), shared the same way.
 export function createWorld({
   map,
   planeDefs,
   weapons,
+  groundDefs = {},
   rules = {},
   servicing = { ...DEFAULT_SERVICING },
   collisions = { ...DEFAULT_COLLISIONS },
@@ -30,6 +33,7 @@ export function createWorld({
     map: structuredClone(map),
     planeDefs,
     weapons,
+    groundDefs,
     rules: { ...DEFAULT_RULES, ...rules },
     servicing,
     collisions,
@@ -42,6 +46,7 @@ export function createWorld({
     nextId: 1,
   };
   world.terrain = buildTerrain(world.map);
+  createGround(world);
   return world;
 }
 
@@ -76,4 +81,5 @@ export function stepWorld(world, commands) {
   stepBullets(world, DT);
   stepBombs(world, DT);
   collide(world);
+  planesHitStructures(world, crash);
 }

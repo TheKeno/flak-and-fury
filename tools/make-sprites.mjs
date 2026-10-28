@@ -32,6 +32,21 @@ const PALETTE = {
   b: [84, 90, 70, 255], // bomb casing
   l: [118, 124, 100, 255], // bomb highlight
   k: [56, 60, 46, 255], // bomb fins
+  v: [86, 94, 64, 255], // olive drab steel (guns)
+  V: [62, 70, 46, 255], // olive shade
+  i: [96, 98, 92, 255], // iron grey
+  I: [60, 62, 60, 255], // iron dark
+  s: [170, 152, 112, 255], // sandbag
+  z: [134, 118, 86, 255], // sandbag shade
+  K: [156, 144, 100, 255], // tent canvas
+  q: [120, 110, 76, 255], // canvas shade
+  t: [128, 94, 62, 255], // timber
+  T: [88, 64, 42, 255], // timber dark
+  y: [200, 190, 164, 255], // plaster wall
+  Y: [164, 154, 130, 255], // plaster shade
+  f: [146, 68, 50, 255], // roof tiles
+  F: [108, 50, 38, 255], // roof tile shade
+  n: [44, 56, 64, 255], // dark window glass
 };
 
 // A tiny drawing surface of palette keys.
@@ -178,7 +193,161 @@ function hangar() {
   return g.rowsOut();
 }
 
-const SPRITES = { fighter: fighter(), bf109: bf109(), bomb: bomb(), hangar: hangar() };
+// Ground objects stand on their bottom row, centred. Guns' barrels and the radar aerial are drawn by
+// the game so they can turn.
+
+// Flak gun on its cruciform platform, without the barrel. 28x18; barrel pivot (14, 6).
+function flak() {
+  const g = grid(28, 18);
+  // Outrigger legs and jacks.
+  g.rows({ 14: [1, 26], 15: [0, 27] }, 'I');
+  for (const x of [0, 1, 26, 27]) g.set(x, 16, 'I');
+  g.rows({ 16: [5, 22], 17: [4, 23] }, 'i');
+  // Pedestal and cradle.
+  g.rows({ 9: [10, 17], 10: [9, 18], 11: [9, 18], 12: [8, 19], 13: [8, 19] }, (y) => (y < 11 ? 'v' : 'V'));
+  // Trunnion hub where the barrel sits.
+  g.disc(14, 6.5, 3, 'v');
+  g.set(14, 6, 'I');
+  // Shield plate.
+  g.rows({ 3: [19, 20], 4: [19, 21], 5: [19, 21], 6: [19, 21], 7: [19, 21], 8: [19, 21], 9: [19, 20] }, 'V');
+  // Ammunition box.
+  g.rows({ 11: [2, 6], 12: [2, 6], 13: [2, 6] }, 'v');
+  g.span(11, 2, 6, 'V');
+  g.outline();
+  return g.rowsOut();
+}
+
+// Machine-gun nest: a ring of sandbags with a firing slit. 24x10; gun pivot (13, 3).
+function mgnest() {
+  const g = grid(24, 10);
+  const rows = { 2: [6, 17], 3: [4, 19], 4: [2, 21], 5: [1, 22], 6: [1, 22], 7: [0, 23], 8: [0, 23], 9: [0, 23] };
+  g.rows(rows, 's');
+  // Bag seams: staggered courses.
+  for (let y = 2; y <= 9; y++) for (let x = 0; x < 24; x++) if (g.get(x, y) === 's' && (x + (y % 2) * 3) % 6 === 0) g.set(x, y, 'z');
+  for (let x = 0; x < 24; x++) for (const y of [4, 7]) if (g.get(x, y) === 's') g.set(x, y, 'z');
+  // Firing slit and helmet of the gunner.
+  g.span(3, 9, 14, 'd');
+  g.rows({ 1: [11, 13], 2: [10, 14] }, 'V');
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// Ridge tent with the door flap tied back. 32x16.
+function tent() {
+  const g = grid(32, 16);
+  for (let y = 1; y <= 15; y++) {
+    const half = Math.round(1 + y * 0.98);
+    g.span(y, 16 - half, 15 + half, y % 5 === 0 ? 'q' : 'K');
+  }
+  // Shaded far slope and the door.
+  for (let y = 1; y <= 15; y++) g.set(16 + Math.round(y * 0.98), y, 'q');
+  g.rows({ 9: [14, 17], 10: [13, 18], 11: [13, 18], 12: [12, 19], 13: [12, 19], 14: [12, 19], 15: [12, 19] }, 'd');
+  // Pole tip and guy-rope pegs.
+  g.set(16, 0, 'T');
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// Wooden watchtower: four legs with cross bracing and a roofed lookout. 20x60.
+function tower() {
+  const g = grid(20, 60);
+  // Roof and lookout hut.
+  g.rows({ 0: [8, 11], 1: [6, 13], 2: [4, 15], 3: [2, 17], 4: [1, 18] }, (y) => (y % 2 ? 'r' : 'R'));
+  for (let y = 5; y <= 13; y++) g.span(y, 3, 16, y < 9 ? 'T' : 't');
+  g.rows({ 6: [5, 14], 7: [5, 14] }, 'd'); // lookout opening
+  g.rows({ 14: [1, 18], 15: [1, 18] }, 'T'); // platform
+  // Splayed legs.
+  for (let y = 16; y <= 59; y++) {
+    const s = Math.round((y - 16) * 0.12);
+    g.set(3 - s, y, 'T');
+    g.set(4 - s, y, 't');
+    g.set(15 + s, y, 't');
+    g.set(16 + s, y, 'T');
+  }
+  // X bracing between the legs, in three bays.
+  for (const [y0, y1] of [[17, 30], [31, 44], [45, 58]]) {
+    for (let y = y0; y <= y1; y++) {
+      const k = (y - y0) / (y1 - y0);
+      const l = 4 - Math.round((y - 16) * 0.12);
+      const r = 15 + Math.round((y - 16) * 0.12);
+      g.set(Math.round(l + (r - l) * k), y, 't');
+      g.set(Math.round(r - (r - l) * k), y, 't');
+    }
+    g.span(y1, 4 - Math.round((y1 - 16) * 0.12), 15 + Math.round((y1 - 16) * 0.12), 'T');
+  }
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// Farmhouse / barracks with a tiled roof and chimney. 56x36.
+function building() {
+  const g = grid(56, 36);
+  // Chimney.
+  for (let y = 1; y <= 8; y++) g.span(y, 40, 43, 'Y');
+  // Pitched roof.
+  for (let y = 4; y <= 15; y++) {
+    const half = Math.round(10 + (y - 4) * 1.6);
+    g.span(y, 28 - half, 27 + half, y % 3 === 0 ? 'F' : 'f');
+  }
+  g.span(15, 4, 51, 'F');
+  // Walls.
+  for (let y = 16; y <= 35; y++) g.span(y, 5, 50, y > 32 ? 'Y' : 'y');
+  for (let y = 16; y <= 35; y++) for (const x of [5, 6, 49, 50]) g.set(x, y, 'Y');
+  // Windows with frames and a door.
+  for (const x0 of [9, 20, 40]) {
+    for (let y = 20; y <= 26; y++) g.span(y, x0, x0 + 5, 'n');
+    g.span(23, x0, x0 + 5, 'T');
+    for (let y = 20; y <= 26; y++) g.set(x0 + 2, y, 'T');
+  }
+  for (let y = 23; y <= 35; y++) g.span(y, 30, 35, 't');
+  for (let y = 23; y <= 35; y++) g.set(33, y, 'T');
+  g.outline('n');
+  return g.rowsOut();
+}
+
+// Radar station: steel lattice mast with the operators' hut at its foot. 36x80; aerial at (26, 4).
+function radar() {
+  const g = grid(36, 80);
+  // Mast: two tapering rails with zig-zag lattice.
+  for (let y = 6; y <= 79; y++) {
+    const s = Math.round((y - 6) * 0.06);
+    const l = 24 - s;
+    const r = 28 + s;
+    g.set(l, y, 'I');
+    g.set(r, y, 'I');
+    const k = ((y - 6) % 10) / 10;
+    const bay = Math.floor((y - 6) / 10) % 2;
+    g.set(Math.round(bay ? l + (r - l) * k : r - (r - l) * k), y, 'i');
+    if ((y - 6) % 10 === 0) g.span(y, l, r, 'i');
+  }
+  g.rows({ 4: [25, 27], 5: [24, 28] }, 'I'); // aerial mount
+  // Hut with a curved roof, door and window.
+  for (let x = 1; x <= 20; x++) {
+    const t = (x - 10.5) / 9.5;
+    const top = Math.round(66 - 3 * Math.sqrt(Math.max(0, 1 - t * t)));
+    for (let y = top; y <= 79; y++) g.set(x, y, y < top + 2 ? 'R' : y > 76 ? 'h' : 'g');
+  }
+  for (let y = 71; y <= 79; y++) g.span(y, 13, 17, 'd');
+  for (let y = 70; y <= 73; y++) g.span(y, 4, 8, 'w');
+  // Cable from the hut up the mast.
+  for (let y = 66; y <= 72; y++) g.set(21, y, 'e');
+  g.span(66, 21, 23, 'e');
+  g.outline('d');
+  return g.rowsOut();
+}
+
+const SPRITES = {
+  fighter: fighter(),
+  bf109: bf109(),
+  bomb: bomb(),
+  hangar: hangar(),
+  flak: flak(),
+  mgnest: mgnest(),
+  tent: tent(),
+  tower: tower(),
+  building: building(),
+  radar: radar(),
+};
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
   let c = n;

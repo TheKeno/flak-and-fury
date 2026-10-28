@@ -66,6 +66,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     lastHitBy: null,
     kills: 0,
     deaths: 0,
+    score: 0, // points for destroyed ground targets
     guns: [],
     bombs: null,
     fuel: 1, // 0..1 of a full tank
@@ -124,9 +125,10 @@ export function spawnAtAirfield(p, world) {
 }
 
 // cause: why it went in. A plane already shot down keeps the cause of that ('guns', 'bomb', ...).
-function crash(p, world, cause) {
+// what: the thing it flew into, for cause 'structure'.
+export function crash(p, world, cause, what = null) {
   const why = p.dying ? p.downCause ?? 'guns' : cause;
-  world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, by: p.dying ? p.lastHitBy : null, cause: why });
+  world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, by: p.dying ? p.lastHitBy : null, cause: why, what });
   p.state = 'dead';
   p.deaths++;
   p.respawnTimer = RESPAWN_TIME;

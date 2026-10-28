@@ -11,8 +11,8 @@ later.
   (`node tools/serve.mjs 8080`). Chosen over Godot because Godot's web export lacks audio bus effects,
   and Web Audio suits the sound design.
 - **Content outside the code:** plane, weapon, nation and settings data in `data/*.json`; sprites as
-  PNGs in `assets/sprites/` (2 pixels per world unit, paint applied by key colours); maps moving to
-  **LDtk** (free level editor) in milestone 4.
+  PNGs in `assets/sprites/` (2 pixels per world unit, paint applied by key colours); maps as
+  **LDtk** projects (free level editor), with ground objects placed in the editor.
 - **Simulation is pure and deterministic** (`src/sim/`, no DOM, no `Math.random`): each tick takes one
   command per controller, so online play only has to deliver commands.
 - **Crewed planes are core:** a plane has seats (pilot, gunners, bomb aimer), each bound to a player or
@@ -49,7 +49,8 @@ later.
      ceiling: fly high), infantry (weak, dangerous in groups), tents and towers as targets.
    - **Radar stations** as bombable targets: destroy the enemy's and their scope goes dark; lose yours
      and you're blind.
-   - Switch the map format to LDtk projects (`maps/*.ldtk`) with an importer.
+   - ✓ Map format switched to LDtk projects (`maps/*.ldtk`) with an importer; destructible ground
+     targets with points and wrecks; planes crash into towers, buildings and masts.
 5. **Proper bots:** patrol, chase, evade, return to base when low on fuel or ammo; difficulty levels.
 6. **Six nations × 3 planes:** data-driven stats and sprites, following the Bf 109 pattern.
 7. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
@@ -68,6 +69,11 @@ later.
     wings edge-on and belly showing, instead of flipping instantly).
 
 Then: more themes, co-op missions, online play.
+
+## Backlog
+
+- **Roll while standing still** turns the plane round to face the other way (not upside down).
+  Later animated, like the full roll animations in milestone 12.
 
 ## Ideas agreed for later
 

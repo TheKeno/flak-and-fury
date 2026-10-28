@@ -3,6 +3,7 @@
 import { updateGunRates } from '../sim/weapons.js';
 import { spawnAtAirfield } from '../sim/plane.js';
 import { rearmFully } from '../sim/airfield.js';
+import { createGround } from '../sim/ground.js';
 
 // [key, label, min, max, step, help]
 const PLANE_FIELDS = [
@@ -83,6 +84,11 @@ const RADAR_FIELDS = [
   ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
   ['lowGap', 'Low-level gap', 0, 150, 5, 'Planes flying lower than this above the ground drop off the radar, friend or foe (you too).'],
 ];
+const GROUND_FIELDS = [
+  ['hp', 'Hit points', 1, 400, 1, 'Damage it takes to destroy (infantry: per soldier). Applies when targets are restored.'],
+  ['points', 'Points', 0, 50, 1, 'Score for destroying it (infantry: per soldier).'],
+  ['bulletFactor', 'Bullet damage taken', 0, 1, 0.05, 'Share of bullet damage it takes. Bombs always do full damage. Low = bombs only.'],
+];
 const HUD_FIELDS = [
   ['lastFlightTime', 'Last-flight report', 0, 30, 1, 'Seconds the LAST FLIGHT damage report stays after you respawn.'],
 ];
@@ -135,9 +141,9 @@ function slider(obj, [key, label, min, max, step, help], onChange) {
 }
 
 export function createTuningPanel({ content, world, player, getMixer, onPause }) {
-  const { planeDefs, weapons, settings, notes } = content;
+  const { planeDefs, weapons, settings, groundDefs, notes } = content;
   // What Reset returns to: the values last loaded from or saved to the files.
-  const snapshot = () => structuredClone({ planeDefs, weapons, settings });
+  const snapshot = () => structuredClone({ planeDefs, weapons, settings, groundDefs });
   let saved = snapshot();
   const rows = [];
   const add = (row) => (rows.push(row), row);
@@ -216,6 +222,16 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
+  const restoreTargets = () => {
+    createGround(world);
+    say('Ground targets restored');
+  };
+  const groundSection = section(
+    'Ground targets',
+    false,
+    el('div', { class: 'buttons' }, el('button', { onclick: restoreTargets, title: 'Rebuild every ground object at full strength, with the current hit points' }, 'Restore targets')),
+    ...Object.values(groundDefs).map((d) => section(d.name, false, ...GROUND_FIELDS.map((f) => add(slider(d, f))))),
+  );
   const hudSection = section('HUD', false, ...HUD_FIELDS.map((f) => add(slider(settings.hud, f))));
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
   const audioSection = section(
@@ -235,6 +251,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
       'data/planes.json': { ...notes.planes, ...planeDefs },
       'data/weapons.json': { ...notes.weapons, ...weapons },
       'data/settings.json': { ...notes.settings, ...settings },
+      'data/ground.json': { ...notes.ground, ...groundDefs },
     };
     try {
       for (const [path, data] of Object.entries(files)) {
@@ -251,6 +268,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   function reset() {
     for (const [k, v] of Object.entries(saved.planeDefs)) Object.assign(planeDefs[k], structuredClone(v));
     for (const [k, v] of Object.entries(saved.weapons)) Object.assign(weapons[k], structuredClone(v));
+    for (const [k, v] of Object.entries(saved.groundDefs)) Object.assign(groundDefs[k], structuredClone(v));
     Object.assign(settings.camera, saved.settings.camera);
     Object.assign(settings.audio, saved.settings.audio);
     Object.assign(settings.servicing, saved.settings.servicing);
@@ -296,7 +314,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     { id: 'tuning', class: 'hidden' },
     el('div', { class: 'head' }, el('strong', {}, 'Tuning'), el('span', {}, 'T to close · hover a slider for help')),
     el('div', { class: 'buttons' },
-      el('button', { onclick: save, title: 'Write the current values into data/planes.json, weapons.json and settings.json' }, 'Save to files'),
+      el('button', { onclick: save, title: 'Write the current values into data/planes.json, weapons.json, settings.json and ground.json' }, 'Save to files'),
       el('button', { onclick: reset, title: 'Go back to the values last loaded from the files' }, 'Reset'),
       el('button', { onclick: refill, title: 'Repair, refuel and rearm your plane' }, 'Repair & rearm'),
       pauseBtn,
@@ -308,6 +326,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     bombSection,
     collisionSection,
     radarSection,
+    groundSection,
     servicingSection,
     cameraSection,
     hudSection,

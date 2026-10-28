@@ -1,0 +1,2552 @@
+{
+  "__header__": {
+    "fileType": "LDtk Project JSON",
+    "app": "LDtk",
+    "doc": "https://ldtk.io/json",
+    "schema": "https://ldtk.io/files/JSON_SCHEMA.json",
+    "appAuthor": "Sebastien 'deepnight' Benard",
+    "appVersion": "1.5.3",
+    "url": "https://ldtk.io"
+  },
+  "iid": "d297c651-9810-4ddf-956d-b6711d193e1a",
+  "jsonVersion": "1.5.3",
+  "appBuildId": 473703,
+  "nextUid": 30,
+  "identifierStyle": "Capitalize",
+  "toc": [],
+  "worldLayout": "Free",
+  "worldGridWidth": 256,
+  "worldGridHeight": 256,
+  "defaultLevelWidth": 3600,
+  "defaultLevelHeight": 800,
+  "defaultPivotX": 0.5,
+  "defaultPivotY": 1,
+  "defaultGridSize": 2,
+  "defaultEntityWidth": 16,
+  "defaultEntityHeight": 16,
+  "bgColor": "#40465B",
+  "defaultLevelBgColor": "#9CC4D8",
+  "minifyJson": false,
+  "externalLevels": false,
+  "exportTiled": false,
+  "simplifiedExport": false,
+  "imageExportMode": "None",
+  "exportLevelBg": true,
+  "pngFilePattern": null,
+  "backupOnSave": false,
+  "backupLimit": 10,
+  "backupRelPath": null,
+  "levelNamePattern": "%world_Level_%idx",
+  "tutorialDesc": null,
+  "customCommands": [],
+  "flags": [],
+  "defs": {
+    "layers": [
+      {
+        "__type": "Entities",
+        "identifier": "Objects",
+        "type": "Entities",
+        "uid": 28,
+        "doc": "Airfields and ground objects. Only the x position matters: the game stands each object on the ground.",
+        "uiColor": null,
+        "gridSize": 2,
+        "guideGridWid": 0,
+        "guideGridHei": 0,
+        "displayOpacity": 1,
+        "inactiveOpacity": 0.6,
+        "hideInList": false,
+        "hideFieldsWhenInactive": false,
+        "canSelectWhenInactive": true,
+        "renderInWorldView": true,
+        "pxOffsetX": 0,
+        "pxOffsetY": 0,
+        "parallaxFactorX": 0,
+        "parallaxFactorY": 0,
+        "parallaxScaling": true,
+        "requiredTags": [],
+        "excludedTags": [],
+        "autoTilesKilledByOtherLayerUid": null,
+        "uiFilterTags": [],
+        "useAsyncRender": false,
+        "intGridValues": [],
+        "intGridValuesGroups": [],
+        "autoRuleGroups": [],
+        "autoSourceLayerDefUid": null,
+        "tilesetDefUid": null,
+        "tilePivotX": 0,
+        "tilePivotY": 0,
+        "biomeFieldUid": null
+      }
+    ],
+    "entities": [
+      {
+        "identifier": "Airfield",
+        "uid": 12,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Runway, hangar and ground crew. Stretch it to set the runway length.",
+        "width": 420,
+        "height": 8,
+        "resizableX": true,
+        "resizableY": false,
+        "minWidth": 100,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#9C9A8E",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 10,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          },
+          {
+            "identifier": "nation",
+            "doc": null,
+            "__type": "LocalEnum.Nation",
+            "uid": 11,
+            "type": "F_Enum(2)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "NameAndValue",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Germany"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "Flak",
+        "uid": 14,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Anti-aircraft gun: slow, accurate, reaches high. Fly low to dodge it.",
+        "width": 14,
+        "height": 9,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#E05040",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 13,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "MgNest",
+        "uid": 16,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Machine-gun nest: fast bursts, short reach. Fly high to stay out of it.",
+        "width": 12,
+        "height": 5,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#E0A040",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 15,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "Infantry",
+        "uid": 19,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "A squad of soldiers with rifles.",
+        "width": 22,
+        "height": 6,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#C8B060",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 17,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          },
+          {
+            "identifier": "squad",
+            "doc": "Soldiers in the squad.",
+            "__type": "Int",
+            "uid": 18,
+            "type": "F_Int",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "NameAndValue",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": 1,
+            "max": 12,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_Int",
+              "params": [
+                4
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "Tent",
+        "uid": 21,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Target.",
+        "width": 16,
+        "height": 8,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#C8C090",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 20,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "Tower",
+        "uid": 23,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Watchtower. Target; planes that fly into it crash.",
+        "width": 10,
+        "height": 30,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#A07050",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 22,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "Building",
+        "uid": 25,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Target; needs bombs. Planes that fly into it crash.",
+        "width": 28,
+        "height": 18,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#B0A080",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 24,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "Radar",
+        "uid": 27,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Radar station. Destroy the enemy's and their radar scope goes dark.",
+        "width": 18,
+        "height": 40,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#60C0E0",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 26,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      }
+    ],
+    "tilesets": [],
+    "enums": [
+      {
+        "identifier": "Team",
+        "uid": 1,
+        "values": [
+          {
+            "id": "Team_0",
+            "tileRect": null,
+            "color": 14176320
+          },
+          {
+            "id": "Team_1",
+            "tileRect": null,
+            "color": 4223184
+          }
+        ],
+        "iconTilesetUid": null,
+        "externalRelPath": null,
+        "externalFileChecksum": null,
+        "tags": []
+      },
+      {
+        "identifier": "Nation",
+        "uid": 2,
+        "values": [
+          {
+            "id": "Germany",
+            "tileRect": null,
+            "color": 6186576
+          },
+          {
+            "id": "UK",
+            "tileRect": null,
+            "color": 5991231
+          },
+          {
+            "id": "USA",
+            "tileRect": null,
+            "color": 10134440
+          },
+          {
+            "id": "Japan",
+            "tileRect": null,
+            "color": 12592683
+          },
+          {
+            "id": "Finland",
+            "tileRect": null,
+            "color": 2973608
+          },
+          {
+            "id": "USSR",
+            "tileRect": null,
+            "color": 12986922
+          }
+        ],
+        "iconTilesetUid": null,
+        "externalRelPath": null,
+        "externalFileChecksum": null,
+        "tags": []
+      }
+    ],
+    "externalEnums": [],
+    "levelFields": [
+      {
+        "identifier": "seed",
+        "doc": "Shapes the hills. Run tools/map-guide.mjs after changing it.",
+        "__type": "Int",
+        "uid": 3,
+        "type": "F_Int",
+        "isArray": false,
+        "canBeNull": false,
+        "arrayMinLength": null,
+        "arrayMaxLength": null,
+        "editorDisplayMode": "NameAndValue",
+        "editorDisplayScale": 1,
+        "editorDisplayPos": "Beneath",
+        "editorLinkStyle": "StraightArrow",
+        "editorDisplayColor": null,
+        "editorAlwaysShow": false,
+        "editorShowInWorld": true,
+        "editorCutLongValues": true,
+        "editorTextSuffix": null,
+        "editorTextPrefix": null,
+        "useForSmartColor": false,
+        "exportToToc": false,
+        "searchable": false,
+        "min": null,
+        "max": null,
+        "regex": null,
+        "acceptFileTypes": null,
+        "defaultOverride": null,
+        "textLanguageMode": null,
+        "symmetricalRef": false,
+        "autoChainRef": false,
+        "allowOutOfLevelRef": true,
+        "allowedRefs": "OnlySame",
+        "allowedRefsEntityUid": null,
+        "allowedRefTags": [],
+        "tilesetUid": null
+      },
+      {
+        "identifier": "ceiling",
+        "doc": "Blackout altitude (world units above the bottom of the level).",
+        "__type": "Int",
+        "uid": 4,
+        "type": "F_Int",
+        "isArray": false,
+        "canBeNull": false,
+        "arrayMinLength": null,
+        "arrayMaxLength": null,
+        "editorDisplayMode": "NameAndValue",
+        "editorDisplayScale": 1,
+        "editorDisplayPos": "Beneath",
+        "editorLinkStyle": "StraightArrow",
+        "editorDisplayColor": null,
+        "editorAlwaysShow": false,
+        "editorShowInWorld": true,
+        "editorCutLongValues": true,
+        "editorTextSuffix": null,
+        "editorTextPrefix": null,
+        "useForSmartColor": false,
+        "exportToToc": false,
+        "searchable": false,
+        "min": null,
+        "max": null,
+        "regex": null,
+        "acceptFileTypes": null,
+        "defaultOverride": null,
+        "textLanguageMode": null,
+        "symmetricalRef": false,
+        "autoChainRef": false,
+        "allowOutOfLevelRef": true,
+        "allowedRefs": "OnlySame",
+        "allowedRefsEntityUid": null,
+        "allowedRefTags": [],
+        "tilesetUid": null
+      },
+      {
+        "identifier": "terrainBase",
+        "doc": "Lowest ground height.",
+        "__type": "Int",
+        "uid": 5,
+        "type": "F_Int",
+        "isArray": false,
+        "canBeNull": false,
+        "arrayMinLength": null,
+        "arrayMaxLength": null,
+        "editorDisplayMode": "NameAndValue",
+        "editorDisplayScale": 1,
+        "editorDisplayPos": "Beneath",
+        "editorLinkStyle": "StraightArrow",
+        "editorDisplayColor": null,
+        "editorAlwaysShow": false,
+        "editorShowInWorld": true,
+        "editorCutLongValues": true,
+        "editorTextSuffix": null,
+        "editorTextPrefix": null,
+        "useForSmartColor": false,
+        "exportToToc": false,
+        "searchable": false,
+        "min": null,
+        "max": null,
+        "regex": null,
+        "acceptFileTypes": null,
+        "defaultOverride": null,
+        "textLanguageMode": null,
+        "symmetricalRef": false,
+        "autoChainRef": false,
+        "allowOutOfLevelRef": true,
+        "allowedRefs": "OnlySame",
+        "allowedRefsEntityUid": null,
+        "allowedRefTags": [],
+        "tilesetUid": null
+      },
+      {
+        "identifier": "terrainAmplitude",
+        "doc": "How tall the hills get.",
+        "__type": "Int",
+        "uid": 6,
+        "type": "F_Int",
+        "isArray": false,
+        "canBeNull": false,
+        "arrayMinLength": null,
+        "arrayMaxLength": null,
+        "editorDisplayMode": "NameAndValue",
+        "editorDisplayScale": 1,
+        "editorDisplayPos": "Beneath",
+        "editorLinkStyle": "StraightArrow",
+        "editorDisplayColor": null,
+        "editorAlwaysShow": false,
+        "editorShowInWorld": true,
+        "editorCutLongValues": true,
+        "editorTextSuffix": null,
+        "editorTextPrefix": null,
+        "useForSmartColor": false,
+        "exportToToc": false,
+        "searchable": false,
+        "min": null,
+        "max": null,
+        "regex": null,
+        "acceptFileTypes": null,
+        "defaultOverride": null,
+        "textLanguageMode": null,
+        "symmetricalRef": false,
+        "autoChainRef": false,
+        "allowOutOfLevelRef": true,
+        "allowedRefs": "OnlySame",
+        "allowedRefsEntityUid": null,
+        "allowedRefTags": [],
+        "tilesetUid": null
+      },
+      {
+        "identifier": "skyLow",
+        "doc": null,
+        "__type": "Color",
+        "uid": 7,
+        "type": "F_Color",
+        "isArray": false,
+        "canBeNull": false,
+        "arrayMinLength": null,
+        "arrayMaxLength": null,
+        "editorDisplayMode": "NameAndValue",
+        "editorDisplayScale": 1,
+        "editorDisplayPos": "Beneath",
+        "editorLinkStyle": "StraightArrow",
+        "editorDisplayColor": null,
+        "editorAlwaysShow": false,
+        "editorShowInWorld": true,
+        "editorCutLongValues": true,
+        "editorTextSuffix": null,
+        "editorTextPrefix": null,
+        "useForSmartColor": false,
+        "exportToToc": false,
+        "searchable": false,
+        "min": null,
+        "max": null,
+        "regex": null,
+        "acceptFileTypes": null,
+        "defaultOverride": null,
+        "textLanguageMode": null,
+        "symmetricalRef": false,
+        "autoChainRef": false,
+        "allowOutOfLevelRef": true,
+        "allowedRefs": "OnlySame",
+        "allowedRefsEntityUid": null,
+        "allowedRefTags": [],
+        "tilesetUid": null
+      },
+      {
+        "identifier": "skyHigh",
+        "doc": null,
+        "__type": "Color",
+        "uid": 8,
+        "type": "F_Color",
+        "isArray": false,
+        "canBeNull": false,
+        "arrayMinLength": null,
+        "arrayMaxLength": null,
+        "editorDisplayMode": "NameAndValue",
+        "editorDisplayScale": 1,
+        "editorDisplayPos": "Beneath",
+        "editorLinkStyle": "StraightArrow",
+        "editorDisplayColor": null,
+        "editorAlwaysShow": false,
+        "editorShowInWorld": true,
+        "editorCutLongValues": true,
+        "editorTextSuffix": null,
+        "editorTextPrefix": null,
+        "useForSmartColor": false,
+        "exportToToc": false,
+        "searchable": false,
+        "min": null,
+        "max": null,
+        "regex": null,
+        "acceptFileTypes": null,
+        "defaultOverride": null,
+        "textLanguageMode": null,
+        "symmetricalRef": false,
+        "autoChainRef": false,
+        "allowOutOfLevelRef": true,
+        "allowedRefs": "OnlySame",
+        "allowedRefsEntityUid": null,
+        "allowedRefTags": [],
+        "tilesetUid": null
+      },
+      {
+        "identifier": "skySpace",
+        "doc": null,
+        "__type": "Color",
+        "uid": 9,
+        "type": "F_Color",
+        "isArray": false,
+        "canBeNull": false,
+        "arrayMinLength": null,
+        "arrayMaxLength": null,
+        "editorDisplayMode": "NameAndValue",
+        "editorDisplayScale": 1,
+        "editorDisplayPos": "Beneath",
+        "editorLinkStyle": "StraightArrow",
+        "editorDisplayColor": null,
+        "editorAlwaysShow": false,
+        "editorShowInWorld": true,
+        "editorCutLongValues": true,
+        "editorTextSuffix": null,
+        "editorTextPrefix": null,
+        "useForSmartColor": false,
+        "exportToToc": false,
+        "searchable": false,
+        "min": null,
+        "max": null,
+        "regex": null,
+        "acceptFileTypes": null,
+        "defaultOverride": null,
+        "textLanguageMode": null,
+        "symmetricalRef": false,
+        "autoChainRef": false,
+        "allowOutOfLevelRef": true,
+        "allowedRefs": "OnlySame",
+        "allowedRefsEntityUid": null,
+        "allowedRefTags": [],
+        "tilesetUid": null
+      }
+    ]
+  },
+  "levels": [
+    {
+      "identifier": "Countryside",
+      "iid": "571dca9a-8831-4278-8195-24e688eff965",
+      "uid": 29,
+      "worldX": 0,
+      "worldY": 0,
+      "worldDepth": 0,
+      "pxWid": 3600,
+      "pxHei": 800,
+      "__bgColor": "#9CC4D8",
+      "bgColor": null,
+      "useAutoIdentifier": false,
+      "bgRelPath": "countryside-guide.png",
+      "bgPos": "Unscaled",
+      "bgPivotX": 0,
+      "bgPivotY": 0,
+      "__smartColor": "#ADADB5",
+      "__bgPos": {
+        "topLeftPx": [
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropRect": [
+          0,
+          0,
+          3600,
+          800
+        ]
+      },
+      "externalRelPath": null,
+      "fieldInstances": [
+        {
+          "__identifier": "seed",
+          "__type": "Int",
+          "__value": 1944,
+          "__tile": null,
+          "defUid": 3,
+          "realEditorValues": [
+            {
+              "id": "V_Int",
+              "params": [
+                1944
+              ]
+            }
+          ]
+        },
+        {
+          "__identifier": "ceiling",
+          "__type": "Int",
+          "__value": 720,
+          "__tile": null,
+          "defUid": 4,
+          "realEditorValues": [
+            {
+              "id": "V_Int",
+              "params": [
+                720
+              ]
+            }
+          ]
+        },
+        {
+          "__identifier": "terrainBase",
+          "__type": "Int",
+          "__value": 30,
+          "__tile": null,
+          "defUid": 5,
+          "realEditorValues": [
+            {
+              "id": "V_Int",
+              "params": [
+                30
+              ]
+            }
+          ]
+        },
+        {
+          "__identifier": "terrainAmplitude",
+          "__type": "Int",
+          "__value": 70,
+          "__tile": null,
+          "defUid": 6,
+          "realEditorValues": [
+            {
+              "id": "V_Int",
+              "params": [
+                70
+              ]
+            }
+          ]
+        },
+        {
+          "__identifier": "skyLow",
+          "__type": "Color",
+          "__value": "#9cc4d8",
+          "__tile": null,
+          "defUid": 7,
+          "realEditorValues": [
+            {
+              "id": "V_Int",
+              "params": [
+                10274008
+              ]
+            }
+          ]
+        },
+        {
+          "__identifier": "skyHigh",
+          "__type": "Color",
+          "__value": "#3e6f9a",
+          "__tile": null,
+          "defUid": 8,
+          "realEditorValues": [
+            {
+              "id": "V_Int",
+              "params": [
+                4091802
+              ]
+            }
+          ]
+        },
+        {
+          "__identifier": "skySpace",
+          "__type": "Color",
+          "__value": "#1d3654",
+          "__tile": null,
+          "defUid": 9,
+          "realEditorValues": [
+            {
+              "id": "V_Int",
+              "params": [
+                1914452
+              ]
+            }
+          ]
+        }
+      ],
+      "layerInstances": [
+        {
+          "__identifier": "Objects",
+          "__type": "Entities",
+          "__cWid": 1800,
+          "__cHei": 400,
+          "__gridSize": 2,
+          "__opacity": 1,
+          "__pxTotalOffsetX": 0,
+          "__pxTotalOffsetY": 0,
+          "__tilesetDefUid": null,
+          "__tilesetRelPath": null,
+          "iid": "7cbaeb4f-93de-4f8a-bfa8-da2380a5f085",
+          "levelId": 29,
+          "layerDefUid": 28,
+          "pxOffsetX": 0,
+          "pxOffsetY": 0,
+          "visible": true,
+          "optionalRules": [],
+          "intGridCsv": [],
+          "autoLayerTiles": [],
+          "seed": 1944,
+          "overrideTilesetUid": null,
+          "gridTiles": [],
+          "entityInstances": [
+            {
+              "__identifier": "Radar",
+              "__grid": [
+                75,
+                367
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#60C0E0",
+              "iid": "7769b6bd-2a6e-4352-93a1-474d3f801b96",
+              "width": 18,
+              "height": 40,
+              "defUid": 27,
+              "px": [
+                150,
+                734
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 26,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Airfield",
+              "__grid": [
+                110,
+                363
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#9C9A8E",
+              "iid": "ba7357bf-a78f-49aa-a0c3-ada576a415f8",
+              "width": 420,
+              "height": 8,
+              "defUid": 12,
+              "px": [
+                220,
+                727
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 10,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "__identifier": "nation",
+                  "__type": "LocalEnum.Nation",
+                  "__value": "Germany",
+                  "__tile": null,
+                  "defUid": 11,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Germany"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Flak",
+              "__grid": [
+                345,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E05040",
+              "iid": "df1c8bd7-ef53-4a77-bb54-9a142766f964",
+              "width": 14,
+              "height": 9,
+              "defUid": 14,
+              "px": [
+                690,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 13,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "MgNest",
+              "__grid": [
+                380,
+                371
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "6108aeda-8ebd-4c6d-81c5-c9597961a82b",
+              "width": 12,
+              "height": 5,
+              "defUid": 16,
+              "px": [
+                760,
+                743
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 15,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tent",
+              "__grid": [
+                410,
+                368
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8C090",
+              "iid": "3afd34d0-f52c-42a2-9351-c34042c71196",
+              "width": 16,
+              "height": 8,
+              "defUid": 21,
+              "px": [
+                820,
+                736
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 20,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tent",
+              "__grid": [
+                490,
+                359
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8C090",
+              "iid": "ec19811d-67e5-4211-bd52-7d7651a3e0ca",
+              "width": 16,
+              "height": 8,
+              "defUid": 21,
+              "px": [
+                980,
+                718
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 20,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Flak",
+              "__grid": [
+                530,
+                373
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E05040",
+              "iid": "36719658-5d35-4579-8e84-adfc3bcd74d5",
+              "width": 14,
+              "height": 9,
+              "defUid": 14,
+              "px": [
+                1060,
+                747
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 13,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tower",
+              "__grid": [
+                560,
+                383
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#A07050",
+              "iid": "0526775e-d75a-4b60-bc3d-dcd95b29f3ea",
+              "width": 10,
+              "height": 30,
+              "defUid": 23,
+              "px": [
+                1120,
+                767
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 22,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "MgNest",
+              "__grid": [
+                590,
+                379
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "b3fb88fc-c2db-444d-aacd-664be0b30ccc",
+              "width": 12,
+              "height": 5,
+              "defUid": 16,
+              "px": [
+                1180,
+                759
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 15,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Infantry",
+              "__grid": [
+                630,
+                380
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8B060",
+              "iid": "c1ee459b-c4d9-4712-9a90-b4fae4010b46",
+              "width": 22,
+              "height": 6,
+              "defUid": 19,
+              "px": [
+                1260,
+                761
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 17,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "__identifier": "squad",
+                  "__type": "Int",
+                  "__value": 5,
+                  "__tile": null,
+                  "defUid": 18,
+                  "realEditorValues": [
+                    {
+                      "id": "V_Int",
+                      "params": [
+                        5
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Building",
+              "__grid": [
+                665,
+                370
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#B0A080",
+              "iid": "9f3c7aad-29d1-4493-b6e8-dd5a1c91aa06",
+              "width": 28,
+              "height": 18,
+              "defUid": 25,
+              "px": [
+                1330,
+                741
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 24,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "MgNest",
+              "__grid": [
+                710,
+                358
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "884c0dab-5eaf-47ce-9d89-2807656d5853",
+              "width": 12,
+              "height": 5,
+              "defUid": 16,
+              "px": [
+                1420,
+                716
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 15,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tent",
+              "__grid": [
+                735,
+                365
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8C090",
+              "iid": "87c6b482-04e0-4cf1-a8d5-c985d231d7c4",
+              "width": 16,
+              "height": 8,
+              "defUid": 21,
+              "px": [
+                1470,
+                730
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 20,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Infantry",
+              "__grid": [
+                770,
+                367
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8B060",
+              "iid": "224eb281-e143-4aa0-8f0b-9df936d1ec6c",
+              "width": 22,
+              "height": 6,
+              "defUid": 19,
+              "px": [
+                1540,
+                734
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 17,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "__identifier": "squad",
+                  "__type": "Int",
+                  "__value": 4,
+                  "__tile": null,
+                  "defUid": 18,
+                  "realEditorValues": [
+                    {
+                      "id": "V_Int",
+                      "params": [
+                        4
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Building",
+              "__grid": [
+                810,
+                374
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#B0A080",
+              "iid": "7ef1fd9e-1676-4173-bb9e-5de42320b239",
+              "width": 28,
+              "height": 18,
+              "defUid": 25,
+              "px": [
+                1620,
+                748
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 24,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Building",
+              "__grid": [
+                990,
+                361
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#B0A080",
+              "iid": "eca3d271-db4a-4734-805b-1037cb4a197d",
+              "width": 28,
+              "height": 18,
+              "defUid": 25,
+              "px": [
+                1980,
+                723
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 24,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Infantry",
+              "__grid": [
+                1030,
+                365
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8B060",
+              "iid": "e22b658e-448b-47ae-a998-718a0f356368",
+              "width": 22,
+              "height": 6,
+              "defUid": 19,
+              "px": [
+                2060,
+                730
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 17,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "__identifier": "squad",
+                  "__type": "Int",
+                  "__value": 4,
+                  "__tile": null,
+                  "defUid": 18,
+                  "realEditorValues": [
+                    {
+                      "id": "V_Int",
+                      "params": [
+                        4
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tent",
+              "__grid": [
+                1065,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8C090",
+              "iid": "3114ef8a-3490-4b27-b6d2-ab33a3c28191",
+              "width": 16,
+              "height": 8,
+              "defUid": 21,
+              "px": [
+                2130,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 20,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "MgNest",
+              "__grid": [
+                1090,
+                373
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "c78323fe-24dd-4516-9559-a3522a537027",
+              "width": 12,
+              "height": 5,
+              "defUid": 16,
+              "px": [
+                2180,
+                747
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 15,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Building",
+              "__grid": [
+                1135,
+                377
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#B0A080",
+              "iid": "3747c8ad-239b-4b69-b035-4d1a9ea3e735",
+              "width": 28,
+              "height": 18,
+              "defUid": 25,
+              "px": [
+                2270,
+                754
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 24,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Infantry",
+              "__grid": [
+                1170,
+                368
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8B060",
+              "iid": "52846918-52b7-4fcf-b323-7f23af16562a",
+              "width": 22,
+              "height": 6,
+              "defUid": 19,
+              "px": [
+                2340,
+                736
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 17,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "__identifier": "squad",
+                  "__type": "Int",
+                  "__value": 5,
+                  "__tile": null,
+                  "defUid": 18,
+                  "realEditorValues": [
+                    {
+                      "id": "V_Int",
+                      "params": [
+                        5
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "MgNest",
+              "__grid": [
+                1210,
+                366
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "4a981e29-1ba3-4f7e-b562-8718cbd0c429",
+              "width": 12,
+              "height": 5,
+              "defUid": 16,
+              "px": [
+                2420,
+                733
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 15,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tower",
+              "__grid": [
+                1240,
+                375
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#A07050",
+              "iid": "2797f553-6567-43aa-afb0-c10c8ba82695",
+              "width": 10,
+              "height": 30,
+              "defUid": 23,
+              "px": [
+                2480,
+                751
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 22,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Flak",
+              "__grid": [
+                1270,
+                376
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E05040",
+              "iid": "aa0f5fce-3311-49be-b344-ac1b5737cb12",
+              "width": 14,
+              "height": 9,
+              "defUid": 14,
+              "px": [
+                2540,
+                752
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 13,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tent",
+              "__grid": [
+                1310,
+                369
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8C090",
+              "iid": "fa35d406-3897-41c9-ad91-3003f9cc71c5",
+              "width": 16,
+              "height": 8,
+              "defUid": 21,
+              "px": [
+                2620,
+                739
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 20,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Tent",
+              "__grid": [
+                1390,
+                380
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#C8C090",
+              "iid": "d11ac9ef-1e16-47b3-9e0c-3cac8318c204",
+              "width": 16,
+              "height": 8,
+              "defUid": 21,
+              "px": [
+                2780,
+                761
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 20,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "MgNest",
+              "__grid": [
+                1420,
+                378
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "f15be617-ddf2-46f3-a75d-55c30ff19568",
+              "width": 12,
+              "height": 5,
+              "defUid": 16,
+              "px": [
+                2840,
+                756
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 15,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Flak",
+              "__grid": [
+                1455,
+                365
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E05040",
+              "iid": "7c6ce638-d981-4ab3-9cea-3a768eb4b5fd",
+              "width": 14,
+              "height": 9,
+              "defUid": 14,
+              "px": [
+                2910,
+                730
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 13,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Airfield",
+              "__grid": [
+                1480,
+                368
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#9C9A8E",
+              "iid": "bdb3fc67-1e58-4b05-b078-ac05add3f76d",
+              "width": 420,
+              "height": 8,
+              "defUid": 12,
+              "px": [
+                2960,
+                736
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 10,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "__identifier": "nation",
+                  "__type": "LocalEnum.Nation",
+                  "__value": "UK",
+                  "__tile": null,
+                  "defUid": 11,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "UK"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "Radar",
+              "__grid": [
+                1725,
+                370
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#60C0E0",
+              "iid": "ecf6b857-40e9-4551-b44a-a6d8e89fcb4f",
+              "width": 18,
+              "height": 40,
+              "defUid": 27,
+              "px": [
+                3450,
+                740
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 26,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "__neighbours": []
+    }
+  ],
+  "worlds": [],
+  "dummyWorldIid": "be357d89-bd79-4149-9560-72e03e6b129a"
+}

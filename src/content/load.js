@@ -1,5 +1,6 @@
 // Loads game content (data JSON, maps, sprites) from files, so it can be edited without touching code.
 import { loadImage, buildPlaneSprite, buildRotations } from '../render/sprites.js';
+import { importLdtk } from './ldtk.js';
 
 const toCanvas = (img) => {
   const c = document.createElement('canvas');
@@ -16,20 +17,32 @@ const json = async (url) => {
 };
 
 export async function loadContent(mapName) {
-  const [planeDefs, nations, weapons, settings, map] = await Promise.all([
+  const [planeDefs, nations, weapons, settings, groundDefs, project] = await Promise.all([
     json('data/planes.json'),
     json('data/nations.json'),
     json('data/weapons.json'),
     json('data/settings.json'),
-    json(`maps/${mapName}.json`),
+    json('data/ground.json'),
+    json(`maps/${mapName}.ldtk`),
   ]);
+  const map = importLdtk(project);
   // Notes kept aside so the tuning panel can write the files back unchanged apart from the numbers.
-  const notes = { planes: { _units: planeDefs._units }, weapons: { _notes: weapons._notes }, settings: { _notes: settings._notes } };
+  const notes = {
+    planes: { _units: planeDefs._units },
+    weapons: { _notes: weapons._notes },
+    settings: { _notes: settings._notes },
+    ground: { _notes: groundDefs._notes },
+  };
   delete planeDefs._units;
   delete weapons._notes;
   delete settings._notes;
+  delete groundDefs._notes;
 
-  const spriteNames = [...new Set(Object.values(planeDefs).map((d) => d.sprite)), 'hangar', 'bomb'];
+  const spriteNames = [
+    ...new Set([...Object.values(planeDefs).map((d) => d.sprite), ...Object.values(groundDefs).map((d) => d.sprite).filter(Boolean)]),
+    'hangar',
+    'bomb',
+  ];
   const images = Object.fromEntries(
     await Promise.all(spriteNames.map(async (n) => [n, await loadImage(`assets/sprites/${n}.png`)])),
   );
@@ -45,5 +58,5 @@ export async function loadContent(mapName) {
 
   const bombSprite = buildRotations(toCanvas(images.bomb), [7, 3]);
 
-  return { planeDefs, nations, weapons, settings, notes, map, images, planeSprite, bombSprite };
+  return { planeDefs, nations, weapons, settings, groundDefs, notes, map, images, planeSprite, bombSprite };
 }

@@ -1,6 +1,7 @@
 // Guns, bombs, damage and explosions.
 import { clamp } from './math.js';
 import { GRAVITY } from './plane.js';
+import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
 
 const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
@@ -151,6 +152,7 @@ export function stepBullets(world, dt) {
         break;
       }
     }
+    if (!gone) gone = bulletHitsGround(world, b, ox, oy);
     if (!gone && b.y <= world.terrain.heightAt(b.x)) {
       world.events.push({ type: 'impact', surface: 'ground', x: b.x, y: world.terrain.heightAt(b.x) });
       gone = true;
@@ -167,6 +169,7 @@ export function explode(world, x, y, def, ownerId, team) {
     const d = Math.hypot(p.x - x, p.y - y);
     if (d < def.blastRadius) damagePlane(world, p, def.blastDamage * (1 - d / def.blastRadius), ownerId, p.x, p.y, 'bomb');
   }
+  blastGround(world, x, y, def, ownerId, team);
   if (y - world.terrain.heightAt(x) < def.craterRadius) world.terrain.crater(x, def.craterRadius, def.craterDepth);
 }
 
@@ -187,7 +190,7 @@ export function stepBombs(world, dt) {
     if (struck) shootDown(world, struck, b.owner, 'bomb');
 
     const ground = world.terrain.heightAt(b.x);
-    if (struck || b.y <= ground || b.x < 0 || b.x > world.map.width) {
+    if (struck || b.y <= ground || b.x < 0 || b.x > world.map.width || bombStrikesGround(world, b)) {
       list.splice(i, 1);
       explode(world, b.x, Math.max(b.y, ground), b.def, b.owner, b.team);
       world.events.push({ type: 'bombExplode', bomb: b.id, x: b.x, y: Math.max(b.y, ground) });
