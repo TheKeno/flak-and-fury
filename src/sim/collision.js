@@ -10,6 +10,7 @@
 // Where the planes touch matters too: a propeller chewing into a tail (the Soviet "taran") wrecks
 // the victim's tail and bends the rammer's prop; a clipped wing makes the plane pull to one side.
 import { clamp } from './math.js';
+import { ignite } from './fire.js';
 import { damagePlane, shootDown } from './weapons.js';
 
 export const DEFAULT_COLLISIONS = {
@@ -123,10 +124,7 @@ function resolve(world, a, b, cfg, dist) {
       const bend = severity === 'hard' ? 0.5 : 0.2;
       p.wingPull = clamp(p.wingPull + side * cfg.wingPull * bend * share * 2, -cfg.wingPull * 2, cfg.wingPull * 2);
     }
-    if (severity === 'hard' && !p.burning && world.rng.next() < cfg.hardFireChance * share * 2) {
-      p.burning = true;
-      world.events.push({ type: 'fire', plane: p.id });
-    }
+    if (severity === 'hard' && !p.burning && world.rng.next() < cfg.hardFireChance * share * 2) ignite(world, p);
     if (!p.dying) damagePlane(world, p, dmg, other.id, x, y, 'collision');
   };
   apply(a, b, shareA, zoneA, n, taranA, taranB);

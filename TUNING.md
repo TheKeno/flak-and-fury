@@ -59,6 +59,13 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 `servicing`: `crewDelay` (seconds before the crew start), `repairPerSec` (hit points per second),
 `refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings.
 
+`fire`: a burning plane has `burnTime` seconds to live, whatever its hit points; each hit point of
+damage taken while burning takes `hitShortens` seconds off. Once less than `roughAt` of the time is left the
+engine coughs and loses power, and it fails with `quitAt` seconds left. Land and stop: the pilot puts the
+fire out in `pilotTime` seconds in a field (the engine can be started again, with `engineHarm` damage
+left), the ground crew in `crewTime` on your own airstrip. The time keeps running while they work. All in
+the tuning panel's Fire section.
+
 `radar`: `sweepTime` (seconds for the beam to cross the map), `afterglow` (seconds a plot glows),
 `lowGap` (planes lower than this above the ground drop off the radar, friend or foe).
 The scope is fed by your side's radar station: as it's damaged the picture gets noisy and blotchy,

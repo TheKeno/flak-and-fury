@@ -34,6 +34,14 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
   drawText(ctx, 'DMG', x, y, '#c8d0c0');
   bar(ctx, x + 14, y + 1, 30, hp, hp < 0.35 ? '#e05040' : hp < 0.6 ? '#e0a040' : '#80d070');
   y += 7;
+  if (plane.burning && !plane.dying) {
+    // Time left before the fire finishes the plane.
+    const flicker = Math.floor(performance.now() / 150) % 2 === 0;
+    drawText(ctx, 'FIR', x, y, flicker ? '#ff6a50' : '#ffc0a0');
+    bar(ctx, x + 14, y + 1, 30, Math.max(0, plane.fireLeft) / world.fire.burnTime, '#ff6a50');
+    drawText(ctx, `${Math.max(0, Math.ceil(plane.fireLeft))}S`, x + 48, y, '#ffc0a0');
+    y += 7;
+  }
   const rounds = plane.guns.reduce((n, g) => n + g.ammo, 0);
   drawText(ctx, `GUN ${Math.floor(rounds)}`, x, y, rounds > 0 ? '#e8f0e0' : '#e05040');
   y += 7;
@@ -61,15 +69,18 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
   const centre = (str, cy, colour) => drawText(ctx, str, Math.round((W - textWidth(str)) / 2), cy, colour);
   if (plane.state === 'dead') centre('CRASHED - BACK TO THE HANGAR', 60, '#ff9070');
   else if (plane.dying) centre('GOING DOWN!', 60, blink ? '#ff6050' : '#ffb0a0');
+  else if (plane.burning && plane.state === 'air') centre('ON FIRE - LAND NOW!', 60, blink ? '#ff6050' : '#ffc0a0');
+  else if (plane.burning && plane.speed >= 2) centre('ON FIRE - STOP THE PLANE!', 60, blink ? '#ff6050' : '#ffc0a0');
   else if (plane.blackout) centre('BLACKOUT - TAP A/D!', 60, blink ? '#ff6050' : '#ffb0a0');
   else if (plane.tumble > 0) centre('OUT OF CONTROL!', 60, blink ? '#ff8050' : '#ffd0b0');
   else if (plane.y > world.map.ceiling) centre('TOO HIGH', 60, blink ? '#ffd060' : '#fff0c0');
   else if (plane.stalled && plane.state === 'air') centre('STALL', 60, blink ? '#ff6050' : '#ffc0b0');
   else if (plane.gearWarning) centre('GEAR UP!  (G)', 60, blink ? '#ff5040' : '#ffd0b0');
   else if (!plane.engineRunning && plane.state === 'air') centre('ENGINE OUT - GLIDE HOME!', 60, blink ? '#ff9050' : '#ffd0b0');
-  else if (plane.state === 'ground') groundMessage(ctx, world, plane, centre);
+  else if (plane.state === 'ground' && !plane.burning) groundMessage(ctx, world, plane, centre); // the fire bar shows instead
 
   serviceBar(ctx, world, plane, W);
+  fireBar(ctx, world, plane, W);
   const below = damageReport(ctx, plane, x, y + 4); // under the plane stats
   if (lastFlight) drawLastFlight(ctx, lastFlight, x, below);
 
@@ -96,6 +107,18 @@ function groundMessage(ctx, world, plane, centre) {
   else if (!plane.engineRunning) centre(home ? 'ENGINE STOPPED - THROTTLE TO IDLE FOR THE CREW' : 'OUT OF FUEL', 60, '#ffb090');
   else if (home && plane.speed < 2 && plane.throttle >= 0.05) centre('THROTTLE TO IDLE (S) FOR GROUND CREW', 60, '#f0f0e0');
   else if (plane.speed < 1 && plane.throttle < 0.05) centre('HOLD W TO OPEN THROTTLE', 60, '#f0f0e0');
+}
+
+// Putting a fire out, once the plane has stopped: the pilot alone in a field, the crew at home.
+function fireBar(ctx, world, plane, W) {
+  if (!plane.burning || plane.dying || plane.state !== 'ground' || plane.speed >= 2) return;
+  const crew = Boolean(ownAirfieldAt(world, plane));
+  const label = crew ? 'GROUND CREW PUTTING OUT THE FIRE' : 'PUTTING OUT THE FIRE';
+  const y = 72;
+  drawText(ctx, label, Math.round((W - textWidth(label)) / 2), y, '#ffc0a0');
+  const w = 80;
+  const need = crew ? world.fire.crewTime : world.fire.pilotTime;
+  bar(ctx, Math.round((W - w) / 2) - 1, y + 8, w, Math.min(1, plane.fireOut / need), '#ff9050');
 }
 
 // Ground crew progress at the bottom of the screen.

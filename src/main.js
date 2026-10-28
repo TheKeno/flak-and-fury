@@ -18,6 +18,7 @@ const world = createWorld({
   groundDefs: content.groundDefs,
   servicing: content.settings.servicing,
   collisions: content.settings.collisions,
+  fire: content.settings.fire,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
@@ -86,6 +87,9 @@ function handleEvents() {
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
       if (e.type === 'bellyLanding') renderer.message(e.collapsed ? 'GEAR COLLAPSED!' : 'BELLY LANDING!', '#ff9070');
+      if (e.type === 'fire') renderer.message('FIRE! LAND AND STOP TO PUT IT OUT', '#ff8070');
+      if (e.type === 'engineFire') renderer.message('ENGINE FAILED IN THE FIRE', '#ff8070');
+      if (e.type === 'fireOut') renderer.message(e.crew ? 'GROUND CREW PUT THE FIRE OUT' : 'FIRE OUT - ENGINE DAMAGED', '#a8e090');
       if (e.type === 'recovered') renderer.message('RECOVERED TO BASE', '#f0e8c0');
     }
     if (e.type === 'collision' && (e.a === player.id || e.b === player.id)) {

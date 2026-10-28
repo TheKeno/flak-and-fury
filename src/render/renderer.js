@@ -11,6 +11,7 @@ import { drawHud, damageLines } from './hud.js';
 import { createParticles } from './particles.js';
 import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
+import { fireStage } from '../sim/fire.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
@@ -678,8 +679,11 @@ export function createRenderer(canvas, world, assets) {
       const kind = p.burning || hurt > 0.7 ? 'blacksmoke' : 'smoke';
       particles.spawn(kind, wx, wy, p.vx * 0.1, p.vy * 0.1 + 4, 1.2 + Math.random(), 1.2);
     }
-    if (p.burning && Math.random() < 0.8 * dt * 60) {
-      particles.spawn('fire', wx + (Math.random() - 0.5) * 3, wy, p.vx * 0.3, p.vy * 0.3, 0.15 + Math.random() * 0.25, 1.5);
+    // Flames grow as the fire takes hold.
+    const stage = p.dying ? 1 : fireStage(world, p);
+    if (p.burning && Math.random() < (0.5 + 1.3 * stage) * dt * 60) {
+      const size = 1.2 + stage * 1.6;
+      particles.spawn('fire', wx + (Math.random() - 0.5) * (3 + stage * 5), wy, p.vx * 0.3, p.vy * 0.3, 0.15 + Math.random() * (0.25 + stage * 0.3), size);
     }
     if (p.state === 'ground' && p.belly && p.speed > 3) {
       for (let i = 0; i < 3; i++) particles.spawn('spark', p.x - c * (2 + Math.random() * 8), p.y - 2.5, -c * p.speed * (0.2 + Math.random() * 0.4), 10 + Math.random() * 30, 0.15 + Math.random() * 0.25, 0.5);

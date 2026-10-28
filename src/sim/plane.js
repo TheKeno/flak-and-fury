@@ -62,6 +62,10 @@ export function createPlane(id, def, { team, nation, seats }) {
     hp: def.hp,
     engineDamage: 0, // 0 = healthy, 1 = wrecked: less power, rough running
     burning: false,
+    fireLeft: 0, // seconds until a fire finishes the plane
+    fireOut: 0, // seconds spent putting a fire out
+    fireCough: false, // engine misfiring from the fire
+    fireStopped: false, // engine stopped by the fire (it can be restarted once the fire is out)
     dying: false, // shot down: out of control until it hits the ground
     lastHitBy: null,
     kills: 0,
@@ -108,6 +112,8 @@ export function spawnAtAirfield(p, world) {
   p.hp = p.def.hp;
   p.engineDamage = 0;
   p.burning = p.dying = false;
+  p.fireLeft = p.fireOut = 0;
+  p.fireCough = p.fireStopped = false;
   p.downCause = null;
   p.lastHitBy = null;
   p.fuel = 1;
@@ -157,7 +163,7 @@ function updateFuel(p, world, dt) {
 function updateEngine(p, world, dt) {
   const e = p.def.engine;
   updateFuel(p, world, dt);
-  const firing = p.engineRunning && !p.starved;
+  const firing = p.engineRunning && !p.starved && !(p.burning && p.fireCough);
   p.power = firing ? 1 - p.engineDamage * 0.5 : 0;
   let target;
   if (firing) {
@@ -425,7 +431,8 @@ function stepAir(p, cmd, world, dt) {
 // Stopped away from home with a dead engine or on the belly: after a few seconds the plane is
 // recovered to its own airfield (it isn't counted as lost).
 function updateStranded(p, world, dt) {
-  const stuck = p.speed < 1 && (p.belly || !p.engineRunning) && !ownAirfieldAt(world, p);
+  // Not while a fire is being put out: the engine may start again after that.
+  const stuck = p.speed < 1 && (p.belly || !p.engineRunning) && !p.burning && !ownAirfieldAt(world, p);
   p.strandedTimer = stuck ? p.strandedTimer + dt : 0;
   if (p.strandedTimer >= STRANDED_TIME) {
     world.events.push({ type: 'recovered', plane: p.id, x: p.x, y: p.y });

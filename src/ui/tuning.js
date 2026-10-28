@@ -79,6 +79,15 @@ const COLLISION_FIELDS = [
   ['pushApart', 'Push apart', 0, 4, 0.1, 'How hard colliding planes are shoved away from each other.'],
   ['grace', 'Re-collide delay', 0, 3, 0.1, 'Seconds before the same two planes can collide again.'],
 ];
+const FIRE_FIELDS = [
+  ['burnTime', 'Time to live on fire', 3, 90, 1, 'Seconds a fire takes to finish a plane, whatever its hit points. Land and stop before then.'],
+  ['hitShortens', 'Hits feed the fire', 0, 1, 0.01, 'Seconds of fire time lost per hit point of damage taken while burning.'],
+  ['roughAt', 'Engine rough from', 0, 1, 0.05, 'Share of the fire time left when the engine starts coughing and losing power.'],
+  ['quitAt', 'Engine quits at', 0, 30, 0.5, 'Seconds of fire time left when the engine fails. It can be restarted once the fire is out.'],
+  ['pilotTime', 'Put out in a field', 0.5, 30, 0.5, 'Seconds the pilot needs to beat the fire out once stopped away from home.'],
+  ['crewTime', 'Put out by ground crew', 0.2, 10, 0.1, 'Seconds the ground crew need once stopped on your own airstrip.'],
+  ['engineHarm', 'Engine damage from fire', 0, 1, 0.05, 'Engine damage left behind once a fire is out.'],
+];
 const RADAR_FIELDS = [
   ['sweepTime', 'Sweep time', 0.3, 8, 0.1, 'Seconds for the radar beam to cross the map. Contacts only update when the beam passes them.'],
   ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
@@ -255,6 +264,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     el('label', { class: 'row check', title: 'Propeller into a tail wrecks the tail and bends the propeller (the Soviet "taran").' }, el('span', {}, 'Propeller strikes (taran)'), propBox),
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
+  const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
   const restoreTargets = () => {
     createGround(world);
@@ -310,6 +320,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.servicing, saved.settings.servicing);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
+    Object.assign(settings.fire, saved.settings.fire);
     Object.assign(settings.hud, saved.settings.hud);
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;
@@ -361,6 +372,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     ...gunSections,
     bombSection,
     collisionSection,
+    fireSection,
     radarSection,
     groundSection,
     servicingSection,

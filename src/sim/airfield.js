@@ -63,7 +63,7 @@ export function updateServicing(p, world, dt) {
   }
 
   if (phase === 'repair') {
-    p.burning = false;
+    // A fire is the crew's first job; it's put out by the fire rules (src/sim/fire.js).
     p.hp = Math.min(p.def.hp, p.hp + cfg.repairPerSec * dt);
     p.engineDamage = Math.max(0, p.engineDamage - (cfg.repairPerSec / p.def.hp) * dt);
     p.tailDamage = Math.max(0, p.tailDamage - (cfg.repairPerSec / p.def.hp) * dt);

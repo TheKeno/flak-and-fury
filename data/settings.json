@@ -45,6 +45,15 @@
     "pushApart": 1,
     "grace": 1
   },
+  "fire": {
+    "burnTime": 20,
+    "hitShortens": 0.15,
+    "roughAt": 0.5,
+    "quitAt": 4,
+    "pilotTime": 5,
+    "crewTime": 1.5,
+    "engineHarm": 0.3
+  },
   "radar": {
     "sweepTime": 2.5,
     "afterglow": 3.2,

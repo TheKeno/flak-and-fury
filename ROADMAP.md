@@ -48,6 +48,8 @@ later.
    - ✓ Flak (slow, accurate, high ceiling, sets you on fire: fly low), MG nests (fast bursts, low
      ceiling: fly high), infantry (weak, dangerous in groups), tents and towers as targets. They
      shoot at planes in the air and on the ground.
+   - ✓ **Fire is an emergency:** about 20 s to live whatever your hit points, engine coughs then
+     quits; land and stop to put it out (pilot 5 s in a field, ground crew 1.5 s at home).
    - ✓ **Radar stations** as bombable targets: damage degrades the scope (noise, blotches, stuttering
      sweep, lost and misplaced echoes); destroy the enemy's and their scope goes dark; lose yours
      and you're blind.

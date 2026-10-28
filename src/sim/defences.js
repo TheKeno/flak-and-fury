@@ -6,6 +6,7 @@
 import { GRAVITY } from './plane.js';
 import { damagePlane } from './weapons.js';
 import { angleDiff } from './math.js';
+import { ignite } from './fire.js';
 
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
@@ -183,10 +184,7 @@ function burst(world, s) {
     const k = 1 - d / def.burstRadius;
     const dmg = def.burstDamage * k * world.rng.range(0.6, 1.4);
     world.events.push({ type: 'shrapnel', plane: p.id, x: p.x, y: p.y, damage: dmg });
-    if (!p.burning && !p.dying && world.rng.next() < def.fireChance * k) {
-      p.burning = true;
-      world.events.push({ type: 'fire', plane: p.id });
-    }
+    if (!p.burning && world.rng.next() < def.fireChance * k) ignite(world, p);
     damagePlane(world, p, dmg, s.owner, p.x, p.y, 'flak');
   }
 }

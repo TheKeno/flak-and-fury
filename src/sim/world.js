@@ -10,6 +10,7 @@ import { botCommand } from './ai.js';
 import { DEFAULT_SERVICING } from './airfield.js';
 import { createGround, planesHitStructures } from './ground.js';
 import { stepDefences, stepShells } from './defences.js';
+import { DEFAULT_FIRE } from './fire.js';
 
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
@@ -19,6 +20,7 @@ export const DT = 1 / TICK_RATE;
 export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', autoGear: true };
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
+// fire: how fires burn and are put out (src/sim/fire.js).
 // groundDefs: ground object types (data/ground.json), shared the same way.
 export function createWorld({
   map,
@@ -28,6 +30,7 @@ export function createWorld({
   rules = {},
   servicing = { ...DEFAULT_SERVICING },
   collisions = { ...DEFAULT_COLLISIONS },
+  fire = { ...DEFAULT_FIRE },
 }) {
   const world = {
     tick: 0,
@@ -38,6 +41,7 @@ export function createWorld({
     rules: { ...DEFAULT_RULES, ...rules },
     servicing,
     collisions,
+    fire,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],

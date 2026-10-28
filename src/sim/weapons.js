@@ -2,11 +2,11 @@
 import { clamp } from './math.js';
 import { GRAVITY } from './plane.js';
 import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
+import { ignite, fireHit, stepFire } from './fire.js';
 
 const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
 const TRACER_EVERY = 3;
-const FIRE_DAMAGE_PER_SEC = 3;
 
 // Recomputes how a battery of guns is merged into projectiles (after its rpm changes).
 export function updateGunRates(g) {
@@ -89,12 +89,10 @@ export function damagePlane(world, target, amount, byId, x, y, cause = 'guns') {
   if (target.state !== 'air' && target.state !== 'ground') return;
   target.hp -= amount;
   target.lastHitBy = byId;
+  fireHit(world, target, amount);
   // Some hits find the engine; badly shot-up planes may catch fire.
   if (world.rng.next() < 0.25) target.engineDamage = clamp(target.engineDamage + amount / 90, 0, 1);
-  if (!target.burning && target.hp < 30 && world.rng.next() < amount / 70) {
-    target.burning = true;
-    world.events.push({ type: 'fire', plane: target.id });
-  }
+  if (target.hp < 30 && world.rng.next() < amount / 70) ignite(world, target);
   if (target.hp <= 0 && !target.dying) shootDown(world, target, byId, cause);
 }
 
@@ -111,10 +109,7 @@ export function shootDown(world, p, byId, cause = 'guns') {
 }
 
 export function updateDamage(p, world, dt) {
-  if (p.burning && p.state !== 'dead') {
-    p.hp -= FIRE_DAMAGE_PER_SEC * dt;
-    if (p.hp <= 0 && !p.dying) shootDown(world, p, p.lastHitBy, 'fire');
-  }
+  stepFire(p, world, dt, shootDown);
 }
 
 const canHit = (world, team, owner, p) =>
