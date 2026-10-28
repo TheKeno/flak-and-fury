@@ -27,6 +27,8 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `stallSpeed` | Below this the wings stop lifting and the nose drops. | 40 – 70 |
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
+| `groundThrust` | Share of engine pull while rolling on the wheels. Lower = longer take-off roll. | 0.3 – 1 |
+| `tailUpSpeed` | Share of take-off speed at which the tail has lifted (visual). | 0.6 – 1 |
 | `groundFriction` | How quickly the plane slows when rolling. | 10 – 30 |
 | `toughness` | Divides collision damage. 1 = normal, higher = sturdier. | 0.7 – 1.5 |
 | `rearView` | How far mouse look can swing back over the tail (0..1). | 0.3 – 1 |

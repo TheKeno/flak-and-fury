@@ -262,7 +262,8 @@ function stepGround(p, cmd, world, dt) {
   const onRunway = world.map.airfields.some((a) => p.x >= a.x && p.x <= a.x + a.width);
   const rolling = p.belly ? BELLY_FRICTION : d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1) * (onRunway ? 1 : GRASS_FRICTION);
   const friction = p.speed <= 0 ? 0 : rolling;
-  const thrust = d.thrust * p.throttle * p.power;
+  // On its wheels a propeller pulls less than in flight, so the take-off roll builds speed slowly.
+  const thrust = d.thrust * p.throttle * p.power * (d.groundThrust ?? 1);
   p.speed += (thrust - d.dragCoef * p.speed * p.speed - friction - GRAVITY * Math.sin(heading)) * dt;
   p.speed = Math.max(0, p.speed);
 

@@ -292,22 +292,21 @@ export function createRenderer(canvas, world, assets) {
 
   // Taildraggers sit tail-down on the ground: tilted nose-up about the main wheels until the tail wheel
   // touches. As the take-off roll picks up speed the tail lifts, and the plane rolls level from about
-  // TAIL_UP_SPEED of take-off speed. Visual only; the simulation keeps the plane level on its wheels.
+  // tailUpSpeed (share of take-off speed). Visual only; the simulation keeps the plane level.
   const MAIN_WHEEL_BOTTOM = [3.5, -3.6 - 1.4];
   const TAIL_WHEEL_BOTTOM = [-10.5, -1.6 - 0.8];
   const TAIL_DOWN = Math.atan2(TAIL_WHEEL_BOTTOM[1] - MAIN_WHEEL_BOTTOM[1], MAIN_WHEEL_BOTTOM[0] - TAIL_WHEEL_BOTTOM[0]);
-  const TAIL_UP_SPEED = 0.65;
   const tilts = new Map(); // plane id -> current tail-down tilt (radians), eased
   let frameDt = 1 / 60;
 
   function groundAttitude(p) {
     let target = 0;
     if (p.state === 'ground' && !p.belly && p.gear >= 1) {
-      const t = clamp(p.speed / (p.def.takeoffSpeed * TAIL_UP_SPEED), 0, 1);
+      const t = clamp(p.speed / (p.def.takeoffSpeed * (p.def.tailUpSpeed ?? 0.85)), 0, 1);
       target = TAIL_DOWN * (1 - t * t * (3 - 2 * t));
     }
     let tilt = tilts.get(p.id) ?? target;
-    tilt += (target - tilt) * Math.min(1, frameDt * 6);
+    tilt += (target - tilt) * Math.min(1, frameDt * 3.5);
     tilts.set(p.id, tilt);
     if (Math.abs(tilt) < 0.001) return { angle: p.angle, x: p.x, y: p.y };
     // Rotate nose-up about the main wheel's contact point, so the main wheels stay on the ground.

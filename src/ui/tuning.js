@@ -16,6 +16,8 @@ const PLANE_FIELDS = [
   ['stallSpeed', 'Stall speed', 30, 90, 1, 'Below this the wings stop lifting and the nose drops.'],
   ['takeoffSpeed', 'Take-off speed', 30, 90, 1, 'Speed needed to lift off the runway.'],
   ['maxLandingSpeed', 'Max landing speed', 50, 160, 1, 'Touching down faster than this is a crash.'],
+  ['groundThrust', 'Ground acceleration', 0.1, 1.5, 0.05, 'Share of engine pull you get while rolling on the wheels. Lower = longer take-off roll.'],
+  ['tailUpSpeed', 'Tail lifts at', 0.2, 1, 0.05, 'Share of take-off speed at which the tail has fully lifted during the take-off roll.'],
   ['groundFriction', 'Ground friction', 5, 40, 1, 'How quickly the plane slows when rolling on the ground.'],
   ['hp', 'Hit points', 20, 400, 5, 'How much damage the plane takes before it goes down.'],
   ['hitRadius', 'Hit size', 3, 14, 0.5, 'Size of the plane for bullets (px). Smaller = harder to hit.'],
