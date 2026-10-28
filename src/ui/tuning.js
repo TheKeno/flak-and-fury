@@ -172,21 +172,27 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   const bombSection = bombId
     ? section(`Bombs: ${weapons[bombId].name}`, false, ...BOMB_FIELDS.map((f) => add(slider(weapons[bombId], f))))
     : '';
-  // Testing switches (not saved to files).
+  // Testing switches. world.rules is the same object as settings.rules, so these are saved too.
   const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
+  const parkBots = () => {
+    if (world.rules.bots === 'off') for (const p of world.planes.filter(isBot)) spawnAtAirfield(p, world);
+  };
   const botSelect = el(
     'select',
     {
       onchange: () => {
         world.rules.bots = botSelect.value;
-        if (botSelect.value === 'off') for (const p of world.planes.filter(isBot)) spawnAtAirfield(p, world);
+        parkBots();
       },
     },
-    ...BOT_MODES.map(([v, label]) => el('option', v === world.rules.bots ? { value: v, selected: '' } : { value: v }, label)),
+    ...BOT_MODES.map(([v, label]) => el('option', { value: v }, label)),
   );
+  botSelect.value = world.rules.bots;
+  const ruleBoxes = [];
   const toggle = (key, label, help) => {
     const box = el('input', { type: 'checkbox', onchange: () => (world.rules[key] = box.checked) });
     box.checked = world.rules[key];
+    ruleBoxes.push([box, key]);
     return el('label', { class: 'row check', title: help }, el('span', {}, label), box);
   };
   const testSection = section(
@@ -249,6 +255,10 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.hud, saved.settings.hud);
+    Object.assign(world.rules, saved.settings.rules);
+    botSelect.value = world.rules.bots;
+    for (const [box, key] of ruleBoxes) box.checked = world.rules[key];
+    parkBots();
     propBox.checked = settings.collisions.propStrikes;
     for (const p of world.planes) p.guns.forEach(updateGunRates);
     getMixer()?.applyLevels();

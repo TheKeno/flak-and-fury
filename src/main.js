@@ -17,7 +17,10 @@ const world = createWorld({
   weapons: content.weapons,
   servicing: content.settings.servicing,
   collisions: content.settings.collisions,
+  rules: content.settings.rules,
 });
+// Share the world's rules object with the settings so the tuning panel saves the Testing switches.
+content.settings.rules = world.rules;
 const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
 // A sparring partner until real bots arrive in milestone 5.
 addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'uk', controller: 'bot:target' });

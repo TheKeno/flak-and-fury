@@ -52,5 +52,11 @@
   },
   "hud": {
     "lastFlightTime": 8
+  },
+  "rules": {
+    "friendlyFire": false,
+    "ramming": true,
+    "bots": "off",
+    "autoGear": true
   }
 }
