@@ -366,12 +366,24 @@ export function createRenderer(canvas, world, assets) {
       const sx = toScreenX(b.x);
       const sy = toScreenY(b.y);
       if (sx < -10 || sx > bw + 10 || sy < -10 || sy > bh + 10) continue;
-      const len = (b.tracer ? 4 : 2) * SCALE;
+      // Drawn for contrast against a pale sky: tracers are thick orange streaks with a white-hot head
+      // and a dark edge; ordinary rounds are short dark streaks.
       const sp = Math.hypot(b.vx, b.vy) || 1;
-      for (let k = 0; k < len; k++) {
-        // Tracers glow bright at the head and fade along the streak.
-        ctx.fillStyle = b.tracer ? (k < 2 ? '#fffbe0' : k < len / 2 ? '#ffe680' : 'rgba(255,190,80,0.6)') : 'rgba(230,200,120,0.7)';
-        ctx.fillRect(Math.round(sx - (b.vx / sp) * k), Math.round(sy + (b.vy / sp) * k), 1, 1);
+      const dx = -b.vx / sp;
+      const dy = b.vy / sp;
+      const len = (b.tracer ? 6 : 3) * SCALE;
+      const dot = (k, size, colour) => {
+        ctx.fillStyle = colour;
+        ctx.fillRect(Math.round(sx + dx * k - size / 2), Math.round(sy + dy * k - size / 2), size, size);
+      };
+      if (b.tracer) {
+        for (let k = 0; k < len; k += 1) dot(k, 3, 'rgba(70,24,0,0.45)');
+        for (let k = 0; k < len; k += 1) {
+          const t = k / len;
+          dot(k, 2, t < 0.15 ? '#fffbe8' : t < 0.45 ? '#ffc040' : t < 0.75 ? '#ff8420' : 'rgba(230,80,20,0.7)');
+        }
+      } else {
+        for (let k = 0; k < len; k += 1) dot(k, 2, k < len / 2 ? 'rgba(40,34,26,0.9)' : 'rgba(40,34,26,0.45)');
       }
     }
     for (const b of world.bombsInFlight) {

@@ -4,6 +4,7 @@ import { GRAVITY } from './plane.js';
 
 const MAX_VOLLEYS_PER_SEC = 24; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
+const TRACER_EVERY = 3;
 const FIRE_DAMAGE_PER_SEC = 3;
 
 // Recomputes how a battery of guns is merged into projectiles (after its rpm changes).
@@ -18,7 +19,7 @@ export function armPlane(p, weapons) {
   const arm = p.def.armament ?? { guns: [] };
   p.guns = arm.guns.map(({ weapon, count }) => {
     const w = weapons[weapon];
-    const g = { weapon, def: w, count, ammo: w.ammo * count, cooldown: 0 }; // ammo in rounds
+    const g = { weapon, def: w, count, ammo: w.ammo * count, cooldown: 0, fired: 0 }; // ammo in rounds
     updateGunRates(g);
     return g;
   });
@@ -45,6 +46,7 @@ export function updateWeapons(p, cmd, world, dt) {
       continue;
     }
     g.cooldown += g.interval;
+    g.fired++;
     const rounds = Math.min(g.ammo, g.roundsPerVolley);
     g.ammo -= rounds;
     const w = g.def;
@@ -61,7 +63,7 @@ export function updateWeapons(p, cmd, world, dt) {
       life: w.life,
       drop: w.drop,
       damage: w.damage * rounds,
-      tracer: world.tick % 3 === 0,
+      tracer: g.fired % TRACER_EVERY === 0, // every third round per gun battery is a tracer
     });
     world.events.push({ type: 'shot', plane: p.id, voice: w.voice, x, y });
   }
