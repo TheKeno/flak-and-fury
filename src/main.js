@@ -11,9 +11,9 @@ const overlay = document.getElementById('start');
 
 const content = await loadContent('countryside');
 const world = createWorld({ map: content.map, planeDefs: content.planeDefs, weapons: content.weapons });
-const player = addPlane(world, { defId: 'fighter_v12', team: 0, nation: 'uk', controller: 'p1' });
+const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
 // A sparring partner until real bots arrive in milestone 5.
-addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'germany', controller: 'bot:target' });
+addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'uk', controller: 'bot:target' });
 const renderer = createRenderer(canvas, world, content);
 const keyboard = createKeyboard();
 

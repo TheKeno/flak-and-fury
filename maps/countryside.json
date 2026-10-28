@@ -10,8 +10,18 @@
     "features": 5
   },
   "airfields": [
-    { "x": 220, "width": 420, "team": 0, "nation": "uk" },
-    { "x": 2960, "width": 420, "team": 1, "nation": "germany" }
+    {
+      "x": 220,
+      "width": 420,
+      "team": 0,
+      "nation": "germany"
+    },
+    {
+      "x": 2960,
+      "width": 420,
+      "team": 1,
+      "nation": "uk"
+    }
   ],
   "sky": {
     "low": "#9cc4d8",

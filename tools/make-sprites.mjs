@@ -21,7 +21,8 @@ const PALETTE = {
   c: [200, 228, 240, 255], // canopy highlight
   p: [92, 64, 44, 255], // pilot's leather helmet
   P: [140, 104, 74, 255], // helmet highlight
-  e: [50, 46, 44, 255], // exhaust stacks
+  e: [50, 46, 44, 255], // exhaust stacks, intakes
+  x: [236, 236, 226, 255], // white (marking borders)
   g: [96, 102, 90, 255], // hangar wall
   h: [66, 70, 62, 255], // hangar wall shade / door frame
   r: [132, 96, 70, 255], // hangar roof
@@ -103,6 +104,48 @@ function fighter() {
   return g.rowsOut();
 }
 
+// Messerschmitt Bf 109, side view, nose to the right. 48x18; pivot (24, 10).
+// Long nose with pointed spinner, angular framed canopy, rounded fin, chin oil cooler, Balkenkreuz.
+function bf109() {
+  const g = grid(48, 18);
+  // Rounded fin with the rudder hinge line.
+  g.rows({ 1: [3, 6], 2: [2, 7], 3: [1, 8], 4: [1, 8], 5: [1, 9], 6: [1, 9] }, 'B');
+  for (let y = 2; y <= 7; y++) g.set(6, y, 'S');
+  // Slim fuselage tapering hard to the tail.
+  g.rows({ 6: [22, 34], 7: [8, 44], 8: [2, 45], 9: [1, 46], 10: [1, 47], 11: [2, 46], 12: [6, 44], 13: [14, 40] }, (y) =>
+    y <= 9 ? 'B' : y <= 11 ? 'S' : 'U',
+  );
+  // Tailplane, set high on the fin.
+  g.rows({ 7: [0, 12], 8: [0, 11] }, 'W');
+  // Wing root and the radiator bath under it.
+  g.rows({ 13: [18, 34], 14: [19, 33], 15: [22, 30] }, 'W');
+  g.span(15, 24, 28, 'S');
+  // Chin oil cooler with its dark intake.
+  g.rows({ 13: [37, 42], 14: [38, 42] }, 'U');
+  g.set(42, 13, 'e');
+  g.set(42, 14, 'e');
+  // Panel lines: cockpit rear and firewall.
+  for (let y = 8; y <= 11; y++) g.set(20, y, 'S');
+  for (let y = 7; y <= 11; y++) g.set(34, y, 'S');
+  // Supercharger intake on the cowling side.
+  g.span(8, 32, 33, 'e');
+  // Exhaust stacks.
+  for (const x of [35, 38, 41]) g.span(9, x, x + 1, 'e');
+  // Angular canopy, framed, with the pilot.
+  g.rows({ 3: [25, 30], 4: [24, 31], 5: [23, 32], 6: [23, 33] }, 'C');
+  g.span(4, 25, 26, 'c');
+  g.rows({ 5: [25, 26], 6: [24, 27] }, 'p');
+  g.set(26, 5, 'P');
+  for (const x of [28, 31]) for (let y = 3; y <= 6; y++) g.set(x, y, 'o');
+  // Pointed spinner.
+  g.rows({ 8: [45, 45], 9: [45, 46], 10: [45, 47], 11: [45, 46] }, 'N');
+  // Balkenkreuz: black cross with a white border.
+  g.rows({ 8: [15, 17], 9: [14, 18], 10: [14, 18], 11: [14, 18], 12: [15, 17] }, 'x');
+  g.rows({ 9: [16, 16], 10: [15, 17], 11: [16, 16] }, 'M');
+  g.outline();
+  return g.rowsOut();
+}
+
 // Bomb, nose to the right. 14x6; pivot (7, 3).
 function bomb() {
   const g = grid(14, 6);
@@ -135,7 +178,7 @@ function hangar() {
   return g.rowsOut();
 }
 
-const SPRITES = { fighter: fighter(), bomb: bomb(), hangar: hangar() };
+const SPRITES = { fighter: fighter(), bf109: bf109(), bomb: bomb(), hangar: hangar() };
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
   let c = n;

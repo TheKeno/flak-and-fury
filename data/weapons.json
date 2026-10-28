@@ -69,6 +69,19 @@
     "ammo": 120,
     "voice": "cannon20"
   },
+  "mg151_20": {
+    "name": "MG 151/20",
+    "type": "gun",
+    "class": "20 mm cannon (mine shells)",
+    "rpm": 700,
+    "damage": 2.3,
+    "velocity": 450,
+    "spread": 0.014,
+    "drop": 0.15,
+    "life": 1.1,
+    "ammo": 200,
+    "voice": "cannon20"
+  },
   "type99_20": {
     "name": "Type 99 20 mm",
     "type": "gun",
@@ -103,5 +116,14 @@
     "craterRadius": 16,
     "craterDepth": 7,
     "drag": 0.12
+  },
+  "sc_250": {
+    "name": "SC 250 bomb",
+    "type": "bomb",
+    "blastRadius": 42,
+    "blastDamage": 160,
+    "craterRadius": 18,
+    "craterDepth": 8,
+    "drag": 0.1
   }
 }

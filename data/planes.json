@@ -55,5 +55,65 @@
       "propBlades": 3,
       "gearRatio": 0.477
     }
+  },
+  "bf109": {
+    "name": "Bf 109 F-4",
+    "role": "fighter",
+    "sprite": "bf109",
+    "pivot": [
+      24,
+      10
+    ],
+    "noseOffset": [
+      12,
+      0
+    ],
+    "exhaustOffset": [
+      7,
+      0.5
+    ],
+    "thrust": 88,
+    "dragCoef": 0.0037,
+    "groundFriction": 18,
+    "turnRate": 1.4,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.4,
+    "slowTurnBonus": 1,
+    "slowTurnSpeed": 105,
+    "stallSpeed": 57,
+    "takeoffSpeed": 55,
+    "maxLandingSpeed": 90,
+    "maxSpeed": 155,
+    "hp": 90,
+    "hitRadius": 6.5,
+    "bombOffset": [
+      0,
+      -4
+    ],
+    "armament": {
+      "guns": [
+        {
+          "weapon": "mg17",
+          "count": 2
+        },
+        {
+          "weapon": "mg151_20",
+          "count": 1
+        }
+      ],
+      "bombs": {
+        "weapon": "sc_250",
+        "count": 1
+      }
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 800,
+      "cruiseRpm": 2400,
+      "maxRpm": 2700,
+      "propBlades": 3,
+      "gearRatio": 0.645
+    }
   }
 }
