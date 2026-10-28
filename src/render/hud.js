@@ -10,7 +10,7 @@ function bar(ctx, x, y, w, value, colour) {
   ctx.fillRect(x + 1, y + 1, Math.round(w * value), 2);
 }
 
-export function drawHud(ctx, world, plane, W, H, { showHelp }) {
+export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
   if (!plane) return;
 
   const x = 6;
@@ -70,7 +70,8 @@ export function drawHud(ctx, world, plane, W, H, { showHelp }) {
   else if (plane.state === 'ground') groundMessage(ctx, world, plane, centre);
 
   serviceBar(ctx, world, plane, W);
-  damageReport(ctx, plane, x, y + 4); // under the plane stats
+  const below = damageReport(ctx, plane, x, y + 4); // under the plane stats
+  if (lastFlight) drawLastFlight(ctx, lastFlight, x, below);
 
   if (showHelp) {
     const lines = [
@@ -115,7 +116,7 @@ const AMBER = '#e8b048';
 
 // What's wrong with the plane, worst first. Each line stays as long as the damage does: until the
 // plane is lost or the ground crew repair it.
-function damageLines(plane) {
+export function damageLines(plane) {
   const lines = [];
   const blink = Math.floor(performance.now() / 250) % 2 === 0;
   if (plane.burning) lines.push(['ON FIRE!', blink ? RED : '#ffc0a0']);
@@ -136,10 +137,11 @@ function damageLines(plane) {
   return lines;
 }
 
+// Returns the y just below the panel (or y itself if nothing was drawn).
 function damageReport(ctx, plane, x, y) {
-  if (plane.state === 'dead') return;
+  if (plane.state === 'dead') return y;
   const lines = damageLines(plane);
-  if (!lines.length) return;
+  if (!lines.length) return y;
   const widest = Math.max(textWidth('DAMAGE REPORT'), ...lines.map(([t]) => textWidth(t)));
   ctx.fillStyle = 'rgba(10,8,6,0.45)';
   ctx.fillRect(x - 3, y - 3, widest + 6, lines.length * 7 + 13);
@@ -149,4 +151,21 @@ function damageReport(ctx, plane, x, y) {
     drawText(ctx, text, x, y, colour);
     y += 7;
   }
+  return y + 8;
+}
+
+// The damage report frozen at the moment the plane was lost, with what brought it down.
+function drawLastFlight(ctx, report, x, y) {
+  const lines = [[report.cause, '#ff8a70'], ...report.lines];
+  const widest = Math.max(textWidth('LAST FLIGHT'), ...lines.map(([t]) => textWidth(t)));
+  ctx.globalAlpha = report.alpha;
+  ctx.fillStyle = 'rgba(30,6,4,0.55)';
+  ctx.fillRect(x - 3, y - 3, widest + 6, lines.length * 7 + 13);
+  drawText(ctx, 'LAST FLIGHT', x, y, '#d8b8a8');
+  y += 9;
+  for (const [text, colour] of lines) {
+    drawText(ctx, text, x, y, colour);
+    y += 7;
+  }
+  ctx.globalAlpha = 1;
 }

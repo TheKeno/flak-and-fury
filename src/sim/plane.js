@@ -107,6 +107,7 @@ export function spawnAtAirfield(p, world) {
   p.hp = p.def.hp;
   p.engineDamage = 0;
   p.burning = p.dying = false;
+  p.downCause = null;
   p.lastHitBy = null;
   p.fuel = 1;
   p.engineRunning = true;
@@ -122,8 +123,10 @@ export function spawnAtAirfield(p, world) {
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
 }
 
-function crash(p, world) {
-  world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, by: p.dying ? p.lastHitBy : null });
+// cause: why it went in. A plane already shot down keeps the cause of that ('guns', 'bomb', ...).
+function crash(p, world, cause) {
+  const why = p.dying ? p.downCause ?? 'guns' : cause;
+  world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, by: p.dying ? p.lastHitBy : null, cause: why });
   p.state = 'dead';
   p.deaths++;
   p.respawnTimer = RESPAWN_TIME;
@@ -223,7 +226,7 @@ function bellyLand(p, world, groundY) {
   p.propBent = true;
   p.hp -= 12 + p.speed * 0.25;
   world.events.push({ type: 'bellyLanding', plane: p.id, x: p.x, y: p.y, speed: p.speed, collapsed });
-  if (p.hp <= 0) crash(p, world);
+  if (p.hp <= 0) crash(p, world, 'belly');
 }
 
 function updateConsciousness(p, cmd, world, dt) {
@@ -293,7 +296,7 @@ function stepGround(p, cmd, world, dt) {
       return;
     }
     if (pull > GEAR_JOLT_LIMIT) {
-      crash(p, world);
+      crash(p, world, 'rough');
       return;
     }
   }
@@ -402,7 +405,16 @@ function stepAir(p, cmd, world, dt) {
       p.stalled = false;
       world.events.push({ type: 'touchdown', plane: p.id, x: p.x, y: p.y, speed: p.speed, misalign });
     } else {
-      crash(p, world);
+      const cause = p.blackout
+        ? 'blackout'
+        : p.stalled
+          ? 'stall'
+          : !isUpright(p)
+            ? 'inverted'
+            : p.speed >= d.maxLandingSpeed * (gearReady ? 1 : BELLY_SPEED_MARGIN)
+              ? 'tooFast'
+              : 'ground';
+      crash(p, world, cause);
     }
   }
 }

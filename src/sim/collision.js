@@ -79,8 +79,8 @@ function resolve(world, a, b, cfg, dist) {
 
   if (closing >= cfg.fatalSpeed || (headOn && closing >= cfg.headOnSpeed)) {
     world.events.push({ type: 'collision', severity: 'fatal', a: a.id, b: b.id, x, y, closing });
-    if (!a.dying) shootDown(world, a, b.id);
-    if (!b.dying) shootDown(world, b, a.id);
+    if (!a.dying) shootDown(world, a, b.id, 'collision');
+    if (!b.dying) shootDown(world, b, a.id, 'collision');
     return;
   }
 
@@ -127,7 +127,7 @@ function resolve(world, a, b, cfg, dist) {
       p.burning = true;
       world.events.push({ type: 'fire', plane: p.id });
     }
-    if (!p.dying) damagePlane(world, p, dmg, other.id, x, y);
+    if (!p.dying) damagePlane(world, p, dmg, other.id, x, y, 'collision');
   };
   apply(a, b, shareA, zoneA, n, taranA, taranB);
   apply(b, a, shareB, zoneB, nb, taranB, taranA);

@@ -48,5 +48,8 @@
     "sweepTime": 2.5,
     "afterglow": 3.2,
     "lowGap": 60
+  },
+  "hud": {
+    "lastFlightTime": 8
   }
 }

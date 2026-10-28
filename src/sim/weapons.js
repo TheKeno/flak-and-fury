@@ -83,7 +83,8 @@ export function updateWeapons(p, cmd, world, dt) {
   }
 }
 
-export function damagePlane(world, target, amount, byId, x, y) {
+// cause: what did the damage, remembered if it brings the plane down ('guns', 'bomb', 'collision').
+export function damagePlane(world, target, amount, byId, x, y, cause = 'guns') {
   if (target.state !== 'air' && target.state !== 'ground') return;
   target.hp -= amount;
   target.lastHitBy = byId;
@@ -93,11 +94,13 @@ export function damagePlane(world, target, amount, byId, x, y) {
     target.burning = true;
     world.events.push({ type: 'fire', plane: target.id });
   }
-  if (target.hp <= 0 && !target.dying) shootDown(world, target, byId);
+  if (target.hp <= 0 && !target.dying) shootDown(world, target, byId, cause);
 }
 
-export function shootDown(world, p, byId) {
+export function shootDown(world, p, byId, cause = 'guns') {
   p.dying = true;
+  p.downCause = cause;
+  if (byId != null) p.lastHitBy = byId;
   p.hp = Math.min(p.hp, 0);
   p.burning = true;
   if (p.state === 'ground') p.state = 'air';
@@ -109,7 +112,7 @@ export function shootDown(world, p, byId) {
 export function updateDamage(p, world, dt) {
   if (p.burning && p.state !== 'dead') {
     p.hp -= FIRE_DAMAGE_PER_SEC * dt;
-    if (p.hp <= 0 && !p.dying) shootDown(world, p, p.lastHitBy);
+    if (p.hp <= 0 && !p.dying) shootDown(world, p, p.lastHitBy, 'fire');
   }
 }
 
@@ -162,7 +165,7 @@ export function explode(world, x, y, def, ownerId, team) {
     if (p.state === 'dead') continue;
     if (!world.rules.friendlyFire && p.team === team && p.id !== ownerId) continue;
     const d = Math.hypot(p.x - x, p.y - y);
-    if (d < def.blastRadius) damagePlane(world, p, def.blastDamage * (1 - d / def.blastRadius), ownerId, p.x, p.y);
+    if (d < def.blastRadius) damagePlane(world, p, def.blastDamage * (1 - d / def.blastRadius), ownerId, p.x, p.y, 'bomb');
   }
   if (y - world.terrain.heightAt(x) < def.craterRadius) world.terrain.crater(x, def.craterRadius, def.craterDepth);
 }
@@ -181,7 +184,7 @@ export function stepBombs(world, dt) {
     const struck = world.planes.find(
       (p) => p.state === 'air' && p.id !== b.owner && Math.hypot(p.x - b.x, p.y - b.y) < p.def.hitRadius,
     );
-    if (struck) shootDown(world, struck, b.owner);
+    if (struck) shootDown(world, struck, b.owner, 'bomb');
 
     const ground = world.terrain.heightAt(b.x);
     if (struck || b.y <= ground || b.x < 0 || b.x > world.map.width) {

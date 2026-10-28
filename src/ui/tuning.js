@@ -80,6 +80,9 @@ const RADAR_FIELDS = [
   ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
   ['lowGap', 'Low-level gap', 0, 150, 5, 'Planes flying lower than this above the ground drop off the radar, friend or foe (you too).'],
 ];
+const HUD_FIELDS = [
+  ['lastFlightTime', 'Last-flight report', 0, 30, 1, 'Seconds the LAST FLIGHT damage report stays after you respawn.'],
+];
 const AUDIO_FIELDS = [
   ['master', 'Master volume', 0, 1, 0.01, '1.0 = full loudness.'],
   ['engine', 'Engines & wind', 0, 1.5, 0.01, ''],
@@ -204,6 +207,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
+  const hudSection = section('HUD', false, ...HUD_FIELDS.map((f) => add(slider(settings.hud, f))));
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
   const audioSection = section(
     'Sound',
@@ -243,6 +247,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.servicing, saved.settings.servicing);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
+    Object.assign(settings.hud, saved.settings.hud);
     propBox.checked = settings.collisions.propStrikes;
     for (const p of world.planes) p.guns.forEach(updateGunRates);
     getMixer()?.applyLevels();
@@ -292,6 +297,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     radarSection,
     servicingSection,
     cameraSection,
+    hudSection,
     audioSection,
     el('p', { class: 'foot' }, `Editing plane type "${planeId}". Changes apply instantly to every plane of this type.`),
   );

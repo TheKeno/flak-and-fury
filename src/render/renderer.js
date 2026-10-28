@@ -7,7 +7,7 @@
 // Reads simulation state only; never changes it.
 import { createRng, clamp } from '../sim/math.js';
 import { frameIndex } from './sprites.js';
-import { drawHud } from './hud.js';
+import { drawHud, damageLines } from './hud.js';
 import { createParticles } from './particles.js';
 import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
@@ -378,6 +378,11 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
+  // The last flight's damage report, frozen when the focused plane is lost. Shown while it's down
+  // and for settings.hud.lastFlightTime seconds after it respawns, fading at the end.
+  let lastFlight = null;
+  const hudCfg = assets.settings.hud;
+
   const flashes = new Map(); // plane id -> frames of muzzle flash left
   const messages = [];
 
@@ -487,6 +492,13 @@ export function createRenderer(canvas, world, assets) {
     shake(amount) {
       shake = Math.max(shake, amount);
     },
+    // Freeze the damage report of a plane that has just been lost, headed by what brought it down.
+    recordLastFlight(plane, cause) {
+      lastFlight = { lines: damageLines(plane).filter(([t]) => t !== 'ENGINE DEAD'), cause, until: null };
+    },
+    startLastFlightTimer() {
+      if (lastFlight) lastFlight.until = performance.now() + hudCfg.lastFlightTime * 1000;
+    },
     message(text, colour = '#f0e8c0') {
       messages.push({ text, colour, until: performance.now() + 3500 });
     },
@@ -536,7 +548,13 @@ export function createRenderer(canvas, world, assets) {
         ctx.fillRect(0, 0, bw, bh);
       }
       hud.clearRect(0, 0, W, H);
-      drawHud(hud, world, focus, W, H, { showHelp });
+      let shownFlight = null;
+      if (lastFlight) {
+        const left = lastFlight.until === null ? Infinity : lastFlight.until - performance.now();
+        if (left <= 0) lastFlight = null;
+        else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
+      }
+      drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight });
       drawMessages();
       if (focus && radar.belowRadar(focus)) {
         const label = 'BELOW RADAR';

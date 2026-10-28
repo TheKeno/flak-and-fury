@@ -46,10 +46,32 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyM' && mixer) mixer.setMuted((muted = !muted));
 });
 
+const CAUSES = {
+  guns: (by) => (by ? `SHOT DOWN BY ${by}` : 'SHOT DOWN'),
+  bomb: () => 'BLOWN UP BY A BOMB',
+  collision: (by) => (by ? `MID-AIR COLLISION WITH ${by}` : 'MID-AIR COLLISION'),
+  fire: () => 'CONSUMED BY FIRE',
+  blackout: () => 'BLACKED OUT AND WENT IN',
+  stall: () => 'STALLED INTO THE GROUND',
+  inverted: () => 'HIT THE GROUND UPSIDE DOWN',
+  tooFast: () => 'HIT THE GROUND TOO FAST',
+  ground: () => 'FLEW INTO THE GROUND',
+  belly: () => 'BELLY LANDING WENT WRONG',
+  rough: () => 'HIT ROUGH GROUND TOO FAST',
+};
+
+function causeText(e) {
+  const killer = world.planes.find((pl) => pl.id === e.by);
+  const name = killer ? `${killer.def.name.toUpperCase()} (${content.nations[killer.nation]?.name.toUpperCase() ?? ''})` : null;
+  return (CAUSES[e.cause] ?? CAUSES.ground)(name);
+}
+
 function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
     sound?.onEvent(e);
+    if (e.plane === player.id && e.type === 'crash') renderer.recordLastFlight(player, causeText(e));
+    if (e.plane === player.id && e.type === 'spawn') renderer.startLastFlightTimer();
     if (e.plane === player.id) {
       if (e.type === 'fuelLow') renderer.message('LOW FUEL - HEAD HOME', '#ffb070');
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
