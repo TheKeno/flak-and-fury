@@ -290,18 +290,49 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
+  // Taildraggers sit tail-down on the ground: tilted nose-up about the main wheels until the tail wheel
+  // touches. As the take-off roll picks up speed the tail lifts, and the plane rolls level from about
+  // TAIL_UP_SPEED of take-off speed. Visual only; the simulation keeps the plane level on its wheels.
+  const MAIN_WHEEL_BOTTOM = [3.5, -3.6 - 1.4];
+  const TAIL_WHEEL_BOTTOM = [-10.5, -1.6 - 0.8];
+  const TAIL_DOWN = Math.atan2(TAIL_WHEEL_BOTTOM[1] - MAIN_WHEEL_BOTTOM[1], MAIN_WHEEL_BOTTOM[0] - TAIL_WHEEL_BOTTOM[0]);
+  const TAIL_UP_SPEED = 0.65;
+  const tilts = new Map(); // plane id -> current tail-down tilt (radians), eased
+  let frameDt = 1 / 60;
+
+  function groundAttitude(p) {
+    let target = 0;
+    if (p.state === 'ground' && !p.belly && p.gear >= 1) {
+      const t = clamp(p.speed / (p.def.takeoffSpeed * TAIL_UP_SPEED), 0, 1);
+      target = TAIL_DOWN * (1 - t * t * (3 - 2 * t));
+    }
+    let tilt = tilts.get(p.id) ?? target;
+    tilt += (target - tilt) * Math.min(1, frameDt * 6);
+    tilts.set(p.id, tilt);
+    if (Math.abs(tilt) < 0.001) return { angle: p.angle, x: p.x, y: p.y };
+    // Rotate nose-up about the main wheel's contact point, so the main wheels stay on the ground.
+    const angle = p.angle + (Math.cos(p.angle) >= 0 ? tilt : -tilt);
+    const f = p.inverted ? -1 : 1;
+    const [mx, my] = MAIN_WHEEL_BOTTOM;
+    const off = (a) => [Math.cos(a) * mx - Math.sin(a) * my * f, Math.sin(a) * mx + Math.cos(a) * my * f];
+    const [ox, oy] = off(p.angle);
+    const [nx, ny] = off(angle);
+    return { angle, x: p.x + ox - nx, y: p.y + oy - ny };
+  }
+
   function drawPlane(p) {
     if (p.state === 'dead') return;
     const set = assets.planeSprite(p)[p.inverted ? 'inverted' : 'upright'];
-    const sx = Math.round(toScreenX(p.x));
-    const sy = Math.round(toScreenY(p.y));
-    drawGear(p, sx, sy);
-    ctx.drawImage(set.frames[frameIndex(p.angle)], sx - set.radius, sy - set.radius);
-    drawMuzzleFlash(p, sx, sy);
+    const view = groundAttitude(p);
+    const sx = Math.round(toScreenX(view.x));
+    const sy = Math.round(toScreenY(view.y));
+    drawGear(p, sx, sy, view.angle);
+    ctx.drawImage(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius);
+    drawMuzzleFlash(p, sx, sy, view.angle);
 
     // Propeller disc: a flickering line across the nose.
-    const c = Math.cos(p.angle);
-    const s = Math.sin(p.angle);
+    const c = Math.cos(view.angle);
+    const s = Math.sin(view.angle);
     const r = (p.def.noseOffset[0] + 0.5) * SCALE;
     const px = sx + c * r;
     const py = sy - s * r;
@@ -320,9 +351,9 @@ export function createRenderer(canvas, world, assets) {
     { leg: [3, -2], wheel: [3.5, -3.6], stowed: [3.5, -0.8], r: 1.4 },
     { leg: [-10, -0.5], wheel: [-10.5, -1.6], stowed: [-10.5, -0.1], r: 0.8, tail: true },
   ];
-  function drawGear(p, sx, sy) {
-    const c = Math.cos(p.angle);
-    const s = Math.sin(p.angle);
+  function drawGear(p, sx, sy, angle) {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
     const f = p.inverted ? -1 : 1;
     const at = ([lx, ly]) => [sx + (c * lx - s * ly * f) * SCALE, sy - (s * lx + c * ly * f) * SCALE];
     for (const g of GEAR) {
@@ -391,12 +422,12 @@ export function createRenderer(canvas, world, assets) {
   const flashes = new Map(); // plane id -> frames of muzzle flash left
   const messages = [];
 
-  function drawMuzzleFlash(p, sx, sy) {
+  function drawMuzzleFlash(p, sx, sy, angle) {
     const f = flashes.get(p.id);
     if (!f) return;
     flashes.set(p.id, f - 1);
-    const c = Math.cos(p.angle);
-    const s = Math.sin(p.angle);
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
     const r = (p.def.noseOffset[0] + 3) * SCALE;
     const fx = Math.round(sx + c * r);
     const fy = Math.round(sy - s * r);
@@ -535,6 +566,7 @@ export function createRenderer(canvas, world, assets) {
     },
     render(focus, dt, { showHelp, look }) {
       frame++;
+      frameDt = dt;
       fitDisplay();
       updateCamera(focus, dt, look);
       for (const p of world.planes) emitEffects(p, dt);
