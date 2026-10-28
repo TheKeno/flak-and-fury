@@ -82,6 +82,8 @@ function frame(now) {
 overlay.addEventListener('click', async () => {
   overlay.classList.add('hidden');
   mixer = await createMixer(content.settings.audio);
+  // Open the game as localhost:8080/?mute to start silent (M toggles sound as usual).
+  if (new URLSearchParams(location.search).has('mute')) mixer.setMuted((muted = true));
   sound = createSoundscape(mixer, world);
   last = performance.now();
   requestAnimationFrame(frame);
