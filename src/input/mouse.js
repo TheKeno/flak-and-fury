@@ -1,5 +1,5 @@
-// Mouse look: hold the right mouse button and point where you want to look. The direction is the
-// pointer's offset from the centre of the game screen, as a vector of length 0..1.
+// Mouse look: hold the right mouse button and point where you want to look (up, down or back).
+// The direction is the pointer's offset from the centre of the game screen, as a vector of length 0..1.
 // (Left click stays free for aiming turrets later.)
 export function createMouseLook(canvas) {
   const look = { active: false, x: 0, y: 0 };
@@ -17,7 +17,8 @@ export function createMouseLook(canvas) {
     look.y = y;
   };
 
-  canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  // No browser right-click menu anywhere in the game (it would pop up when releasing off the canvas).
+  addEventListener('contextmenu', (e) => e.preventDefault());
   canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 2) return;
     look.active = true;

@@ -164,13 +164,15 @@ export function createRenderer(canvas, world, assets) {
 
   // The camera looks ahead: the plane sits towards the back of the screen so you see what you're
   // flying into. When the plane turns around, the look-ahead swings smoothly to the other side.
-  // Mouse look (hold right button): the camera slides towards where you point, up to lookRange of the
-  // view. Looking back over your tail is limited by the plane's rearView (cramped canopies see less).
+  // Mouse look (hold right button): the camera slides up, down or back towards where you point, up to
+  // lookRange of the view. Looking back over your tail is limited by the plane's rearView.
   function updateLook(focus, dt, look) {
     const facing = Math.cos(focus.angle) >= 0 ? 1 : -1;
     let tx = look?.active ? look.x : 0;
     const ty = look?.active ? -look.y : 0;
-    if (tx * facing < 0) tx *= focus.def.rearView ?? 1;
+    // The camera already looks ahead of you, so mouse look only reaches up, down and back.
+    if (tx * facing > 0) tx = 0;
+    else tx *= focus.def.rearView ?? 1;
     // A critically damped spring rather than a straight chase: the head starts turning slowly, builds
     // up and settles, which feels like turning against resistance. lookSpeed is the spring's stiffness.
     const w = camCfg.lookSpeed;
