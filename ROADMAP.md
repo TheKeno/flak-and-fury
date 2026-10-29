@@ -102,10 +102,23 @@ later.
 ## Milestones ahead
 
 6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
-   pattern, all 1943 types (the player's Bf 109 F-4 becomes a G-6, or stays as a lighter option). One
-   standard tank per nation in the ground war, with a little flavour: Germany Panzer IV (StuG III as an
-   option), USSR T-34/76, USA M4 Sherman, UK Churchill, Japan Type 97 Chi-Ha (thin armour), Finland
-   BT-42 (decided). Later, rare heavies (Tiger, KV-1S) worth more points.
+   pattern, all 1943 types. Roster (decided):
+   - **Germany** (fast climb): Bf 109 G-6 (standard; the F-4 stays as a lighter option), Bf 110 G-2,
+     Ju 87 D-3; tank Panzer IV Ausf. H.
+   - **UK** (tight turn): Spitfire Mk IX (replaces the placeholder `fighter_v12`), Mosquito FB.VI,
+     Hurricane Mk IID "tin opener" (40 mm, in the dive-bomber slot: the RAF had no real dive bomber);
+     tank Churchill Mk IV.
+   - **USA** (heavy armament): P-47D Thunderbolt, P-38H Lightning, A-36A Apache; tank M4A1 Sherman.
+   - **USSR** (rugged): La-5FN, Pe-3, Il-2M3 Shturmovik (attack slot); tank T-34/76 model 1943.
+   - **Japan** (light, agile): Ki-43-II Hayabusa, Ki-45 KAI Toryu, D3A2 "Val"; tank Shinhoto Chi-Ha
+     (thin armour).
+   - **Finland** (tough): Brewster B-239, Blenheim Mk IV with gun pack (no real heavy fighter),
+     Ju 88 A-4 (Finland's dive bomber from 1943); tank BT-42.
+
+   Two-seaters get a simple AI rear gun now (mouse-aimed seats come with milestone 11). Twins get two
+   prop discs and one engine sound until the sound pass. Plane choice from the tuning panel until the
+   hangar. Build order: Spitfire IX, the other fighters, heavy fighters, dive bombers, tanks.
+   Later, rare heavy tanks (Tiger, KV-1S) worth more points.
 7. **Online multiplayer** (decided): online, each player in their own browser. **Host-authoritative**:
    the host's browser runs the real sim; guests send their per-tick commands and receive world
    snapshots (~20 a second), interpolated on their screen (prediction for your own plane can come
@@ -124,8 +137,8 @@ later.
     arc (left click fires; the mouse only aims turrets while you're in a gunner seat). The pilot gets a
     **bomb indicator** (where the bombs will land). Solo: you fly and bomb while AI gunners man the
     turrets; with friends, each takes a seat, and bots fill the empty ones.
-12. **Heavy bombers:** four-engined 1943 heavies per nation where they existed (e.g. B-17, Lancaster,
-    Pe-8, He 177, G4M as the closest Japanese type; Finland has none), historically accurate 3D models
+12. **Heavy bombers:** four-engined 1943 heavies per nation where they existed : B-17F, Lancaster B.I/III,
+    He 177 A-3, Pe-8 (rare), G4M1 as the closest Japanese type (a twin); Finland has none), historically accurate 3D models
     like every plane. Big, slow, tough, many gunner seats, a bomb aimer, huge loads; crews of players
     and bots as in milestone 11. Later **selectable as a regular plane depending on the scenario**
     (e.g. a raid map), not in every match.
