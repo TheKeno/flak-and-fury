@@ -13,7 +13,6 @@
     "lookRange": 0.33,
     "lookSpeed": 4.5,
     "lookZoom": 0.12,
-    "watchZoom": 0.5,
     "lookSensitivity": 200
   },
   "audio": {
@@ -21,7 +20,14 @@
     "engine": 0.13,
     "sfx": 1,
     "ambience": 0.5,
-    "music": 0.4
+    "music": 0.4,
+    "hearRange": 500,
+    "bangRange": 1000
+  },
+  "freeLook": {
+    "panSpeed": 320,
+    "zoom": 1.4,
+    "autopilotHeight": 240
   },
   "servicing": {
     "crewDelay": 1.2,

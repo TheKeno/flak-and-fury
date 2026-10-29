@@ -92,7 +92,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
       'L.SHIFT  ROLL / TURN ON GROUND',
       'SPACE  GUNS   E  BOMBS   G  GEAR',
       'ARROWS OR HOLD RIGHT MOUSE + DRAG  LOOK AROUND',
-      'V  WATCH THE GROUND WAR   P  PAUSE',
+      'V  FREE LOOK (AUTOPILOT FLIES)   P  PAUSE',
       'M  MUTE   T  TUNING   H  HIDE HELP',
     ];
     lines.forEach((l, i) => drawText(ctx, l, 6, H - 8 - (lines.length - 1 - i) * 7, '#f0f0e0'));

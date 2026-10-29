@@ -54,7 +54,6 @@ const CAMERA_FIELDS = [
   ['lookSensitivity', 'Mouse look: drag for full look', 40, 600, 10, 'How far (screen pixels) you drag with right mouse held to turn your head all the way. Lower = more sensitive.'],
   ['lookSpeed', 'Mouse look: speed', 0.5, 12, 0.1, 'How quickly the view follows the pointer and eases back. Lower = heavier, more resistance.'],
   ['lookZoom', 'Mouse look: zoom-out', 0, 0.4, 0.01, 'Extra zoom-out while looking around.'],
-  ['watchZoom', 'Watch camera: zoom-out', 0, 0.8, 0.05, 'How much wider the view is when V watches the ground war.'],
   ['zoomMax', 'Speed zoom: max zoom-out', 1, 1.8, 0.01, '1 = no zoom. 1.35 = see 35% more of the world at top speed.'],
   ['zoomStartSpeed', 'Speed zoom: starts at', 0, 250, 5, 'Speed (px/s) where the view begins to widen. Level top speed is about 150.'],
   ['zoomFullSpeed', 'Speed zoom: full at', 0, 300, 5, 'Speed (px/s) where the view is fully zoomed out. Dives reach about 200.'],
@@ -179,6 +178,14 @@ const AUDIO_FIELDS = [
   ['sfx', 'Guns & explosions', 0, 1.5, 0.01, ''],
   ['ambience', 'Ambience', 0, 1.5, 0.01, ''],
   ['music', 'Music', 0, 1.5, 0.01, ''],
+  ['hearRange', 'Hearing range', 150, 2000, 10, 'Engines, tanks and most sounds fade out to silence by this distance (a screen is about 480).'],
+  ['bangRange', 'Bangs and MGs carry', 150, 3000, 10, 'Explosions, flak, tank guns and machine-gun fire are heard out to this distance.'],
+];
+
+const FREE_FIELDS = [
+  ['panSpeed', 'Camera speed', 50, 1000, 10, 'How fast the arrows move the free-look camera (Shift: three times as fast).'],
+  ['zoom', 'Starting zoom-out', 1, 1.8, 0.05, 'How wide the view is when free look starts. The mouse wheel changes it.'],
+  ['autopilotHeight', 'Autopilot height', 60, 500, 10, 'Height above the ground the autopilot holds your plane at while you look around (a screen is about 270 high).'],
 ];
 
 const BOT_MODES = [
@@ -294,6 +301,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   );
 
   const cameraSection = section('Camera', true, ...CAMERA_FIELDS.map((f) => add(slider(settings.camera, f))));
+  const freeSection = section('Free look (V)', false, ...FREE_FIELDS.map((f) => add(slider(settings.freeLook, f))));
   const propBox = el('input', { type: 'checkbox', onchange: () => (settings.collisions.propStrikes = propBox.checked) });
   propBox.checked = settings.collisions.propStrikes;
   const collisionSection = section(
@@ -426,6 +434,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     padSection,
     servicingSection,
     cameraSection,
+    freeSection,
     hudSection,
     audioSection,
     el('p', { class: 'foot' }, `Editing plane type "${planeId}". Changes apply instantly to every plane of this type.`),

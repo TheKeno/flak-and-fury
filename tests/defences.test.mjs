@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
+import { makeGroundObject } from '../src/sim/ground.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 
@@ -95,4 +96,20 @@ test('the same inputs give the same result (deterministic)', () => {
     return [player.hp, world.bullets.length, world.shells.length, world.tick];
   };
   assert.deepEqual(run(), run());
+});
+
+test("a tank's roof MG shoots at planes passing low over it, in short bursts, but not high ones", () => {
+  const roofShots = (height) => {
+    const { world, player } = makeWorld();
+    for (const o of world.ground) if (o.team === 1) o.alive = false; // only the tank shoots
+    const tank = makeGroundObject(world, 'tank', 1, 2000);
+    world.ground.push(tank);
+    const events = flyLevel(world, player, { from: 1700, speed: 90, height, seconds: 7 });
+    return { shots: events.filter((e) => e.type === 'groundShot' && e.id === tank.id && e.mount === 'aa'), player };
+  };
+  const low = roofShots(90); // above the coaxial MG's reach, within the roof MG's
+  assert.ok(low.shots.length >= 3, `the roof MG fired (${low.shots.length} rounds)`);
+  assert.ok(low.shots.length < 60, 'in short bursts, not a hose');
+  assert.ok(damageTaken(low.player) < 25, 'more show than threat');
+  assert.equal(roofShots(220).shots.length, 0, 'leaves high planes alone');
 });

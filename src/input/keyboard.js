@@ -35,6 +35,7 @@ export function createKeyboard(bindings = DEFAULT_BINDINGS) {
   attach();
   const any = (codes) => codes.some((c) => held.has(c));
   return {
+    held: (code) => held.has(code),
     read() {
       return {
         turn: (any(bindings.turnCcw) ? 1 : 0) - (any(bindings.turnCw) ? 1 : 0),

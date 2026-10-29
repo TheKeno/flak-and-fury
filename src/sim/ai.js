@@ -82,3 +82,36 @@ function nearestEnemy(world, p, range) {
   }
   return best;
 }
+
+// Autopilot while the player is in free look: level flight at a set height above the ground ahead,
+// throttle at cruise, turning back at the ends of the map. On the ground it idles where it stands.
+// state: { dir } kept by the caller between ticks (the way it's heading: 1 right, -1 left).
+export function autopilotCommand(world, p, height, state) {
+  const cmd = { turn: 0, throttle: 0, roll: false, fire: false, bomb: false };
+  if (p.state === 'dead') return cmd;
+  if (p.state === 'ground') {
+    cmd.throttle = p.throttle > 0 ? -1 : 0;
+    return cmd;
+  }
+  cmd.throttle = p.throttle < 0.8 ? 1 : p.throttle > 0.9 ? -1 : 0;
+  if (!isUpright(p) && world.tick % 30 === 0) cmd.roll = true;
+
+  const margin = 250;
+  if (p.x > world.map.width - margin) state.dir = -1;
+  else if (p.x < margin) state.dir = 1;
+  state.dir ??= Math.cos(p.angle) >= 0 ? 1 : -1;
+
+  // Hold the height over the highest ground in the next few seconds of flight, under the ceiling.
+  let ground = world.terrain.heightAt(p.x);
+  for (let k = 40; k <= 400; k += 40) ground = Math.max(ground, world.terrain.heightAt(p.x + state.dir * k));
+  const want = Math.min(ground + height, world.map.ceiling - 30);
+  const climb = clamp((want - p.y) / 150, -0.35, 0.45);
+  let desired = state.dir > 0 ? climb : Math.PI - climb;
+  if (p.stalled) desired = -Math.PI / 2 + (state.dir > 0 ? 0.6 : -0.6);
+
+  let diff = angleDiff(desired, p.angle);
+  // Turning back, go round over the top (a half loop) rather than diving into the ground.
+  if (Math.abs(diff) > 2.5) diff = Math.cos(p.angle) >= 0 ? Math.abs(diff) : -Math.abs(diff);
+  cmd.turn = clamp(diff / 0.15, -1, 1);
+  return cmd;
+}

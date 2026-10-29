@@ -13,7 +13,8 @@ import * as sfx from './sfx.js';
 const NEAR_MISS = 26; // px: rounds passing this close crack past your ears
 const ME = { dist: 0, pan: 0, gain: 1, cutoff: 18000, delay: 0, doppler: 1 };
 
-export function createSoundscape(mixer, world) {
+// cfg: the audio settings (hearRange, bangRange: how far sounds carry), read live for the tuning panel.
+export function createSoundscape(mixer, world, cfg = {}) {
   const engines = new Map();
   const fires = new Map();
   const whistles = new Map();
@@ -44,8 +45,12 @@ export function createSoundscape(mixer, world) {
     }
     return v;
   };
-  const whereOf = (p) => (p && p.id === focusId ? ME : spatialize(listener, p.x, p.y, p.vx, p.vy));
-  const whereAt = (x, y) => spatialize(listener, x, y);
+  // Engines, tanks and most things carry about a screen; bangs and machine-gun fire twice as far.
+  const hearing = () => cfg.hearRange ?? Infinity;
+  const carrying = () => cfg.bangRange ?? Infinity;
+  const whereOf = (p) => (p && p.id === focusId ? ME : spatialize(listener, p.x, p.y, p.vx, p.vy, hearing()));
+  const whereAt = (x, y, range = hearing()) => spatialize(listener, x, y, 0, 0, range);
+  const BANGS = new Set(['crash', 'shot', 'hit', 'flakFire', 'flakBurst', 'tankFire', 'tankShellBurst', 'groundDestroyed', 'explosion', 'bombExplode', 'groundShot']);
 
   function updateEngines() {
     for (const p of world.planes) {
@@ -130,7 +135,7 @@ export function createSoundscape(mixer, world) {
     for (const o of near) {
       let t = tanks.get(o.id);
       if (!t) tanks.set(o.id, (t = createTankEngine(mixer)));
-      t.update(spatialize(listener, o.x, world.terrain.heightAt(o.x) + 5, o.moving ? o.dir * o.def.speed : 0, 0), o.moving);
+      t.update(spatialize(listener, o.x, world.terrain.heightAt(o.x) + 5, o.moving ? o.dir * o.def.speed : 0, 0, hearing()), o.moving);
     }
   }
 
@@ -151,7 +156,7 @@ export function createSoundscape(mixer, world) {
     for (const b of world.bombsInFlight) {
       let w = whistles.get(b.id);
       if (!w) whistles.set(b.id, (w = createBombWhistle(mixer)));
-      w.update(spatialize(listener, b.x, b.y, b.vx, b.vy), Math.max(0, -b.vy));
+      w.update(spatialize(listener, b.x, b.y, b.vx, b.vy, hearing()), Math.max(0, -b.vy));
     }
   }
 
@@ -203,14 +208,16 @@ export function createSoundscape(mixer, world) {
     onEvent(e) {
       const p = world.planes.find((pl) => pl.id === e.plane);
       const mine = e.plane != null && e.plane === focusId;
-      const where = mine ? ME : whereAt(e.x ?? p?.x ?? listener.x, e.y ?? p?.y ?? listener.y);
+      // Rifles are quiet; everything else on the bang list carries.
+      const range = BANGS.has(e.type) && !(e.type === 'groundShot' && e.kind === 'infantry') ? carrying() : hearing();
+      const where = mine ? ME : whereAt(e.x ?? p?.x ?? listener.x, e.y ?? p?.y ?? listener.y, range);
       switch (e.type) {
         case 'spawn':
           engines.get(e.plane)?.start();
           break;
         case 'crash':
           engines.get(e.plane)?.stop();
-          sfx.explosion(mixer, mine ? ME : whereAt(e.x, e.y), 1);
+          sfx.explosion(mixer, mine ? ME : whereAt(e.x, e.y, range), 1);
           break;
         case 'touchdown':
           sfx.touchdown(mixer, where, e.speed);
@@ -291,10 +298,10 @@ export function createSoundscape(mixer, world) {
           sfx.play(mixer, voices.tankGun, where, { gain: 0.9, reverb: 0.45 });
           break;
         case 'tankShellBurst':
-          sfx.explosion(mixer, whereAt(e.x, e.y), 0.5);
+          sfx.explosion(mixer, whereAt(e.x, e.y, range), 0.5);
           break;
         case 'flakBurst':
-          sfx.flakBurst(mixer, whereAt(e.x, e.y));
+          sfx.flakBurst(mixer, whereAt(e.x, e.y, range));
           break;
         case 'shrapnel':
           if (mine) sfx.shrapnel(mixer, voices, e.damage);
@@ -319,7 +326,7 @@ export function createSoundscape(mixer, world) {
           whistles.delete(e.bomb);
           break;
         case 'explosion':
-          sfx.explosion(mixer, whereAt(e.x, e.y), 1.25);
+          sfx.explosion(mixer, whereAt(e.x, e.y, range), 1.25);
           break;
         case 'fire':
           sfx.ignite(mixer, where);
@@ -329,7 +336,7 @@ export function createSoundscape(mixer, world) {
           break;
         case 'collision': {
           const involved = e.a === focusId || e.b === focusId;
-          const at = involved ? ME : whereAt(e.x, e.y);
+          const at = involved ? ME : whereAt(e.x, e.y, range);
           if (e.severity === 'fatal') sfx.explosion(mixer, at, 1.1);
           else sfx.midair(mixer, at, e.severity, e.taran);
           break;

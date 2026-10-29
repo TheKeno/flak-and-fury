@@ -187,20 +187,15 @@ export function createRenderer(canvas, world, assets) {
     cam.lookY += cam.lookVY * step;
   }
 
-  function updateCamera(focus, dt, look, watch) {
-    if (watch) {
-      // Watching the ground war: drift over to the spot with the ground low in a wider view. Eased on
-      // its own unrounded position, since the pixel snap below would swallow small steps.
-      updateZoom(null, dt, camCfg.watchZoom);
-      const k = cam.watching ? 1 - Math.exp(-dt * 3) : 1;
-      cam.wx = (cam.watching ? cam.wx : cam.x) + (watch.x - vw / 2 - (cam.watching ? cam.wx : cam.x)) * k;
-      cam.wy = (cam.watching ? cam.wy : cam.y) + (watch.y - vh * 0.3 - (cam.watching ? cam.wy : cam.y)) * k;
-      cam.watching = true;
-      cam.x = cam.wx;
-      cam.y = cam.wy;
+  // free: free look, { x, y, zoom } for the centre of the view; the camera goes where it's sent.
+  function updateCamera(focus, dt, look, free) {
+    if (free) {
+      updateZoom(null, dt, free.zoom - 1);
+      cam.x = free.x - vw / 2;
+      cam.y = free.y - vh / 2;
+      cam.back = { x: cam.x, y: cam.y, k: 1 }; // where to glide back from once free look ends
     } else if (!focus) return;
-    else cam.watching = false;
-    if (!watch && focus.state !== 'dead') {
+    if (!free && focus.state !== 'dead') {
       updateLook(focus, dt, look);
       updateZoom(focus, dt);
       // Sideways the view leads where the nose points; up and down it leads along the flight path,
@@ -227,6 +222,12 @@ export function createRenderer(canvas, world, assets) {
       cam.x = clamp(cam.x, focus.x - vw * (1 - margin), focus.x - vw * margin);
       cam.y = clamp(cam.y, focus.y - vh * (1 - margin), focus.y - vh * margin);
       cam.snapped = true;
+      // Back from free look: glide from where it was over to the plane.
+      if (cam.back && cam.back.k > 0.005) {
+        cam.x += (cam.back.x - cam.x) * cam.back.k;
+        cam.y += (cam.back.y - cam.y) * cam.back.k;
+        cam.back.k *= Math.exp(-dt * 4);
+      }
     }
     cam.x = clamp(cam.x, 0, map.width - vw);
     cam.y = clamp(cam.y, 0, Math.max(0, map.ceiling + 160 - vh));
@@ -486,6 +487,20 @@ export function createRenderer(canvas, world, assets) {
         const x = dir > 0 ? left + 3 + k : left + w - 4 - k;
         ctx.fillRect(x, top + 13, 2, 1);
         ctx.fillRect(x, top + 19, 2, 1);
+      }
+    }
+    // The roof MG on its pintle, aimed in the world but drawn in the hull's tilted frame.
+    if (obj.aa) {
+      const ax = dir > 0 ? left + 18 : left + w - 19;
+      const aaAim = obj.aa.aim - (obj.tilt ?? 0);
+      ctx.fillStyle = '#24261f';
+      ctx.fillRect(ax - 1, top - 1, 2, 2);
+      drawBarrel(ax, top - 1, aaAim, 7, 1, '#24261f');
+      const aaFlash = groundFlashes.get(`${obj.id}:aa`);
+      if (aaFlash > 0) {
+        groundFlashes.set(`${obj.id}:aa`, aaFlash - 1);
+        ctx.fillStyle = '#ffd870';
+        ctx.fillRect(Math.round(ax + Math.cos(aaAim) * 8) - 1, Math.round(top - 1 - Math.sin(aaAim) * 8) - 1, 2, 2);
       }
     }
     const px = dir > 0 ? left + 30 : left + w - 31;
@@ -824,6 +839,9 @@ export function createRenderer(canvas, world, assets) {
     get zoom() {
       return zoom;
     },
+    get zoom() {
+      return zoom;
+    },
     // World point at the centre of the view (where the ears go when no plane is focused).
     centre() {
       return { x: cam.x + vw / 2, y: cam.y + vh / 2 };
@@ -877,7 +895,7 @@ export function createRenderer(canvas, world, assets) {
         if (obj?.soldiers) {
           const i = obj.soldiers.findIndex((s) => Math.abs(obj.x + s.dx - e.x) < 0.5);
           groundFlashes.set(`${e.id}:${i}`, 2);
-        } else groundFlashes.set(e.id, 2);
+        } else groundFlashes.set(e.mount ? `${e.id}:${e.mount}` : e.id, 2);
       }
       // A flak burst: a flash, then a black puff that hangs in the air.
       if (e.type === 'flakBurst') {
@@ -906,11 +924,11 @@ export function createRenderer(canvas, world, assets) {
         for (let i = 0; i < 6; i++) particles.spawn('dust', e.x, e.y - 3, (Math.random() - 0.5) * 30, 8, 0.8, 0.8);
       }
     },
-    render(focus, dt, { showHelp, look, watch, paused }) {
+    render(focus, dt, { showHelp, look, free, paused }) {
       frame++;
       frameDt = dt;
       fitDisplay();
-      updateCamera(focus, dt, look, watch);
+      updateCamera(focus, dt, look, free);
       for (const p of world.planes) emitEffects(p, dt);
       emitGroundEffects(dt);
       particles.update(dt, world.terrain);
@@ -937,8 +955,11 @@ export function createRenderer(canvas, world, assets) {
       drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight });
       drawMessages();
       const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
-      if (watch) banner(`WATCHING ${watch.label} - V FOR NEXT`, 40, '#f0e8c0');
-      if (paused) banner('PAUSED - P TO RESUME', 110, '#f0f0e0');
+      if (free) {
+        banner('FREE LOOK  ARROWS MOVE (SHIFT FAST)  WHEEL ZOOM  V BACK TO THE PLANE', 96, '#f0e8c0');
+        banner(`1 FRONT  2 BRIDGE  3 YOUR PLANE   W/S SPEED: ${free.speed}X`, 104, free.speed > 1 ? '#ffd870' : '#f0e8c0');
+      }
+      if (paused) banner('PAUSED - P TO RESUME', 124, '#f0f0e0');
       // Under the scope: the state of your own radar, then whether you're under the enemy's.
       const labels = [];
       if (radar.health <= 0) {

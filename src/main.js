@@ -1,12 +1,14 @@
 import { loadContent } from './content/load.js';
 import { createWorld, addPlane, stepWorld, DT } from './sim/world.js';
+import { autopilotCommand } from './sim/ai.js';
 import { createKeyboard } from './input/keyboard.js';
 import { createMouseLook } from './input/mouse.js';
-import { createRenderer } from './render/renderer.js';
+import { createRenderer, MAX_ZOOM } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { surfaceAt } from './sim/ground.js';
+import { clamp } from './sim/math.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
@@ -47,36 +49,68 @@ function setPaused(p) {
   tuning.showPaused(p);
 }
 
-// V cycles the camera: your plane, the front line of the ground war, the bridge.
-const WATCH_MODES = [null, 'front', 'bridge'];
-let watchMode = 0;
-function watchPoint() {
-  const mode = WATCH_MODES[watchMode];
-  if (!mode) return null;
-  const bridge = world.ground.find((o) => o.type === 'bridge');
-  let x = bridge?.x ?? world.map.width / 2;
-  let label = 'THE BRIDGE';
-  if (mode === 'front') {
-    label = 'THE FRONT';
-    // Each side's leading unit, measured in its own direction of advance; the front is between them.
-    const home = (team) => world.map.airfields.find((a) => a.team === team);
-    const dir = Math.sign((home(1)?.x ?? 1) - (home(0)?.x ?? 0)) || 1;
-    const lead = (team, sign) => {
-      let best = null;
-      for (const o of world.ground) {
-        if (!o.mobile || !o.alive || o.team !== team) continue;
-        if (best === null || o.x * sign > best * sign) best = o.x;
-      }
-      return best;
-    };
-    const a = lead(0, dir);
-    const b = lead(1, -dir);
-    if (a !== null && b !== null) x = (a + b) / 2;
-    else if (a !== null || b !== null) x = a ?? b;
-    else label = 'THE FRONT (NO TROOPS OUT)';
-  }
-  return { x, y: surfaceAt(world, x), label };
+// Free look (V), our debug view for the ground war: the arrows move the camera anywhere, the wheel
+// zooms, 1/2/3 jump to the front, the bridge and your plane, W/S step the fast forward. Meanwhile an
+// autopilot flies your plane level, and nothing saves it if it's shot down.
+const SPEEDS = [1, 2, 4, 8];
+const freeCfg = content.settings.freeLook;
+const free = { on: false, x: 0, y: 0, tx: 0, ty: 0, zoom: 1, speed: 0, autopilot: {} };
+function setFreeLook(on) {
+  free.on = on;
+  free.speed = 0;
+  if (!on) return;
+  const c = renderer.centre();
+  free.x = free.tx = c.x;
+  free.y = free.ty = c.y;
+  free.zoom = Math.max(renderer.zoom, freeCfg.zoom);
+  free.autopilot = {};
 }
+// Somewhere worth looking: the middle of the front line, the bridge, or your plane.
+function jumpTo(what) {
+  let x = player.x;
+  let y = player.y;
+  if (what !== 'plane') {
+    const bridge = world.ground.find((o) => o.type === 'bridge');
+    x = bridge?.x ?? world.map.width / 2;
+    if (what === 'front') {
+      // Each side's leading unit, measured in its own direction of advance; the front is between them.
+      const home = (team) => world.map.airfields.find((a) => a.team === team);
+      const dir = Math.sign((home(1)?.x ?? 1) - (home(0)?.x ?? 0)) || 1;
+      const lead = (team, sign) => {
+        let best = null;
+        for (const o of world.ground) {
+          if (!o.mobile || !o.alive || o.team !== team) continue;
+          if (best === null || o.x * sign > best * sign) best = o.x;
+        }
+        return best;
+      };
+      const a = lead(0, dir);
+      const b = lead(1, -dir);
+      if (a !== null && b !== null) x = (a + b) / 2;
+      else if (a !== null || b !== null) x = a ?? b;
+      else renderer.message('NO TROOPS OUT - SHOWING THE BRIDGE', '#f0e8c0');
+    }
+    y = surfaceAt(world, x) + 60; // the ground low in the view
+  }
+  free.tx = x;
+  free.ty = y;
+}
+function moveFreeLook(dt) {
+  const k = keyboard.held;
+  const speed = freeCfg.panSpeed * free.zoom * (k('ShiftLeft') || k('ShiftRight') ? 3 : 1) * dt;
+  const dx = (k('ArrowRight') ? 1 : 0) - (k('ArrowLeft') ? 1 : 0);
+  const dy = (k('ArrowUp') ? 1 : 0) - (k('ArrowDown') ? 1 : 0);
+  free.tx = clamp(free.tx + dx * speed, 0, world.map.width);
+  free.ty = clamp(free.ty + dy * speed, 0, world.map.ceiling + 160);
+  const e = 1 - Math.exp(-dt * 6);
+  free.x += (free.tx - free.x) * e;
+  free.y += (free.ty - free.y) * e;
+}
+canvas.addEventListener('wheel', (e) => {
+  if (!free.on) return;
+  e.preventDefault();
+  free.zoom = clamp(free.zoom * Math.exp(e.deltaY * 0.0012), 1, MAX_ZOOM);
+}, { passive: false });
 // Clicking the game takes keyboard focus back from the tuning panel.
 canvas.addEventListener('mousedown', () => document.activeElement?.blur());
 let muted = false;
@@ -88,7 +122,14 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyT') tuning.toggle();
   if (e.code === 'KeyM' && mixer) mixer.setMuted((muted = !muted));
   if (e.code === 'KeyP') setPaused(!paused);
-  if (e.code === 'KeyV') watchMode = (watchMode + 1) % WATCH_MODES.length;
+  if (e.code === 'KeyV') setFreeLook(!free.on);
+  if (free.on && !e.repeat) {
+    if (e.code === 'Digit1') jumpTo('front');
+    if (e.code === 'Digit2') jumpTo('bridge');
+    if (e.code === 'Digit3') jumpTo('plane');
+    if (e.code === 'KeyW') free.speed = Math.min(SPEEDS.length - 1, free.speed + 1);
+    if (e.code === 'KeyS') free.speed = Math.max(0, free.speed - 1);
+  }
 });
 
 const CAUSES = {
@@ -188,22 +229,25 @@ let acc = 0;
 function frame(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
-  acc += dt;
+  acc += dt * (free.on ? SPEEDS[free.speed] : 1);
   if (paused) acc = 0;
   while (acc >= DT) {
-    stepWorld(world, { p1: keyboard.read() });
+    const cmd = free.on ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : keyboard.read();
+    stepWorld(world, { p1: cmd });
     handleEvents();
     acc -= DT;
   }
+  if (free.on) moveFreeLook(dt);
   // Mouse look wins while the right button is held; otherwise the arrow keys look around.
-  const view = look.active ? look : keyboard.readLook();
-  renderer.render(player, dt, { showHelp, look: view, watch: watchPoint(), paused });
-  sound?.setLook(renderer.cam.lookX, view.active);
+  const view = free.on ? null : look.active ? look : keyboard.readLook();
+  const shown = free.on ? { x: free.x, y: free.y, zoom: free.zoom, speed: SPEEDS[free.speed] } : null;
+  renderer.render(player, dt, { showHelp, look: view, free: shown, paused });
+  sound?.setLook(renderer.cam.lookX, Boolean(view?.active));
   if (renderer.radarSweeps !== lastSweeps) {
     lastSweeps = renderer.radarSweeps;
     sound?.radarTick();
   }
-  sound?.update(player, renderer.centre(), dt);
+  sound?.update(free.on ? null : player, renderer.centre(), dt);
   requestAnimationFrame(frame);
 }
 
@@ -213,7 +257,7 @@ overlay.addEventListener('click', async () => {
   mixer = await createMixer(content.settings.audio);
   // Open the game as localhost:8080/?mute to start silent (M toggles sound as usual).
   if (new URLSearchParams(location.search).has('mute')) mixer.setMuted((muted = true));
-  sound = createSoundscape(mixer, world);
+  sound = createSoundscape(mixer, world, content.settings.audio);
   last = performance.now();
   requestAnimationFrame(frame);
 });

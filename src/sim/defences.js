@@ -2,7 +2,8 @@
 // Flak guns: slow, accurate, reach high, time-fused shells that burst into shrapnel and can start
 // fires; they can't get a fix on planes flying low. MG nests: fast bursts, short reach.
 // Infantry: each soldier fires his rifle now and then; weak alone, dangerous in numbers.
-// Tanks' coaxial MGs: only at planes flying very low or on the ground.
+// Tanks' coaxial MGs: only at planes flying very low or on the ground. Their roof MG (anti-aircraft)
+// sprays short, wild bursts at planes passing low over the column: more show than threat.
 // MG nests, infantry and tank MGs also shoot enemy soldiers when there's no plane to shoot at.
 // All aim with lead: they shoot where the target will be when the round gets there.
 import { GRAVITY } from './plane.js';
@@ -14,6 +15,7 @@ import { surfaceAt, mountPoint } from './ground.js';
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
 const MUZZLE = { flak: [5, 10], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5] };
+const TANK_AA = [10.5, 3, -2]; // roof MG: pivot height, barrel length, offset along the hull
 const TRACER_EVERY = 4;
 const MAX_TURN = 0.06; // fire only when the barrel is this close to the aim point (rad)
 
@@ -32,8 +34,7 @@ export function armGround(world, obj) {
 // Nearest enemy plane in reach of a gun at (x, y); failing that (not for flak), the nearest enemy
 // soldier, as a point to aim at. Planes lower than minAltitude or higher than mgAltitude above the
 // ground are left alone.
-function pickTarget(world, obj, x, y) {
-  const def = obj.def;
+function pickTarget(world, obj, x, y, def = obj.def) {
   let best = null;
   let bestD = def.range;
   for (const p of world.planes) {
@@ -47,7 +48,7 @@ function pickTarget(world, obj, x, y) {
       bestD = d;
     }
   }
-  if (best || obj.type === 'flak') return best;
+  if (best || obj.type === 'flak' || def.planesOnly) return best;
   for (const o of world.ground) {
     if (!o.alive || !o.soldiers || o.team == null || o.team === obj.team) continue;
     const vx = o.moving ? o.dir * o.def.speed : 0;
@@ -80,23 +81,23 @@ function lead(x, y, p, speed, drop) {
 
 // The barrel swings towards the wanted angle at turnRate, between its elevation limits (measured from
 // a tank's tilted hull).
-function swing(obj, wanted, dt) {
-  const lo = obj.def.minElevation ?? -0.6;
+// gun: what holds the barrel's aim (the object itself, or a tank's roof MG); def: its numbers.
+function swing(obj, wanted, dt, gun = obj, def = obj.def) {
+  const lo = def.minElevation ?? -0.6;
   const base = obj.tilt ?? 0;
   let a = wanted - base; // measure from the right, round over the top
   while (a < -Math.PI / 2) a += Math.PI * 2;
   while (a >= Math.PI * 1.5) a -= Math.PI * 2;
   a = base + Math.min(Math.PI - lo, Math.max(lo, a));
-  const diff = a - obj.aim; // both within the elevation limits, so it never swings through the ground
-  const step = obj.def.turnRate * dt;
-  obj.aim += Math.abs(diff) <= step ? diff : Math.sign(diff) * step;
-  return Math.abs(angleDiff(obj.aim, a)) < MAX_TURN && Math.abs(angleDiff(obj.aim, wanted)) < MAX_TURN;
+  const diff = a - gun.aim; // both within the elevation limits, so it never swings through the ground
+  const step = def.turnRate * dt;
+  gun.aim += Math.abs(diff) <= step ? diff : Math.sign(diff) * step;
+  return Math.abs(angleDiff(gun.aim, a)) < MAX_TURN && Math.abs(angleDiff(gun.aim, wanted)) < MAX_TURN;
 }
 
-function fireBullet(world, obj, x, y, angle, cause) {
-  const def = obj.def;
+function fireBullet(world, obj, x, y, angle, cause, gun = obj, def = obj.def) {
   const a = angle + world.rng.range(-def.spread, def.spread);
-  obj.fired = (obj.fired ?? 0) + 1;
+  gun.fired = (gun.fired ?? 0) + 1;
   world.bullets.push({
     id: world.nextId++,
     owner: obj.id,
@@ -108,10 +109,10 @@ function fireBullet(world, obj, x, y, angle, cause) {
     life: (def.range / def.velocity) * 1.15,
     drop: 0.1,
     damage: def.damage,
-    tracer: cause !== 'infantry' && obj.fired % TRACER_EVERY === 0,
+    tracer: cause !== 'infantry' && gun.fired % (def.tracerEvery ?? TRACER_EVERY) === 0,
     cause,
   });
-  world.events.push({ type: 'groundShot', id: obj.id, kind: obj.type, x, y, angle: a });
+  world.events.push({ type: 'groundShot', id: obj.id, kind: obj.type, mount: gun.mount, x, y, angle: a });
 }
 
 function stepFlak(world, obj, dt) {
@@ -143,31 +144,53 @@ function stepFlak(world, obj, dt) {
   world.events.push({ type: 'flakFire', id: obj.id, x, y, angle: obj.aim });
 }
 
-// MG nests and tanks' coaxial MGs.
-function stepMg(world, obj, dt) {
-  const def = obj.def;
-  const [h, len] = MUZZLE[obj.type];
-  const [px, py] = mountPoint(world, obj, 0, h);
-  if (obj.rest > 0) obj.rest -= dt;
-  const target = pickTarget(world, obj, px, py);
-  obj.target = target?.id ?? null;
+// MG nests and tanks' coaxial MGs; with gun/def/muzzle given, a tank's roof MG.
+function stepMg(world, obj, dt, gun = obj, def = obj.def, [h, len, along = 0] = MUZZLE[obj.type]) {
+  const [px, py] = mountPoint(world, obj, along, h);
+  if (gun.rest > 0) gun.rest -= dt;
+  const target = pickTarget(world, obj, px, py, def);
+  gun.target = target?.id ?? null;
   if (!target) {
-    obj.firing = 0;
+    gun.firing = 0;
     return;
   }
   const { angle } = lead(px, py, target, def.velocity, 0.1);
-  if (!swing(obj, angle, dt) || obj.rest > 0) return;
+  if (!swing(obj, angle, dt, gun, def) || gun.rest > 0) return;
   // Short bursts with rests between them, as a gunner saves his barrel.
-  obj.firing += dt;
-  obj.cooldown -= dt;
-  while (obj.cooldown <= 0) {
-    obj.cooldown += 60 / def.rpm;
-    fireBullet(world, obj, px + Math.cos(obj.aim) * len, py + Math.sin(obj.aim) * len, obj.aim, obj.type);
+  gun.firing += dt;
+  gun.cooldown -= dt;
+  while (gun.cooldown <= 0) {
+    gun.cooldown += 60 / def.rpm;
+    fireBullet(world, obj, px + Math.cos(gun.aim) * len, py + Math.sin(gun.aim) * len, gun.aim, obj.type, gun, def);
   }
-  if (obj.firing >= def.burst) {
-    obj.firing = 0;
-    obj.rest = def.pause * world.rng.range(0.7, 1.3);
+  if (gun.firing >= def.burst) {
+    gun.firing = 0;
+    gun.rest = def.pause * world.rng.range(0.7, 1.3);
   }
+}
+
+// A tank's roof MG, built from the tank's aa* numbers each step so the tuning panel applies live.
+function stepTankAa(world, obj, dt) {
+  const d = obj.def;
+  if (!d.aaRange) return;
+  if (!obj.aa) {
+    obj.aa = { mount: 'aa', aim: obj.aim, cooldown: 0, firing: 0, rest: world.rng.range(0, d.aaPause), fired: 0, target: null };
+  }
+  const def = {
+    planesOnly: true,
+    range: d.aaRange,
+    mgAltitude: d.aaAltitude,
+    minElevation: 0.15,
+    turnRate: d.aaTurnRate,
+    burst: d.aaBurst,
+    pause: d.aaPause,
+    rpm: d.aaRpm,
+    velocity: d.aaVelocity,
+    damage: d.aaDamage,
+    spread: d.aaSpread,
+    tracerEvery: 3,
+  };
+  stepMg(world, obj, dt, obj.aa, def, TANK_AA);
 }
 
 // Is the straight line between two points above the ground all the way? (Rounds fly nearly flat
@@ -209,6 +232,7 @@ export function stepDefences(world, dt) {
     if (!obj.alive) continue;
     if (obj.type === 'flak') stepFlak(world, obj, dt);
     else if (obj.type === 'mgNest' || obj.type === 'tank') stepMg(world, obj, dt);
+    if (obj.type === 'tank') stepTankAa(world, obj, dt);
     else if (obj.type === 'infantry') stepInfantry(world, obj, dt);
   }
 }

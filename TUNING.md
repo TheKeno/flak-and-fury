@@ -58,8 +58,13 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 ## Ground crew and camera: `data/settings.json`
 
 `servicing`: `crewDelay` (seconds before the crew start), `repairPerSec` (hit points per second),
-`refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings;
-`camera.watchZoom` is how much wider the view gets when V watches the ground war.
+`refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings.
+`audio.hearRange` is how far engines, tanks and most sounds carry before fading to silence (a screen is
+about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns and machine-gun fire.
+
+`freeLook` (V, the debug view for the ground war): `panSpeed` moves the camera with the arrows,
+`zoom` is how wide the view starts, `autopilotHeight` is how high above the ground the autopilot flies
+your plane meanwhile.
 
 `fire`: a burning plane has `burnTime` seconds to live, whatever its hit points; each hit point of
 damage taken while burning takes `hitShortens` seconds off. Once less than `roughAt` of the time is left the
