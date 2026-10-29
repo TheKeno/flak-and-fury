@@ -19,6 +19,9 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
 - The owner discusses ideas before building; when they ask for suggestions, give them and wait.
 - **Look: grim.** It's war: dark, muted, desaturated colours for anything visual (sprites, terrain,
   sky, effects, UI). When unsure, go darker. **Setting: 1943** for planes, tanks and weapons.
+- **Historically accurate looks:** planes, tanks and vehicles are built from the real type's
+  dimensions, all to one scale; the outline shape matters most (canopy, nose, fin, gear, wing shape).
+  Compare against 3-view references and show the owner the outlines before animation or data work.
 
 ## Running
 
