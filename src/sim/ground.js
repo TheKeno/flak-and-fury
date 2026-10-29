@@ -1,35 +1,76 @@
 // Ground objects placed on the map: defences, infantry and targets. Each has hit points, a team and a
 // score for destroying it. Bullets and bomb blasts damage them; a destroyed one stays as a wreck.
 // Solid ones (towers, buildings, radar masts) also stop bombs and wreck planes that fly into them.
+// Each airfield gets a hangar too. Tanks, marching infantry and engineers are ground objects that move
+// (obj.mobile; see army.js).
 import { clamp } from './math.js';
 import { armGround } from './defences.js';
 
 const PLANE_CRASH_DAMAGE = 60; // what a plane flying into a structure does to it
 
+const SQUADS = new Set(['infantry', 'engineers']);
+// Where an airfield's hangar stands: at the end of the runway nearest the map edge.
+export const hangarX = (world, af) => (af.x + af.width / 2 < world.map.width / 2 ? af.x + 20 : af.x + af.width - 20);
+
+// Makes one ground object (not yet added to the world). A squad is one object holding several
+// soldiers spread along the ground.
+export function makeGroundObject(world, type, team, x, { squad, width, mobile = false } = {}) {
+  const def = world.groundDefs[type];
+  if (!def) return null;
+  const obj = { id: world.nextId++, type, def, team, x, alive: true, wreckedAt: 0, mobile };
+  if (width) obj.width = width;
+  if (SQUADS.has(type)) {
+    const n = squad ?? 4;
+    obj.soldiers = Array.from({ length: n }, (_, i) => ({ dx: (i - (n - 1) / 2) * def.spacing, hp: def.hp }));
+    obj.hp = obj.maxHp = n * def.hp;
+  } else obj.hp = obj.maxHp = def.hp;
+  armGround(world, obj);
+  return obj;
+}
+
 // Builds world.ground from the map's placed objects and the type data (data/ground.json).
 export function createGround(world) {
-  const defs = world.groundDefs;
   world.ground = [];
   for (const placed of world.map.ground ?? []) {
-    const def = defs[placed.type];
-    if (!def) continue;
-    const obj = { id: world.nextId++, type: placed.type, def, team: placed.team, x: placed.x, alive: true, wreckedAt: 0 };
-    if (placed.type === 'infantry') {
-      // A squad is one object holding several soldiers spread along the ground.
-      const n = placed.squad ?? 4;
-      obj.soldiers = Array.from({ length: n }, (_, i) => ({ dx: (i - (n - 1) / 2) * def.spacing, hp: def.hp }));
-      obj.hp = obj.maxHp = n * def.hp;
-    } else obj.hp = obj.maxHp = def.hp;
-    armGround(world, obj);
-    world.ground.push(obj);
+    const obj = makeGroundObject(world, placed.type, placed.team, placed.x, placed);
+    if (obj) world.ground.push(obj);
+  }
+  for (const af of world.map.airfields) {
+    const obj = makeGroundObject(world, 'hangar', af.team, hangarX(world, af));
+    if (obj) world.ground.push(obj);
   }
 }
 
+// Ground level for things standing at x: the deck of a standing bridge over a river, otherwise the
+// terrain (a river's bed where the bridge is down).
+export function surfaceAt(world, x) {
+  for (const river of world.map.rivers ?? []) {
+    if (x < river.x || x > river.x + river.width) continue;
+    const bridge = world.ground.find((o) => o.type === 'bridge' && Math.abs(o.x - (river.x + river.width / 2)) < 1);
+    if (bridge?.alive) return river.bank;
+  }
+  return world.terrain.heightAt(x);
+}
+
+const riverOf = (world, obj) => world.map.rivers?.find((rv) => Math.abs(rv.x + rv.width / 2 - obj.x) < 1);
+
 // Hit box: [left, bottom, right, top] in world units, standing on the ground (which craters can lower).
+// A bridge's box is its deck.
 export function groundBox(world, obj) {
-  const half = obj.soldiers ? (Math.abs(obj.soldiers[0].dx) + obj.def.width / 2) : obj.def.width / 2;
-  const y = world.terrain.heightAt(obj.x);
+  const half = obj.soldiers ? Math.abs(obj.soldiers[0].dx) + obj.def.width / 2 : (obj.width ?? obj.def.width) / 2;
+  if (obj.type === 'bridge') {
+    const bank = riverOf(world, obj)?.bank ?? world.terrain.heightAt(obj.x);
+    return [obj.x - half, bank - obj.def.height, obj.x + half, bank + 1];
+  }
+  const y = surfaceAt(world, obj.x);
   return [obj.x - half, y - 1, obj.x + half, y + obj.def.height];
+}
+
+// Like radar: how well a team's ground crew can work, 0..1, from its hangar's state.
+export function hangarHealth(world, team) {
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === team);
+  if (!hangar) return 1;
+  return hangar.alive ? Math.max(0, hangar.hp / hangar.maxHp) : 0;
 }
 
 // How well a team's radar works, 0..1: the scope is fed by the best of its radar stations, so it
@@ -64,13 +105,18 @@ function hurtSoldier(world, obj, s, amount, byId) {
   if (s.hp > 0) return;
   s.hp = 0;
   award(world, byId, obj, obj.def.points);
-  world.events.push({ type: 'soldierKilled', id: obj.id, x: obj.x + s.dx, y: world.terrain.heightAt(obj.x + s.dx), by: byId ?? null, points: obj.def.points });
+  world.events.push({ type: 'soldierKilled', id: obj.id, x: obj.x + s.dx, y: surfaceAt(world, obj.x + s.dx), by: byId ?? null, points: obj.def.points });
   obj.hp = obj.soldiers.reduce((n, o) => n + o.hp, 0);
   if (obj.soldiers.every((o) => o.hp <= 0)) {
     obj.alive = false;
     obj.wreckedAt = world.tick;
-    world.events.push({ type: 'squadWiped', id: obj.id, kind: obj.type, x: obj.x, y: world.terrain.heightAt(obj.x), by: byId ?? null });
+    world.events.push({ type: 'squadWiped', id: obj.id, kind: obj.type, x: obj.x, y: surfaceAt(world, obj.x), by: byId ?? null });
   }
+}
+
+// Damage to every soldier of a squad (Infinity: the whole squad is lost).
+export function hurtSquad(world, obj, amount, byId) {
+  for (const s of obj.soldiers) if (obj.alive) hurtSoldier(world, obj, s, amount, byId);
 }
 
 export function damageGround(world, obj, amount, byId) {
@@ -106,7 +152,9 @@ export function bulletHitsGround(world, b, ox, oy) {
     if (k === null) continue;
     const hx = ox + (b.x - ox) * k;
     const hy = oy + (b.y - oy) * k;
-    const dmg = b.damage * world.rng.range(0.5, 1.5) * obj.def.bulletFactor;
+    // Tanks are thinner on top: rounds coming down steeply (a diving plane) find the roof.
+    const steep = obj.def.roofFactor != null && b.vy < -Math.abs(b.vx) * 1.5;
+    const dmg = b.damage * world.rng.range(0.5, 1.5) * (steep ? obj.def.roofFactor : obj.def.bulletFactor);
     if (obj.soldiers) {
       // Rounds pass between soldiers; only one that strikes near a man counts.
       const s = obj.soldiers.find((o) => o.hp > 0 && Math.abs(obj.x + o.dx - hx) < obj.def.width);
@@ -129,12 +177,14 @@ export function bombStrikesGround(world, bomb) {
 }
 
 // Blast damage falls off with the distance to the nearest point of each object.
-export function blastGround(world, x, y, def, ownerId, team) {
+// spareNeutral: leaves bridges alone (tank shells, so tanks don't knock down the bridge they need).
+export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = false } = {}) {
   for (const obj of world.ground) {
     if (!obj.alive || !isEnemy(world, obj, team)) continue;
+    if (spareNeutral && obj.team == null) continue;
     if (obj.soldiers) {
-      const gy = world.terrain.heightAt(obj.x);
       for (const s of obj.soldiers) {
+        const gy = surfaceAt(world, obj.x + s.dx);
         const d = Math.hypot(obj.x + s.dx - x, gy + obj.def.height / 2 - y);
         if (d < def.blastRadius) hurtSoldier(world, obj, s, def.blastDamage * (1 - d / def.blastRadius), ownerId);
       }

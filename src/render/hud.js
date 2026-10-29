@@ -1,5 +1,6 @@
 import { drawText, textWidth } from './font.js';
 import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
+import { hangarHealth } from '../sim/ground.js';
 
 const JOBS = { repair: 'REPAIRING', refuel: 'REFUELLING', rearm: 'REARMING' };
 
@@ -100,6 +101,10 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
 function groundMessage(ctx, world, plane, centre) {
   const home = ownAirfieldAt(world, plane);
   if (plane.service) return; // the service bar says what's happening
+  if (home && hangarHealth(world, plane.team) <= 0) {
+    centre('HANGAR DESTROYED - NO GROUND CREW', 60, '#ff9070');
+    return;
+  }
   if (plane.strandedTimer > 0) {
     const left = Math.max(1, Math.ceil(5 - plane.strandedTimer));
     centre(`${plane.belly ? 'ON YOUR BELLY' : 'OUT OF FUEL'} - STRANDED. RECOVERY IN ${left}`, 60, '#ffb090');

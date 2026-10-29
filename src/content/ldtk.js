@@ -4,7 +4,7 @@
 // One LDtk pixel is one world unit. LDtk measures y downwards from the top of the level; the game only
 // uses the x positions of placed objects, which are stood on the ground when the world is built.
 // Level fields hold the map settings (seed, ceiling, terrain, sky colours); the "Objects" entity layer
-// holds the airfields and every ground object.
+// holds the airfields and every ground object. A Bridge entity also puts a river under itself.
 
 // LDtk entity name -> ground object type in data/ground.json.
 export const GROUND_ENTITIES = {
@@ -15,6 +15,7 @@ export const GROUND_ENTITIES = {
   Tower: 'tower',
   Building: 'building',
   Radar: 'radar',
+  Depot: 'depot',
 };
 
 const fieldsOf = (instances) => Object.fromEntries((instances ?? []).map((f) => [f.__identifier, f.__value]));
@@ -32,6 +33,7 @@ export function importLdtk(project, levelName) {
     terrain: { base: f.terrainBase, amplitude: f.terrainAmplitude },
     sky: { low: f.skyLow, high: f.skyHigh, space: f.skySpace },
     airfields: [],
+    rivers: [],
     ground: [],
   };
   for (const layer of level.layerInstances ?? []) {
@@ -43,6 +45,11 @@ export function importLdtk(project, levelName) {
         map.airfields.push({ x: left, width: e.width, team: teamOf(ef.team), nation: String(ef.nation).toLowerCase() });
         continue;
       }
+      if (e.__identifier === 'Bridge') {
+        map.rivers.push({ x: left, width: e.width });
+        map.ground.push({ type: 'bridge', x: left + e.width / 2, width: e.width, team: null });
+        continue;
+      }
       const type = GROUND_ENTITIES[e.__identifier];
       if (!type) continue; // an entity type this version of the game doesn't know yet
       const obj = { type, x: left + e.width / 2, team: teamOf(ef.team) };
@@ -51,6 +58,7 @@ export function importLdtk(project, levelName) {
     }
   }
   map.airfields.sort((a, b) => a.x - b.x);
+  map.rivers.sort((a, b) => a.x - b.x);
   map.ground.sort((a, b) => a.x - b.x);
   return map;
 }

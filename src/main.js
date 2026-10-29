@@ -19,6 +19,7 @@ const world = createWorld({
   servicing: content.settings.servicing,
   collisions: content.settings.collisions,
   fire: content.settings.fire,
+  waves: content.settings.waves,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
@@ -66,6 +67,7 @@ const CAUSES = {
   flak: () => 'SHOT DOWN BY FLAK',
   mgNest: () => 'SHOT DOWN BY AN MG NEST',
   infantry: () => 'SHOT DOWN BY INFANTRY',
+  tank: () => 'SHOT DOWN BY A TANK',
   structure: (by, e) => `FLEW INTO A ${(e.what ?? 'BUILDING').toUpperCase()}`,
 };
 
@@ -76,6 +78,7 @@ function causeText(e) {
 }
 
 let radarWarnAt = 0;
+let hangarWarnAt = 0;
 function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
@@ -115,7 +118,24 @@ function handleEvents() {
         radarWarnAt = performance.now() + 10000;
       }
     }
-    if (e.by === player.id && e.type === 'squadWiped') renderer.message('INFANTRY SQUAD WIPED OUT', '#e8c860');
+    if (e.type === 'waveOut') {
+      renderer.message(e.team === player.team ? 'OUR TANKS ARE ROLLING OUT' : 'ENEMY TANK COLUMN ON THE MOVE', e.team === player.team ? '#a8e090' : '#ffb070');
+    }
+    if (e.type === 'groundDestroyed' && e.kind === 'bridge') renderer.message('THE BRIDGE IS DOWN', '#ffb070');
+    if (e.type === 'bridgeRebuilt') renderer.message(e.team === player.team ? 'OUR ENGINEERS REBUILT THE BRIDGE' : 'ENEMY ENGINEERS REBUILT THE BRIDGE', '#f0e8c0');
+    if (e.type === 'groundDestroyed' && e.kind === 'hangar' && world.ground.find((o) => o.id === e.id)?.team === player.team) {
+      renderer.message('OUR HANGAR IS DESTROYED - NO GROUND CREW', '#ff8070');
+    }
+    if (e.type === 'groundDestroyed' && e.kind === 'depot' && world.ground.find((o) => o.id === e.id)?.team === player.team) {
+      renderer.message('OUR TANK DEPOT IS DESTROYED', '#ff8070');
+    }
+    if (e.type === 'groundHit' && e.kind === 'hangar' && performance.now() > hangarWarnAt) {
+      if (world.ground.find((o) => o.id === e.id)?.team === player.team) {
+        renderer.message('HANGAR UNDER FIRE!', '#ffb070');
+        hangarWarnAt = performance.now() + 10000;
+      }
+    }
+    if (e.by === player.id && e.type === 'squadWiped') renderer.message(e.kind === 'engineers' ? 'ENGINEERS WIPED OUT' : 'INFANTRY SQUAD WIPED OUT', '#e8c860');
     if (e.type === 'shotDown') {
       if (e.by === player.id) renderer.message('ENEMY SHOT DOWN!', '#e8c860');
       else if (e.plane === player.id) renderer.message('YOU ARE GOING DOWN', '#ff8070');

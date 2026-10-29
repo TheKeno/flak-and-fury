@@ -3,6 +3,10 @@ import { createRng, lerp } from './math.js';
 const SPACING = 140; // px between large terrain control points
 const DETAIL_SPACING = 36;
 const AIRFIELD_BLEND = 90;
+const RIVER_BLEND = 60;
+const RIVER_DEPTH = 16; // channel bed below the banks
+const RIVER_SIDE = 6; // width of the steep channel sides
+const RIVER_WATER = 6; // water surface below the banks
 
 const smooth = (t) => t * t * (3 - 2 * t);
 
@@ -38,6 +42,24 @@ export function buildTerrain(map) {
       if (x < af.x) t = smooth((x - (af.x - AIRFIELD_BLEND)) / AIRFIELD_BLEND);
       else if (x > af.x + af.width) t = smooth((af.x + af.width + AIRFIELD_BLEND - x) / AIRFIELD_BLEND);
       heights[x] = lerp(heights[x], level, t);
+    }
+  }
+
+  // Rivers: level banks blended into the hills (like airfields), with a steep-sided channel between
+  // them. river.bank is the height of both banks (and of a bridge's deck); river.water the surface.
+  for (const river of map.rivers ?? []) {
+    const left = river.x;
+    const right = river.x + river.width;
+    const bank = Math.round((heights[Math.max(0, left - 10)] + heights[Math.min(width, right + 10)]) / 2);
+    river.bank = bank;
+    river.water = bank - RIVER_WATER;
+    for (let x = Math.max(0, left - RIVER_BLEND); x <= Math.min(width, right + RIVER_BLEND); x++) {
+      let t = 1;
+      if (x < left) t = smooth((x - (left - RIVER_BLEND)) / RIVER_BLEND);
+      else if (x > right) t = smooth((right + RIVER_BLEND - x) / RIVER_BLEND);
+      heights[x] = lerp(heights[x], bank, t);
+      const inside = Math.min(x - left, right - x); // distance in from the nearer bank
+      if (inside > 0) heights[x] = bank - RIVER_DEPTH * smooth(Math.min(1, inside / RIVER_SIDE));
     }
   }
 

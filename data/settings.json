@@ -54,6 +54,14 @@
     "crewTime": 1.5,
     "engineHarm": 0.3
   },
+  "waves": {
+    "first": 15,
+    "interval": 75,
+    "tanks": 2,
+    "squads": 1,
+    "squadSize": 4,
+    "engineers": 3
+  },
   "radar": {
     "sweepTime": 2.5,
     "afterglow": 3.2,

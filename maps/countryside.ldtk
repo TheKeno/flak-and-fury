@@ -8,10 +8,10 @@
     "appVersion": "1.5.3",
     "url": "https://ldtk.io"
   },
-  "iid": "d297c651-9810-4ddf-956d-b6711d193e1a",
+  "iid": "fb14b0f0-a72f-4317-a4a1-6e00c023dafe",
   "jsonVersion": "1.5.3",
   "appBuildId": 473703,
-  "nextUid": 30,
+  "nextUid": 33,
   "identifierStyle": "Capitalize",
   "toc": [],
   "worldLayout": "Free",
@@ -46,7 +46,7 @@
         "__type": "Entities",
         "identifier": "Objects",
         "type": "Entities",
-        "uid": 28,
+        "uid": 31,
         "doc": "Airfields and ground objects. Only the x position matters: the game stands each object on the ground.",
         "uiColor": null,
         "gridSize": 2,
@@ -786,6 +786,119 @@
             "tilesetUid": null
           }
         ]
+      },
+      {
+        "identifier": "Depot",
+        "uid": 29,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Tank depot: sends out the waves of tanks and infantry. Bomb it to slow and shrink them.",
+        "width": 34,
+        "height": 16,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#8C9070",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 28,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "Bridge",
+        "uid": 30,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "A river with a bridge over it; stretch it to set the river width. Tanks cross only while the bridge stands; engineers rebuild it.",
+        "width": 70,
+        "height": 6,
+        "resizableX": true,
+        "resizableY": false,
+        "minWidth": 30,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#7090A0",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0,
+        "pivotY": 1,
+        "fieldDefs": []
       }
     ],
     "tilesets": [],
@@ -1117,8 +1230,8 @@
   "levels": [
     {
       "identifier": "Countryside",
-      "iid": "571dca9a-8831-4278-8195-24e688eff965",
-      "uid": 29,
+      "iid": "fd51bb81-ee5f-42ce-b3f7-a09fa2b8e1f1",
+      "uid": 32,
       "worldX": 0,
       "worldY": 0,
       "worldDepth": 0,
@@ -1268,9 +1381,9 @@
           "__pxTotalOffsetY": 0,
           "__tilesetDefUid": null,
           "__tilesetRelPath": null,
-          "iid": "7cbaeb4f-93de-4f8a-bfa8-da2380a5f085",
-          "levelId": 29,
-          "layerDefUid": 28,
+          "iid": "8e6d1a9f-9f40-4653-94aa-bbbd3f118f2a",
+          "levelId": 32,
+          "layerDefUid": 31,
           "pxOffsetX": 0,
           "pxOffsetY": 0,
           "visible": true,
@@ -1294,7 +1407,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#60C0E0",
-              "iid": "7769b6bd-2a6e-4352-93a1-474d3f801b96",
+              "iid": "ed29019d-62ed-4b63-b753-5ae98e5f660a",
               "width": 18,
               "height": 40,
               "defUid": 27,
@@ -1333,7 +1446,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#9C9A8E",
-              "iid": "ba7357bf-a78f-49aa-a0c3-ada576a415f8",
+              "iid": "0d4ff0e2-b3b3-48d0-9084-c5e8806defe9",
               "width": 420,
               "height": 8,
               "defUid": 12,
@@ -1387,7 +1500,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E05040",
-              "iid": "df1c8bd7-ef53-4a77-bb54-9a142766f964",
+              "iid": "1412d5ea-1b26-4253-955a-72d89bac9370",
               "width": 14,
               "height": 9,
               "defUid": 14,
@@ -1426,7 +1539,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E0A040",
-              "iid": "6108aeda-8ebd-4c6d-81c5-c9597961a82b",
+              "iid": "6c096787-cef5-494f-8c09-8ead56bd48cd",
               "width": 12,
               "height": 5,
               "defUid": 16,
@@ -1465,7 +1578,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8C090",
-              "iid": "3afd34d0-f52c-42a2-9351-c34042c71196",
+              "iid": "b1b3e13d-630e-4455-9e55-e8a6ede5f45f",
               "width": 16,
               "height": 8,
               "defUid": 21,
@@ -1492,6 +1605,45 @@
               ]
             },
             {
+              "__identifier": "Depot",
+              "__grid": [
+                450,
+                361
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#8C9070",
+              "iid": "2ffc88bf-a2e6-485d-a7f1-58f6f107739c",
+              "width": 34,
+              "height": 16,
+              "defUid": 29,
+              "px": [
+                900,
+                723
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 28,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "__identifier": "Tent",
               "__grid": [
                 490,
@@ -1504,7 +1656,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8C090",
-              "iid": "ec19811d-67e5-4211-bd52-7d7651a3e0ca",
+              "iid": "dbc41cec-59d9-4899-9af8-b04b6211be0b",
               "width": 16,
               "height": 8,
               "defUid": 21,
@@ -1543,7 +1695,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E05040",
-              "iid": "36719658-5d35-4579-8e84-adfc3bcd74d5",
+              "iid": "18daa2ae-57e7-4339-aeeb-e786c87334a5",
               "width": 14,
               "height": 9,
               "defUid": 14,
@@ -1582,7 +1734,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#A07050",
-              "iid": "0526775e-d75a-4b60-bc3d-dcd95b29f3ea",
+              "iid": "c5d6bd0c-0720-4066-b74f-144e7a34448c",
               "width": 10,
               "height": 30,
               "defUid": 23,
@@ -1621,7 +1773,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E0A040",
-              "iid": "b3fb88fc-c2db-444d-aacd-664be0b30ccc",
+              "iid": "fdadff33-2259-49fc-b090-d41dd0296307",
               "width": 12,
               "height": 5,
               "defUid": 16,
@@ -1660,7 +1812,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8B060",
-              "iid": "c1ee459b-c4d9-4712-9a90-b4fae4010b46",
+              "iid": "87c3ecda-45ae-4cce-ae27-8b20830e9b04",
               "width": 22,
               "height": 6,
               "defUid": 19,
@@ -1714,7 +1866,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#B0A080",
-              "iid": "9f3c7aad-29d1-4493-b6e8-dd5a1c91aa06",
+              "iid": "3291d74c-7951-4668-85c1-32f3d2c8c87e",
               "width": 28,
               "height": 18,
               "defUid": 25,
@@ -1753,7 +1905,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E0A040",
-              "iid": "884c0dab-5eaf-47ce-9d89-2807656d5853",
+              "iid": "dda3f7c0-5171-4765-8da0-447bc1ad67bf",
               "width": 12,
               "height": 5,
               "defUid": 16,
@@ -1792,7 +1944,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8C090",
-              "iid": "87c6b482-04e0-4cf1-a8d5-c985d231d7c4",
+              "iid": "f75642f1-de8d-4590-a2b0-4ac8f981afb0",
               "width": 16,
               "height": 8,
               "defUid": 21,
@@ -1831,7 +1983,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8B060",
-              "iid": "224eb281-e143-4aa0-8f0b-9df936d1ec6c",
+              "iid": "74accd6c-734e-4194-ab9f-36a9c2e43fc5",
               "width": 22,
               "height": 6,
               "defUid": 19,
@@ -1885,7 +2037,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#B0A080",
-              "iid": "7ef1fd9e-1676-4173-bb9e-5de42320b239",
+              "iid": "8a0f9874-f062-4c65-a923-0375de265967",
               "width": 28,
               "height": 18,
               "defUid": 25,
@@ -1912,6 +2064,29 @@
               ]
             },
             {
+              "__identifier": "Bridge",
+              "__grid": [
+                882,
+                377
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#7090A0",
+              "iid": "e829774e-4353-42b9-a441-d141570a0652",
+              "width": 70,
+              "height": 6,
+              "defUid": 30,
+              "px": [
+                1765,
+                755
+              ],
+              "fieldInstances": []
+            },
+            {
               "__identifier": "Building",
               "__grid": [
                 990,
@@ -1924,7 +2099,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#B0A080",
-              "iid": "eca3d271-db4a-4734-805b-1037cb4a197d",
+              "iid": "4f059949-45a0-47bd-a750-867c86593849",
               "width": 28,
               "height": 18,
               "defUid": 25,
@@ -1963,7 +2138,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8B060",
-              "iid": "e22b658e-448b-47ae-a998-718a0f356368",
+              "iid": "c3f937fa-d63c-498a-adad-f9bebe98f7c4",
               "width": 22,
               "height": 6,
               "defUid": 19,
@@ -2017,7 +2192,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8C090",
-              "iid": "3114ef8a-3490-4b27-b6d2-ab33a3c28191",
+              "iid": "4ad9eb55-5349-450a-be4c-267c00d571ab",
               "width": 16,
               "height": 8,
               "defUid": 21,
@@ -2056,7 +2231,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E0A040",
-              "iid": "c78323fe-24dd-4516-9559-a3522a537027",
+              "iid": "27230750-dd71-44d7-8222-a90f69736a6f",
               "width": 12,
               "height": 5,
               "defUid": 16,
@@ -2095,7 +2270,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#B0A080",
-              "iid": "3747c8ad-239b-4b69-b035-4d1a9ea3e735",
+              "iid": "b6cc8d63-e404-4cb3-8360-91cd16502afa",
               "width": 28,
               "height": 18,
               "defUid": 25,
@@ -2134,7 +2309,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8B060",
-              "iid": "52846918-52b7-4fcf-b323-7f23af16562a",
+              "iid": "e970abe8-8c97-43a8-9654-0ebe8887b9ce",
               "width": 22,
               "height": 6,
               "defUid": 19,
@@ -2188,7 +2363,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E0A040",
-              "iid": "4a981e29-1ba3-4f7e-b562-8718cbd0c429",
+              "iid": "6ec8647e-653d-4763-8d3f-8fd50ddeeb07",
               "width": 12,
               "height": 5,
               "defUid": 16,
@@ -2227,7 +2402,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#A07050",
-              "iid": "2797f553-6567-43aa-afb0-c10c8ba82695",
+              "iid": "2202ac8d-9d6b-4d96-bb35-da30e26d6c9b",
               "width": 10,
               "height": 30,
               "defUid": 23,
@@ -2266,7 +2441,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E05040",
-              "iid": "aa0f5fce-3311-49be-b344-ac1b5737cb12",
+              "iid": "d85196fb-e464-4070-97ad-ea2ca061c032",
               "width": 14,
               "height": 9,
               "defUid": 14,
@@ -2305,7 +2480,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8C090",
-              "iid": "fa35d406-3897-41c9-ad91-3003f9cc71c5",
+              "iid": "76aafa4b-7c8a-4d0d-b919-38884f7385b5",
               "width": 16,
               "height": 8,
               "defUid": 21,
@@ -2332,6 +2507,45 @@
               ]
             },
             {
+              "__identifier": "Depot",
+              "__grid": [
+                1350,
+                367
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#8C9070",
+              "iid": "b262b278-88f7-4abb-9ff9-e42b8a65ad28",
+              "width": 34,
+              "height": 16,
+              "defUid": 29,
+              "px": [
+                2700,
+                734
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 28,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
               "__identifier": "Tent",
               "__grid": [
                 1390,
@@ -2344,7 +2558,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#C8C090",
-              "iid": "d11ac9ef-1e16-47b3-9e0c-3cac8318c204",
+              "iid": "2a7110d2-05d1-4a4f-8014-ec73809fe8a7",
               "width": 16,
               "height": 8,
               "defUid": 21,
@@ -2383,7 +2597,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E0A040",
-              "iid": "f15be617-ddf2-46f3-a75d-55c30ff19568",
+              "iid": "dd788a69-93d0-4c13-964e-ccdb68cd7a9b",
               "width": 12,
               "height": 5,
               "defUid": 16,
@@ -2422,7 +2636,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#E05040",
-              "iid": "7c6ce638-d981-4ab3-9cea-3a768eb4b5fd",
+              "iid": "fe9bb000-a621-484d-b8eb-df983fe43d5b",
               "width": 14,
               "height": 9,
               "defUid": 14,
@@ -2461,7 +2675,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#9C9A8E",
-              "iid": "bdb3fc67-1e58-4b05-b078-ac05add3f76d",
+              "iid": "f0db01d3-8e60-43ce-ae5d-05068978688d",
               "width": 420,
               "height": 8,
               "defUid": 12,
@@ -2515,7 +2729,7 @@
               "__tags": [],
               "__tile": null,
               "__smartColor": "#60C0E0",
-              "iid": "ecf6b857-40e9-4551-b44a-a6d8e89fcb4f",
+              "iid": "73d1bea0-aafc-4b2a-9708-55569fc3061b",
               "width": 18,
               "height": 40,
               "defUid": 27,
@@ -2548,5 +2762,5 @@
     }
   ],
   "worlds": [],
-  "dummyWorldIid": "be357d89-bd79-4149-9560-72e03e6b129a"
+  "dummyWorldIid": "3bc5ad91-2087-4bc2-814d-6a5b75e52487"
 }

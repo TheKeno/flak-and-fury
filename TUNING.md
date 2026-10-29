@@ -79,15 +79,12 @@ hit. Damage is split between the planes: `driveWeight` puts more on whoever drov
 `evadeBonus` removes some from a plane turning away. `propStrikes` turns the propeller-into-tail
 "taran" on or off. All of these are also in the tuning panel's Collisions section.
 
-## Paint: `data/nations.json`
-
-Colours for each nation's planes, as hex codes (`#rrggbb`).
-
 ## Ground targets: `data/ground.json`
 
-One entry per kind of ground object (`flak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`).
-Also in the tuning panel's **Ground targets** section; its **Restore targets** button rebuilds every
-object at full strength (new hit points only apply then).
+One entry per kind of ground object (`flak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`,
+`tank`, `engineers`, `depot`, `bridge`, `hangar`). Also in the tuning panel's **Ground targets** section;
+its **Restore targets** button rebuilds every object at full strength (new hit points only apply then),
+clears the tank columns and starts the waves again.
 
 | Field | What it does | Try |
 |---|---|---|
@@ -118,6 +115,31 @@ above 600; weaving and changing speed throws their aim off.
 | `fireChance` | Flak: chance a burst right next to you sets the plane on fire (less further out). | 0.1 – 0.4 |
 | `burst`, `pause`, `rpm` | MG nests: seconds of firing, seconds of rest, rounds per minute while firing. | |
 
+MG nests and infantry also shoot enemy soldiers when there's no plane in reach.
+
+**The ground war.** Each side's `depot` sends out a wave of tanks with infantry behind them, which
+marches on the enemy airfield, stops to fight whatever enemy it meets and shells what it finds. At the
+airfield they shell the `hangar`: as it's damaged the ground crew work slower, and destroyed it leaves
+no crew at all. Bombing a depot slows and shrinks its waves (at worst 2.5 times as long between them);
+destroyed, it sends no more. Tanks cross the river only while the `bridge` stands; when it's down,
+each side sends `engineers` with its next wave to rebuild it, and they're easy pickings while they work.
+Wave sizes and timing are in `data/settings.json` under `waves` (the tuning panel's **Tank waves**).
+
+| Field | What it does | Try |
+|---|---|---|
+| `speed` | Tanks, marching infantry, engineers: world units per second. | 3 – 10 |
+| `gap` | Clear space a unit keeps behind the one ahead of it in its column. | 4 – 12 |
+| `engageRange` | An enemy this close ahead stops the unit to fight. | 60 – 200 |
+| `bulletFactor` / `roofFactor` | Tank armour: share of bullet damage from the front and sides, and from a steep dive onto the roof. Bombs do full damage. | 0.02 – 0.1 / 0.2 – 0.5 |
+| `gunRange`, `gunInterval`, `gunVelocity` | Tank main gun (ground targets only): reach, seconds between shots, shell speed. | 120 – 250, 3 – 8 |
+| `shellRadius`, `shellDamage` | Tank shell blast. | 8 – 20, 15 – 50 |
+| `range`, `mgAltitude` | Tank coaxial MG: reach, and only planes lower than this above the ground. | 100 – 200, 20 – 80 |
+| `wreckBlock` | Seconds a knocked-out tank blocks the road. | 10 – 60 |
+| `rebuildTime` | Bridge: seconds a full squad of engineers needs to rebuild it from nothing. | 20 – 120 |
+
+`waves` (in `data/settings.json`): `first` (seconds before the first wave), `interval` (seconds between
+waves), `tanks` and `squads` per wave, `squadSize`, `engineers` (sent when the bridge is down; 0 = none).
+
 ## Paint and uniforms: `data/nations.json`
 
 Colours for each nation's planes (`paint`) and soldiers (`uniform`), as hex codes (`#rrggbb`).
@@ -131,9 +153,11 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   (blackout altitude), `terrainBase`/`terrainAmplitude` (hill height) and the three sky colours. The
   level's width is the world's width.
 - **Objects layer:** `Airfield` (stretch it for a longer runway; `team` and `nation`), `Flak`,
-  `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`. Each has
-  a `team` (Team_0 is the west airfield's side). Only the x position matters: the game stands every
-  object on the ground.
+  `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`, `Depot`
+  (sends out that side's tank waves). Each has a `team` (Team_0 is the west airfield's side). Only the x
+  position matters: the game stands every object on the ground. Every airfield gets a hangar by itself.
+- **`Bridge`** puts a river under itself with a bridge across: stretch it to set the river's width. It
+  belongs to neither side. Redraw the guide picture after moving it.
 - **The hills** aren't stored in the map; the game builds them from `seed`. The picture behind the
   objects (`maps/countryside-guide.png`) shows them so you can see the ground line. After changing the
   seed, terrain or airfields, redraw it:

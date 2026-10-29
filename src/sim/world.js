@@ -11,6 +11,7 @@ import { DEFAULT_SERVICING } from './airfield.js';
 import { createGround, planesHitStructures } from './ground.js';
 import { stepDefences, stepShells } from './defences.js';
 import { DEFAULT_FIRE } from './fire.js';
+import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
 
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
@@ -20,6 +21,7 @@ export const DT = 1 / TICK_RATE;
 export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', autoGear: true };
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
+// waves: how often and how big the tank columns are (src/sim/army.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
 // groundDefs: ground object types (data/ground.json), shared the same way.
 export function createWorld({
@@ -31,6 +33,7 @@ export function createWorld({
   servicing = { ...DEFAULT_SERVICING },
   collisions = { ...DEFAULT_COLLISIONS },
   fire = { ...DEFAULT_FIRE },
+  waves = { ...DEFAULT_WAVES },
 }) {
   const world = {
     tick: 0,
@@ -42,6 +45,7 @@ export function createWorld({
     servicing,
     collisions,
     fire,
+    waves,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],
@@ -53,6 +57,7 @@ export function createWorld({
   };
   world.terrain = buildTerrain(world.map);
   createGround(world);
+  createArmy(world);
   return world;
 }
 
@@ -84,6 +89,7 @@ export function stepWorld(world, commands) {
     }
     stepPlane(p, cmd ?? NO_COMMAND, world, DT);
   }
+  stepArmy(world, DT);
   stepDefences(world, DT);
   stepBullets(world, DT);
   stepShells(world, DT);

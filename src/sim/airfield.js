@@ -2,6 +2,7 @@
 // come out to repair, then refuel, then rearm, in that order. Opening the throttle sends them away;
 // work already done is kept. A dry engine is started again once the tank is full.
 import { clamp } from './math.js';
+import { hangarHealth } from './ground.js';
 
 const FULL_TANK = 0.99;
 const TOP_UP_BELOW = 0.9; // once serviced, an idling engine only brings the crew back below this
@@ -35,11 +36,13 @@ export function serviceProgress(p, world) {
   return 1;
 }
 
+// The crew work slower as their hangar is shelled, and not at all once it's destroyed.
 export function updateServicing(p, world, dt) {
   const cfg = world.servicing;
+  const hangar = hangarHealth(world, p.team);
   // With the engine stopped the throttle does nothing, so it needn't be at idle.
   const idle = p.throttle < 0.05 || !p.engineRunning;
-  const parked = p.state === 'ground' && !p.dying && p.speed < 2 && idle && ownAirfieldAt(world, p);
+  const parked = p.state === 'ground' && !p.dying && p.speed < 2 && idle && ownAirfieldAt(world, p) && hangar > 0;
   if (!parked) {
     if (p.service && p.service.phase && p.service.phase !== 'done') world.events.push({ type: 'serviceAbort', plane: p.id });
     p.service = null;
@@ -54,6 +57,7 @@ export function updateServicing(p, world, dt) {
     s.wait -= dt;
     return;
   }
+  dt *= hangar;
 
   const phase = needs(p, s.phase === 'done');
   if (phase !== s.phase) {

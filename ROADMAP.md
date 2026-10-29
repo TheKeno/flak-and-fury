@@ -53,9 +53,14 @@ later.
    - ✓ **Radar stations** as bombable targets: damage degrades the scope (noise, blotches, stuttering
      sweep, lost and misplaced echoes); destroy the enemy's and their scope goes dark; lose yours
      and you're blind.
+   - ✓ **Tank waves (a basic MOBA layer):** each side's depot sends tanks with infantry towards the
+     enemy airfield; they fight what they meet, shell defences and buildings, at last the hangar
+     (slower ground crew, then none). Bomb tanks (thin roof for strafing dives) and depots (smaller,
+     slower waves). A river with a bridge: down, tanks halt and engineers come to rebuild it.
    - ✓ Map format switched to LDtk projects (`maps/*.ldtk`) with an importer; destructible ground
      targets with points and wrecks; planes crash into towers, buildings and masts.
-5. **Proper bots:** patrol, chase, evade, return to base when low on fuel or ammo; difficulty levels.
+5. **Proper bots:** patrol, chase, evade, return to base when low on fuel or ammo; difficulty levels;
+   bomb enemy tanks near their base and cover their own engineers.
 6. **Six nations × 3 planes:** data-driven stats and sprites, following the Bf 109 pattern.
 7. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
    camo, nose, markings, squadron number), saved locally.

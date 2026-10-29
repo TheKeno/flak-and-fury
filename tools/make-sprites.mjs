@@ -336,7 +336,56 @@ function radar() {
   return g.rowsOut();
 }
 
+// Tank, side view facing right, without its gun barrel. 44x20; barrel pivot (30, 5).
+// Tracks with road wheels, sloped hull, turret with a cupola. Painted in the nation's base colour.
+function tank() {
+  const g = grid(44, 20);
+  // Turret and cupola.
+  g.rows({ 1: [22, 25], 2: [21, 26] }, 'S');
+  g.rows({ 3: [16, 31], 4: [15, 32], 5: [15, 33], 6: [15, 33], 7: [14, 33] }, (y) => (y < 5 ? 'B' : 'S'));
+  g.span(5, 26, 27, 'e'); // vision slit
+  // Hull: sloped glacis at the front.
+  g.rows({ 8: [6, 36], 9: [4, 38], 10: [3, 40], 11: [3, 41], 12: [3, 41] }, (y) => (y < 10 ? 'B' : 'S'));
+  // Track run: dark belt around the wheels.
+  g.rows({ 13: [2, 42], 14: [1, 43], 15: [1, 43], 16: [1, 43], 17: [1, 43], 18: [2, 42], 19: [4, 40] }, 'I');
+  for (const cx of [7, 14, 21, 28, 35]) g.disc(cx, 16, 2.4, 'i');
+  for (const cx of [7, 14, 21, 28, 35]) g.set(cx, 16, 'I');
+  g.disc(3.5, 15.5, 1.8, 'i'); // idler
+  g.disc(40.5, 15.5, 1.8, 'i'); // drive sprocket
+  // National marking on the turret.
+  g.disc(20, 5.5, 1.6, 'M');
+  g.outline();
+  return g.rowsOut();
+}
+
+// Tank depot: a long brick-and-steel shed with two big doors and a yard crane. 68x32.
+function depot() {
+  const g = grid(68, 32);
+  // Sawtooth roof.
+  for (let k = 0; k < 4; k++) {
+    const x0 = 4 + k * 15;
+    for (let y = 4; y <= 10; y++) g.span(y, x0 + Math.round((10 - y) * 1.6), x0 + 14, y % 2 ? 'R' : 'r');
+    for (let y = 4; y <= 10; y++) g.set(x0 + 14, y, 'h');
+  }
+  for (let y = 11; y <= 31; y++) g.span(y, 3, 64, y > 28 ? 'h' : 'g');
+  // Two vehicle doors, dark, with a half-open shutter.
+  for (const x0 of [10, 38]) {
+    for (let y = 15; y <= 31; y++) g.span(y, x0, x0 + 17, 'd');
+    for (let y = 15; y <= 19; y++) g.span(y, x0, x0 + 17, y % 2 ? 'h' : 'g');
+  }
+  // Windows.
+  for (const x0 of [30, 58]) for (let y = 14; y <= 16; y++) g.span(y, x0, x0 + 3, 'w');
+  // Yard crane.
+  for (let y = 0; y <= 14; y++) g.set(1, y, 'I');
+  g.span(0, 1, 9, 'I');
+  for (let y = 1; y <= 5; y++) g.set(9, y, 'e');
+  g.outline('d');
+  return g.rowsOut();
+}
+
 const SPRITES = {
+  tank: tank(),
+  depot: depot(),
   fighter: fighter(),
   bf109: bf109(),
   bomb: bomb(),

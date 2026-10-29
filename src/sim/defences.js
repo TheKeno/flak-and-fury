@@ -2,15 +2,18 @@
 // Flak guns: slow, accurate, reach high, time-fused shells that burst into shrapnel and can start
 // fires; they can't get a fix on planes flying low. MG nests: fast bursts, short reach.
 // Infantry: each soldier fires his rifle now and then; weak alone, dangerous in numbers.
-// All aim with lead: they shoot where the plane will be when the round gets there.
+// Tanks' coaxial MGs: only at planes flying very low or on the ground.
+// MG nests, infantry and tank MGs also shoot enemy soldiers when there's no plane to shoot at.
+// All aim with lead: they shoot where the target will be when the round gets there.
 import { GRAVITY } from './plane.js';
 import { damagePlane } from './weapons.js';
 import { angleDiff } from './math.js';
 import { ignite } from './fire.js';
+import { surfaceAt } from './ground.js';
 
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
-const MUZZLE = { flak: [5, 10], mgNest: [3, 4.5], infantry: [5, 1] };
+const MUZZLE = { flak: [5, 10], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5] };
 const TRACER_EVERY = 4;
 const MAX_TURN = 0.06; // fire only when the barrel is this close to the aim point (rad)
 
@@ -26,18 +29,37 @@ export function armGround(world, obj) {
   for (const s of obj.soldiers ?? []) s.cooldown = world.rng.range(0, obj.def.interval);
 }
 
-// Nearest enemy plane in reach of a gun at (x, y).
+// Nearest enemy plane in reach of a gun at (x, y); failing that (not for flak), the nearest enemy
+// soldier, as a point to aim at. Planes lower than minAltitude or higher than mgAltitude above the
+// ground are left alone.
 function pickTarget(world, obj, x, y) {
   const def = obj.def;
   let best = null;
   let bestD = def.range;
   for (const p of world.planes) {
     if (p.team === obj.team || p.state === 'dead' || p.dying) continue;
-    if (def.minAltitude && p.y - world.terrain.heightAt(p.x) < def.minAltitude) continue;
+    const height = p.y - world.terrain.heightAt(p.x);
+    if (def.minAltitude && height < def.minAltitude) continue;
+    if (def.mgAltitude && height > def.mgAltitude) continue;
     const d = Math.hypot(p.x - x, p.y - y);
     if (d < bestD) {
       best = p;
       bestD = d;
+    }
+  }
+  if (best || obj.type === 'flak') return best;
+  for (const o of world.ground) {
+    if (!o.alive || !o.soldiers || o.team == null || o.team === obj.team) continue;
+    const vx = o.moving ? o.dir * o.def.speed : 0;
+    for (const s of o.soldiers) {
+      if (s.hp <= 0) continue;
+      const sx = o.x + s.dx;
+      const sy = surfaceAt(world, sx) + 3;
+      const d = Math.hypot(sx - x, sy - y);
+      if (d < bestD) {
+        best = { id: -o.id, x: sx, y: sy, vx, vy: 0 };
+        bestD = d;
+      }
     }
   }
   return best;
@@ -58,7 +80,7 @@ function lead(x, y, p, speed, drop) {
 
 // The barrel swings towards the wanted angle at turnRate, between its elevation limits.
 function swing(obj, wanted, dt) {
-  const lo = obj.def.minElevation ?? -0.15;
+  const lo = obj.def.minElevation ?? -0.6;
   let a = wanted < -Math.PI / 2 ? wanted + Math.PI * 2 : wanted; // measure from the right, round over the top
   a = Math.min(Math.PI - lo, Math.max(lo, a));
   const diff = a - obj.aim; // both within the elevation limits, so it never swings through the ground
@@ -82,7 +104,7 @@ function fireBullet(world, obj, x, y, angle, cause) {
     life: (def.range / def.velocity) * 1.15,
     drop: 0.1,
     damage: def.damage,
-    tracer: cause === 'mgNest' && obj.fired % TRACER_EVERY === 0,
+    tracer: cause !== 'infantry' && obj.fired % TRACER_EVERY === 0,
     cause,
   });
   world.events.push({ type: 'groundShot', id: obj.id, kind: obj.type, x, y, angle: a });
@@ -92,7 +114,7 @@ function stepFlak(world, obj, dt) {
   const def = obj.def;
   const [h, len] = MUZZLE.flak;
   const px = obj.x;
-  const py = world.terrain.heightAt(obj.x) + h;
+  const py = surfaceAt(world, obj.x) + h;
   obj.cooldown = Math.max(0, obj.cooldown - dt);
   const target = pickTarget(world, obj, px, py);
   obj.target = target?.id ?? null;
@@ -117,11 +139,12 @@ function stepFlak(world, obj, dt) {
   world.events.push({ type: 'flakFire', id: obj.id, x, y, angle: obj.aim });
 }
 
-function stepMgNest(world, obj, dt) {
+// MG nests and tanks' coaxial MGs.
+function stepMg(world, obj, dt) {
   const def = obj.def;
-  const [h, len] = MUZZLE.mgNest;
+  const [h, len] = MUZZLE[obj.type];
   const px = obj.x;
-  const py = world.terrain.heightAt(obj.x) + h;
+  const py = surfaceAt(world, obj.x) + h;
   if (obj.rest > 0) obj.rest -= dt;
   const target = pickTarget(world, obj, px, py);
   obj.target = target?.id ?? null;
@@ -136,7 +159,7 @@ function stepMgNest(world, obj, dt) {
   obj.cooldown -= dt;
   while (obj.cooldown <= 0) {
     obj.cooldown += 60 / def.rpm;
-    fireBullet(world, obj, px + Math.cos(obj.aim) * len, py + Math.sin(obj.aim) * len, obj.aim, 'mgNest');
+    fireBullet(world, obj, px + Math.cos(obj.aim) * len, py + Math.sin(obj.aim) * len, obj.aim, obj.type);
   }
   if (obj.firing >= def.burst) {
     obj.firing = 0;
@@ -147,7 +170,7 @@ function stepMgNest(world, obj, dt) {
 function stepInfantry(world, obj, dt) {
   const def = obj.def;
   const [h] = MUZZLE.infantry;
-  const target = pickTarget(world, obj, obj.x, world.terrain.heightAt(obj.x) + h);
+  const target = pickTarget(world, obj, obj.x, surfaceAt(world, obj.x) + h);
   obj.target = target?.id ?? null;
   for (const s of obj.soldiers) {
     if (s.hp <= 0) continue;
@@ -155,7 +178,7 @@ function stepInfantry(world, obj, dt) {
     if (!target || s.cooldown > 0) continue;
     s.cooldown = def.interval * world.rng.range(0.5, 1.5);
     const x = obj.x + s.dx;
-    const y = world.terrain.heightAt(x) + h;
+    const y = surfaceAt(world, x) + h;
     if (Math.hypot(target.x - x, target.y - y) > def.range) continue;
     const { angle } = lead(x, y, target, def.velocity, 0.1);
     obj.aim = angle;
@@ -167,7 +190,7 @@ export function stepDefences(world, dt) {
   for (const obj of world.ground) {
     if (!obj.alive) continue;
     if (obj.type === 'flak') stepFlak(world, obj, dt);
-    else if (obj.type === 'mgNest') stepMgNest(world, obj, dt);
+    else if (obj.type === 'mgNest' || obj.type === 'tank') stepMg(world, obj, dt);
     else if (obj.type === 'infantry') stepInfantry(world, obj, dt);
   }
 }

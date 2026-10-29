@@ -23,10 +23,12 @@ export function writeGuide(ldtkUrl) {
   for (let x = 0; x < w; x++) {
     const ground = terrain.heightAt(x + 0.5);
     const runway = map.airfields.some((a) => x >= a.x && x < a.x + a.width);
+    const river = map.rivers.find((rv) => x >= rv.x && x < rv.x + rv.width);
     for (let r = 0; r < h; r++) {
       const y = h - r - 0.5; // world height of this row
       let c;
-      if (y > ground) {
+      if (river && y > ground && y <= river.water) c = [70, 110, 140];
+      else if (y > ground) {
         c = y > map.ceiling ? above : sky;
         if (x % 500 === 0) c = c.map((v) => v * 0.8); // distance ticks every 500 units
         else if (x % 100 === 0) c = c.map((v) => v * 0.92);

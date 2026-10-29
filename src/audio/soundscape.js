@@ -245,6 +245,12 @@ export function createSoundscape(mixer, world) {
             sfx.play(mixer, voices.rifle, where, { gain: e.kind === 'infantry' ? 0.35 : 0.55, rate: e.kind === 'infantry' ? 0.8 : 0.9, reverb: 0.3 });
           }
           break;
+        case 'tankFire':
+          sfx.play(mixer, voices.cannon30, where, { gain: 0.8, rate: 0.7, reverb: 0.45 });
+          break;
+        case 'tankShellBurst':
+          sfx.explosion(mixer, whereAt(e.x, e.y), 0.5);
+          break;
         case 'flakBurst':
           sfx.explosion(mixer, whereAt(e.x, e.y), 0.45);
           break;

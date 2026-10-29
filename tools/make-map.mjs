@@ -44,7 +44,10 @@ const WEST_SIDE = [
   ['Tent', 1470],
   ['Infantry', 1540, { squad: 4 }],
   ['Building', 1620],
+  ['Depot', 900],
 ];
+// Neutral features in the middle of the map. [entity, left x, width]
+const MIDDLE = [['Bridge', 1765, 70]];
 
 // Entity types: [name, colour, width, height, doc, extra fields]
 const ENTITIES = [
@@ -56,6 +59,8 @@ const ENTITIES = [
   ['Tower', '#A07050', 10, 30, 'Watchtower. Target; planes that fly into it crash.'],
   ['Building', '#B0A080', 28, 18, 'Target; needs bombs. Planes that fly into it crash.'],
   ['Radar', '#60C0E0', 18, 40, "Radar station. Destroy the enemy's and their radar scope goes dark."],
+  ['Depot', '#8C9070', 34, 16, 'Tank depot: sends out the waves of tanks and infantry. Bomb it to slow and shrink them.'],
+  ['Bridge', '#7090A0', 70, 6, 'A river with a bridge over it; stretch it to set the river width. Tanks cross only while the bridge stands; engineers rebuild it.', [], true],
 ];
 
 let uid = 1;
@@ -139,13 +144,14 @@ const levelFieldDefs = [
   fieldDef('skySpace', 'F_Color', 'Color'),
 ];
 
-const entityDefs = ENTITIES.map(([identifier, color, width, height, doc, extras = []]) => {
-  const fieldDefs = [
-    fieldDef('team', `F_Enum(${teamEnum.uid})`, 'LocalEnum.Team', { display: 'ValueOnly', default: { id: 'V_String', params: ['Team_0'] } }),
-  ];
+const entityDefs = ENTITIES.map(([identifier, color, width, height, doc, extras = [], neutral = false]) => {
+  const fieldDefs = neutral
+    ? []
+    : [fieldDef('team', `F_Enum(${teamEnum.uid})`, 'LocalEnum.Team', { display: 'ValueOnly', default: { id: 'V_String', params: ['Team_0'] } })];
   if (extras.includes('nation')) fieldDefs.push(fieldDef('nation', `F_Enum(${nationEnum.uid})`, 'LocalEnum.Nation', { default: { id: 'V_String', params: ['Germany'] } }));
   if (extras.includes('squad')) fieldDefs.push(fieldDef('squad', 'F_Int', 'Int', { doc: 'Soldiers in the squad.', min: 1, max: 12, default: { id: 'V_Int', params: [4] } }));
   const airfield = identifier === 'Airfield';
+  const stretchy = airfield || identifier === 'Bridge';
   return {
     identifier,
     uid: nextUid(),
@@ -155,9 +161,9 @@ const entityDefs = ENTITIES.map(([identifier, color, width, height, doc, extras 
     doc,
     width,
     height,
-    resizableX: airfield,
+    resizableX: stretchy,
     resizableY: false,
-    minWidth: airfield ? 100 : null,
+    minWidth: airfield ? 100 : stretchy ? 30 : null,
     maxWidth: null,
     minHeight: null,
     maxHeight: null,
@@ -177,7 +183,7 @@ const entityDefs = ENTITIES.map(([identifier, color, width, height, doc, extras 
     maxCount: 0,
     limitScope: 'PerLevel',
     limitBehavior: 'MoveLastOne',
-    pivotX: airfield ? 0 : 0.5,
+    pivotX: stretchy ? 0 : 0.5,
     pivotY: 1,
     fieldDefs,
   };
@@ -225,6 +231,7 @@ const terrain = buildTerrain({
   seed: SETTINGS.seed,
   terrain: { base: SETTINGS.terrainBase, amplitude: SETTINGS.terrainAmplitude },
   airfields: structuredClone(AIRFIELDS),
+  rivers: MIDDLE.filter(([name]) => name === 'Bridge').map(([, x, width]) => ({ x, width })),
 });
 const defOf = (name) => entityDefs.find((d) => d.identifier === name);
 
@@ -232,7 +239,7 @@ function entityInstance(name, centreX, team, fields = {}) {
   const d = defOf(name);
   const width = fields.width ?? d.width;
   const x = Math.round(centreX - (d.pivotX === 0 ? 0 : width / 2) + d.pivotX * width);
-  const ground = name === 'Airfield' ? terrain.heightAt(centreX + width / 2) : terrain.heightAt(centreX);
+  const ground = d.pivotX === 0 ? terrain.heightAt(centreX - 1) : terrain.heightAt(centreX); // stretchy ones: the left bank or runway start
   const y = Math.round(HEIGHT - ground);
   const values = { team: `Team_${team}`, ...fields };
   return {
@@ -255,6 +262,7 @@ const entities = [
   ...AIRFIELDS.map((a) => entityInstance('Airfield', a.x, a.team, { nation: a.nation, width: a.width })),
   ...WEST_SIDE.map(([name, x, f]) => entityInstance(name, x, 0, f)),
   ...WEST_SIDE.map(([name, x, f]) => entityInstance(name, WIDTH - x, 1, f)),
+  ...MIDDLE.map(([name, x, width]) => entityInstance(name, x, null, { width })),
 ].sort((a, b) => a.px[0] - b.px[0]);
 
 const levelIid = randomUUID();

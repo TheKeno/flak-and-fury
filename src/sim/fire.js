@@ -4,6 +4,7 @@
 // Rolled to a stop, the pilot beats the fire out himself (pilotTime); on your own airstrip the
 // ground crew have it out fast (crewTime). The time keeps running out while they work.
 import { ownAirfieldAt } from './airfield.js';
+import { hangarHealth } from './ground.js';
 
 export const DEFAULT_FIRE = {
   burnTime: 20,
@@ -65,9 +66,11 @@ export function stepFire(p, world, dt, shootDown) {
   }
 
   if (p.state === 'ground' && p.speed < 2) {
-    const crew = Boolean(ownAirfieldAt(world, p));
+    // The ground crew, if their hangar still stands (slower as it's damaged); otherwise the pilot alone.
+    const hangar = hangarHealth(world, p.team);
+    const crew = Boolean(ownAirfieldAt(world, p)) && hangar > 0;
     p.fireOut += dt;
-    if (p.fireOut >= (crew ? cfg.crewTime : cfg.pilotTime)) {
+    if (p.fireOut >= (crew ? Math.min(cfg.pilotTime, cfg.crewTime / hangar) : cfg.pilotTime)) {
       putOut(world, p, crew);
       return;
     }

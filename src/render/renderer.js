@@ -6,12 +6,13 @@
 // The visible area grows with speed zoom. The HUD has its own fixed 480x270 layer so text stays put.
 // Reads simulation state only; never changes it.
 import { createRng, clamp } from '../sim/math.js';
-import { frameIndex } from './sprites.js';
+import { frameIndex, paintSprite } from './sprites.js';
 import { drawHud, damageLines } from './hud.js';
 import { createParticles } from './particles.js';
 import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
 import { fireStage } from '../sim/fire.js';
+import { surfaceAt } from '../sim/ground.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
@@ -285,18 +286,14 @@ export function createRenderer(canvas, world, assets) {
       col(x, top + 44, bh - top - 44, '#513d29');
       if (n % 5 === 0) col(x, top + 10 + (n % 31), 1, '#45341f');
       if (n % 17 === 0) col(x, top + 14 + (n % 23), 2, '#7d6648'); // pebbles
-    }
-  }
-
-  function drawAirfieldBuildings() {
-    const img = assets.images.hangar;
-    const widthUnits = img.width / SCALE;
-    for (const af of map.airfields) {
-      const leftSide = af.x + af.width / 2 < map.width / 2;
-      const hx = leftSide ? af.x + 4 : af.x + af.width - widthUnits - 4;
-      const sx = Math.round(toScreenX(hx));
-      if (sx > bw || sx + img.width < 0) continue;
-      ctx.drawImage(img, sx, Math.round(toScreenY(af.height)) - img.height + 2);
+      // River water over the channel bed, with a glinting, rippling surface.
+      const river = map.rivers?.find((rv) => wx >= rv.x && wx <= rv.x + rv.width);
+      if (river && t.heightAt(wx) < river.water) {
+        const wy = Math.round(bh - (river.water - cam.y) * SCALE);
+        col(x, wy, top - wy, '#3f6a88');
+        col(x, wy + 3, top - wy - 3, '#365d79');
+        col(x, wy, 1, (ix + Math.floor(frame / 8)) % 7 < 2 ? '#a8d0e0' : '#6c98b4');
+      }
     }
   }
 
@@ -305,8 +302,16 @@ export function createRenderer(canvas, world, assets) {
   // blackened stump of its lower part.
   const groundFlashes = new Map(); // ground object id (soldiers: "id:index") -> frames of muzzle flash left
   const nationOf = (team) => map.airfields.find((a) => a.team === team)?.nation;
-  const facingOf = (obj) => (obj.x < map.width / 2 ? 1 : -1);
+  const facingOf = (obj) => obj.dir ?? (obj.x < map.width / 2 ? 1 : -1);
   const spriteCache = new Map();
+  // Tanks wear their nation's paint; everything else is drawn as it is.
+  function spriteOf(obj) {
+    const img = assets.images[obj.def.sprite];
+    if (!img || obj.type !== 'tank') return [obj.def.sprite, img];
+    const key = `tank|${obj.team}`;
+    if (!spriteCache.has(key)) spriteCache.set(key, paintSprite(img, assets.nations[nationOf(obj.team)]?.paint ?? assets.nations.germany.paint));
+    return [key, spriteCache.get(key)];
+  }
   function flipped(name, img) {
     const key = `${name}|flip`;
     if (!spriteCache.has(key)) {
@@ -365,10 +370,11 @@ export function createRenderer(canvas, world, assets) {
 
   function drawSquad(obj, sx, frameNo) {
     const uniform = assets.nations[nationOf(obj.team)]?.uniform ?? '#6a6e5e';
+    const engineers = obj.type === 'engineers';
     obj.soldiers.forEach((s, i) => {
       const wx = obj.x + s.dx;
       const gx = Math.round(toScreenX(wx));
-      const gy = Math.round(toScreenY(world.terrain.heightAt(wx))) + 1;
+      const gy = Math.round(toScreenY(surfaceAt(world, wx))) + 1;
       if (gx < -10 || gx > bw + 10) return;
       if (s.hp <= 0) {
         // Fallen: lying flat.
@@ -379,10 +385,12 @@ export function createRenderer(canvas, world, assets) {
         return;
       }
       const dir = facingOf(obj);
-      const shift = Math.floor((frameNo + i * 13) / 40) % 3 === 0 ? 1 : 0; // shuffling feet
+      // Marching: legs stepping in turn. Standing: shuffling feet now and then.
+      const step = obj.moving ? Math.floor((frameNo + i * 5) / 7) % 2 : Math.floor((frameNo + i * 13) / 40) % 3 === 0 ? 1 : 0;
+      const other = obj.moving ? 1 - step : 0;
       ctx.fillStyle = '#2a2622';
-      ctx.fillRect(gx - 1, gy - 3, 1, 3);
-      ctx.fillRect(gx + 1, gy - 3 + shift, 1, 3 - shift);
+      ctx.fillRect(gx - 1, gy - 3 + other, 1, 3 - other);
+      ctx.fillRect(gx + 1, gy - 3 + step, 1, 3 - step);
       ctx.fillStyle = uniform;
       ctx.fillRect(gx - 1, gy - 9, 3, 6);
       ctx.fillStyle = '#d6a77e';
@@ -390,7 +398,16 @@ export function createRenderer(canvas, world, assets) {
       ctx.fillStyle = '#3a3e34'; // helmet
       ctx.fillRect(gx - 2, gy - 12, 4, 1);
       ctx.fillRect(gx - 1, gy - 13, 2, 1);
-      // Rifle held at the port, or raised at the plane they're shooting at.
+      // Engineers carry spades, and dig when they're rebuilding a bridge.
+      if (engineers) {
+        const dig = obj.working ? Math.floor((frameNo + i * 9) / 10) % 2 : 0;
+        ctx.fillStyle = '#4a3624';
+        for (let k = 0; k < 5; k++) ctx.fillRect(gx + dir * (2 + (dig ? k : 0)), gy - 8 + k + (dig ? 2 : 0), 1, 1);
+        ctx.fillStyle = '#8a8e88';
+        ctx.fillRect(gx + dir * (2 + (dig ? 5 : 0)), gy - 3 + (dig ? 2 : 0), 2, 2);
+        return;
+      }
+      // Rifle held at the port, or raised at whatever they're shooting at.
       ctx.fillStyle = '#4a3624';
       if (obj.target != null) {
         const c = Math.cos(obj.aim);
@@ -405,6 +422,76 @@ export function createRenderer(canvas, world, assets) {
     });
   }
 
+  const SPAN_DARK = '#3e3428';
+  const SPAN_LIGHT = '#6e5c44';
+  // A bridge: timber deck on a steel truss with piers into the water. Destroyed, only broken ends
+  // hang from the banks; while engineers rebuild it, the deck grows out from both banks.
+  function drawBridge(obj) {
+    const river = map.rivers?.find((rv) => Math.abs(rv.x + rv.width / 2 - obj.x) < 1);
+    if (!river) return;
+    const x0 = Math.round(toScreenX(river.x - 3));
+    const x1 = Math.round(toScreenX(river.x + river.width + 3));
+    const deck = Math.round(toScreenY(river.bank));
+    const water = Math.round(toScreenY(river.water));
+    const span = x1 - x0;
+    ctx.fillStyle = SPAN_DARK;
+    if (obj.alive) {
+      ctx.fillRect(x0, deck + 1, span, 2);
+      // Truss: top chord with diagonals down to the deck.
+      const h = 10;
+      ctx.fillRect(x0 + 6, deck - h, span - 12, 1);
+      for (let k = 0; k + 12 <= span - 12; k += 12) {
+        for (let j = 0; j < h; j++) {
+          ctx.fillRect(x0 + 6 + k + Math.round((j / h) * 6), deck - h + j, 1, 1);
+          ctx.fillRect(x0 + 18 + k - Math.round((j / h) * 6), deck - h + j, 1, 1);
+        }
+      }
+      for (const px of [x0 + Math.round(span / 3), x0 + Math.round((span * 2) / 3)]) ctx.fillRect(px - 1, deck + 3, 3, water - deck + 6);
+      ctx.fillStyle = SPAN_LIGHT;
+      ctx.fillRect(x0, deck - 1, span, 2);
+      return;
+    }
+    // Broken ends, plus whatever the engineers have put back.
+    const built = obj.hp / obj.maxHp;
+    const reach = Math.max(8, Math.round((span / 2) * built));
+    for (let k = 0; k < reach; k++) {
+      const sag = built > 0.02 ? 0 : Math.round(k * 0.5);
+      ctx.fillRect(x0 + k, deck - 1 + sag, 1, 3);
+      ctx.fillRect(x1 - k, deck - 1 + sag, 1, 3);
+    }
+    if (built < 0.02) {
+      ctx.fillStyle = SPAN_LIGHT;
+      for (let k = 0; k < 5; k++) ctx.fillRect(x0 + Math.round(span * (0.3 + k * 0.1)), water - 1 + (k % 2), 4, 2); // wreckage in the water
+    }
+  }
+
+  // Tank: running tracks while it moves, the gun pointing where it last fired, muzzle flashes.
+  function drawTankDetails(obj, left, top, w, dir) {
+    if (obj.moving) {
+      ctx.fillStyle = '#2c2e2c';
+      const shift = Math.floor(frame / 4) % 4;
+      for (let k = shift; k < w - 4; k += 4) {
+        const x = dir > 0 ? left + 3 + k : left + w - 4 - k;
+        ctx.fillRect(x, top + 13, 2, 1);
+        ctx.fillRect(x, top + 19, 2, 1);
+      }
+    }
+    const px = dir > 0 ? left + 30 : left + w - 31;
+    const py = top + 5;
+    const aim = obj.gunAim ?? (dir > 0 ? 0 : Math.PI);
+    drawBarrel(px, py, aim, 18, 2, '#2e3228');
+    const flash = groundFlashes.get(obj.id);
+    if (flash > 0) {
+      groundFlashes.set(obj.id, flash - 1);
+      const fx = Math.round(px + Math.cos(aim) * 20);
+      const fy = Math.round(py - Math.sin(aim) * 20);
+      ctx.fillStyle = '#ffc850';
+      ctx.fillRect(fx - 3, fy - 3, 6, 6);
+      ctx.fillStyle = '#fff6c8';
+      ctx.fillRect(fx - 1, fy - 1, 3, 3);
+    }
+  }
+
   function drawGround() {
     for (const obj of world.ground) {
       const sx = Math.round(toScreenX(obj.x));
@@ -413,19 +500,27 @@ export function createRenderer(canvas, world, assets) {
         drawSquad(obj, sx, frame);
         continue;
       }
-      const name = obj.def.sprite;
-      const img = assets.images[name];
-      if (!img) continue;
-      const sy = Math.round(toScreenY(world.terrain.heightAt(obj.x))) + 2;
-      const left = sx - Math.round(img.width / 2);
-      if (!obj.alive) {
-        const w = wreckOf(name, img);
-        ctx.drawImage(w, left, sy - w.height);
+      if (obj.type === 'bridge') {
+        drawBridge(obj);
         continue;
       }
+      const [name, img] = spriteOf(obj);
+      if (!img) continue;
+      const sy = Math.round(toScreenY(surfaceAt(world, obj.x))) + 2;
+      const left = sx - Math.round(img.width / 2);
       const dir = facingOf(obj);
+      const turns = obj.type === 'flak' || obj.type === 'mgNest' || obj.type === 'tank';
       const gun = obj.type === 'flak' || obj.type === 'mgNest';
-      ctx.drawImage(gun && dir < 0 ? flipped(name, img) : img, left, sy - img.height);
+      if (!obj.alive) {
+        const w = wreckOf(name, img);
+        ctx.drawImage(turns && dir < 0 ? flipped(`${name}|wreck`, w) : w, left, sy - w.height);
+        continue;
+      }
+      ctx.drawImage(turns && dir < 0 ? flipped(name, img) : img, left, sy - img.height);
+      if (obj.type === 'tank') {
+        drawTankDetails(obj, left, sy - img.height, img.width, dir);
+        continue;
+      }
       const top = sy - img.height;
       // Barrel pivots, measured on the right-facing sprite.
       const pivot = (px) => (dir > 0 ? left + px : left + img.width - 1 - px);
@@ -451,8 +546,8 @@ export function createRenderer(canvas, world, assets) {
   // Damaged objects smoke; wrecks burn, then smoulder for a while.
   function emitGroundEffects(dt) {
     for (const obj of world.ground) {
-      if (obj.soldiers) continue;
-      const gy = world.terrain.heightAt(obj.x);
+      if (obj.soldiers || obj.type === 'bridge') continue;
+      const gy = surfaceAt(world, obj.x);
       if (obj.alive) {
         const hurt = 1 - obj.hp / obj.maxHp;
         if (hurt > 0.5 && Math.random() < (hurt - 0.4) * dt * 6) {
@@ -643,6 +738,7 @@ export function createRenderer(canvas, world, assets) {
       }
     }
     ctx.fillStyle = '#2a2824';
+    for (const s of world.tankShells ?? []) ctx.fillRect(Math.round(toScreenX(s.x)) - 1, Math.round(toScreenY(s.y)) - 1, 3, 2);
     for (const s of world.shells) ctx.fillRect(Math.round(toScreenX(s.x)) - 1, Math.round(toScreenY(s.y)) - 1, 2, 2);
     for (const b of world.bombsInFlight) {
       const set = assets.bombSprite;
@@ -746,6 +842,14 @@ export function createRenderer(canvas, world, assets) {
         groundFlashes.set(e.id, 4);
         for (let i = 0; i < 6; i++) particles.spawn('smoke', e.x, e.y, Math.cos(e.angle) * 20 + (Math.random() - 0.5) * 10, Math.sin(e.angle) * 20, 0.8 + Math.random() * 0.6, 1.4);
       }
+      if (e.type === 'tankFire') {
+        groundFlashes.set(e.id, 3);
+        for (let i = 0; i < 8; i++) particles.spawn('smoke', e.x, e.y, Math.cos(e.angle) * 25 + (Math.random() - 0.5) * 12, Math.sin(e.angle) * 25 + Math.random() * 6, 0.8 + Math.random() * 0.8, 1.6);
+      }
+      if (e.type === 'tankShellBurst') {
+        particles.explosion(e.x, e.y, 0.3);
+        particles.dirtSpray(e.x, e.y, 0.35);
+      }
       if (e.type === 'groundShot') {
         const obj = world.ground.find((o) => o.id === e.id);
         if (obj?.soldiers) {
@@ -791,7 +895,6 @@ export function createRenderer(canvas, world, assets) {
 
       drawBackground();
       drawTerrain();
-      drawAirfieldBuildings();
       drawGround();
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       drawProjectiles();

@@ -4,6 +4,7 @@ import { updateGunRates } from '../sim/weapons.js';
 import { spawnAtAirfield } from '../sim/plane.js';
 import { rearmFully } from '../sim/airfield.js';
 import { createGround } from '../sim/ground.js';
+import { createArmy } from '../sim/army.js';
 
 // [key, label, min, max, step, help]
 const PLANE_FIELDS = [
@@ -124,7 +125,27 @@ const DEFENCE_FIELDS = {
     ['damage', 'Damage per round', 0, 5, 0.05, 'Randomised +/-50% on each hit.'],
     ['spread', 'Spread', 0, 0.15, 0.005, 'Random aim error (rad).'],
   ],
+  tank: [
+    ['speed', 'Speed', 1, 20, 0.5, 'How fast tanks advance (world units per second).'],
+    ['engageRange', 'Stops to fight at', 0, 300, 5, 'An enemy this close ahead stops the tank to fight.'],
+    ['roofFactor', 'Roof armour', 0, 1, 0.05, 'Share of bullet damage from a steep dive onto the thin roof (the front and sides take Bullet damage taken).'],
+    ['gunRange', 'Main gun reach', 30, 400, 5, 'How far the main gun fires at ground targets.'],
+    ['gunInterval', 'Main gun reload', 0.5, 15, 0.5, 'Seconds between shots (varies a little).'],
+    ['shellRadius', 'Shell blast radius', 2, 40, 1, ''],
+    ['shellDamage', 'Shell damage', 0, 150, 1, 'Damage at the centre of a shell burst.'],
+    ['range', 'MG reach', 30, 400, 5, 'The coaxial MG: how far it shoots at low planes and soldiers.'],
+    ['mgAltitude', 'MG: planes below', 0, 200, 5, 'It only shoots at planes lower than this above the ground.'],
+    ['wreckBlock', 'Wreck blocks the way', 0, 120, 1, 'Seconds a knocked-out tank blocks the road for the tanks behind it.'],
+  ],
+  engineers: [
+    ['speed', 'Speed', 1, 20, 0.5, 'How fast engineers march to the river.'],
+  ],
+  bridge: [
+    ['rebuildTime', 'Rebuild time', 5, 300, 5, 'Seconds a full squad of engineers needs to rebuild the bridge from nothing.'],
+  ],
   infantry: [
+    ['speed', 'Marching speed', 1, 20, 0.5, 'How fast squads sent out with the tanks march.'],
+    ['engageRange', 'Stops to fight at', 0, 300, 5, 'Marching squads stop when an enemy is this close ahead.'],
     ['range', 'Reach', 30, 400, 5, 'How far a rifle can reach a plane.'],
     ['interval', 'Time between shots', 0.3, 8, 0.1, 'Seconds between shots per soldier (varies by half).'],
     ['velocity', 'Muzzle velocity', 150, 600, 5, ''],
@@ -132,6 +153,14 @@ const DEFENCE_FIELDS = {
     ['spread', 'Spread', 0, 0.2, 0.005, 'Random aim error (rad).'],
   ],
 };
+const WAVE_FIELDS = [
+  ['first', 'First wave after', 0, 300, 5, 'Seconds from the start before the first tank columns roll out.'],
+  ['interval', 'Time between waves', 10, 400, 5, 'Seconds between waves from an undamaged depot. A damaged depot takes up to 2.5 times as long.'],
+  ['tanks', 'Tanks per wave', 0, 8, 1, 'Fewer from a damaged depot (always at least one while it stands).'],
+  ['squads', 'Infantry squads per wave', 0, 6, 1, 'Fewer from a damaged depot.'],
+  ['squadSize', 'Soldiers per squad', 1, 12, 1, ''],
+  ['engineers', 'Engineers', 0, 8, 1, 'Engineers sent with a wave when the bridge is down (0 = none).'],
+];
 const HUD_FIELDS = [
   ['lastFlightTime', 'Last-flight report', 0, 30, 1, 'Seconds the LAST FLIGHT damage report stays after you respawn.'],
 ];
@@ -264,16 +293,18 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     el('label', { class: 'row check', title: 'Propeller into a tail wrecks the tail and bends the propeller (the Soviet "taran").' }, el('span', {}, 'Propeller strikes (taran)'), propBox),
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
+  const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
   const restoreTargets = () => {
     createGround(world);
-    say('Ground targets restored');
+    createArmy(world);
+    say('Ground targets restored; tank waves start again');
   };
   const groundSection = section(
     'Ground targets',
     false,
-    el('div', { class: 'buttons' }, el('button', { onclick: restoreTargets, title: 'Rebuild every ground object at full strength, with the current hit points' }, 'Restore targets')),
+    el('div', { class: 'buttons' }, el('button', { onclick: restoreTargets, title: 'Rebuild every ground object at full strength with the current hit points, clear the tank columns and start the waves again' }, 'Restore targets')),
     ...Object.entries(groundDefs).map(([type, d]) =>
       section(d.name, false, ...[...GROUND_FIELDS, ...(DEFENCE_FIELDS[type] ?? [])].map((f) => add(slider(d, f)))),
     ),
@@ -321,6 +352,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.fire, saved.settings.fire);
+    Object.assign(settings.waves, saved.settings.waves);
     Object.assign(settings.hud, saved.settings.hud);
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;
@@ -375,6 +407,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     fireSection,
     radarSection,
     groundSection,
+    waveSection,
     servicingSection,
     cameraSection,
     hudSection,
