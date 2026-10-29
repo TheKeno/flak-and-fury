@@ -235,6 +235,7 @@ function withMouse(cmd) {
 }
 
 let lastSweeps = 0;
+let lastFacing = 1;
 let last = performance.now();
 let acc = 0;
 function frame(now) {
@@ -250,6 +251,11 @@ function frame(now) {
   }
   mouse.panMode = free.on;
   mouse.update(dt);
+  // The sticky mouse look is relative to where the plane points: turn around and it turns with you
+  // (looking ahead stays ahead, looking back stays back).
+  const facing = Math.cos(player.angle) >= 0 ? 1 : -1;
+  if (facing !== lastFacing) mouse.x = -mouse.x;
+  lastFacing = facing;
   if (free.on) moveFreeLook(dt);
   // Held arrow keys look around (and spring back); otherwise the mouse's sticky look holds the view.
   const keys = keyboard.readLook();
