@@ -162,6 +162,7 @@ const CAUSES = {
   mgNest: () => 'SHOT DOWN BY AN MG NEST',
   infantry: () => 'SHOT DOWN BY INFANTRY',
   tank: () => 'SHOT DOWN BY A TANK',
+  infantryRam: () => 'FLEW THROUGH ONE SOLDIER TOO MANY',
   structure: (by, e) => `FLEW INTO A ${(e.what ?? 'BUILDING').toUpperCase()}`,
 };
 
@@ -179,12 +180,18 @@ function handleEvents() {
     renderer.onEvent(e);
     sound?.onEvent(e);
     if (e.plane === player.id && e.type === 'crash') renderer.recordLastFlight(player, causeText(e));
+    if (e.plane === player.id && e.type === 'abandoned') renderer.recordLastFlight(player, 'ABANDONED THE PLANE');
     if (e.plane === player.id && e.type === 'spawn') renderer.startLastFlightTimer();
     if (e.plane === player.id) {
       if (e.type === 'fuelLow') renderer.message('LOW FUEL - HEAD HOME', '#ffb070');
       if (e.type === 'bombRelease' && player.state === 'ground') renderer.message('BOMB AWAY... ON THE GROUND?!', '#ffd870');
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
+      if (e.type === 'bump') {
+        renderer.shake(3);
+        renderer.message(`BUMPED INTO THE ${world.groundDefs[e.kind].name.toUpperCase()}!`, '#ffb070');
+      }
+      if (e.type === 'recovered') renderer.message('PLANE RECOVERED - GROUND CREW TAKE OVER', '#f0e8c0');
       if (e.type === 'hardLanding') renderer.shake(e.plop ? 2 : 3 + 3 * e.severity);
       if (e.type === 'hardLanding') renderer.message(e.plop ? 'HEAVY LANDING' : e.noseDown ? 'HARD LANDING - PROPELLER STRUCK!' : 'HARD LANDING - BOUNCED!', '#ffb070');
       if (e.type === 'bellyLanding') renderer.message(e.collapsed ? 'GEAR COLLAPSED!' : 'BELLY LANDING!', '#ff9070');

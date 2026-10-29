@@ -26,13 +26,13 @@ const BELLY_FRICTION = 55;
 const BOUNCE_KICK = 14; // upward speed (units/s) a hard landing throws the plane back up at
 const BOUNCE_SETTLE = 0.06; // nose below the slope after a bounce (rad), to come down again
 const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the normal landing speed
-const STRANDED_TIME = 5; // seconds stopped away from home before the plane is recovered
+const STRANDED_TIME = 5; // seconds before the crew tow a plane stuck on its own airfield out
 const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the ground; above, it rolls (and crashes)
 const SPAWN_INSET = 15; // a plane starts this far into the clear stretch (counted in def.runwayNeeded)
 const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
 const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
 
-export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false });
+export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false });
 
 const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 
@@ -559,18 +559,49 @@ function touchDown(p, world, ground, gearReady) {
 }
 
 // Stopped away from home with a dead engine or on the belly, or stuck anywhere (a crater) with the
-// throttle open and going nowhere: after a few seconds the plane is recovered to its own airfield (it
-// isn't counted as lost).
-function updateStranded(p, world, dt) {
+// throttle open and going nowhere: the pilot waits for recovery (the plane is brought home, damage and
+// all, and isn't counted as lost) or abandons it (B: a fresh plane at home, counted as lost). Stuck on
+// its own airfield, the crew tow it out after a few seconds. Stopped in a field with a good engine the
+// pilot can take off again, or abandon.
+function updateStranded(p, cmd, world, dt) {
+  const home = ownAirfieldAt(world, p);
   // Not while a fire is being put out: the engine may start again after that.
-  const stranded = (p.belly || !p.engineRunning) && !ownAirfieldAt(world, p);
+  const stranded = (p.belly || !p.engineRunning) && !home;
   p.stuckInCrater = p.engineRunning && !p.belly && p.throttle > 0.5 && !p.service;
   const stuck = p.speed < 1 && (stranded || p.stuckInCrater) && !p.burning;
   p.strandedTimer = stuck ? p.strandedTimer + dt : 0;
-  if (p.strandedTimer >= STRANDED_TIME) {
-    world.events.push({ type: 'recovered', plane: p.id, x: p.x, y: p.y });
-    spawnAtAirfield(p, world);
+  if (cmd.abandon && p.speed < 1 && !home) {
+    abandon(p, world);
+    return;
   }
+  if (p.strandedTimer >= recoveryTime(p, world)) recover(p, world);
+}
+
+export const recoveryTime = (p, world) => (ownAirfieldAt(world, p) ? STRANDED_TIME : world.servicing.recoveryTime);
+
+// Brought home as it is: the crew there repair, refuel and rearm it.
+function recover(p, world) {
+  world.events.push({ type: 'recovered', plane: p.id, x: p.x, y: p.y });
+  const kept = {
+    hp: p.hp, engineDamage: p.engineDamage, tailDamage: p.tailDamage, wingPull: p.wingPull, propBent: p.propBent,
+    belly: p.belly, gear: p.gear, gearDown: p.gearDown, fuel: p.fuel, engineRunning: p.engineRunning,
+  };
+  const ammo = p.guns.map((g) => g.ammo);
+  const bombs = p.bombs?.count;
+  if (!spawnAtAirfield(p, world)) return; // runway closed: it waits, and comes back new
+  Object.assign(p, kept);
+  p.guns.forEach((g, i) => (g.ammo = ammo[i]));
+  if (p.bombs) p.bombs.count = bombs;
+  p.y = world.terrain.heightAt(p.x) + (p.belly ? BELLY_HEIGHT : GEAR_HEIGHT);
+}
+
+function abandon(p, world) {
+  world.events.push({ type: 'abandoned', plane: p.id, x: p.x, y: p.y });
+  p.deaths++;
+  p.state = 'dead';
+  p.respawnTimer = RESPAWN_TIME;
+  p.speed = p.vx = p.vy = 0;
+  p.service = null;
 }
 
 export function stepPlane(p, cmd, world, dt) {
@@ -592,7 +623,7 @@ export function stepPlane(p, cmd, world, dt) {
   if (p.state !== 'dead') updateWeapons(p, cmd, world, dt);
   if (p.state !== 'dead') updateServicing(p, world, dt);
   if (p.state !== 'dead') updateGear(p, cmd, world, dt);
-  if (p.state === 'ground') updateStranded(p, world, dt);
+  if (p.state === 'ground') updateStranded(p, cmd, world, dt);
 
   p.prevRoll = cmd.roll;
 }

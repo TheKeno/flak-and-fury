@@ -66,6 +66,7 @@ const SERVICING_FIELDS = [
   ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
   ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
   ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],
+  ['recoveryTime', 'Recovery from a field', 2, 120, 1, 'Seconds a plane stranded away from home (belly, dead engine, stuck) waits to be brought home, damage and all, not counted as lost. B abandons it instead: a fresh plane, counted as lost.'],
 ];
 const LANDING_FIELDS = [
   ['cleanAngle', 'Clean: nose within', 0.1, 0.8, 0.01, 'Nose this close to the slope of the ground (rad, 0.35 is about 20 degrees) at touchdown is a clean landing (with speed under the plane’s max landing speed).'],
@@ -84,6 +85,9 @@ const RUNWAY_FIELDS = [
   ['closePoints', 'Bonus for closing it', 0, 500, 5, 'Extra for the hit that closes the enemy runway (too short for any of their planes).'],
 ];
 const COLLISION_FIELDS = [
+  ['taxiBump', 'Ground bump below', 0, 80, 1, 'Rolling on the ground slower than this, running into a building or tank is a bump (damage, the plane stops), not a wreck.'],
+  ['bumpDamage', 'Bump damage', 0, 60, 1, 'Hit points a bump costs the plane and the thing it ran into.'],
+  ['runDownDamage', 'Damage per soldier run down', 0, 20, 0.5, 'Flying low through enemy infantry kills the soldiers it strikes; each costs the plane this much.'],
   ['headOnSpeed', 'Head-on: fatal from', 0, 300, 5, 'Closing speed at which two noses meeting kills both planes.'],
   ['fatalSpeed', 'Any angle: fatal from', 50, 400, 5, 'Closing speed at which any collision kills both planes.'],
   ['hardSpeed', 'Hard hit from', 10, 200, 5, 'Closing speed separating a graze from a hard hit.'],

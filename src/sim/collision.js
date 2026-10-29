@@ -29,6 +29,9 @@ export const DEFAULT_COLLISIONS = {
   wingPull: 0.6, // rad/s of drift from a fully damaged wing
   pushApart: 1,
   grace: 1, // seconds before the same two planes can collide again
+  taxiBump: 20, // below this speed on the ground, running into a building is a bump, not a wreck
+  bumpDamage: 10, // hit points a bump costs the plane (and the object)
+  runDownDamage: 1, // hit points a plane loses per soldier it runs down
 };
 
 const NOSE = 0.6; // cos of the angle within which the other plane counts as "in front"

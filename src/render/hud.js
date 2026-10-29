@@ -2,7 +2,7 @@ import { drawText, textWidth } from './font.js';
 import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
 import { hangarHealth } from '../sim/ground.js';
 import { homeRunway, runwayState, nextFill } from '../sim/runway.js';
-import { approach } from '../sim/plane.js';
+import { approach, recoveryTime } from '../sim/plane.js';
 
 const APPROACH_ALT = 80; // landing cues show below this height, gear down and descending
 const CUE = { ok: '#80d070', hard: '#e0b040', bad: '#d06050' };
@@ -115,6 +115,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
       'E / R.MOUSE  BOMBS   G GEAR',
       'MOUSE / ARROWS  LOOK',
       'V FREE LOOK  P PAUSE',
+      'B ABANDON (STOPPED IN A FIELD)',
       'M MUTE  T TUNING  H HIDE HELP',
       'CLICK GRABS MOUSE  ESC FREES',
     ];
@@ -171,9 +172,13 @@ function groundMessage(ctx, world, plane, centre) {
     return;
   }
   if (plane.strandedTimer > 0) {
-    const left = Math.max(1, Math.ceil(5 - plane.strandedTimer));
-    const why = plane.belly ? 'ON YOUR BELLY - STRANDED' : !plane.engineRunning ? 'OUT OF FUEL - STRANDED' : 'STUCK';
-    centre(`${why}. RECOVERY IN ${left}`, 60, '#ffb090');
+    const left = Math.max(1, Math.ceil(recoveryTime(plane, world) - plane.strandedTimer));
+    const why = plane.belly ? 'ON YOUR BELLY - STRANDED' : !plane.engineRunning ? 'ENGINE DEAD - STRANDED' : 'STUCK';
+    centre(`${why}. RECOVERY IN ${left}S`, 60, '#ffb090');
+    if (!home) centre('WAIT TO SAVE THE PLANE, OR B: ABANDON IT', 68, '#f0e8c0');
+  } else if (!home && plane.speed < 1 && !plane.burning) {
+    centre('LANDED IN A FIELD - OPEN THROTTLE (W) TO TAKE OFF', 60, '#f0e8c0');
+    centre('OR B: ABANDON THE PLANE', 68, '#f0e8c0');
   } else if (plane.belly && !home) centre('BELLY LANDING!', 60, '#ff9070');
   else if (!plane.engineRunning) centre(home ? 'ENGINE STOPPED - THROTTLE TO IDLE FOR THE CREW' : 'OUT OF FUEL', 60, '#ffb090');
   else if (home && plane.speed < 2 && plane.throttle >= 0.05) centre('THROTTLE TO IDLE (S) FOR GROUND CREW', 60, '#f0f0e0');

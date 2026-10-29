@@ -220,18 +220,57 @@ export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = fa
   }
 }
 
-// Planes (flying or taxiing) that run into a standing solid object are wrecked, and damage it.
+// Planes that run into a standing solid object. Flying, or rolling fast, the plane is wrecked and the
+// object damaged; a tank it dives into is destroyed with it. At taxi speed on the ground it's only a
+// bump: a little damage to both, and the plane stops. Flying low through enemy infantry cuts them
+// down, and costs the plane a little.
 export function planesHitStructures(world, crash) {
+  const cfg = world.collisions;
   for (const p of world.planes) {
     if (p.state === 'dead') continue;
     const margin = p.def.hitRadius * 0.6;
     for (const obj of world.ground) {
-      if (!obj.alive || !obj.def.solid) continue;
+      if (!obj.alive) continue;
+      if (obj.soldiers) {
+        if (isEnemy(world, obj, p.team)) runDown(world, p, obj, margin, crash);
+        if (p.state === 'dead') break;
+        continue;
+      }
+      if (!obj.def.solid) continue;
       const [l, b, r, t] = groundBox(world, obj);
       if (p.x < l - margin || p.x > r + margin || p.y < b || p.y > t + margin) continue;
-      damageGround(world, obj, PLANE_CRASH_DAMAGE, p.lastHitBy ?? null);
+      if (p.state === 'ground' && p.speed < cfg.taxiBump) {
+        if (p.speed < 1) continue; // standing still: a tank may roll right past
+        p.x = p.x < obj.x ? l - margin - 0.5 : r + margin + 0.5;
+        p.speed = p.vx = 0;
+        p.hp -= cfg.bumpDamage;
+        damageGround(world, obj, cfg.bumpDamage, p.id);
+        world.events.push({ type: 'bump', plane: p.id, kind: obj.type, x: p.x, y: p.y });
+        if (p.hp <= 0) crash(p, world, 'structure', obj.def.name);
+        break;
+      }
+      // Diving into a tank takes it with you, and the plane gets the points.
+      const tank = obj.type === 'tank';
+      damageGround(world, obj, tank ? Infinity : PLANE_CRASH_DAMAGE, tank ? p.id : p.lastHitBy ?? null);
       crash(p, world, 'structure', obj.def.name);
       break;
+    }
+  }
+}
+
+// A plane low enough to strike a squad's soldiers kills those within its reach.
+function runDown(world, p, obj, margin, crash) {
+  if (p.state === 'ground' && p.speed < world.collisions.taxiBump) return; // they step aside
+  for (const s of obj.soldiers) {
+    if (s.hp <= 0) continue;
+    const sx = obj.x + s.dx;
+    if (Math.abs(p.x - sx) > margin + 1 || p.y - surfaceAt(world, sx) > obj.def.height + margin) continue;
+    hurtSoldier(world, obj, s, Infinity, p.id);
+    p.hp -= world.collisions.runDownDamage;
+    world.events.push({ type: 'runDown', plane: p.id, x: sx, y: surfaceAt(world, sx) + 2 });
+    if (p.hp <= 0) {
+      crash(p, world, 'infantryRam');
+      return;
     }
   }
 }

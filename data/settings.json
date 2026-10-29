@@ -35,7 +35,8 @@
     "crewDelay": 1.2,
     "repairPerSec": 25,
     "refuelTime": 5,
-    "rearmTime": 3
+    "rearmTime": 3,
+    "recoveryTime": 20
   },
   "collisions": {
     "headOnSpeed": 110,
@@ -52,7 +53,10 @@
     "tailDamage": 0.6,
     "wingPull": 0.6,
     "pushApart": 1,
-    "grace": 1
+    "grace": 1,
+    "taxiBump": 20,
+    "bumpDamage": 10,
+    "runDownDamage": 1
   },
   "fire": {
     "burnTime": 20,

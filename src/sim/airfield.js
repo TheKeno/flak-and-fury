@@ -7,7 +7,7 @@ import { hangarHealth } from './ground.js';
 const FULL_TANK = 0.99;
 const TOP_UP_BELOW = 0.9; // once serviced, an idling engine only brings the crew back below this
 
-export const DEFAULT_SERVICING = { crewDelay: 1.2, repairPerSec: 25, refuelTime: 5, rearmTime: 3 };
+export const DEFAULT_SERVICING = { crewDelay: 1.2, repairPerSec: 25, refuelTime: 5, rearmTime: 3, recoveryTime: 20 };
 
 export const ownAirfieldAt = (world, p) =>
   world.map.airfields.find((a) => a.team === p.team && p.x >= a.x && p.x <= a.x + a.width);

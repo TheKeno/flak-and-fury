@@ -59,7 +59,9 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 ## Ground crew and camera: `data/settings.json`
 
 `servicing`: `crewDelay` (seconds before the crew start), `repairPerSec` (hit points per second),
-`refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings.
+`refuelTime` and `rearmTime` (seconds), `recoveryTime` (seconds a plane stranded away from home waits to be
+brought home, damage and all, not counted as lost; B abandons it instead for a fresh plane, counted as
+lost). `camera` and `audio` hold the camera and volume settings.
 `audio.hearRange` is how far engines, tanks and most sounds carry before fading to silence (a screen is
 about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns and machine-gun fire.
 
@@ -110,7 +112,11 @@ points are under Ground targets.
 angle above `fatalSpeed`, kills both planes. Below that, `hardSpeed` separates a graze from a hard
 hit. Damage is split between the planes: `driveWeight` puts more on whoever drove into the other,
 `evadeBonus` removes some from a plane turning away. `propStrikes` turns the propeller-into-tail
-"taran" on or off. All of these are also in the tuning panel's Collisions section.
+"taran" on or off. Planes and ground objects: in the air (or rolling fast) a solid building is a crash;
+rolling slower than `taxiBump` it is a bump costing plane and object `bumpDamage`, and the plane stops.
+Diving into a tank destroys it with the plane (the points go to the plane). Flying low through enemy
+infantry kills the soldiers it strikes, `runDownDamage` hit points each. All of these are also in the
+tuning panel's Collisions section.
 
 ## Ground targets: `data/ground.json`
 

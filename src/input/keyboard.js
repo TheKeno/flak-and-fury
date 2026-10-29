@@ -9,6 +9,7 @@ export const DEFAULT_BINDINGS = {
   fire: ['Space'],
   bomb: ['KeyE'],
   gear: ['KeyG'],
+  abandon: ['KeyB'],
   lookUp: ['ArrowUp'],
   lookDown: ['ArrowDown'],
   lookLeft: ['ArrowLeft'],
@@ -44,6 +45,7 @@ export function createKeyboard(bindings = DEFAULT_BINDINGS) {
         fire: any(bindings.fire),
         bomb: any(bindings.bomb),
         gear: any(bindings.gear),
+        abandon: any(bindings.abandon),
       };
     },
     // Arrow-key look, in the same form as mouse look: a vector of length 0..1, y down. Held keys
