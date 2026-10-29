@@ -201,10 +201,23 @@ export function hinomaru(du, dv, r) {
   const k = Math.hypot(du, dv) / r;
   return k > 1 ? null : k > 0.75 ? 'white' : 'marking';
 }
-// Finnish marking, a stand-in for the 1943 insignia: blue disc, white ring, blue rim, radius r.
-export function finnRoundel(du, dv, r) {
-  const k = Math.hypot(du, dv) / r;
-  return k > 1 ? null : k > 0.78 ? 'marking' : k > 0.45 ? 'white' : 'marking';
+// Finnish Air Force insignia of 1918-45 (the hakaristi, from Count von Rosen's emblem): an upright,
+// right-facing blue swastika on a white disc of radius r. dv points to the top arm.
+export function hakaristi(du, dv, r) {
+  const a = du / r;
+  const b = dv / r;
+  if (Math.hypot(a, b) > 1) return null;
+  const L = 0.72; // arm reach
+  const w = 0.13; // half the stroke width
+  const inBox = (a0, a1, b0, b1) => a >= a0 && a <= a1 && b >= b0 && b <= b1;
+  const arms =
+    inBox(-w, w, -L, L) ||
+    inBox(-L, L, -w, w) ||
+    inBox(-w, L, L - 2 * w, L) || // top arm turns right
+    inBox(L - 2 * w, L, -L, w) || // right arm turns down
+    inBox(-L, w, -L, -L + 2 * w) || // bottom arm turns left
+    inBox(-L, -L + 2 * w, -w, L); // left arm turns up
+  return arms ? 'marking' : 'white';
 }
 // Soviet red star of 1943, points at radius r, with a thin white outline.
 export function redStar(du, dv, r) {
@@ -1041,9 +1054,9 @@ function b239() {
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     (p) => (band(p) ? { kind: 'nose' } : null),
-    // National marking on the rear fuselage.
+    // Hakaristi on the rear fuselage.
     (p, n) => {
-      const k = side(n) && finnRoundel(p[0] - X(5.6), p[1] - Y(0.02), 0.42 * M);
+      const k = side(n) && hakaristi(p[0] - X(5.6), p[1] - Y(0.02), 0.44 * M);
       return k ? { kind: k } : null;
     },
     // Panel lines: cowl gills at the back of the cowling, firewall.
@@ -1055,7 +1068,9 @@ function b239() {
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
-    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && finnRoundel(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 3.9 * M, 0.5 * M);
+    // The same way round on both wings, and mirrored underneath so it reads right from below too.
+    const across = (p[2] - Math.sign(p[2]) * 3.9 * M) * (under ? -1 : 1);
+    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && hakaristi(across, p[0] - (s.le + s.te) / 2, 0.55 * M);
     if (k) return { kind: k };
     // Yellow wingtips underneath, the Eastern Front recognition marking.
     if (under && Math.abs(p[2]) > 4.6 * M) return { kind: 'nose' };
