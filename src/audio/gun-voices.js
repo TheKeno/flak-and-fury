@@ -8,6 +8,11 @@ const GUNS = {
   heavy: { dur: 0.16, crack: 1.0, crackT: 0.005, body: 0.9, bodyF: 115, bodyT: 0.024, tail: 0.5, tailT: 0.045, mech: 0.3, mechF: 2500 },
   cannon20: { dur: 0.32, crack: 1.0, crackT: 0.006, body: 1.25, bodyF: 78, bodyT: 0.055, tail: 0.75, tailT: 0.09, mech: 0.35, mechF: 1800 },
   cannon30: { dur: 0.5, crack: 0.55, crackT: 0.008, body: 1.7, bodyF: 52, bodyT: 0.11, tail: 0.9, tailT: 0.15, mech: 0.22, mechF: 1200 },
+  // Ground weapons. A bolt-action rifle: a hard crack with a long gassy tail (the reverb adds the echo).
+  infantryRifle: { dur: 0.26, crack: 1.0, crackT: 0.003, body: 0.35, bodyF: 240, bodyT: 0.01, tail: 0.55, tailT: 0.06, mech: 0, mechF: 3000 },
+  // An 88: a deep, slow thump more felt than heard.
+  flakGun: { dur: 0.95, crack: 0.4, crackT: 0.01, body: 1.9, bodyF: 36, bodyT: 0.22, tail: 1.0, tailT: 0.26, mech: 0.12, mechF: 800 },
+  tankGun: { dur: 0.7, crack: 0.75, crackT: 0.007, body: 1.8, bodyF: 47, bodyT: 0.14, tail: 0.9, tailT: 0.18, mech: 0.2, mechF: 900 },
 };
 
 function render(ctx, dur, fn) {
@@ -94,6 +99,17 @@ function thud(ctx) {
   });
 }
 
+// A shrapnel splinter striking the airframe: a tiny, high metallic tick.
+function patter(ctx) {
+  return render(ctx, 0.04, (d, sr) => {
+    const f = 3200 + Math.random() * 2600;
+    for (let i = 0; i < d.length; i++) {
+      const t = i / sr;
+      d[i] = Math.sin(2 * Math.PI * f * t) * Math.exp(-t / 0.006) * 0.8 + (Math.random() * 2 - 1) * Math.exp(-t / 0.0015);
+    }
+  });
+}
+
 // Mechanical clunk: bomb shackles releasing, or an empty gun's dry click.
 function clunk(ctx, freq, decay) {
   return render(ctx, decay * 5, (d, sr) => {
@@ -112,6 +128,7 @@ export function buildVoices(ctx) {
   voices.thunk = variations(() => thunk(ctx), 3);
   voices.snap = variations(() => snap(ctx), 3);
   voices.thud = variations(() => thud(ctx), 3);
+  voices.patter = variations(() => patter(ctx), 6);
   voices.release = variations(() => clunk(ctx, 140, 0.03), 2);
   voices.click = variations(() => clunk(ctx, 2200, 0.004), 2);
   return voices;

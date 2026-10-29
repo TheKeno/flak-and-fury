@@ -101,4 +101,4 @@ Then: more themes, co-op missions, online play.
   SD2 cluster, incendiary, Tallboy, torpedo, depth charge, Upkeep), gadgets (Schräge Musik, Jericho
   siren, drop tank, armour, self-sealing tanks).
 - **Sound still to do:** CC0 sample layers (licences checked, downloads approved first), per-environment
-  reverb, ambience per map, Jericho siren, flak crack and shrapnel patter, night-raid sirens.
+  reverb, ambience per map, Jericho siren, night-raid sirens.

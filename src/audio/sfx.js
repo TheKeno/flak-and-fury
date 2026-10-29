@@ -187,3 +187,130 @@ export function rollWhoosh(mixer, where) {
   const dest = out(mixer, where, at, 0.05);
   noiseBurst(mixer, dest, at, 0.4, { type: 'bandpass', from: 500, to: 1600, q: 1.5, vol: 0.18, attack: 0.15 });
 }
+
+// Looping noise for sounds longer than the noise buffer: rumbles and crumbling.
+function noiseLong(mixer, dest, at, dur, { type = 'lowpass', from = 800, to = 100, q = 0.7, vol = 1, attack = 0.05 }) {
+  const { ctx } = mixer;
+  const s = ctx.createBufferSource();
+  s.buffer = mixer.noise;
+  s.loop = true;
+  const f = ctx.createBiquadFilter();
+  f.type = type;
+  f.Q.value = q;
+  f.frequency.setValueAtTime(from, at);
+  f.frequency.exponentialRampToValueAtTime(Math.max(20, to), at + dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(vol, at + attack);
+  g.gain.exponentialRampToValueAtTime(0.0005, at + dur);
+  s.connect(f).connect(g).connect(dest);
+  s.start(at, Math.random() * 1.5);
+  s.stop(at + dur + 0.05);
+}
+
+// A flak shell bursting: a sharp crack, a hollow whump and a dark puff of noise. Far off, only the
+// whump rolls in, late (the travel delay) and mostly echo.
+export function flakBurst(mixer, where) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.55);
+  noiseBurst(mixer, dest, at, 0.05, { type: 'highpass', from: 2600, to: 1400, vol: 1.1 });
+  tone(mixer, dest, at, 0.32, { from: 140, to: 42, vol: 0.9 });
+  noiseBurst(mixer, dest, at, 0.7, { from: 1800, to: 140, vol: 0.8, attack: 0.006 });
+  mixer.duck(0.3 * Math.min(1, where.gain * 2), 0.06, 0.4, at);
+}
+
+// Shrapnel striking your own plane: a scatter of ticks across the airframe, more for a closer burst.
+export function shrapnel(mixer, voices, damage) {
+  const n = 3 + Math.min(9, Math.round(damage / 2));
+  for (let i = 0; i < n; i++) {
+    const at = { dist: 0, pan: (Math.random() - 0.5) * 1.4, gain: 1, cutoff: 18000, delay: 0, doppler: 1 };
+    play(mixer, voices.patter, at, { gain: 0.25 + Math.random() * 0.25, rate: 0.8 + Math.random() * 0.5, offset: Math.random() * 0.22, reverb: 0.02 });
+  }
+}
+
+// Something on the ground giving way. kind picks the material: 'masonry' (buildings, depots: a deep
+// rumble and long crumble of brick), 'metal' (radar masts, hangars: a groan and clanging), 'wood'
+// (watchtowers, bridges: splintering cracks), 'canvas' (tents: a soft whump).
+export function collapse(mixer, where, kind, size = 1) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.5);
+  const { ctx } = mixer;
+  if (kind === 'canvas') {
+    noiseBurst(mixer, dest, at, 0.45, { from: 900, to: 160, vol: 0.6, attack: 0.03 });
+    return;
+  }
+  tone(mixer, dest, at, 1.4 * size, { from: 58, to: 24, vol: 0.9 * size });
+  noiseLong(mixer, dest, at, 2.4 * size, { from: kind === 'masonry' ? 900 : 1400, to: 90, vol: 0.9 * size, attack: 0.08 });
+  // Debris: a trickle of small impacts that thins out.
+  for (let i = 0; i < 16 * size; i++) {
+    const t = at + 0.15 + Math.random() ** 1.6 * 2.2 * size;
+    const f = kind === 'metal' ? 1800 + Math.random() * 2400 : 700 + Math.random() * 1600;
+    noiseBurst(mixer, dest, t, kind === 'wood' ? 0.05 : 0.035, { type: 'bandpass', from: f, to: f * 0.7, q: kind === 'metal' ? 8 : 3, vol: 0.12 + Math.random() * 0.15 });
+  }
+  if (kind === 'metal') {
+    // Steel bending: a slow, falling groan.
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(190, at + 0.1);
+    o.frequency.exponentialRampToValueAtTime(70, at + 1.4);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 420;
+    bp.Q.value = 3;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, at + 0.1);
+    g.gain.linearRampToValueAtTime(0.18, at + 0.3);
+    g.gain.exponentialRampToValueAtTime(0.0005, at + 1.5);
+    o.connect(bp).connect(g).connect(dest);
+    o.start(at + 0.1);
+    o.stop(at + 1.6);
+  }
+  if (kind === 'wood') {
+    for (let i = 0; i < 5; i++) noiseBurst(mixer, dest, at + i * 0.07 + Math.random() * 0.05, 0.03, { type: 'highpass', from: 2200, to: 1500, vol: 0.5 });
+  }
+  mixer.duck(0.4 * Math.min(1, where.gain * 1.5), 0.2, 1.4, at);
+}
+
+// Heavy things dropping into a river.
+export function splash(mixer, where) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.4);
+  noiseBurst(mixer, dest, at, 0.6, { from: 2400, to: 300, vol: 0.7, attack: 0.01 });
+  for (let i = 0; i < 6; i++) tone(mixer, dest, at + 0.1 + Math.random() * 0.6, 0.06, { from: 500 + Math.random() * 400, to: 900 + Math.random() * 500, vol: 0.08 });
+}
+
+// A fire put out: a long hiss of steam and smothered flame.
+export function fireOut(mixer, where) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.15);
+  noiseLong(mixer, dest, at, 1.6, { type: 'highpass', from: 2500, to: 5500, vol: 0.35, attack: 0.04 });
+  noiseBurst(mixer, dest, at, 0.3, { from: 700, to: 200, vol: 0.3 });
+}
+
+// Engineers knocking the last planks into place.
+export function hammering(mixer, where) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.3);
+  for (let i = 0; i < 4; i++) {
+    tone(mixer, dest, at + i * 0.28, 0.06, { from: 900, to: 500, vol: 0.25, type: 'triangle' });
+    noiseBurst(mixer, dest, at + i * 0.28, 0.03, { type: 'bandpass', from: 1800, to: 1200, q: 3, vol: 0.25 });
+  }
+}
+
+// Your radar set dying: the power supply winds down with a falling whine and a final clunk.
+export function radarPowerDown(mixer) {
+  const { ctx } = mixer;
+  const at = mixer.now;
+  const o = ctx.createOscillator();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(1500, at);
+  o.frequency.exponentialRampToValueAtTime(45, at + 1.6);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, at);
+  g.gain.linearRampToValueAtTime(0.06, at + 0.05);
+  g.gain.exponentialRampToValueAtTime(0.0005, at + 1.7);
+  o.connect(g).connect(mixer.buses.ambience);
+  o.start(at);
+  o.stop(at + 1.8);
+  noiseBurst(mixer, mixer.buses.ambience, at + 1.55, 0.08, { from: 600, to: 120, vol: 0.25 });
+}

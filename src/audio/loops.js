@@ -135,3 +135,81 @@ export function createFire(mixer) {
     },
   };
 }
+
+// A tank: a deep, lumpy engine note with the squeal and clatter of its tracks while it moves.
+export function createTankEngine(mixer) {
+  const { ctx } = mixer;
+  const chain = spatialChain(mixer);
+  const engine = ctx.createOscillator();
+  engine.type = 'sawtooth';
+  engine.frequency.value = 32;
+  const lumpy = ctx.createOscillator(); // firing pulses make the note uneven
+  lumpy.frequency.value = 9;
+  const lumpyAmt = ctx.createGain();
+  lumpyAmt.gain.value = 0.35;
+  const engineGain = ctx.createGain();
+  engineGain.gain.value = 0.7;
+  lumpy.connect(lumpyAmt).connect(engineGain.gain);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 260;
+  engine.connect(lp).connect(engineGain).connect(chain.input);
+  // Tracks: band-passed noise chopped by a square wave into clanks.
+  const src = ctx.createBufferSource();
+  src.buffer = mixer.noise;
+  src.loop = true;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 1700;
+  band.Q.value = 2.5;
+  const chop = ctx.createOscillator();
+  chop.type = 'square';
+  chop.frequency.value = 7;
+  const chopAmt = ctx.createGain();
+  chopAmt.gain.value = 0.5;
+  const trackGain = ctx.createGain();
+  trackGain.gain.value = 0;
+  chop.connect(chopAmt).connect(trackGain.gain);
+  src.connect(band).connect(trackGain).connect(chain.input);
+  for (const n of [engine, lumpy, chop]) n.start();
+  src.start(0, Math.random());
+  return {
+    update(where, moving) {
+      setT(ctx, engine.frequency, moving ? 38 : 27, 0.4);
+      setT(ctx, lumpy.frequency, moving ? 11 : 7, 0.4);
+      setT(ctx, trackGain.gain, moving ? 0.5 : 0, 0.3);
+      chain.place(where, 0.5);
+    },
+    stop() {
+      chain.fade(() => {
+        for (const n of [engine, lumpy, chop, src]) n.stop();
+      });
+    },
+  };
+}
+
+// Radar static: the hiss and crackle of a failing scope, in the cockpit rather than out in the world.
+export function createRadarStatic(mixer) {
+  const { ctx } = mixer;
+  const src = ctx.createBufferSource();
+  src.buffer = mixer.noise;
+  src.loop = true;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 3200;
+  band.Q.value = 0.6;
+  const g = ctx.createGain();
+  g.gain.value = 0;
+  src.connect(band).connect(g).connect(mixer.buses.ambience);
+  src.start(0, Math.random());
+  return {
+    // level 0..1: how loud; crackle comes and goes on top.
+    update(level) {
+      setT(ctx, g.gain, level * (Math.random() < 0.15 ? 0.09 : 0.035), 0.01);
+    },
+    stop() {
+      setT(ctx, g.gain, 0, 0.05);
+      setTimeout(() => src.stop(), 400);
+    },
+  };
+}

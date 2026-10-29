@@ -4,7 +4,8 @@ import { createEngineVoice } from './engine-synth.js';
 import { createAirflow } from './airflow.js';
 import { createBody } from './body.js';
 import { buildVoices } from './gun-voices.js';
-import { createBombWhistle, createFire, createScrape } from './loops.js';
+import { createBombWhistle, createFire, createScrape, createTankEngine, createRadarStatic } from './loops.js';
+import { radarHealth } from '../sim/ground.js';
 import { createCrew } from './crew.js';
 import { spatialize } from './spatial.js';
 import * as sfx from './sfx.js';
@@ -28,6 +29,11 @@ export function createSoundscape(mixer, world) {
   const listener = { x: 0, y: 0, vx: 0, vy: 0 };
   let focusId = null;
   let impactBudget = 0;
+  let groundBudget = 0; // ground guns get their own share, so MG bursts don't starve bullet impacts
+  const tanks = new Map();
+  let radarStatic = null;
+  let radarWasUp = true;
+  const MATERIAL = { building: 'masonry', depot: 'masonry', hangar: 'metal', radar: 'metal', tower: 'wood', bridge: 'wood', tent: 'canvas' };
 
   const engineFor = (p) => {
     let v = engines.get(p.id);
@@ -109,6 +115,38 @@ export function createSoundscape(mixer, world) {
     }
   }
 
+  // Engines of the nearest few tanks.
+  function updateTanks() {
+    const near = world.ground
+      .filter((o) => o.type === 'tank' && o.alive && Math.abs(o.x - listener.x) < 900)
+      .sort((a, b) => Math.abs(a.x - listener.x) - Math.abs(b.x - listener.x))
+      .slice(0, 4);
+    for (const [id, t] of tanks) {
+      if (!near.some((o) => o.id === id)) {
+        t.stop();
+        tanks.delete(id);
+      }
+    }
+    for (const o of near) {
+      let t = tanks.get(o.id);
+      if (!t) tanks.set(o.id, (t = createTankEngine(mixer)));
+      t.update(spatialize(listener, o.x, world.terrain.heightAt(o.x) + 5, o.moving ? o.dir * o.def.speed : 0, 0), o.moving);
+    }
+  }
+
+  // Your radar: static while it's damaged or gone, and a power-down whine when it fails.
+  function updateRadar(focus) {
+    const health = focus ? radarHealth(world, focus.team) : 1;
+    if (radarWasUp && health <= 0) sfx.radarPowerDown(mixer);
+    radarWasUp = health > 0;
+    if (health < 1 && !radarStatic) radarStatic = createRadarStatic(mixer);
+    if (health >= 1 && radarStatic) {
+      radarStatic.stop();
+      radarStatic = null;
+    }
+    radarStatic?.update(health <= 0 ? 0.6 : (1 - health) * 0.8);
+  }
+
   function updateWhistles() {
     for (const b of world.bombsInFlight) {
       let w = whistles.get(b.id);
@@ -149,6 +187,9 @@ export function createSoundscape(mixer, world) {
       if (focus && focus.state !== 'dead') Object.assign(listener, { x: focus.x, y: focus.y, vx: focus.vx, vy: focus.vy });
       else Object.assign(listener, { x: camCentre.x, y: camCentre.y, vx: 0, vy: 0 });
       impactBudget = Math.min(4, impactBudget + dt * 14);
+      groundBudget = Math.min(6, groundBudget + dt * 18);
+      updateTanks();
+      updateRadar(focus);
 
       updateEngines();
       updateFires();
@@ -237,28 +278,38 @@ export function createSoundscape(mixer, world) {
           }
           break;
         case 'flakFire':
-          sfx.play(mixer, voices.cannon30, where, { gain: 0.7, rate: 0.55, reverb: 0.4 });
+          sfx.play(mixer, voices.flakGun, where, { gain: 1, reverb: 0.55 });
           break;
         case 'groundShot':
-          if (impactBudget >= 1) {
-            impactBudget--;
-            sfx.play(mixer, voices.rifle, where, { gain: e.kind === 'infantry' ? 0.35 : 0.55, rate: e.kind === 'infantry' ? 0.8 : 0.9, reverb: 0.3 });
+          if (groundBudget >= 1) {
+            groundBudget--;
+            if (e.kind === 'infantry') sfx.play(mixer, voices.infantryRifle, where, { gain: 0.45, reverb: 0.45 });
+            else sfx.play(mixer, voices.rifle, where, { gain: 0.6, rate: e.kind === 'tank' ? 0.8 : 0.88, reverb: 0.35 });
           }
           break;
         case 'tankFire':
-          sfx.play(mixer, voices.cannon30, where, { gain: 0.8, rate: 0.7, reverb: 0.45 });
+          sfx.play(mixer, voices.tankGun, where, { gain: 0.9, reverb: 0.45 });
           break;
         case 'tankShellBurst':
           sfx.explosion(mixer, whereAt(e.x, e.y), 0.5);
           break;
         case 'flakBurst':
-          sfx.explosion(mixer, whereAt(e.x, e.y), 0.45);
+          sfx.flakBurst(mixer, whereAt(e.x, e.y));
           break;
         case 'shrapnel':
-          if (mine) for (let i = 0; i < 3; i++) sfx.play(mixer, voices.clank, { ...ME, pan: (Math.random() - 0.5) * 0.8 }, { gain: 0.35, rate: 1.2 + i * 0.15, offset: i * 0.03 });
+          if (mine) sfx.shrapnel(mixer, voices, e.damage);
+          else sfx.play(mixer, voices.patter, where, { gain: 0.4 });
           break;
         case 'groundDestroyed':
-          sfx.explosion(mixer, where, 0.8);
+          if (MATERIAL[e.kind]) sfx.collapse(mixer, where, MATERIAL[e.kind], e.kind === 'building' || e.kind === 'depot' || e.kind === 'hangar' ? 1.2 : 0.8);
+          else sfx.explosion(mixer, where, e.kind === 'tank' ? 0.9 : 0.6);
+          if (e.kind === 'bridge') sfx.splash(mixer, where);
+          break;
+        case 'fireOut':
+          sfx.fireOut(mixer, where);
+          break;
+        case 'bridgeRebuilt':
+          sfx.hammering(mixer, where);
           break;
         case 'bombRelease':
           sfx.play(mixer, voices.release, where, { gain: mine ? 0.7 : 0.5, rate: 0.8 });
