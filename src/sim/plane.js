@@ -40,16 +40,32 @@ const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 // Taildraggers sit tail-down on the ground: tilted nose-up about the main wheels until the tail wheel
 // touches. As the take-off roll picks up speed the tail lifts, and the plane rolls level from about
 // tailUpSpeed (share of take-off speed). Kept in the sim (p.groundTilt) because the guns point along
-// the fuselage: standing on the ground they fire up at this angle. Wheel points in world units.
-const MAIN_WHEEL_BOTTOM = [3.5, -3.6 - 1.4];
-const TAIL_WHEEL_BOTTOM = [-10.5, -1.6 - 0.8];
-export const TAIL_DOWN = Math.atan2(TAIL_WHEEL_BOTTOM[1] - MAIN_WHEEL_BOTTOM[1], MAIN_WHEEL_BOTTOM[0] - TAIL_WHEEL_BOTTOM[0]);
+// the fuselage: standing on the ground they fire up at this angle. Wheel points in world units, from
+// the plane's def.wheels (the renderer draws the gear from the same numbers) or these defaults.
+export const DEFAULT_WHEELS = [
+  { leg: [3, -2], wheel: [3.5, -3.6], stowed: [3.5, -0.8], r: 1.4 },
+  { leg: [-10, -0.5], wheel: [-10.5, -1.6], stowed: [-10.5, -0.1], r: 0.8, tail: true },
+];
+const geometry = new WeakMap();
+// Bottoms of the main and tail wheels, and the tail-down angle they give.
+export function wheelGeometry(def) {
+  let g = geometry.get(def);
+  if (!g) {
+    const wheels = def.wheels ?? DEFAULT_WHEELS;
+    const bottom = (w) => [w.wheel[0], w.wheel[1] - w.r];
+    const main = bottom(wheels.find((w) => !w.tail));
+    const tail = bottom(wheels.find((w) => w.tail));
+    g = { main, tail, tailDown: Math.atan2(tail[1] - main[1], main[0] - tail[0]) };
+    geometry.set(def, g);
+  }
+  return g;
+}
 
 function updateTilt(p, dt) {
   let target = 0;
   if (p.state === 'ground' && !p.belly && p.gear >= 1) {
     const t = clamp(p.speed / (p.def.takeoffSpeed * (p.def.tailUpSpeed ?? 0.85)), 0, 1);
-    target = TAIL_DOWN * (1 - t * t * (3 - 2 * t));
+    target = wheelGeometry(p.def).tailDown * (1 - t * t * (3 - 2 * t));
   }
   p.groundTilt = (p.groundTilt ?? target) + (target - (p.groundTilt ?? target)) * Math.min(1, dt * 3.5);
 }
@@ -61,7 +77,7 @@ export function attitude(p) {
   if (Math.abs(tilt) < 0.001) return { angle: p.angle, x: p.x, y: p.y };
   const angle = p.angle + (Math.cos(p.angle) >= 0 ? tilt : -tilt);
   const f = p.inverted ? -1 : 1;
-  const [mx, my] = MAIN_WHEEL_BOTTOM;
+  const [mx, my] = wheelGeometry(p.def).main;
   const off = (a) => [Math.cos(a) * mx - Math.sin(a) * my * f, Math.sin(a) * mx + Math.cos(a) * my * f];
   const [ox, oy] = off(p.angle);
   const [nx, ny] = off(angle);
@@ -72,7 +88,7 @@ export function attitude(p) {
 // ground frames there.
 export function mainWheelContact(p) {
   const f = p.inverted ? -1 : 1;
-  const [mx, my] = MAIN_WHEEL_BOTTOM;
+  const [mx, my] = wheelGeometry(p.def).main;
   const c = Math.cos(p.angle);
   const s = Math.sin(p.angle);
   return { x: p.x + c * mx - s * my * f, y: p.y + s * mx + c * my * f };
@@ -446,7 +462,7 @@ function stepGroundTurn(p, world, dt) {
   if (p.groundTurn < 1) return;
   const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
   p.groundTurn = null;
-  p.x = clamp(p.x + 2 * dir * MAIN_WHEEL_BOTTOM[0], EDGE_MARGIN, world.map.width - EDGE_MARGIN);
+  p.x = clamp(p.x + 2 * dir * wheelGeometry(p.def).main[0], EDGE_MARGIN, world.map.width - EDGE_MARGIN);
   p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
   p.angle = wrapAngle(p.angle + Math.PI);
   p.inverted = !p.inverted;

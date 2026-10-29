@@ -40,6 +40,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `endurance` | Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much. | 120 – 600 |
 | `hp` | Hit points. Higher = takes more hits. | 60 – 200 |
 | `hitRadius` | Size of the plane for bullets (px). Smaller = harder to hit. | 5 – 10 |
+| `wheels` | Optional: the gear in world units from the pivot (leg top, wheel centre, stowed centre, radius; `tail: true` for the tail wheel). The plane stands on these wheels, its tail-down angle comes from them, and the 3D model's gear must match (`tools/plane-models.mjs`, then `node tools/make-sprites.mjs`). Without it a plane uses the default gear. | |
 | `armament.guns` | Which guns (names from `weapons.json`) and how many. `synced: true` marks guns firing through the propeller (on the cowling): they slow with engine RPM (full from 80% of max, about a third at idle) and can't fire with the propeller stopped. Wing guns and hub cannon aren't synced. | |
 | `armament.bombs` | Bomb type and how many per sortie. | |
 | `engine.*` | Engine sound: `layout` `inline` or `radial`, cylinder count, rpm at idle/cruise/max, propeller blades and gearing. | |

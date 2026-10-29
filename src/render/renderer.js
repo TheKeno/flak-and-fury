@@ -3,7 +3,9 @@
 // World units vs pixels: the simulation measures everything in world units (480 x 270 of them fill
 // the screen at normal zoom). The renderer draws SCALE buffer pixels per world unit, so sprites and
 // terrain have SCALE x the detail without changing any gameplay numbers.
-// The visible area grows with speed zoom. The HUD has its own fixed 480x270 layer so text stays put.
+// The buffer itself has DETAIL x finer pixels: planes are drawn at that full detail (SCALE * DETAIL
+// pixels per world unit, so their outline fits), everything else through a DETAIL x transform, so it
+// looks just as it did. The visible area grows with speed zoom. The HUD has its own fixed 480x270 layer so text stays put.
 // Reads simulation state only; never changes it.
 import { createRng, clamp } from '../sim/math.js';
 import { frameIndex, paintSprite } from './sprites.js';
@@ -14,11 +16,13 @@ import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
-import { attitude, mainWheelContact } from '../sim/plane.js';
+import { attitude, mainWheelContact, DEFAULT_WHEELS } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
-export const SCALE = 2; // buffer pixels per world unit; sprites are drawn at this scale
+export const SCALE = 2; // pixels per world unit for scenery, ground sprites and effects
+export const DETAIL = 2; // buffer pixels per scenery pixel
+export const PLANE_SCALE = SCALE * DETAIL; // buffer pixels per world unit for planes (their sprites are drawn at this)
 export const MAX_ZOOM = 1.8;
 
 const hexToRgb = (hex) => {
@@ -107,8 +111,9 @@ const hash = (n) => (Math.imul(n | 0, 2654435761) >>> 0) % 997;
 
 export function createRenderer(canvas, world, assets) {
   const out = canvas.getContext('2d');
-  const buffer = makeCanvas(Math.ceil(W * MAX_ZOOM * SCALE), Math.ceil(H * MAX_ZOOM * SCALE));
+  const buffer = makeCanvas(Math.ceil(W * MAX_ZOOM * SCALE * DETAIL), Math.ceil(H * MAX_ZOOM * SCALE * DETAIL));
   const ctx = buffer.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
   const hudLayer = makeCanvas(W, H);
   const hud = hudLayer.getContext('2d');
 
@@ -646,8 +651,18 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
+  // Planes are drawn in full buffer pixels (PLANE_SCALE per world unit), not through the scenery's
+  // DETAIL x transform.
+  const planeX = (wx) => Math.round(toScreenX(wx) * DETAIL);
+  const planeY = (wy) => Math.round(toScreenY(wy) * DETAIL);
   function drawPlane(p) {
     if (p.state === 'dead') return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    drawPlaneDetail(p);
+    ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
+  }
+
+  function drawPlaneDetail(p) {
     const frames = assets.planeFrames(p);
     const shown = transientFrame(p, frames);
     if (shown && shown.row !== 'roll' && shown.row !== 'rollGear') {
@@ -656,8 +671,8 @@ export function createRenderer(canvas, world, assets) {
       const right = Math.cos(p.angle) >= 0;
       const rot = right ? p.angle : p.angle - Math.PI;
       const at = mainWheelContact(p);
-      const cx = Math.round(toScreenX(at.x));
-      const cy = Math.round(toScreenY(at.y));
+      const cx = planeX(at.x);
+      const cy = planeY(at.y);
       const prop = frames.meta.props[shown.row][shown.index];
       if (prop[6] < 0) drawPropDisc(p, cx, cy, prop, rot, !right);
       const f = frames.frame(shown.row, shown.index, rot, !right);
@@ -666,8 +681,8 @@ export function createRenderer(canvas, world, assets) {
       return;
     }
     const view = groundAttitude(p);
-    const sx = Math.round(toScreenX(view.x));
-    const sy = Math.round(toScreenY(view.y));
+    const sx = planeX(view.x);
+    const sy = planeY(view.y);
     if (shown) {
       // Mid-roll: a frame of the model rolled about its long axis (gear drawn in it), rotated now.
       const f = frames.frame(shown.row, shown.index, view.angle);
@@ -676,18 +691,18 @@ export function createRenderer(canvas, world, assets) {
       const set = assets.planeSprite(p)[p.inverted ? 'inverted' : 'upright'];
       drawGear(p, sx, sy, view.angle);
       ctx.drawImage(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius);
-      gore.drawPlane(ctx, p, sx, sy, view.angle, SCALE);
+      gore.drawPlane(ctx, p, sx, sy, view.angle, PLANE_SCALE);
     }
     drawMuzzleFlash(p, sx, sy, view.angle);
 
     // Propeller disc: a flickering line across the nose (reddened after running soldiers down).
     const c = Math.cos(view.angle);
     const s = Math.sin(view.angle);
-    const r = (p.def.noseOffset[0] + 0.5) * SCALE;
+    const r = (p.def.noseOffset[0] + 0.5) * PLANE_SCALE;
     const px = sx + c * r;
     const py = sy - s * r;
     const spin = Math.floor(frame * (p.rpm / 400));
-    const reach = 4 * SCALE + 1;
+    const reach = 4 * PLANE_SCALE + 1;
     const bloody = gore.bloodied(p.id) > 0;
     for (let k = -reach; k <= reach; k++) {
       if ((k + spin) % 3 === 0) continue;
@@ -698,27 +713,23 @@ export function createRenderer(canvas, world, assets) {
 
   // Main wheels and tail wheel. They're drawn behind the plane, so as the gear retracts (p.gear 1 -> 0)
   // the wheels slide up along their legs and disappear into the wing and fuselage.
-  const GEAR = [
-    { leg: [3, -2], wheel: [3.5, -3.6], stowed: [3.5, -0.8], r: 1.4 },
-    { leg: [-10, -0.5], wheel: [-10.5, -1.6], stowed: [-10.5, -0.1], r: 0.8, tail: true },
-  ];
   function drawGear(p, sx, sy, angle) {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
     const f = p.inverted ? -1 : 1;
-    const at = ([lx, ly]) => [sx + (c * lx - s * ly * f) * SCALE, sy - (s * lx + c * ly * f) * SCALE];
-    for (const g of GEAR) {
+    const at = ([lx, ly]) => [sx + (c * lx - s * ly * f) * PLANE_SCALE, sy - (s * lx + c * ly * f) * PLANE_SCALE];
+    for (const g of p.def.wheels ?? DEFAULT_WHEELS) {
       const out = g.tail && p.def.fixedTailWheel ? 1 : p.gear;
       if (out <= 0.02) continue;
       const e = out * out * (3 - 2 * out); // ease in and out
       const [ax, ay] = at(g.leg);
       const [bx, by] = at([g.stowed[0] + (g.wheel[0] - g.stowed[0]) * e, g.stowed[1] + (g.wheel[1] - g.stowed[1]) * e]);
       ctx.fillStyle = '#3a3a36';
-      for (let t = 0; t <= 1; t += 0.25) ctx.fillRect(Math.round(ax + (bx - ax) * t), Math.round(ay + (by - ay) * t), 1, 1);
+      for (let t = 0; t <= 1; t += 0.1) ctx.fillRect(Math.round(ax + (bx - ax) * t), Math.round(ay + (by - ay) * t), 1, 1);
       // Round pixel tyre with a lighter hub.
       const cx = Math.round(bx);
       const cy = Math.round(by);
-      const r = g.r * SCALE + 0.5;
+      const r = g.r * PLANE_SCALE + 0.5;
       for (let dy = -Math.ceil(r); dy <= Math.ceil(r); dy++) {
         for (let dx = -Math.ceil(r); dx <= Math.ceil(r); dx++) {
           const d2 = dx * dx + dy * dy;
@@ -779,13 +790,13 @@ export function createRenderer(canvas, world, assets) {
     flashes.set(p.id, f - 1);
     const c = Math.cos(angle);
     const s = Math.sin(angle);
-    const r = (p.def.noseOffset[0] + 3) * SCALE;
+    const r = (p.def.noseOffset[0] + 3) * PLANE_SCALE;
     const fx = Math.round(sx + c * r);
     const fy = Math.round(sy - s * r);
     ctx.fillStyle = '#ffc850';
-    ctx.fillRect(fx - 2, fy - 2, 4 + (f % 2), 4);
+    ctx.fillRect(fx - 4, fy - 4, 8 + (f % 2) * 2, 8);
     ctx.fillStyle = '#fff6c8';
-    ctx.fillRect(fx - 1, fy - 1, 2, 2);
+    ctx.fillRect(fx - 2, fy - 2, 4, 4);
   }
 
   function drawProjectiles() {
@@ -980,6 +991,8 @@ export function createRenderer(canvas, world, assets) {
     render(focus, dt, { showHelp, look, free, paused }) {
       frame++;
       fitDisplay();
+      ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
+      ctx.imageSmoothingEnabled = false;
       updateCamera(focus, dt, look, free);
       for (const p of world.planes) emitEffects(p, dt);
       emitGroundEffects(dt);
@@ -1035,7 +1048,11 @@ export function createRenderer(canvas, world, assets) {
         out.fillStyle = '#000';
         out.fillRect(0, 0, canvas.width, canvas.height);
       }
-      out.drawImage(buffer, 0, 0, bw, bh, ox, oy, canvas.width, canvas.height);
+      // On a screen smaller than the buffer, shrink it smoothly: nearest-neighbour would drop pixel
+      // rows unevenly and make the scenery shimmer.
+      out.imageSmoothingEnabled = canvas.width < bw * DETAIL;
+      out.drawImage(buffer, 0, 0, bw * DETAIL, bh * DETAIL, ox, oy, canvas.width, canvas.height);
+      out.imageSmoothingEnabled = false;
       out.drawImage(hudLayer, 0, 0, canvas.width, canvas.height);
       // The radar scope is scaled up smoothly for a soft phosphor glow.
       const hk = canvas.width / W;

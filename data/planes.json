@@ -1,12 +1,12 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. pivot is in sprite pixels (sprites are drawn at 2 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot.",
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
   "fighter_v12": {
     "name": "Inline fighter",
     "role": "fighter",
     "sprite": "fighter",
     "pivot": [
-      24,
-      10
+      48,
+      20
     ],
     "noseOffset": [
       12,
@@ -72,16 +72,16 @@
     "role": "fighter",
     "sprite": "bf109",
     "pivot": [
-      24,
-      10
+      44,
+      20
     ],
     "noseOffset": [
-      12,
+      10.5,
       0
     ],
     "exhaustOffset": [
-      7,
-      0.5
+      8.6,
+      0.6
     ],
     "thrust": 88,
     "dragCoef": 0.0037,
@@ -109,6 +109,39 @@
     ],
     "gearTime": 1.8,
     "fixedTailWheel": true,
+    "wheels": [
+      {
+        "leg": [
+          6.1,
+          -1.25
+        ],
+        "wheel": [
+          6.5,
+          -4.175
+        ],
+        "stowed": [
+          6.3,
+          -1.6
+        ],
+        "r": 0.825
+      },
+      {
+        "leg": [
+          -7.3,
+          -0.25
+        ],
+        "wheel": [
+          -7.375,
+          -1.675
+        ],
+        "stowed": [
+          -7.375,
+          -1.675
+        ],
+        "r": 0.425,
+        "tail": true
+      }
+    ],
     "rollTime": 0.5,
     "groundTurnTime": 1.5,
     "groundLoopTime": 0.9,

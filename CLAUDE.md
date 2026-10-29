@@ -39,7 +39,8 @@ yourself instead.
 - `src/sim/` — the simulation: pure, deterministic (use `world.rng`, never `Math.random`), no DOM or
   audio. One command per controller per tick (`p1`, `bot:<skill>`). Events in `world.events` drive
   sound and effects.
-- `src/render/` — draws at `SCALE` = 2 buffer pixels per world unit; world units are what all
+- `src/render/` — scenery, ground sprites and effects at `SCALE` = 2 pixels per world unit, planes at
+  `PLANE_SCALE` = 4 (the buffer has `DETAIL` = 2× finer pixels; all else draws through a ×2 transform). World units are what all
   gameplay numbers use. HUD on its own 480×270 layer. Radar is a soft CRT canvas.
 - `src/audio/` — Web Audio: AudioWorklet piston-engine synth, pre-rendered gun voices, spatial sound
   (pan, Doppler, speed-of-sound delay), mixer with buses and ducking.

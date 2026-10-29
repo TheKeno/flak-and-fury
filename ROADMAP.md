@@ -11,7 +11,7 @@ later.
   (`node tools/serve.mjs 8080`). Chosen over Godot because Godot's web export lacks audio bus effects,
   and Web Audio suits the sound design.
 - **Content outside the code:** plane, weapon, nation and settings data in `data/*.json`; sprites as
-  PNGs in `assets/sprites/` (2 pixels per world unit, paint applied by key colours); maps as
+  PNGs in `assets/sprites/` (2 pixels per world unit, planes 4; paint applied by key colours); maps as
   **LDtk** projects (free level editor), with ground objects placed in the editor.
 - **Simulation is pure and deterministic** (`src/sim/`, no DOM, no `Math.random`): each tick takes one
   command per controller, so online play only has to deliver commands.
