@@ -59,7 +59,7 @@
     "runDownDamage": 1
   },
   "fire": {
-    "burnTime": 20,
+    "burnTime": 25,
     "hitShortens": 0.15,
     "roughAt": 0.5,
     "quitAt": 4,
