@@ -22,6 +22,8 @@ const BELLY_HEIGHT = 2.5; // pivot height when lying on the belly
 const BELLY_FRICTION = 55;
 const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the normal landing speed
 const STRANDED_TIME = 5; // seconds stopped away from home before the plane is recovered
+const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the ground; above, it rolls (and crashes)
+const RUNWAY_FLAT = 0.8; // runway this close to its level counts as crater-free (for spawning)
 const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
 const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
 
@@ -126,10 +128,29 @@ export function createPlane(id, def, { team, nation, seats }) {
   };
 }
 
+// The longest stretch of an airfield's runway with no crater in it: { from, to } in world x.
+export function clearRunway(world, af) {
+  let best = null;
+  let start = null;
+  const end = af.x + af.width;
+  for (let x = af.x; x <= end; x++) {
+    const flat = x < end && Math.abs(world.terrain.heightAt(x) - af.height) < RUNWAY_FLAT;
+    if (flat && start === null) start = x;
+    if (!flat && start !== null) {
+      if (!best || x - start > best.to - best.from) best = { from: start, to: x };
+      start = null;
+    }
+  }
+  return best;
+}
+
 export function spawnAtAirfield(p, world) {
   const af = world.map.airfields.find((a) => a.team === p.team) ?? world.map.airfields[0];
   const facingRight = af.x + af.width / 2 < world.map.width / 2;
-  p.x = facingRight ? af.x + 50 : af.x + af.width - 50;
+  // Never in a crater: at the start (in the take-off direction) of the longest clear stretch.
+  const clear = af.height != null ? clearRunway(world, af) : null;
+  if (clear && clear.to - clear.from > 40) p.x = facingRight ? clear.from + 15 : clear.to - 15;
+  else p.x = facingRight ? af.x + 50 : af.x + af.width - 50;
   p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
   p.angle = facingRight ? 0 : Math.PI;
   p.inverted = !facingRight;
@@ -288,13 +309,20 @@ function updateConsciousness(p, cmd, world, dt) {
 
 function stepGround(p, cmd, world, dt) {
   const d = p.def;
-  const facingRight = Math.cos(p.angle) >= 0;
 
-  // Turn around when (nearly) stopped.
-  if (cmd.roll && !p.prevRoll && p.speed < 5 && !p.belly) {
-    p.angle = wrapAngle(p.angle + Math.PI);
-    p.inverted = !p.inverted;
+  // Shift on the ground: (nearly) stopped, the plane is turned round to face the other way, upright.
+  // Rolling while taxiing digs a wingtip in and cartwheels the plane into a wreck.
+  if (cmd.roll && !p.prevRoll && !p.belly) {
+    if (p.speed < TAXI_ROLL_SPEED) {
+      p.angle = wrapAngle(p.angle + Math.PI);
+      p.inverted = !p.inverted;
+    } else {
+      world.events.push({ type: 'roll', plane: p.id });
+      crash(p, world, 'taxiRoll');
+      return;
+    }
   }
+  const facingRight = Math.cos(p.angle) >= 0;
 
   const slope = world.terrain.slopeAngle(p.x);
   const heading = facingRight ? slope : Math.PI + slope;
@@ -459,11 +487,14 @@ function stepAir(p, cmd, world, dt) {
   }
 }
 
-// Stopped away from home with a dead engine or on the belly: after a few seconds the plane is
-// recovered to its own airfield (it isn't counted as lost).
+// Stopped away from home with a dead engine or on the belly, or stuck anywhere (a crater) with the
+// throttle open and going nowhere: after a few seconds the plane is recovered to its own airfield (it
+// isn't counted as lost).
 function updateStranded(p, world, dt) {
   // Not while a fire is being put out: the engine may start again after that.
-  const stuck = p.speed < 1 && (p.belly || !p.engineRunning) && !p.burning && !ownAirfieldAt(world, p);
+  const stranded = (p.belly || !p.engineRunning) && !ownAirfieldAt(world, p);
+  p.stuckInCrater = p.engineRunning && !p.belly && p.throttle > 0.5 && !p.service;
+  const stuck = p.speed < 1 && (stranded || p.stuckInCrater) && !p.burning;
   p.strandedTimer = stuck ? p.strandedTimer + dt : 0;
   if (p.strandedTimer >= STRANDED_TIME) {
     world.events.push({ type: 'recovered', plane: p.id, x: p.x, y: p.y });

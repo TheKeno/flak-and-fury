@@ -148,6 +148,7 @@ const CAUSES = {
   ground: () => 'FLEW INTO THE GROUND',
   belly: () => 'BELLY LANDING WENT WRONG',
   rough: () => 'HIT ROUGH GROUND TOO FAST',
+  taxiRoll: () => 'TRIED TO ROLL WHILE TAXIING',
   flak: () => 'SHOT DOWN BY FLAK',
   mgNest: () => 'SHOT DOWN BY AN MG NEST',
   infantry: () => 'SHOT DOWN BY INFANTRY',

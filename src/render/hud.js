@@ -115,7 +115,8 @@ function groundMessage(ctx, world, plane, centre) {
   }
   if (plane.strandedTimer > 0) {
     const left = Math.max(1, Math.ceil(5 - plane.strandedTimer));
-    centre(`${plane.belly ? 'ON YOUR BELLY' : 'OUT OF FUEL'} - STRANDED. RECOVERY IN ${left}`, 60, '#ffb090');
+    const why = plane.belly ? 'ON YOUR BELLY - STRANDED' : !plane.engineRunning ? 'OUT OF FUEL - STRANDED' : 'STUCK';
+    centre(`${why}. RECOVERY IN ${left}`, 60, '#ffb090');
   } else if (plane.belly && !home) centre('BELLY LANDING!', 60, '#ff9070');
   else if (!plane.engineRunning) centre(home ? 'ENGINE STOPPED - THROTTLE TO IDLE FOR THE CREW' : 'OUT OF FUEL', 60, '#ffb090');
   else if (home && plane.speed < 2 && plane.throttle >= 0.05) centre('THROTTLE TO IDLE (S) FOR GROUND CREW', 60, '#f0f0e0');
