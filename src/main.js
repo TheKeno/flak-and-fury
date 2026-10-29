@@ -36,7 +36,7 @@ const world = createWorld({
 content.settings.rules = world.rules;
 const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
 // Bots: your wingmen and the enemy, as many and as good as the rules say (Testing in the tuning panel).
-// Each side flies its nation's fighter until the hangar (milestone 7) lets you choose.
+// Each side flies its nation's fighter until the hangar (milestone 8) lets you choose.
 const SIDES = [
   { team: 0, nation: 'germany', defId: 'bf109', count: 'wingmen', skill: 'wingmanSkill' },
   { team: 1, nation: 'uk', defId: 'fighter_v12', count: 'enemies', skill: 'enemySkill' },

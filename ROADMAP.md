@@ -35,7 +35,7 @@ later.
   points (exhaust, wing roots, wingtips) for weathering later.
 - **Paint schemes, skins and weathering come later, on top of the model:** paint schemes per theatre,
   map and season (winter whitewash, desert, night black), with camouflage on the upper surfaces and a
-  separate underside colour; unlockable paints and skins (cosmetic only, milestone 9); weathering as a
+  separate underside colour; unlockable paints and skins (cosmetic only, milestone 10); weathering as a
   paint layer with a wear amount (exhaust staining, chipped wing roots).
 
 ## Done
@@ -106,39 +106,44 @@ later.
    standard tank per nation in the ground war, with a little flavour: Germany Panzer IV (StuG III as an
    option), USSR T-34/76, USA M4 Sherman, UK Churchill, Japan Type 97 Chi-Ha (thin armour), Finland
    BT-42 (decided). Later, rare heavies (Tiger, KV-1S) worth more points.
-7. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
+7. **Online multiplayer** (decided): online, each player in their own browser. **Host-authoritative**:
+   the host's browser runs the real sim; guests send their per-tick commands and receive world
+   snapshots (~20 a second), interpolated on their screen (prediction for your own plane can come
+   later). **Peer-to-peer over WebRTC (PeerJS)**, so it works from GitHub Pages with no server of our
+   own: share a room code to join (a relay/TURN fallback for strict networks later). First version: 2
+   players, on opposite sides or the same team, bots fill the other slots (e.g. 1p + 1b vs 1p + 1b);
+   then up to 4, and gunner seats when the crewed bombers come. Build everything after this net-aware.
+8. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
    camo, nose, markings, squadron number), saved locally.
-8. **Match setup and music:** menu, rules, scoring (win conditions include **grounding the enemy**:
+9. **Match setup and music:** menu, rules, scoring (win conditions include **grounding the enemy**:
    their runway closed for a while with their hangar destroyed; the same is a **lose condition** for you), dynamic layered 1940s score (calm patrol layer,
    combat layers fade in), radio callouts per nation in its own language.
-9. **Progression:** currency from kills and targets, unlocks as **sidegrades** (more options, not more
+10. **Progression:** currency from kills and targets, unlocks as **sidegrades** (more options, not more
    power), saved profile.
-10. **Crewed bombers:** a gunner's seat has a **crosshair aimed with the mouse** within the turret's
+11. **Crewed bombers:** a gunner's seat has a **crosshair aimed with the mouse** within the turret's
     arc (left click fires; the mouse only aims turrets while you're in a gunner seat). The pilot gets a
     **bomb indicator** (where the bombs will land). Solo: you fly and bomb while AI gunners man the
     turrets; with friends, each takes a seat, and bots fill the empty ones.
-11. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
+12. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
     muzzle flashes light up the ground, planes and buildings around them; fires, burning wrecks and
     tracers glow; buildings, hangars and the airfield emit light (lit windows, runway lamps); lights
     cast onto smoke. Then the night raid: sweeping searchlights that catch and cone you (flak gets
     accurate), exhaust glow (throttle down to hide), tracers give you away, shootable searchlights,
     pathfinder flares, night-fighter radar (Lichtenstein) and Schräge Musik.
-12. **Sound pass:** the synthesized sounds so far are placeholders. Rework them properly: reshape the
+13. **Sound pass:** the synthesized sounds so far are placeholders. Rework them properly: reshape the
     generated sounds, mix them with recordings (CC0 samples, licences checked, downloads approved
     first), and add effects (per-environment reverb, filtering, distortion, compression). Also ambience
     per map, the Jericho siren and night-raid sirens. Hold off on fine-tuning sounds until then.
-13. **Polish:** balance.
+14. **Polish:** balance.
 
-Then: more themes, co-op missions, online play.
+Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
-- **Two players, each with a bot wingman (1p + 1b vs 1p + 1b):** bot counts per side are already in the
-  rules; it needs a second human seat (split screen or online play).
 - **Bots raid the enemy base:** bombing radar, flak, the runway and the hangar, and knocking down the
-  bridge to stop a tank column. For match rules (milestone 8); for now bots only defend and support.
+  bridge to stop a tank column. For match rules (milestone 9); for now bots only defend and support.
 - **Advise a plane that can take off:** when your runway is too short for your plane but long enough
-  for another type, the game should suggest switching to it (needs plane switching, milestone 6/7).
+  for another type, the game should suggest switching to it (needs plane switching, milestone 6/8).
   For now the waiting message only says the runway is too short for your plane.
 - **Buildings fit the time and place:** 1943 architecture for the country the map is fought in
   (e.g. Karelian log houses and saunas, Russian izbas, Normandy stone farms, English villages, Pacific
