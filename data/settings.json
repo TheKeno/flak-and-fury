@@ -82,6 +82,15 @@
     "lowGap": 60,
     "dropout": 0.6
   },
+  "landing": {
+    "cleanAngle": 0.35,
+    "hardSpeed": 1.15,
+    "hardAngle": 0.6,
+    "hardDamage": 30,
+    "collapseFrom": 0.5,
+    "stallSink": 35,
+    "plopDamage": 6
+  },
   "runway": {
     "concreteRadius": 0.6,
     "concreteDepth": 0.7,

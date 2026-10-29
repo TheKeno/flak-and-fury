@@ -3,7 +3,7 @@
 // so online play only has to deliver those commands.
 import { createRng } from './math.js';
 import { buildTerrain, structurePads, DEFAULT_PADS } from './terrain.js';
-import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND } from './plane.js';
+import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LANDING } from './plane.js';
 import { stepBullets, stepBombs } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand } from './ai.js';
@@ -24,6 +24,7 @@ export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', a
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 // waves: how often and how big the tank columns are (src/sim/army.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
+// landing: how forgiving touchdowns are (src/sim/plane.js).
 // runway: crater sizes on concrete, crater filling and runway points (src/sim/runway.js).
 // groundDefs: ground object types (data/ground.json), shared the same way.
 export function createWorld({
@@ -38,6 +39,7 @@ export function createWorld({
   waves = { ...DEFAULT_WAVES },
   pads = { ...DEFAULT_PADS },
   runway = { ...DEFAULT_RUNWAY },
+  landing = { ...DEFAULT_LANDING },
 }) {
   const world = {
     tick: 0,
@@ -51,6 +53,7 @@ export function createWorld({
     fire,
     waves,
     runway,
+    landing,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],

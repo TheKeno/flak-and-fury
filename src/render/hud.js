@@ -2,6 +2,10 @@ import { drawText, textWidth } from './font.js';
 import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
 import { hangarHealth } from '../sim/ground.js';
 import { homeRunway, runwayState, nextFill } from '../sim/runway.js';
+import { approach } from '../sim/plane.js';
+
+const APPROACH_ALT = 80; // landing cues show below this height, gear down and descending
+const CUE = { ok: '#80d070', hard: '#e0b040', bad: '#d06050' };
 
 const JOBS = { repair: 'REPAIRING', refuel: 'REFUELLING', rearm: 'REARMING' };
 
@@ -60,6 +64,13 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   drawText(ctx, gearText + (plane.gearManual ? ' (MAN)' : ''), x + 24, y, gearColour);
   y += 7;
   y = runwayLamp(ctx, world, plane, x, y);
+  const cue = onApproach(world, plane) ? approach(plane, world) : null;
+  if (cue) {
+    drawText(ctx, 'LDG', x, y, '#c8d0c0');
+    drawText(ctx, 'SPD', x + 18, y, CUE[cue.speed]);
+    drawText(ctx, 'ANG', x + 36, y, CUE[cue.angle]);
+    y += 7;
+  }
   drawText(ctx, `KILLS ${plane.kills}  LOST ${plane.deaths}  SCORE ${plane.score}`, x, y, '#e8c860');
   y += 8;
   if (plane.consciousness < 1) {
@@ -80,7 +91,10 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   else if (plane.tumble > 0) centre('OUT OF CONTROL!', 60, blink ? '#ff8050' : '#ffd0b0');
   else if (plane.y > world.map.ceiling) centre('TOO HIGH', 60, blink ? '#ffd060' : '#fff0c0');
   else if (plane.stalled && plane.state === 'air') centre('STALL', 60, blink ? '#ff6050' : '#ffc0b0');
-  else if (plane.gearWarning) centre('GEAR UP!  (G)', 60, blink ? '#ff5040' : '#ffd0b0');
+  else if (cue && plane.y - world.terrain.heightAt(plane.x) < APPROACH_ALT / 2 && (cue.speed !== 'ok' || cue.angle !== 'ok')) {
+    const call = cue.speed !== 'ok' ? 'TOO FAST' : cue.noseUp < 0 ? 'NOSE DOWN - FLARE' : 'NOSE TOO HIGH';
+    centre(call, 60, cue.speed === 'bad' || cue.angle === 'bad' ? (blink ? '#ff6050' : '#ffc0a0') : '#ffd070');
+  } else if (plane.gearWarning) centre('GEAR UP!  (G)', 60, blink ? '#ff5040' : '#ffd0b0');
   else if (!plane.engineRunning && plane.state === 'air') centre('ENGINE OUT - GLIDE HOME!', 60, blink ? '#ff9050' : '#ffd0b0');
   else if (plane.state === 'ground' && !plane.burning) groundMessage(ctx, world, plane, centre); // the fire bar shows instead
 
@@ -108,6 +122,9 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
     lines.forEach((l, i) => drawText(ctx, l, left, 4 + i * 7, '#f0f0e0'));
   }
 }
+
+const onApproach = (world, p) =>
+  p.state === 'air' && !p.dying && p.gear >= 0.9 && p.vy < 0 && p.y - world.terrain.heightAt(p.x) < APPROACH_ALT;
 
 // Your own runway: open, damaged (with the clear length) or closed for your plane.
 function runwayLamp(ctx, world, plane, x, y) {

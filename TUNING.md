@@ -77,6 +77,16 @@ fire out in `pilotTime` seconds in a field (the engine can be started again, wit
 left), the ground crew in `crewTime` on your own airstrip. The time keeps running while they work. All in
 the tuning panel's Fire section.
 
+`landing` (tuning panel: Landing): touchdowns are graded. Clean: speed under the plane's
+`maxLandingSpeed` and the nose within `cleanAngle` (rad) of the ground's slope. Hard: up to
+`hardSpeed` (share of max landing speed) or `hardAngle`, the plane is kicked back up a little and
+settles again, losing `hardDamage` hit points at the worst of the band (30% of it at the mildest);
+nose-down bends the propeller, and past `collapseFrom` of the band the gear may fold into a belly
+landing. A stall just above the ground sinking slower than `stallSink` is a tail-first plop
+(`plopDamage`). Anything worse is a crash, and LAST FLIGHT says which limit and by how much. With
+the gear down, low and descending, the HUD shows LDG SPD / ANG lamps (green clean, amber hard, red
+crash) and calls TOO FAST or NOSE DOWN close to the ground.
+
 `runway` (tuning panel: Runway damage): a runway's state is its longest crater-free stretch. Open: no
 craters. Damaged: cratered, but at least the plane's `runwayNeeded` is clear (you spawn at the start of
 that stretch: a short, risky take-off). Closed: shorter than that, and a plane that's shot down or

@@ -25,6 +25,7 @@ const world = createWorld({
   waves: content.settings.waves,
   pads: content.settings.pads,
   runway: content.settings.runway,
+  landing: content.settings.landing,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
@@ -137,15 +138,22 @@ addEventListener('keydown', (e) => {
   }
 });
 
+// The same display scales as the HUD.
+const kmh = (v) => Math.round(v * 3.6 * 0.4 * 3.2);
+const sinkText = (v) => `${Math.round(v * 0.4)} M/S`;
+const deg = (a) => Math.round((a * 180) / Math.PI);
 const CAUSES = {
   guns: (by) => (by ? `SHOT DOWN BY ${by}` : 'SHOT DOWN'),
   bomb: () => 'BLOWN UP BY A BOMB',
   collision: (by) => (by ? `MID-AIR COLLISION WITH ${by}` : 'MID-AIR COLLISION'),
   fire: () => 'CONSUMED BY FIRE',
   blackout: () => 'BLACKED OUT AND WENT IN',
-  stall: () => 'STALLED INTO THE GROUND',
+  stall: (by, e) => (e.what ? `STALLED INTO THE GROUND (SINKING ${sinkText(e.what.sink)}, MAX ${sinkText(e.what.limit)})` : 'STALLED INTO THE GROUND'),
   inverted: () => 'HIT THE GROUND UPSIDE DOWN',
-  tooFast: () => 'HIT THE GROUND TOO FAST',
+  tooFast: (by, e) => (e.what ? `LANDED TOO FAST (${kmh(e.what.speed)}, MAX ${kmh(e.what.limit)})` : 'HIT THE GROUND TOO FAST'),
+  tooSteep: (by, e) => `NOSE TOO FAR DOWN (${deg(e.what.angle)}°, MAX ${deg(e.what.limit)}°)`,
+  tailFirst: (by, e) => `NOSE TOO HIGH - TAIL FIRST (${deg(e.what.angle)}°, MAX ${deg(e.what.limit)}°)`,
+  hardLanding: () => 'BOUNCED ONE HARD LANDING TOO MANY',
   ground: () => 'FLEW INTO THE GROUND',
   belly: () => 'BELLY LANDING WENT WRONG',
   rough: () => 'HIT ROUGH GROUND TOO FAST',
@@ -177,6 +185,8 @@ function handleEvents() {
       if (e.type === 'bombRelease' && player.state === 'ground') renderer.message('BOMB AWAY... ON THE GROUND?!', '#ffd870');
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
+      if (e.type === 'hardLanding') renderer.shake(e.plop ? 2 : 3 + 3 * e.severity);
+      if (e.type === 'hardLanding') renderer.message(e.plop ? 'HEAVY LANDING' : e.noseDown ? 'HARD LANDING - PROPELLER STRUCK!' : 'HARD LANDING - BOUNCED!', '#ffb070');
       if (e.type === 'bellyLanding') renderer.message(e.collapsed ? 'GEAR COLLAPSED!' : 'BELLY LANDING!', '#ff9070');
       if (e.type === 'fire') renderer.message('FIRE! LAND AND STOP TO PUT IT OUT', '#ff8070');
       if (e.type === 'engineFire') renderer.message('ENGINE FAILED IN THE FIRE', '#ff8070');

@@ -67,6 +67,15 @@ const SERVICING_FIELDS = [
   ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
   ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],
 ];
+const LANDING_FIELDS = [
+  ['cleanAngle', 'Clean: nose within', 0.1, 0.8, 0.01, 'Nose this close to the slope of the ground (rad, 0.35 is about 20 degrees) at touchdown is a clean landing (with speed under the plane’s max landing speed).'],
+  ['hardSpeed', 'Hard landing up to (speed)', 1, 1.5, 0.01, 'Up to this share of max landing speed the plane bounces and is damaged instead of crashing.'],
+  ['hardAngle', 'Hard landing up to (angle)', 0.2, 1, 0.01, 'Up to this nose angle off the slope (rad) the plane bounces and is damaged instead of crashing. Nose-down bends the propeller.'],
+  ['hardDamage', 'Hard landing damage', 0, 100, 1, 'Hit points lost at the worst of the hard band (30% of it at the mildest).'],
+  ['collapseFrom', 'Gear may fold from', 0, 1, 0.05, 'Past this share of the hard band the gear may fold (more likely the worse it is): a belly landing.'],
+  ['stallSink', 'Stall plop: sinking under', 0, 100, 1, 'A stall just above the ground sinking slower than this (units/s) is a heavy tail-first plop, not a crash.'],
+  ['plopDamage', 'Stall plop damage', 0, 50, 1, 'Hit points lost in a stall plop.'],
+];
 const RUNWAY_FIELDS = [
   ['concreteRadius', 'Crater size on concrete', 0.1, 1.5, 0.05, 'How wide a crater is dug in a runway, as a share (1 = as on grass). Smaller = more hits needed to close it.'],
   ['concreteDepth', 'Crater depth on concrete', 0.1, 1.5, 0.05, 'How deep a crater is dug in a runway, as a share.'],
@@ -348,6 +357,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   );
   const hudSection = section('HUD', false, ...HUD_FIELDS.map((f) => add(slider(settings.hud, f))));
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
+  const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
   const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
   const audioSection = section(
     'Sound',
@@ -388,6 +398,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.audio, saved.settings.audio);
     Object.assign(settings.servicing, saved.settings.servicing);
     Object.assign(settings.runway, saved.settings.runway);
+    Object.assign(settings.landing, saved.settings.landing);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.fire, saved.settings.fire);
@@ -447,6 +458,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     planeSection,
     ...gunSections,
     bombSection,
+    landingSection,
     collisionSection,
     fireSection,
     radarSection,

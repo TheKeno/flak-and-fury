@@ -23,6 +23,8 @@ const GEAR_DOWN_SPEED = 105;
 const GEAR_DRAG = 0.3; // gear fully down adds 30% drag
 const BELLY_HEIGHT = 2.5; // pivot height when lying on the belly
 const BELLY_FRICTION = 55;
+const BOUNCE_KICK = 14; // upward speed (units/s) a hard landing throws the plane back up at
+const BOUNCE_SETTLE = 0.06; // nose below the slope after a bounce (rad), to come down again
 const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the normal landing speed
 const STRANDED_TIME = 5; // seconds stopped away from home before the plane is recovered
 const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the ground; above, it rolls (and crashes)
@@ -459,35 +461,101 @@ function stepAir(p, cmd, world, dt) {
 
   const gearReady = p.gear >= 0.9;
   const ground = world.terrain.heightAt(p.x) + (gearReady ? GEAR_HEIGHT : BELLY_HEIGHT);
-  if (p.y <= ground) {
-    const facingRight = Math.cos(p.angle) >= 0;
-    const slope = world.terrain.slopeAngle(p.x);
-    const groundHeading = facingRight ? slope : Math.PI + slope;
-    const misalign = Math.abs(angleDiff(groundHeading, p.angle));
-    const controlled = isUpright(p) && !p.blackout && !p.dying && misalign < 0.35;
-    if (controlled && !gearReady && p.speed < d.maxLandingSpeed * BELLY_SPEED_MARGIN) {
-      p.angle = groundHeading;
-      bellyLand(p, world, ground);
-    } else if (controlled && p.speed < d.maxLandingSpeed) {
-      p.state = 'ground';
-      p.y = ground;
-      p.angle = groundHeading;
-      p.sink = 0;
-      p.stalled = false;
-      world.events.push({ type: 'touchdown', plane: p.id, x: p.x, y: p.y, speed: p.speed, misalign });
-    } else {
-      const cause = p.blackout
-        ? 'blackout'
-        : p.stalled
-          ? 'stall'
-          : !isUpright(p)
-            ? 'inverted'
-            : p.speed >= d.maxLandingSpeed * (gearReady ? 1 : BELLY_SPEED_MARGIN)
-              ? 'tooFast'
-              : 'ground';
-      crash(p, world, cause);
-    }
+  if (p.y <= ground) touchDown(p, world, ground, gearReady);
+}
+
+// cleanAngle: nose this close to the ground's slope (rad) is a clean landing; hardSpeed and hardAngle:
+// up to these (share of max landing speed, rad) it's a hard landing that bounces and damages the plane;
+// hardDamage: hit points at the worst of that; collapseFrom: past this share of the hard band the gear
+// may fold; stallSink and plopDamage: a stall this slow sinking (units/s) is a tail-first plop.
+export const DEFAULT_LANDING = { cleanAngle: 0.35, hardSpeed: 1.15, hardAngle: 0.6, hardDamage: 30, collapseFrom: 0.5, stallSink: 35, plopDamage: 6 };
+
+// How a landing here would go right now, for the HUD's approach cues: speed and nose angle against the
+// landing limits, each 'ok' (clean), 'hard' (bounce) or 'bad' (crash). noseUp < 0: nose below the slope.
+export function approach(p, world) {
+  const cfg = world.landing;
+  const facingRight = Math.cos(p.angle) >= 0;
+  const slope = world.terrain.slopeAngle(p.x);
+  const noseUp = angleDiff(p.angle, facingRight ? slope : Math.PI + slope) * (facingRight ? 1 : -1);
+  const share = p.speed / p.def.maxLandingSpeed;
+  const grade = (v, clean, hard) => (v < clean ? 'ok' : v < hard ? 'hard' : 'bad');
+  return { speed: grade(share, 1, cfg.hardSpeed), angle: grade(Math.abs(noseUp), cfg.cleanAngle, cfg.hardAngle), noseUp };
+}
+
+// The plane meets the ground. Clean: inside the landing limits. Hard: a little over them, it bounces
+// back up, damaged (nose-down bends the propeller; a bad one can fold the gear). A stall in the last
+// metre is a heavy tail-first plop. Worse is a crash, and the report says which limit was broken.
+function touchDown(p, world, ground, gearReady) {
+  const d = p.def;
+  const cfg = world.landing;
+  const facingRight = Math.cos(p.angle) >= 0;
+  const slope = world.terrain.slopeAngle(p.x);
+  const groundHeading = facingRight ? slope : Math.PI + slope;
+  const noseUp = angleDiff(p.angle, groundHeading) * (facingRight ? 1 : -1); // < 0: nose below the slope
+  const misalign = Math.abs(noseUp);
+  const share = p.speed / d.maxLandingSpeed;
+  const able = isUpright(p) && !p.blackout && !p.dying;
+  const land = () => {
+    p.state = 'ground';
+    p.y = ground;
+    p.angle = groundHeading;
+    p.sink = 0;
+    p.stalled = false;
+    world.events.push({ type: 'touchdown', plane: p.id, x: p.x, y: p.y, speed: p.speed, misalign });
+  };
+
+  if (able && !gearReady && misalign < cfg.cleanAngle && share < BELLY_SPEED_MARGIN) {
+    p.angle = groundHeading;
+    bellyLand(p, world, ground);
+    return;
   }
+  if (able && gearReady && misalign < cfg.cleanAngle && share < 1 && !p.stalled) {
+    land();
+    return;
+  }
+  if (able && gearReady && p.stalled && -p.vy < cfg.stallSink && misalign < cfg.hardAngle && share < 1) {
+    land();
+    p.hp -= cfg.plopDamage;
+    world.events.push({ type: 'hardLanding', plane: p.id, x: p.x, y: p.y, severity: 0, plop: true });
+    if (p.hp <= 0) crash(p, world, 'hardLanding');
+    return;
+  }
+  if (able && gearReady && !p.stalled && share < cfg.hardSpeed && misalign < cfg.hardAngle) {
+    const s = clamp(Math.max((share - 1) / (cfg.hardSpeed - 1), (misalign - cfg.cleanAngle) / (cfg.hardAngle - cfg.cleanAngle)), 0, 1);
+    p.hp -= cfg.hardDamage * (0.3 + 0.7 * s);
+    const noseDown = noseUp < 0;
+    if (noseDown) {
+      p.propBent = true; // the propeller bites the ground
+      p.engineDamage = clamp(p.engineDamage + 0.15, 0, 1);
+    }
+    world.events.push({ type: 'hardLanding', plane: p.id, x: p.x, y: p.y, severity: s, noseDown });
+    if (p.hp <= 0) {
+      crash(p, world, 'hardLanding');
+      return;
+    }
+    if (s > cfg.collapseFrom && world.rng.next() < s) {
+      p.angle = groundHeading;
+      bellyLand(p, world, ground); // the gear folds
+      return;
+    }
+    // Bounce: kicked back up off the gear, having lost some speed, nose just below the slope so that
+    // once the kick (a negative sink) dies away the plane settles again.
+    p.y = ground + 0.5;
+    p.angle = wrapAngle(groundHeading - (facingRight ? BOUNCE_SETTLE : -BOUNCE_SETTLE));
+    p.speed *= 0.85;
+    p.sink = -BOUNCE_KICK * (0.5 + 0.5 * s);
+    return;
+  }
+
+  let cause = 'ground';
+  let what = null;
+  if (p.blackout) cause = 'blackout';
+  else if (!isUpright(p)) cause = 'inverted';
+  else if (p.dying || misalign > 1) cause = 'ground';
+  else if (p.stalled) [cause, what] = ['stall', { sink: -p.vy, limit: cfg.stallSink }];
+  else if (share >= (gearReady ? cfg.hardSpeed : BELLY_SPEED_MARGIN)) [cause, what] = ['tooFast', { speed: p.speed, limit: d.maxLandingSpeed }];
+  else [cause, what] = [noseUp < 0 ? 'tooSteep' : 'tailFirst', { angle: misalign, limit: gearReady ? cfg.hardAngle : cfg.cleanAngle }];
+  crash(p, world, cause, what);
 }
 
 // Stopped away from home with a dead engine or on the belly, or stuck anywhere (a crater) with the

@@ -222,6 +222,11 @@ export function createSoundscape(mixer, world, cfg = {}) {
         case 'touchdown':
           sfx.touchdown(mixer, where, e.speed);
           break;
+        case 'hardLanding':
+          // A jarring thump: the touchdown sound driven hard, and a crunch if the propeller bit.
+          sfx.touchdown(mixer, where, 140 + 60 * e.severity);
+          if (e.noseDown) sfx.bellyCrunch(mixer, where, 40);
+          break;
         case 'roll':
           sfx.rollWhoosh(mixer, where);
           break;

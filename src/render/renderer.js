@@ -899,6 +899,10 @@ export function createRenderer(canvas, world, assets) {
         particles.sparks(e.x, e.y - 2, 14);
         particles.dirtSpray(e.x, e.y - 2, 0.4);
       }
+      if (e.type === 'hardLanding') {
+        for (let i = 0; i < 12; i++) particles.spawn('dust', e.x, e.y - 3, (Math.random() - 0.5) * 50, 10 + Math.random() * 14, 0.9, 1);
+        if (e.noseDown) particles.sparks(e.x, e.y - 2, 6);
+      }
       if (e.type === 'touchdown' && e.speed > 40) {
         for (let i = 0; i < 6; i++) particles.spawn('dust', e.x, e.y - 3, (Math.random() - 0.5) * 30, 8, 0.8, 0.8);
       }
