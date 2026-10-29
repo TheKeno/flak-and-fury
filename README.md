@@ -4,6 +4,12 @@ A side-scrolling WWII dogfighting game for the browser, in the spirit of the 199
 Turmoil*: pixel art, take-off and landing from your own airfield, guns and bombs, stalls and blackouts,
 and sound design built around a live-synthesized piston engine. Working title.
 
+## Play it
+
+**<https://thekeno.github.io/flak-and-fury/>**: the latest build, updated on every push to `main`.
+Click the game to capture the mouse (Esc frees it). In the tuning panel (T), "Save to files" downloads
+the data files there instead of saving them.
+
 ## Running it
 
 The game needs a small local web server (browsers won't load the data files from disk directly).

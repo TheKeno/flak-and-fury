@@ -1,5 +1,6 @@
 // Live tuning panel (press T). Sliders edit the loaded data objects directly, so changes apply
-// instantly; "Save to files" writes them back to data/*.json through the local dev server.
+// instantly; "Save to files" writes them back to data/*.json through the local dev server (on the
+// web build it downloads them instead).
 import { updateGunRates } from '../sim/weapons.js';
 import { spawnAtAirfield } from '../sim/plane.js';
 import { rearmFully } from '../sim/airfield.js';
@@ -394,6 +395,13 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     status.className = `status ${ok ? 'ok' : 'bad'}`;
   };
 
+  const LOCAL = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+  function download(name, text) {
+    const a = el('a', { href: URL.createObjectURL(new Blob([text], { type: 'application/json' })), download: name });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
   async function save() {
     const files = {
       'data/planes.json': { ...notes.planes, ...planeDefs },
@@ -401,6 +409,12 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
       'data/settings.json': { ...notes.settings, ...settings },
       'data/ground.json': { ...notes.ground, ...groundDefs },
     };
+    // On the public web build (GitHub Pages) there's no dev server to write to: download the files.
+    if (!LOCAL) {
+      for (const [path, data] of Object.entries(files)) download(path.split('/').pop(), JSON.stringify(data, null, 2) + '\n');
+      say('Downloaded the data files (send them to the owner to keep these values)');
+      return;
+    }
     try {
       for (const [path, data] of Object.entries(files)) {
         const res = await fetch(path, { method: 'PUT', body: JSON.stringify(data, null, 2) + '\n' });
