@@ -93,6 +93,7 @@ test('infantry fall one by one and the squad is wiped out', () => {
 
 test('flying into a watchtower wrecks the plane', () => {
   const { world, player } = makeWorld();
+  world.ground = world.ground.filter((o) => !o.def.decor); // no trees in the way
   const tower = find(world, 'tower', 0);
   const [l, b] = groundBox(world, tower);
   Object.assign(player, { state: 'air', x: l - 20, y: b + 15, angle: 0, speed: 120, vx: 120, vy: 0, gear: 0, gearDown: false });
@@ -123,9 +124,9 @@ test('radar health follows the radar station and fails when it is destroyed', as
   assert.equal(player.score, world.groundDefs.radar.points);
 });
 
-test('structures stand on level ground; squads on the natural slope', () => {
+test('structures stand on level ground; squads and decor on the natural slope', () => {
   const { world } = makeWorld();
-  const structures = world.ground.filter((o) => o.def.sprite && !o.mobile && o.type !== 'hangar');
+  const structures = world.ground.filter((o) => o.def.sprite && !o.mobile && !o.def.decor && o.type !== 'hangar');
   assert.ok(structures.length > 10);
   for (const o of structures) {
     const h = world.terrain.heightAt;

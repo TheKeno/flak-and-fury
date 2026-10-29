@@ -47,6 +47,19 @@ const PALETTE = {
   f: [96, 58, 46, 255], // roof tiles (dull, sooty brick)
   F: [70, 44, 36, 255], // roof tile shade
   n: [44, 56, 64, 255], // dark window glass
+  G: [54, 64, 42, 255], // leaves (drab, late-summer dark)
+  H: [38, 46, 32, 255], // leaf shade
+  L: [70, 80, 52, 255], // leaf light
+  X: [48, 58, 38, 255], // hedge
+  Z: [32, 40, 28, 255], // hedge shade
+  a: [70, 58, 44, 255], // bark
+  A: [48, 40, 32, 255], // bark shade
+  j: [104, 102, 94, 255], // field stone
+  J: [76, 74, 68, 255], // stone shade
+  u: [56, 54, 50, 255], // mortar / gaps
+  E: [82, 64, 46, 255], // weathered barn planks
+  D: [60, 46, 34, 255], // plank shade
+  Q: [66, 62, 56, 255], // barn roof (old slate)
 };
 
 // A tiny drawing surface of palette keys.
@@ -83,6 +96,80 @@ function grid(w, h) {
     rowsOut: () => px.map((r) => r.join('')),
   };
   return g;
+}
+
+const noise = (x, k = 1) => ((Math.imul(x + 1, 2654435761) >>> 0) % 997) / 997 * k;
+
+// Field hedge: a low, ragged bank of dark bushes. 48x10.
+function hedge() {
+  const g = grid(48, 10);
+  for (let x = 1; x <= 46; x++) {
+    const top = Math.round(1 + noise(x, 2.5) + (x < 4 || x > 43 ? 2 : 0));
+    for (let y = top; y <= 9; y++) g.set(x, y, noise(x * 7 + y, 1) < 0.3 ? 'Z' : y > 6 ? 'Z' : 'X');
+  }
+  g.outline();
+  return g.rowsOut();
+}
+
+// Dry-stone field wall: rough blocks, darker gaps. 44x8.
+function wall() {
+  const g = grid(44, 8);
+  for (let y = 1; y <= 7; y++) g.span(y, 1, 42, 'j');
+  for (let x = 1; x <= 42; x++) if (noise(x, 1) < 0.35) g.set(x, 1, '.'); // uneven capstones
+  for (let y = 2; y <= 7; y++) {
+    const off = (y >> 1) % 2 ? 0 : 3;
+    for (let x = 1 + off; x <= 42; x += 6) g.set(x, y, 'u');
+    if (y % 2 === 0) g.span(y, 1, 42, 'u');
+  }
+  for (let x = 1; x <= 42; x++) if (noise(x * 3, 1) < 0.4) g.set(x, 7, 'J');
+  g.outline('u');
+  return g.rowsOut();
+}
+
+// Broadleaf tree: a heavy dark crown on a short trunk. 28x52.
+function tree() {
+  const g = grid(28, 52);
+  for (let y = 30; y <= 51; y++) g.span(y, 12, 15, y % 4 ? 'a' : 'A');
+  g.set(11, 51, 'A');
+  g.set(16, 51, 'A');
+  for (const [cx, cy, r] of [[14, 14, 10], [8, 21, 7], [20, 21, 7], [14, 26, 8], [10, 9, 6], [19, 10, 5]]) g.disc(cx, cy, r, 'G');
+  for (const [cx, cy, r] of [[18, 25, 6], [21, 18, 4], [12, 30, 4]]) g.disc(cx, cy, r, 'H');
+  for (const [cx, cy, r] of [[10, 10, 2.5], [7, 18, 2], [14, 7, 2]]) g.disc(cx, cy, r, 'L');
+  for (let y = 0; y < 34; y++) for (let x = 0; x < 28; x++) if (g.get(x, y) !== '.' && noise(x * 13 + y * 7, 1) < 0.12) g.set(x, y, 'H');
+  g.outline();
+  return g.rowsOut();
+}
+
+// Pine: tiers of dark needles on a straight trunk. 20x60.
+function pine() {
+  const g = grid(20, 60);
+  for (let y = 44; y <= 59; y++) g.span(y, 9, 10, y % 3 ? 'a' : 'A');
+  for (const [top, bottom, w] of [[1, 18, 5], [10, 30, 7], [22, 46, 9]]) {
+    for (let y = top; y <= bottom; y++) {
+      const half = Math.round(((y - top) / (bottom - top)) * w);
+      g.span(y, 10 - half, 9 + half, y > bottom - 2 ? 'H' : 'G');
+      g.span(y, 10, 9 + half, 'H'); // shaded side
+    }
+  }
+  g.outline();
+  return g.rowsOut();
+}
+
+// Barn: weathered planks under a sagging slate roof, a big dark door. 72x32.
+function barn() {
+  const g = grid(72, 32);
+  for (let y = 2; y <= 13; y++) {
+    const half = Math.round(14 + (y - 2) * 1.9);
+    g.span(y, 36 - half, 35 + half, y % 3 === 0 ? 'J' : 'Q');
+  }
+  g.span(13, 4, 67, 'u');
+  for (let y = 14; y <= 31; y++) for (let x = 6; x <= 65; x++) g.set(x, y, x % 4 === 0 ? 'D' : 'E');
+  for (let y = 17; y <= 31; y++) g.span(y, 28, 43, 'd');
+  for (let y = 17; y <= 31; y++) g.set(35, y, 'D'); // door seam
+  for (let k = 0; k <= 15; k++) g.set(28 + k, 17 + Math.round(k * 0.93), 'D'); // cross brace
+  for (let y = 19; y <= 22; y++) g.span(y, 12, 16, 'd'); // hay loft hatch
+  g.outline('d');
+  return g.rowsOut();
 }
 
 // Single-engine fighter, side view, nose to the right. 48x18; pivot (24, 10).
@@ -396,6 +483,11 @@ const SPRITES = {
   tower: tower(),
   building: building(),
   radar: radar(),
+  hedge: hedge(),
+  wall: wall(),
+  tree: tree(),
+  pine: pine(),
+  barn: barn(),
 };
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {

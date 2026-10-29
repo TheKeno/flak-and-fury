@@ -27,6 +27,7 @@ const world = createWorld({
   zones: content.settings.zones,
   runway: content.settings.runway,
   landing: content.settings.landing,
+  decor: content.settings.decor,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
@@ -188,6 +189,11 @@ function handleEvents() {
       if (e.type === 'bombRelease' && player.state === 'ground') renderer.message('BOMB AWAY... ON THE GROUND?!', '#ffd870');
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
+      if (e.type === 'hedgeHit') renderer.message('THROUGH THE HEDGE!', '#ffd070');
+      if (e.type === 'wallHit') {
+        renderer.shake(5);
+        renderer.message('STONE WALL - GEAR TORN OFF!', '#ff9070');
+      }
       if (e.type === 'bump') {
         renderer.shake(3);
         renderer.message(`BUMPED INTO THE ${world.groundDefs[e.kind].name.toUpperCase()}!`, '#ffb070');
@@ -209,7 +215,7 @@ function handleEvents() {
       else if (e.taran) renderer.message('RAMMED! TAIL SHREDDED', '#ff8070');
       else renderer.message(e.severity === 'hard' ? 'COLLISION!' : 'GRAZED!', '#ffb070');
     }
-    if (e.by === player.id && e.type === 'groundDestroyed') {
+    if (e.by === player.id && e.type === 'groundDestroyed' && e.points > 0) {
       renderer.message(`${world.groundDefs[e.kind].name.toUpperCase()} DESTROYED +${e.points}`, '#e8c860');
     }
     if (e.type === 'groundDestroyed' && e.kind === 'radar') {

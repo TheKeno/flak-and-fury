@@ -3016,7 +3016,7 @@
               "__tile": null,
               "__smartColor": "#4A6A40",
               "iid": "736200ab-f4a8-4337-9b0f-b2a4231a6f59",
-              "width": 115,
+              "width": 100,
               "height": 8,
               "defUid": 35,
               "px": [
@@ -3028,7 +3028,7 @@
             {
               "__identifier": "Village",
               "__grid": [
-                807,
+                800,
                 395
               ],
               "__pivot": [
@@ -3039,11 +3039,11 @@
               "__tile": null,
               "__smartColor": "#9A7A60",
               "iid": "a65eebf1-8b96-451b-b084-48aa906b83db",
-              "width": 110,
+              "width": 160,
               "height": 8,
               "defUid": 34,
               "px": [
-                1615,
+                1600,
                 790
               ],
               "fieldInstances": []
@@ -3051,7 +3051,7 @@
             {
               "__identifier": "Field",
               "__grid": [
-                870,
+                887,
                 395
               ],
               "__pivot": [
@@ -3062,11 +3062,11 @@
               "__tile": null,
               "__smartColor": "#8A8A50",
               "iid": "3a7e7218-cdc2-4c6b-a838-c2c3d5e66c8c",
-              "width": 510,
+              "width": 475,
               "height": 8,
               "defUid": 33,
               "px": [
-                1740,
+                1775,
                 790
               ],
               "fieldInstances": []
@@ -3120,7 +3120,7 @@
             {
               "__identifier": "Wood",
               "__grid": [
-                1532,
+                1540,
                 395
               ],
               "__pivot": [
@@ -3131,11 +3131,11 @@
               "__tile": null,
               "__smartColor": "#4A6A40",
               "iid": "c3615bc6-5033-43fe-bb40-60444eef630d",
-              "width": 115,
+              "width": 100,
               "height": 8,
               "defUid": 35,
               "px": [
-                3065,
+                3080,
                 790
               ],
               "fieldInstances": []
@@ -3143,7 +3143,7 @@
             {
               "__identifier": "Village",
               "__grid": [
-                1477,
+                1460,
                 395
               ],
               "__pivot": [
@@ -3154,11 +3154,11 @@
               "__tile": null,
               "__smartColor": "#9A7A60",
               "iid": "98865cd3-d659-478a-9ff8-9f29295dde62",
-              "width": 110,
+              "width": 160,
               "height": 8,
               "defUid": 34,
               "px": [
-                2955,
+                2920,
                 790
               ],
               "fieldInstances": []
@@ -3177,7 +3177,7 @@
               "__tile": null,
               "__smartColor": "#8A8A50",
               "iid": "85a74d2b-721c-4fe1-843e-29c1db8cd74c",
-              "width": 510,
+              "width": 475,
               "height": 8,
               "defUid": 33,
               "px": [

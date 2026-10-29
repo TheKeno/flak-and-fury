@@ -8,6 +8,7 @@
     "MG nest: burst and pause: seconds firing and resting; rpm while firing. Infantry: each soldier fires once every interval seconds, give or take half.",
     "Moving units (tanks, infantry and engineers sent out in waves): speed in world units per second; gap: clear space kept behind the unit ahead; engageRange: an enemy this close ahead stops them to fight.",
     "Tank: armour takes bulletFactor of bullet damage from the front and sides, roofFactor from steep dives. Main gun (ground targets only): gunRange, gunInterval, gunVelocity, shellRadius and shellDamage of each shell. The coaxial MG uses range, mgAltitude (only planes lower than this), turnRate, burst, pause, rpm, velocity, damage, spread. wreckBlock: seconds a knocked-out tank blocks the way.",
+    "Decor (decor: true) is placed from the map's zones, not in LDtk, and belongs to nobody: tanks and gunners ignore it. obstacle: hedge (a plane on or skimming the ground ploughs through, losing speed and some hit points) or wall (tears the gear off: a belly landing). Trees and barns are solid.",
     "Bridge: bombs only (bulletFactor 0); rebuildTime: seconds a full squad of engineers needs to rebuild it from nothing. Hangar: as it's damaged the ground crew work slower; destroyed, they can't work at all."
   ],
   "flak": { "name": "Flak gun", "sprite": "flak", "hp": 60, "points": 10, "width": 14, "height": 9, "bulletFactor": 0.6, "solid": false, "range": 700, "minAltitude": 60, "minElevation": 0.3, "turnRate": 0.9, "interval": 2.6, "velocity": 300, "drop": 0.3, "spread": 0.016, "fuseError": 0.08, "burstRadius": 24, "burstDamage": 17, "fireChance": 0.2 },
@@ -21,5 +22,10 @@
   "engineers": { "name": "Engineers", "hp": 3, "points": 1, "width": 3, "height": 6, "spacing": 4, "bulletFactor": 1, "solid": false, "speed": 9, "gap": 6, "engageRange": 0 },
   "depot": { "name": "Tank depot", "sprite": "depot", "hp": 200, "points": 15, "width": 34, "height": 16, "bulletFactor": 0.15, "solid": true },
   "bridge": { "name": "Bridge", "hp": 160, "points": 0, "width": 70, "height": 6, "bulletFactor": 0, "solid": false, "rebuildTime": 40 },
-  "hangar": { "name": "Hangar", "sprite": "hangar", "hp": 300, "points": 30, "width": 32, "height": 16, "bulletFactor": 0.1, "solid": false }
+  "hangar": { "name": "Hangar", "sprite": "hangar", "hp": 300, "points": 30, "width": 32, "height": 16, "bulletFactor": 0.1, "solid": false },
+  "hedge": { "name": "Hedge", "sprite": "hedge", "hp": 20, "points": 0, "width": 24, "height": 5, "bulletFactor": 0.5, "solid": false, "decor": true, "obstacle": "hedge" },
+  "wall": { "name": "Stone wall", "sprite": "wall", "hp": 80, "points": 0, "width": 22, "height": 4, "bulletFactor": 0.02, "solid": false, "decor": true, "obstacle": "wall" },
+  "tree": { "name": "Tree", "sprite": "tree", "hp": 40, "points": 0, "width": 14, "height": 26, "bulletFactor": 0.3, "solid": true, "decor": true },
+  "pine": { "name": "Pine", "sprite": "pine", "hp": 40, "points": 0, "width": 10, "height": 30, "bulletFactor": 0.3, "solid": true, "decor": true },
+  "barn": { "name": "Barn", "sprite": "barn", "hp": 140, "points": 0, "width": 36, "height": 16, "bulletFactor": 0.15, "solid": true, "decor": true }
 }

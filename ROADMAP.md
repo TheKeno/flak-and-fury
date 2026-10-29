@@ -56,6 +56,17 @@ later.
     shells), so closing one takes a raid of 2-3 good hits. Closed: you wait off the runway while the
     crew fill a crater about every 20 s (slower with a damaged hangar, none with it destroyed:
     grounded). Points for cratering the enemy runway, a bonus for closing it. RWY lamp on the HUD.
+  - Forgiving landings: a little too fast or steep is a hard landing that bounces and damages the
+    plane (nose-down bends the prop, a bad one folds the gear); a stall in the last metre is a heavy
+    plop. Crashes say which limit was broken and by how much; LDG SPD / ANG cues on approach.
+  - Field landings: stranded away from home, wait for recovery (the plane comes home damaged, not
+    lost) or press B to abandon it (a fresh plane, counted as lost). Taxiing into a building is a
+    bump; diving into a tank destroys it with the plane; flying low through enemy infantry cuts them
+    down.
+  - Map 30% longer (4680) with landscape zones painted in LDtk: long, nearly flat fields to land on,
+    level villages with their houses grouped, woods, ridges; neighbouring zones crossfade. Decor
+    placed from the zones: hedges and stone walls at field ends, woods, lone trees, barns. Hedges cost
+    speed, walls tear the gear off, trees and barns are solid.
   - Live tuning panel with Save to files; synthesized sound for engines, guns, crew, body, gear,
     collisions.
 
@@ -107,14 +118,8 @@ Then: more themes, co-op missions, online play.
 
 ## Owner's notes (to discuss before building)
 
-- **Landscape:** larger semi-flat stretches, so it looks more real.
-- **Which buildings collide with planes:** to discuss. Landing is very hard at the moment.
-- **Ground decor:** hedges, trees, stone walls.
-- **Placement that makes sense:** objects placed for a reason; houses grouped in twos and threes, not
-  scattered singly.
 - **Animals.**
 - **More gore and blood** when shooting infantry and animals.
-- **A plane diving into a tank or infantry kills them.**
 
 ## Ideas agreed for later
 

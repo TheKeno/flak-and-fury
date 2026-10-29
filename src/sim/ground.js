@@ -5,8 +5,10 @@
 // (obj.mobile; see army.js).
 import { clamp } from './math.js';
 import { armGround } from './defences.js';
+import { addDecor } from './decor.js';
 
 const PLANE_CRASH_DAMAGE = 60; // what a plane flying into a structure does to it
+const GEAR_REACH = 4; // the wheels hang this far below a plane's centre
 
 const SQUADS = new Set(['infantry', 'engineers']);
 // Where an airfield's hangar stands: at the end of the runway nearest the map edge.
@@ -39,6 +41,7 @@ export function createGround(world) {
     const obj = makeGroundObject(world, 'hangar', af.team, hangarX(world, af));
     if (obj) world.ground.push(obj);
   }
+  addDecor(world);
 }
 
 // Ground level for things standing at x: the deck of a standing bridge over a river, otherwise the
@@ -236,6 +239,11 @@ export function planesHitStructures(world, crash) {
         if (p.state === 'dead') break;
         continue;
       }
+      if (obj.def.obstacle) {
+        hitObstacle(world, p, obj, margin, crash);
+        if (p.state === 'dead') break;
+        continue;
+      }
       if (!obj.def.solid) continue;
       const [l, b, r, t] = groundBox(world, obj);
       if (p.x < l - margin || p.x > r + margin || p.y < b || p.y > t + margin) continue;
@@ -256,6 +264,43 @@ export function planesHitStructures(world, crash) {
       break;
     }
   }
+}
+
+// Hedges and stone walls are low: only a plane on the ground, or skimming it with its wheels, meets
+// one. A hedge it ploughs through (losing speed and a little damage); a wall tears the gear off (on the
+// ground: down on its belly), and one flown into fuselage-first is a crash. Each is hit once.
+function hitObstacle(world, p, obj, margin, crash) {
+  const [l, , r, t] = groundBox(world, obj);
+  if (p.x < l - margin || p.x > r + margin || p.y > t + GEAR_REACH || p.speed < 1 || p.lastObstacle === obj.id) return;
+  p.lastObstacle = obj.id;
+  const cfg = world.decor;
+  if (obj.def.obstacle === 'hedge') {
+    p.hp -= cfg.hedgeDamage;
+    p.speed *= cfg.hedgeDrag;
+    damageGround(world, obj, Infinity, null);
+    world.events.push({ type: 'hedgeHit', plane: p.id, x: obj.x, y: t });
+    if (p.hp <= 0) crash(p, world, 'structure', obj.def.name);
+    return;
+  }
+  if (p.state === 'air' && p.y < t + 1) {
+    crash(p, world, 'structure', obj.def.name);
+    return;
+  }
+  damageGround(world, obj, PLANE_CRASH_DAMAGE / 2, null);
+  p.hp -= cfg.wallDamage;
+  p.gear = 0;
+  p.gearDown = false;
+  p.propBent = true;
+  world.events.push({ type: 'wallHit', plane: p.id, x: obj.x, y: t });
+  if (p.state === 'ground' && !p.belly) {
+    // Down on the belly: the engine stops with the propeller in the dirt.
+    p.belly = true;
+    p.speed *= 0.5;
+    p.engineRunning = false;
+    p.engineDamage = clamp(p.engineDamage + 0.3, 0, 1);
+    world.events.push({ type: 'bellyLanding', plane: p.id, x: p.x, y: p.y, speed: p.speed, collapsed: true });
+  }
+  if (p.hp <= 0) crash(p, world, 'structure', obj.def.name);
 }
 
 // A plane low enough to strike a squad's soldiers kills those within its reach.

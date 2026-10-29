@@ -118,10 +118,26 @@ Diving into a tank destroys it with the plane (the points go to the plane). Flyi
 infantry kills the soldiers it strikes, `runDownDamage` hit points each. All of these are also in the
 tuning panel's Collisions section.
 
+## Decor: `data/settings.json` → `decor`
+
+Hedges, stone walls, trees and barns aren't placed in LDtk: the game places them from the map's zones,
+the same every time (from the map seed). A hedge or wall just beyond each end of a field (sometimes with
+a tree), trees in woods (`woodSpacing` apart on average), a few pines on ridges, a barn and trees in
+each village where there's room, and lone trees in open country (`loneTrees`: chance every ~90 units).
+Never on a runway, by a river or in the middle of a field. Decor belongs to nobody: tanks and gunners
+ignore it, but bullets and bombs hit it (bombs flatten it, and a wreck is a stump or rubble).
+
+Planes and decor: trees and barns are solid (a crash in the air, a bump at taxi speed). A hedge is hit
+only on the ground or skimming it with the wheels: the plane ploughs through, keeping `hedgeDrag` of
+its speed and losing `hedgeDamage` hit points. A stone wall tears the gear off (`wallDamage`; on the
+ground the plane goes down on its belly), and one flown into fuselage-first is a crash. In the tuning
+panel's Decor section (spacing and lone trees apply on reload).
+
 ## Ground targets: `data/ground.json`
 
 One entry per kind of ground object (`flak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`,
-`tank`, `engineers`, `depot`, `bridge`, `hangar`). Also in the tuning panel's **Ground targets** section;
+`tank`, `engineers`, `depot`, `bridge`, `hangar`, and the decor: `hedge`, `wall`, `tree`, `pine`, `barn`). Also in the
+tuning panel's **Ground targets** section;
 its **Restore targets** button rebuilds every object at full strength (new hit points only apply then),
 clears the tank columns and starts the waves again.
 

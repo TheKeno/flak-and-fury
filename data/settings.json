@@ -90,6 +90,13 @@
     "fieldSwell": 3,
     "blend": 120
   },
+  "decor": {
+    "hedgeDamage": 6,
+    "hedgeDrag": 0.6,
+    "wallDamage": 20,
+    "woodSpacing": 12,
+    "loneTrees": 0.4
+  },
   "radar": {
     "sweepTime": 2.5,
     "afterglow": 3.2,
