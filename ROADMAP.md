@@ -31,6 +31,12 @@ later.
   fire, shoot-downs.
 - **3. Airfield:** fuel and engine-out glide, ground crew repair → refuel (restarts a dry engine) →
   rearm, stranded recovery.
+- **4. Ground war and LDtk maps:** maps are LDtk projects (`maps/*.ldtk`) with an importer. Flak (fly
+  low), MG nests (fly high), infantry, tents, towers, buildings: all destructible for points, and they
+  shoot at planes in the air and on the ground. Radar stations feed your scope (damage degrades it,
+  destroyed it goes dark). Fire is an emergency landing (about 20 s to live; pilot 5 s in a field,
+  ground crew 1.5 s at home). Tank waves from each side's depot with infantry, a hangar they shell,
+  a river with a bridge that engineers rebuild. Synthesized sound for all of it.
 - **Extras:**
   - Bf 109 F-4 for the player.
   - Retractable gear with G override, belly landings, taildragger ground attitude, long take-off roll.
@@ -44,21 +50,6 @@ later.
 
 ## Milestones ahead
 
-4. **Ground defences and targets + LDtk maps**
-   - ✓ Flak (slow, accurate, high ceiling, sets you on fire: fly low), MG nests (fast bursts, low
-     ceiling: fly high), infantry (weak, dangerous in groups), tents and towers as targets. They
-     shoot at planes in the air and on the ground.
-   - ✓ **Fire is an emergency:** about 20 s to live whatever your hit points, engine coughs then
-     quits; land and stop to put it out (pilot 5 s in a field, ground crew 1.5 s at home).
-   - ✓ **Radar stations** as bombable targets: damage degrades the scope (noise, blotches, stuttering
-     sweep, lost and misplaced echoes); destroy the enemy's and their scope goes dark; lose yours
-     and you're blind.
-   - ✓ **Tank waves (a basic MOBA layer):** each side's depot sends tanks with infantry towards the
-     enemy airfield; they fight what they meet, shell defences and buildings, at last the hangar
-     (slower ground crew, then none). Bomb tanks (thin roof for strafing dives) and depots (smaller,
-     slower waves). A river with a bridge: down, tanks halt and engineers come to rebuild it.
-   - ✓ Map format switched to LDtk projects (`maps/*.ldtk`) with an importer; destructible ground
-     targets with points and wrecks; planes crash into towers, buildings and masts.
 5. **Proper bots:** patrol, chase, evade, return to base when low on fuel or ammo; difficulty levels;
    bomb enemy tanks near their base and cover their own engineers.
 6. **Six nations × 3 planes:** data-driven stats and sprites, following the Bf 109 pattern.
