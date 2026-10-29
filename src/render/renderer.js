@@ -287,17 +287,18 @@ export function createRenderer(canvas, world, assets) {
         col(x, top + 1, 6, burnt ? '#4a3c2c' : '#5d6a34');
         if (burnt && n % 6 === 0) col(x, top + 2, 1, '#2a231c');
       } else {
-        // Grass with the odd tuft poking up, a lit top edge and a darker under-layer.
-        if (n % 9 === 0) col(x, top - 1 - (n % 2), 1 + (n % 2), '#7fa548');
-        col(x, top, 1, n % 4 === 0 ? '#b4d46c' : '#9ec45c');
-        col(x, top + 1, 4 + (n % 3), '#7aa847');
-        col(x, top + 5 + (n % 3), 2, '#5f8a38');
+        // Drab grass with the odd tuft poking up, a lit top edge and a darker under-layer, over dark earth:
+        // the look is grim, it's war.
+        if (n % 9 === 0) col(x, top - 1 - (n % 2), 1 + (n % 2), '#5e6a3c');
+        col(x, top, 1, n % 4 === 0 ? '#838d52' : '#6f7a45');
+        col(x, top + 1, 4 + (n % 3), '#56603a');
+        col(x, top + 5 + (n % 3), 2, '#434b2e');
       }
-      col(x, top + 7, bh - top - 7, '#6b5236');
-      col(x, top + 22, bh - top - 22, '#5e4730');
-      col(x, top + 44, bh - top - 44, '#513d29');
-      if (n % 5 === 0) col(x, top + 10 + (n % 31), 1, '#45341f');
-      if (n % 17 === 0) col(x, top + 14 + (n % 23), 2, '#7d6648'); // pebbles
+      col(x, top + 7, bh - top - 7, '#33251a');
+      col(x, top + 22, bh - top - 22, '#241a12');
+      col(x, top + 44, bh - top - 44, '#160f0a');
+      if (n % 5 === 0) col(x, top + 10 + (n % 31), 1, '#0e0906');
+      if (n % 17 === 0) col(x, top + 14 + (n % 23), 2, '#3d3226'); // pebbles
       // River water over the channel bed, with a glinting, rippling surface.
       const river = map.rivers?.find((rv) => wx >= rv.x && wx <= rv.x + rv.width);
       if (river && t.heightAt(wx) < river.water) {

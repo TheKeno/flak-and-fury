@@ -17,6 +17,8 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
   `GH_TOKEN="$(gh auth token --user TheKeno)" gh ...`. A repo-local git credential helper already
   makes `git push` use TheKeno. Commit to `main` and push after each finished change.
 - The owner discusses ideas before building; when they ask for suggestions, give them and wait.
+- **Look: grim.** It's war: dark, muted, desaturated colours for anything visual (sprites, terrain,
+  sky, effects, UI). When unsure, go darker. **Setting: 1943** for planes, tanks and weapons.
 
 ## Running
 
