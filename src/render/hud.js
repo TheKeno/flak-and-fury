@@ -11,7 +11,7 @@ function bar(ctx, x, y, w, value, colour) {
   ctx.fillRect(x + 1, y + 1, Math.round(w * value), 2);
 }
 
-export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
+export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLook = false }) {
   if (!plane) return;
 
   const x = 6;
@@ -67,7 +67,8 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
   }
 
   const blink = Math.floor(performance.now() / 300) % 2 === 0;
-  const centre = (str, cy, colour) => drawText(ctx, str, Math.round((W - textWidth(str)) / 2), cy, colour);
+  // In free look the camera is elsewhere: your plane's calls and bars would only cover the view.
+  const centre = (str, cy, colour) => !freeLook && drawText(ctx, str, Math.round((W - textWidth(str)) / 2), cy, colour);
   if (plane.state === 'dead') centre('CRASHED - BACK TO THE HANGAR', 60, '#ff9070');
   else if (plane.dying) centre('GOING DOWN!', 60, blink ? '#ff6050' : '#ffb0a0');
   else if (plane.burning && plane.state === 'air') centre('ON FIRE - LAND NOW!', 60, blink ? '#ff6050' : '#ffc0a0');
@@ -80,8 +81,10 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight }) {
   else if (!plane.engineRunning && plane.state === 'air') centre('ENGINE OUT - GLIDE HOME!', 60, blink ? '#ff9050' : '#ffd0b0');
   else if (plane.state === 'ground' && !plane.burning) groundMessage(ctx, world, plane, centre); // the fire bar shows instead
 
-  serviceBar(ctx, world, plane, W);
-  fireBar(ctx, world, plane, W);
+  if (!freeLook) {
+    serviceBar(ctx, world, plane, W);
+    fireBar(ctx, world, plane, W);
+  }
   const below = damageReport(ctx, plane, x, y + 4); // under the plane stats
   if (lastFlight) drawLastFlight(ctx, lastFlight, x, below);
 

@@ -89,7 +89,8 @@ function buildCloud(rng) {
     for (let x = 0; x < w; x++) {
       if (!blobs.some((b) => (x - b.x) ** 2 + ((y - b.y) * 1.6) ** 2 < b.r * b.r)) continue;
       const v = y / h + ((x * 7 + y * 13) % 5) * 0.012; // slight texture in the shading bands
-      const shade = v > 0.66 ? [190, 202, 212] : v > 0.52 ? [212, 222, 230] : v > 0.38 ? [232, 238, 243] : [246, 249, 251];
+      // Dull overcast grey, darker underneath: a grim sky.
+      const shade = v > 0.66 ? [110, 116, 120] : v > 0.52 ? [128, 134, 138] : v > 0.38 ? [145, 150, 153] : [157, 163, 166];
       img.data.set([...shade, 235], (y * w + x) * 4);
     }
   }
@@ -256,8 +257,8 @@ export function createRenderer(canvas, world, assets) {
         if (top < bh) ctx.fillRect(x, top, 1, bh - top);
       }
     };
-    ridge(farRidge, 0.2, '#8aa6b6');
-    ridge(nearRidge, 0.45, '#7a9a86');
+    ridge(farRidge, 0.2, '#5f6a70');
+    ridge(nearRidge, 0.45, '#3f4a3c');
   }
 
   // Ground, one buffer-pixel column at a time: grass (or runway, or scorched earth), then soil layers.
@@ -953,7 +954,7 @@ export function createRenderer(canvas, world, assets) {
         if (left <= 0) lastFlight = null;
         else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
       }
-      drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight });
+      drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
       drawMessages();
       const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
       if (free) {

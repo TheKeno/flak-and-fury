@@ -1326,7 +1326,7 @@
         {
           "__identifier": "skyLow",
           "__type": "Color",
-          "__value": "#9cc4d8",
+          "__value": "#7d8a8f",
           "__tile": null,
           "defUid": 7,
           "realEditorValues": [
@@ -1341,7 +1341,7 @@
         {
           "__identifier": "skyHigh",
           "__type": "Color",
-          "__value": "#3e6f9a",
+          "__value": "#3c4a57",
           "__tile": null,
           "defUid": 8,
           "realEditorValues": [
@@ -1356,7 +1356,7 @@
         {
           "__identifier": "skySpace",
           "__type": "Color",
-          "__value": "#1d3654",
+          "__value": "#161d26",
           "__tile": null,
           "defUid": 9,
           "realEditorValues": [
