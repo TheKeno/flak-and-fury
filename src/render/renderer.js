@@ -789,10 +789,10 @@ export function createRenderer(canvas, world, assets) {
   function drawMessages() {
     const now = performance.now();
     for (let i = messages.length - 1; i >= 0; i--) if (messages[i].until < now) messages.splice(i, 1);
+    // Centred under the radar scope and the plane's warnings.
     messages.slice(-4).forEach((m, i) => {
       hud.globalAlpha = Math.min(1, (m.until - now) / 600);
-      const w = m.text.length * 4;
-      drawText(hud, m.text, W - w - 6, 22 + i * 8, m.colour);
+      drawText(hud, m.text, Math.round((W - textWidth(m.text)) / 2), 86 + i * 8, m.colour);
       hud.globalAlpha = 1;
     });
   }
@@ -958,10 +958,10 @@ export function createRenderer(canvas, world, assets) {
       drawMessages();
       const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
       if (free) {
-        banner('FREE LOOK  ARROWS MOVE (SHIFT FAST)  WHEEL ZOOM  V BACK TO THE PLANE', 96, '#f0e8c0');
-        banner(`1 FRONT  2 BRIDGE  3 YOUR PLANE   W/S SPEED: ${free.speed}X`, 104, free.speed > 1 ? '#ffd870' : '#f0e8c0');
+        banner('FREE LOOK  ARROWS MOVE (SHIFT FAST)  WHEEL ZOOM  V BACK TO THE PLANE', 122, '#f0e8c0');
+        banner(`1 FRONT  2 BRIDGE  3 YOUR PLANE   W/S SPEED: ${free.speed}X`, 130, free.speed > 1 ? '#ffd870' : '#f0e8c0');
       }
-      if (paused) banner('PAUSED - P TO RESUME', 124, '#f0f0e0');
+      if (paused) banner('PAUSED - P TO RESUME', 142, '#f0f0e0');
       // Under the scope: the state of your own radar, then whether you're under the enemy's.
       const labels = [];
       if (radar.health <= 0) {

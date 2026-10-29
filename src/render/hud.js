@@ -89,16 +89,18 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   if (lastFlight) drawLastFlight(ctx, lastFlight, x, below);
 
   if (showHelp) {
+    // Top right, beside the radar scope (short lines: there's little room).
     const lines = [
-      'A/D  ROTATE LEFT / RIGHT',
-      'W/S  THROTTLE',
-      'L.SHIFT  ROLL / TURN ON GROUND',
-      'SPACE  GUNS   E  BOMBS   G  GEAR',
-      'ARROWS OR HOLD RIGHT MOUSE + DRAG  LOOK AROUND',
-      'V  FREE LOOK (AUTOPILOT FLIES)   P  PAUSE',
-      'M  MUTE   T  TUNING   H  HIDE HELP',
+      'A/D    ROTATE',
+      'W/S    THROTTLE',
+      'SHIFT  ROLL / TURN ON GROUND',
+      'SPACE GUNS  E BOMBS  G GEAR',
+      'ARROWS / RIGHT DRAG  LOOK',
+      'V FREE LOOK  P PAUSE',
+      'M MUTE  T TUNING  H HIDE HELP',
     ];
-    lines.forEach((l, i) => drawText(ctx, l, 6, H - 8 - (lines.length - 1 - i) * 7, '#f0f0e0'));
+    const left = W - 6 - Math.max(...lines.map((l) => textWidth(l)));
+    lines.forEach((l, i) => drawText(ctx, l, left, 4 + i * 7, '#f0f0e0'));
   }
 }
 
@@ -130,11 +132,11 @@ function fireBar(ctx, world, plane, W) {
   bar(ctx, Math.round((W - w) / 2) - 1, y + 8, w, Math.min(1, plane.fireOut / need), '#ff9050');
 }
 
-// Ground crew progress at the bottom of the screen.
+// Ground crew progress, under the radar scope.
 function serviceBar(ctx, world, plane, W) {
   const s = plane.service;
   if (!s) return;
-  const y = 236;
+  const y = 44;
   const label = s.wait > 0 ? 'GROUND CREW COMING' : s.phase === 'done' ? 'READY - OPEN THROTTLE (W)' : JOBS[s.phase] ?? '';
   const colour = s.phase === 'done' ? '#a8e090' : '#f0e8c0';
   drawText(ctx, label, Math.round((W - textWidth(label)) / 2), y, colour);
