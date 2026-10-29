@@ -68,6 +68,8 @@ const PALETTE = {
   E: [82, 64, 46, 255], // weathered barn planks
   D: [60, 46, 34, 255], // plank shade
   Q: [66, 62, 56, 255], // barn roof (old slate)
+  m: [122, 40, 36, 255], // roundel red (dull)
+  5: [168, 146, 64, 255], // roundel yellow (dull)
 };
 
 // A tiny drawing surface of palette keys.

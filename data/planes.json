@@ -1,74 +1,8 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
-  "fighter_v12": {
-    "name": "Inline fighter",
-    "role": "fighter",
-    "sprite": "fighter",
-    "pivot": [
-      48,
-      20
-    ],
-    "noseOffset": [
-      12,
-      0
-    ],
-    "exhaustOffset": [
-      7,
-      0.5
-    ],
-    "thrust": 85,
-    "dragCoef": 0.00378,
-    "groundFriction": 18,
-    "groundThrust": 0.45,
-    "tailUpSpeed": 0.85,
-    "turnRate": 1.5,
-    "fineTurn": 0.25,
-    "turnRampTime": 0.4,
-    "slowTurnBonus": 0.8,
-    "slowTurnSpeed": 110,
-    "stallSpeed": 55,
-    "takeoffSpeed": 60,
-    "runwayNeeded": 180,
-    "maxLandingSpeed": 95,
-    "maxSpeed": 150,
-    "hp": 100,
-    "toughness": 1,
-    "rearView": 0.8,
-    "hitRadius": 7,
-    "endurance": 300,
-    "bombOffset": [
-      0,
-      -4
-    ],
-    "gearTime": 1.6,
-    "fixedTailWheel": false,
-    "rollTime": 0.5,
-    "groundTurnTime": 1.5,
-    "groundLoopTime": 0.9,
-    "armament": {
-      "guns": [
-        {
-          "weapon": "browning_303",
-          "count": 8
-        }
-      ],
-      "bombs": {
-        "weapon": "gp_250",
-        "count": 2
-      }
-    },
-    "engine": {
-      "layout": "inline",
-      "cylinders": 12,
-      "idleRpm": 900,
-      "cruiseRpm": 2650,
-      "maxRpm": 3000,
-      "propBlades": 3,
-      "gearRatio": 0.477
-    }
-  },
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot. nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
   "bf109": {
     "name": "Bf 109 F-4",
+    "nation": "germany",
     "role": "fighter",
     "sprite": "bf109",
     "pivot": [
@@ -170,6 +104,111 @@
       "maxRpm": 2700,
       "propBlades": 3,
       "gearRatio": 0.645
+    }
+  },
+  "spitfire": {
+    "name": "Spitfire Mk IX",
+    "nation": "uk",
+    "role": "fighter",
+    "sprite": "spitfire",
+    "pivot": [
+      48,
+      20
+    ],
+    "noseOffset": [
+      10,
+      0
+    ],
+    "exhaustOffset": [
+      8.1,
+      0.4
+    ],
+    "thrust": 90,
+    "dragCoef": 0.0036,
+    "groundFriction": 14,
+    "groundThrust": 0.45,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.55,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.4,
+    "slowTurnBonus": 1,
+    "slowTurnSpeed": 110,
+    "stallSpeed": 54,
+    "takeoffSpeed": 59,
+    "runwayNeeded": 120,
+    "maxLandingSpeed": 92,
+    "maxSpeed": 160,
+    "hp": 100,
+    "toughness": 1,
+    "rearView": 0.55,
+    "hitRadius": 7,
+    "endurance": 220,
+    "bombOffset": [
+      0,
+      -4
+    ],
+    "gearTime": 1.6,
+    "fixedTailWheel": true,
+    "wheels": [
+      {
+        "leg": [
+          5,
+          -1.725
+        ],
+        "wheel": [
+          5.875,
+          -4.175
+        ],
+        "stowed": [
+          5.875,
+          -1.7
+        ],
+        "r": 0.825
+      },
+      {
+        "leg": [
+          -9.8,
+          -0.225
+        ],
+        "wheel": [
+          -10.125,
+          -0.975
+        ],
+        "stowed": [
+          -10.125,
+          -0.975
+        ],
+        "r": 0.325,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.5,
+    "groundTurnTime": 1.5,
+    "groundLoopTime": 0.9,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "hispano_20",
+          "count": 2
+        },
+        {
+          "weapon": "browning_303",
+          "count": 4
+        }
+      ],
+      "bombs": {
+        "weapon": "gp_250",
+        "count": 2
+      }
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 900,
+      "cruiseRpm": 2650,
+      "maxRpm": 3000,
+      "propBlades": 4,
+      "gearRatio": 0.477
     }
   }
 }

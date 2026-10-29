@@ -40,7 +40,7 @@ function makeWorld({ seed = 0 } = {}) {
 }
 
 const GERMAN = { team: 0, nation: 'germany', defId: 'bf109' };
-const BRITISH = { team: 1, nation: 'uk', defId: 'fighter_v12' };
+const BRITISH = { team: 1, nation: 'uk', defId: 'spitfire' };
 const bot = (world, side, skill = 'normal') => addPlane(world, { ...side, controller: `bot:${skill}` });
 
 // Steps the world, recording every event; until(world) stops early.

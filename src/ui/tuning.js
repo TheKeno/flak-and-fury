@@ -327,7 +327,7 @@ function slider(obj, [key, label, min, max, step, help], onChange) {
   return row;
 }
 
-export function createTuningPanel({ content, world, player, placeBots, getMixer, onPause }) {
+export function createTuningPanel({ content, world, player, choice, placeBots, getMixer, onPause }) {
   const { planeDefs, weapons, settings, groundDefs, notes } = content;
   // What Reset returns to: the values last loaded from or saved to the files.
   const snapshot = () => structuredClone({ planeDefs, weapons, settings, groundDefs });
@@ -408,9 +408,28 @@ export function createTuningPanel({ content, world, player, placeBots, getMixer,
     ruleBoxes.push([box, key]);
     return el('label', { class: 'row check', title: help }, el('span', {}, label), box);
   };
+  // Which plane you and the enemy fly: the page reloads with the choice in its address (unsaved tuning
+  // is lost), until the hangar.
+  const planePick = (key, label, help) => {
+    const box = el(
+      'select',
+      {
+        onchange: () => {
+          const url = new URL(location.href);
+          url.searchParams.set(key, box.value);
+          location.href = url.href;
+        },
+      },
+      ...Object.entries(planeDefs).map(([id, d]) => el('option', { value: id }, `${d.name} (${content.nations[d.nation]?.name ?? d.nation})`)),
+    );
+    box.value = choice[key];
+    return el('label', { class: 'row select', title: help }, el('span', {}, label), box);
+  };
   const testSection = section(
     'Testing',
     true,
+    planePick('plane', 'Your plane', 'The plane you and your wingmen fly. Reloads the game: save tuning first.'),
+    planePick('enemy', 'Enemy plane', 'The plane the enemy bots fly. Reloads the game: save tuning first.'),
     el('label', { class: 'row select', title: 'Turn the bots (both sides) off or make them harmless while you test.' }, el('span', {}, 'Bots'), botSelect),
     pick('wingmen', 'Wingmen', 'Bots flying on your side.', counts),
     pick('wingmanSkill', 'Wingman level', 'How good your wingmen are. The levels are set under Bots.', BOT_LEVELS),

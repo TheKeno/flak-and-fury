@@ -34,12 +34,17 @@ const world = createWorld({
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
 content.settings.rules = world.rules;
-const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+// Your plane and the enemy's, picked in the tuning panel (it reloads with ?plane=...&enemy=...) until the
+// hangar (milestone 8). Each flies in its own nation's colours; your wingmen fly your plane.
+const params = new URLSearchParams(location.search);
+const planeId = (key, fallback) => (content.planeDefs[params.get(key)] ? params.get(key) : fallback);
+const choice = { plane: planeId('plane', 'bf109'), enemy: planeId('enemy', 'spitfire') };
+const nationOf = (defId) => content.planeDefs[defId].nation;
+const player = addPlane(world, { defId: choice.plane, team: 0, nation: nationOf(choice.plane), controller: 'p1' });
 // Bots: your wingmen and the enemy, as many and as good as the rules say (Testing in the tuning panel).
-// Each side flies its nation's fighter until the hangar (milestone 8) lets you choose.
 const SIDES = [
-  { team: 0, nation: 'germany', defId: 'bf109', count: 'wingmen', skill: 'wingmanSkill' },
-  { team: 1, nation: 'uk', defId: 'fighter_v12', count: 'enemies', skill: 'enemySkill' },
+  { team: 0, nation: nationOf(choice.plane), defId: choice.plane, count: 'wingmen', skill: 'wingmanSkill' },
+  { team: 1, nation: nationOf(choice.enemy), defId: choice.enemy, count: 'enemies', skill: 'enemySkill' },
 ];
 const placeBots = () => {
   for (const s of SIDES) setBots(world, { ...s, count: world.rules[s.count], skill: world.rules[s.skill] });
@@ -55,6 +60,7 @@ const tuning = createTuningPanel({
   content,
   world,
   player,
+  choice,
   placeBots,
   getMixer: () => mixer,
   onPause: (p) => setPaused(p),
