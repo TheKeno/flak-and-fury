@@ -38,11 +38,11 @@ function strafe(world, owner, obj, rounds, damage = 2) {
 
 test('the LDtk map imports with airfields and both sides\' ground objects', () => {
   const map = importLdtk(load('maps/countryside.ldtk'));
-  assert.equal(map.width, 3600);
+  assert.equal(map.width, 4680);
   assert.equal(map.ceiling, 720);
   assert.deepEqual(map.airfields, [
     { x: 220, width: 420, team: 0, nation: 'germany' },
-    { x: 2960, width: 420, team: 1, nation: 'uk' },
+    { x: 4040, width: 420, team: 1, nation: 'uk' },
   ]);
   const count = (team) => map.ground.filter((o) => o.team === team).length;
   assert.equal(count(0), 15);

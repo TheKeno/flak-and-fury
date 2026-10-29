@@ -191,6 +191,16 @@ const PAD_FIELDS = [
   ['margin', 'Level ground beyond', 0, 30, 1, 'Extra flat ground on each side of a structure. Applies when the page is reloaded (after Save to files).'],
   ['blend', 'Blend into the hill', 1, 80, 1, 'How far the flat pad eases back into the slope. Applies when the page is reloaded (after Save to files).'],
 ];
+const ZONE_FIELDS = [
+  ['open', 'Open country hills', 0, 1.5, 0.05, 'Share of the hills kept on ground in no zone. Applies when the page is reloaded (after Save to files).'],
+  ['field', 'Field: hills kept', 0, 1, 0.01, 'Share of the hills kept in a Field zone (0 = dead flat). Applies on reload.'],
+  ['fieldTilt', 'Field: tilt', 0, 0.1, 0.005, 'Steepest gentle slope across a field (rise per unit); each field gets its own. Applies on reload.'],
+  ['fieldSwell', 'Field: swell', 0, 15, 0.5, 'Height of a field’s long, low roll. Applies on reload.'],
+  ['village', 'Village: hills kept', 0, 1, 0.01, 'Share of the hills kept in a Village zone. Applies on reload.'],
+  ['wood', 'Wood: hills kept', 0, 1.5, 0.05, 'Share of the hills kept in a Wood zone. Applies on reload.'],
+  ['ridge', 'Ridge: hills kept', 0, 1.5, 0.05, 'Share of the hills kept in a Ridge zone. Above 1 = steeper than the noise. Applies on reload.'],
+  ['blend', 'Zone blend', 10, 300, 5, 'Distance over which one kind of ground eases into the next. Applies on reload.'],
+];
 const WAVE_FIELDS = [
   ['first', 'First wave after', 0, 300, 5, 'Seconds from the start before the first tank columns roll out.'],
   ['interval', 'Time between waves', 10, 400, 5, 'Seconds between waves from an undamaged depot. A damaged depot takes up to 2.5 times as long.'],
@@ -344,6 +354,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
+  const zoneSection = section('Landscape zones', false, ...ZONE_FIELDS.map((f) => add(slider(settings.zones, f))));
   const padSection = section('Structure pads', false, ...PAD_FIELDS.map((f) => add(slider(settings.pads, f))));
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
   const restoreTargets = () => {
@@ -408,6 +419,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.fire, saved.settings.fire);
     Object.assign(settings.waves, saved.settings.waves);
     Object.assign(settings.pads, saved.settings.pads);
+    Object.assign(settings.zones, saved.settings.zones);
     Object.assign(settings.hud, saved.settings.hud);
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;
@@ -468,6 +480,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     radarSection,
     groundSection,
     waveSection,
+    zoneSection,
     padSection,
     servicingSection,
     runwaySection,

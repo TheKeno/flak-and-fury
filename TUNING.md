@@ -212,6 +212,14 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`, `Depot`
   (sends out that side's tank waves). Each has a `team` (Team_0 is the west airfield's side). Only the x
   position matters: the game stands every object on the ground. Every airfield gets a hangar by itself.
+- **Zones layer:** `Field`, `Village`, `Wood`, `Ridge`: stretch each over the ground it covers. A field
+  is long, nearly flat farmland (make it at least runway length, 420, to land on), a village is level
+  ground for a few farms, a wood is gentle, a ridge keeps the hills. Ground in no zone is rolling
+  country. How strongly each shapes the ground is in `settings.json` → `zones` (tuning panel:
+  Landscape zones; applies on reload): `open`, `field`, `village`, `wood`, `ridge` are the share of the
+  hills kept, `fieldTilt` and `fieldSwell` give each field its own gentle tilt and long low roll, and
+  `blend` is how far one kind of ground eases into the next (neighbouring zones crossfade). Redraw the
+  guide picture after moving zones.
 - **`Bridge`** puts a river under itself with a bridge across: stretch it to set the river's width. It
   belongs to neither side. Redraw the guide picture after moving it.
 - **The hills** aren't stored in the map; the game builds them from `seed`. The picture behind the

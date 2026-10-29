@@ -4,7 +4,8 @@
 // One LDtk pixel is one world unit. LDtk measures y downwards from the top of the level; the game only
 // uses the x positions of placed objects, which are stood on the ground when the world is built.
 // Level fields hold the map settings (seed, ceiling, terrain, sky colours); the "Objects" entity layer
-// holds the airfields and every ground object. A Bridge entity also puts a river under itself.
+// holds the airfields and every ground object. A Bridge entity also puts a river under itself. The
+// "Zones" layer says what the ground is like (src/sim/terrain.js shapes it; decor is placed from it).
 
 // LDtk entity name -> ground object type in data/ground.json.
 export const GROUND_ENTITIES = {
@@ -17,6 +18,9 @@ export const GROUND_ENTITIES = {
   Radar: 'radar',
   Depot: 'depot',
 };
+
+// LDtk zone entity -> zone type.
+export const ZONE_ENTITIES = { Field: 'field', Village: 'village', Wood: 'wood', Ridge: 'ridge' };
 
 const fieldsOf = (instances) => Object.fromEntries((instances ?? []).map((f) => [f.__identifier, f.__value]));
 const teamOf = (v) => (v == null ? null : Number(String(v).replace(/\D/g, '')));
@@ -35,6 +39,7 @@ export function importLdtk(project, levelName) {
     airfields: [],
     rivers: [],
     ground: [],
+    zones: [],
   };
   for (const layer of level.layerInstances ?? []) {
     if (layer.__type !== 'Entities') continue;
@@ -43,6 +48,10 @@ export function importLdtk(project, levelName) {
       const left = Math.round(e.px[0] - e.__pivot[0] * e.width);
       if (e.__identifier === 'Airfield') {
         map.airfields.push({ x: left, width: e.width, team: teamOf(ef.team), nation: String(ef.nation).toLowerCase() });
+        continue;
+      }
+      if (ZONE_ENTITIES[e.__identifier]) {
+        map.zones.push({ type: ZONE_ENTITIES[e.__identifier], x: left, width: e.width });
         continue;
       }
       if (e.__identifier === 'Bridge') {
@@ -59,6 +68,7 @@ export function importLdtk(project, levelName) {
   }
   map.airfields.sort((a, b) => a.x - b.x);
   map.rivers.sort((a, b) => a.x - b.x);
+  map.zones.sort((a, b) => a.x - b.x);
   map.ground.sort((a, b) => a.x - b.x);
   return map;
 }

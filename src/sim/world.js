@@ -2,7 +2,7 @@
 // Each tick takes one command object per controller ("p1", "bot3", later remote players),
 // so online play only has to deliver those commands.
 import { createRng } from './math.js';
-import { buildTerrain, structurePads, DEFAULT_PADS } from './terrain.js';
+import { buildTerrain, structurePads, DEFAULT_PADS, DEFAULT_ZONES } from './terrain.js';
 import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LANDING } from './plane.js';
 import { stepBullets, stepBombs } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
@@ -38,6 +38,7 @@ export function createWorld({
   fire = { ...DEFAULT_FIRE },
   waves = { ...DEFAULT_WAVES },
   pads = { ...DEFAULT_PADS },
+  zones = { ...DEFAULT_ZONES },
   runway = { ...DEFAULT_RUNWAY },
   landing = { ...DEFAULT_LANDING },
 }) {
@@ -63,7 +64,7 @@ export function createWorld({
     events: [], // things that happened this tick, for sound and effects
     nextId: 1,
   };
-  world.terrain = buildTerrain(world.map, structurePads(world.map, groundDefs, pads));
+  world.terrain = buildTerrain(world.map, structurePads(world.map, groundDefs, pads), zones);
   createGround(world);
   createArmy(world);
   return world;

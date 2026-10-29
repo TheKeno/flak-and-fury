@@ -34,7 +34,7 @@ const steps = (world, n, cmd = IDLE) => {
 };
 // Somewhere fairly flat away from the airfields, cleared of anything standing there.
 function openGround(world) {
-  const flat = (x) => [-30, -15, 0, 15, 30].every((d) => Math.abs(world.terrain.slopeAngle(x + d)) < 0.2);
+  const flat = (x) => [-80, -40, 0, 40, 80].every((d) => Math.abs(world.terrain.slopeAngle(x + d)) < 0.08);
   for (let x = 200; x < world.map.width - 200; x += 10) {
     if (!flat(x)) continue;
     if (world.map.airfields.some((a) => x > a.x - 100 && x < a.x + a.width + 100)) continue;

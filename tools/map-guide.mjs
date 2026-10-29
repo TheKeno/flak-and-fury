@@ -17,7 +17,7 @@ export function writeGuide(ldtkUrl) {
   const map = importLdtk(project);
   // Level pads under the structures where they stand now; redraw after moving them.
   const load = (p) => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
-  const terrain = buildTerrain(structuredClone(map), structurePads(map, load('data/ground.json'), load('data/settings.json').pads));
+  const terrain = buildTerrain(structuredClone(map), structurePads(map, load('data/ground.json'), load('data/settings.json').pads), load('data/settings.json').zones);
   const w = level.pxWid;
   const h = level.pxHei;
   const rgba = new Uint8Array(w * h * 4);

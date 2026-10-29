@@ -10,6 +10,12 @@ const RIVER_WATER = 6; // water surface below the banks
 
 export const DEFAULT_PADS = { margin: 4, blend: 40 };
 
+// How the map's zones shape the ground. open, field, village, wood, ridge: share of the hills' ups and
+// downs kept (around the zone's own average height; open is ground in no zone). fieldTilt: steepest
+// gentle slope across a field (rise per unit); fieldSwell: height of a field's long, low roll.
+// blend: distance over which one kind of ground eases into the next.
+export const DEFAULT_ZONES = { open: 0.75, field: 0.05, village: 0.05, wood: 0.5, ridge: 0.85, fieldTilt: 0.025, fieldSwell: 3, blend: 120 };
+
 // Level ground for each structure placed on the map (guns, tents, buildings...: anything drawn with a
 // sprite), so none stands tilted on a hillside. Squads and the bridge stand on the ground as it is.
 export function structurePads(map, groundDefs, cfg = DEFAULT_PADS) {
@@ -20,6 +26,43 @@ export function structurePads(map, groundDefs, cfg = DEFAULT_PADS) {
 
 const smooth = (t) => t * t * (3 - 2 * t);
 
+// Open country keeps a share of the noise hills; each zone eases in its own kind of ground across its
+// edges (so neighbouring zones crossfade). Fields are nearly flat with a gentle tilt and a long low
+// roll, each one different (from the map seed and where it lies).
+function shapeZones(map, heights, cfg) {
+  const { width, seed } = map;
+  const { base, amplitude } = map.terrain;
+  const raw = heights.slice();
+  const mid = base + amplitude * 0.5;
+  for (let x = 0; x <= width; x++) heights[x] = mid + (raw[x] - mid) * cfg.open;
+  // Each zone's weight ramps from 0 to 1 across its edges (centred on the edge); where zones meet they
+  // share the ramp, so one kind of ground eases straight into the next without open hills between.
+  const half = Math.max(1, cfg.blend) / 2;
+  const weight = new Float32Array(width + 1);
+  const sum = new Float32Array(width + 1);
+  for (const z of map.zones ?? []) {
+    const a = z.x;
+    const b = z.x + z.width;
+    let total = 0;
+    for (let x = Math.max(0, a); x <= Math.min(width, b); x++) total += raw[x];
+    const mean = total / Math.max(1, Math.min(width, b) - Math.max(0, a) + 1);
+    const keep = cfg[z.type] ?? cfg.open;
+    const rng = createRng((seed ^ Math.imul(a + 1, 0x9e3779b1)) >>> 0);
+    const tilt = z.type === 'field' ? (rng.next() * 2 - 1) * cfg.fieldTilt : 0;
+    const swell = z.type === 'field' ? (rng.next() < 0.5 ? -1 : 1) * cfg.fieldSwell : 0;
+    for (let x = Math.max(0, Math.floor(a - half)); x <= Math.min(width, Math.ceil(b + half)); x++) {
+      const w = smooth(clamp01(Math.min((x - (a - half)) / (2 * half), (b + half - x) / (2 * half))));
+      const t = clamp01((x - a) / Math.max(1, b - a));
+      const shape = mean + (raw[x] - mean) * keep + tilt * (x - (a + b) / 2) + swell * Math.sin(Math.PI * t);
+      weight[x] += w;
+      sum[x] += w * shape;
+    }
+  }
+  for (let x = 0; x <= width; x++) if (weight[x] > 0) heights[x] = lerp(heights[x], sum[x] / weight[x], Math.min(1, weight[x]));
+}
+
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
 function valueNoise(rng, width, spacing) {
   const pts = Array.from({ length: Math.ceil(width / spacing) + 2 }, () => rng.next());
   return (x) => {
@@ -29,8 +72,8 @@ function valueNoise(rng, width, spacing) {
 }
 
 // Builds a height field (one height per world pixel column). y is up; 0 is the bottom of the world.
-// pads: level ground under structures (see structurePads).
-export function buildTerrain(map, pads = []) {
+// pads: level ground under structures (see structurePads); zones: how the map's zones shape the ground.
+export function buildTerrain(map, pads = [], zones = DEFAULT_ZONES) {
   const { width, seed } = map;
   const { base, amplitude } = map.terrain;
   const rng = createRng(seed);
@@ -41,6 +84,7 @@ export function buildTerrain(map, pads = []) {
   for (let x = 0; x <= width; x++) {
     heights[x] = base + amplitude * (0.8 * big(x) + 0.2 * detail(x));
   }
+  shapeZones(map, heights, zones);
 
   // Flatten airfields, blending smoothly into the surrounding hills.
   for (const af of map.airfields) {

@@ -53,7 +53,7 @@ test('tanks halt at a river whose bridge is down, and cross while it stands', ()
   world.ground.find((o) => o.type === 'depot' && o.team === 1).alive = false;
   run(world, 1);
   for (const o of world.ground) if (o.team === 1) o.alive = false;
-  run(world, 240);
+  run(world, 330);
   const lead = Math.max(...units(world, 'tank', 0).map((t) => t.x));
   assert.ok(lead < river(world).x && lead > river(world).x - 20, `waits at the bank (front tank at ${lead})`);
   bridgeOf(world).alive = true;
@@ -68,7 +68,7 @@ test('engineers rebuild a destroyed bridge, then go home', () => {
   world.ground.find((o) => o.type === 'depot' && o.team === 1).alive = false;
   for (const o of world.ground) if (o.team === 1) o.alive = false; // nobody to shoot them
   let rebuilt = null;
-  run(world, 200, (events) => {
+  run(world, 300, (events) => {
     if (!rebuilt && events.some((e) => e.type === 'bridgeRebuilt')) rebuilt = world.tick / 60;
   });
   assert.ok(rebuilt, 'the bridge was rebuilt');

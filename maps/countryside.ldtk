@@ -11,13 +11,13 @@
   "iid": "fb14b0f0-a72f-4317-a4a1-6e00c023dafe",
   "jsonVersion": "1.5.3",
   "appBuildId": 473703,
-  "nextUid": 33,
+  "nextUid": 38,
   "identifierStyle": "Capitalize",
   "toc": [],
   "worldLayout": "Free",
   "worldGridWidth": 256,
   "worldGridHeight": 256,
-  "defaultLevelWidth": 3600,
+  "defaultLevelWidth": 4680,
   "defaultLevelHeight": 800,
   "defaultPivotX": 0.5,
   "defaultPivotY": 1,
@@ -48,6 +48,41 @@
         "type": "Entities",
         "uid": 31,
         "doc": "Airfields and ground objects. Only the x position matters: the game stands each object on the ground.",
+        "uiColor": null,
+        "gridSize": 2,
+        "guideGridWid": 0,
+        "guideGridHei": 0,
+        "displayOpacity": 1,
+        "inactiveOpacity": 0.6,
+        "hideInList": false,
+        "hideFieldsWhenInactive": false,
+        "canSelectWhenInactive": true,
+        "renderInWorldView": true,
+        "pxOffsetX": 0,
+        "pxOffsetY": 0,
+        "parallaxFactorX": 0,
+        "parallaxFactorY": 0,
+        "parallaxScaling": true,
+        "requiredTags": [],
+        "excludedTags": [],
+        "autoTilesKilledByOtherLayerUid": null,
+        "uiFilterTags": [],
+        "useAsyncRender": false,
+        "intGridValues": [],
+        "intGridValuesGroups": [],
+        "autoRuleGroups": [],
+        "autoSourceLayerDefUid": null,
+        "tilesetDefUid": null,
+        "tilePivotX": 0,
+        "tilePivotY": 0,
+        "biomeFieldUid": null
+      },
+      {
+        "__type": "Entities",
+        "identifier": "Zones",
+        "type": "Entities",
+        "uid": 37,
+        "doc": "What the ground is like: Field, Village, Wood, Ridge. Ground with no zone is rolling country.",
         "uiColor": null,
         "gridSize": 2,
         "guideGridWid": 0,
@@ -899,6 +934,146 @@
         "pivotX": 0,
         "pivotY": 1,
         "fieldDefs": []
+      },
+      {
+        "identifier": "Field",
+        "uid": 33,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Farmland: long, nearly flat ground with only a gentle tilt, hedges and walls along its edges. Make it at least runway length (420) to land on.",
+        "width": 200,
+        "height": 8,
+        "resizableX": true,
+        "resizableY": false,
+        "minWidth": 40,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.35,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#8A8A50",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0,
+        "pivotY": 1,
+        "fieldDefs": []
+      },
+      {
+        "identifier": "Village",
+        "uid": 34,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "A few farms: flattish ground with houses and barns in twos and threes.",
+        "width": 200,
+        "height": 8,
+        "resizableX": true,
+        "resizableY": false,
+        "minWidth": 40,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.35,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#9A7A60",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0,
+        "pivotY": 1,
+        "fieldDefs": []
+      },
+      {
+        "identifier": "Wood",
+        "uid": 35,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Trees: gentle ground, no landing here.",
+        "width": 200,
+        "height": 8,
+        "resizableX": true,
+        "resizableY": false,
+        "minWidth": 40,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.35,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#4A6A40",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0,
+        "pivotY": 1,
+        "fieldDefs": []
+      },
+      {
+        "identifier": "Ridge",
+        "uid": 36,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Hills, steeper than the open country.",
+        "width": 200,
+        "height": 8,
+        "resizableX": true,
+        "resizableY": false,
+        "minWidth": 40,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.35,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#7A7A7A",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0,
+        "pivotY": 1,
+        "fieldDefs": []
       }
     ],
     "tilesets": [],
@@ -1235,7 +1410,7 @@
       "worldX": 0,
       "worldY": 0,
       "worldDepth": 0,
-      "pxWid": 3600,
+      "pxWid": 4680,
       "pxHei": 800,
       "__bgColor": "#9CC4D8",
       "bgColor": null,
@@ -1257,7 +1432,7 @@
         "cropRect": [
           0,
           0,
-          3600,
+          4680,
           800
         ]
       },
@@ -1373,7 +1548,7 @@
         {
           "__identifier": "Objects",
           "__type": "Entities",
-          "__cWid": 1800,
+          "__cWid": 2340,
           "__cHei": 400,
           "__gridSize": 2,
           "__opacity": 1,
@@ -1490,7 +1665,7 @@
             {
               "__identifier": "Flak",
               "__grid": [
-                345,
+                356,
                 372
               ],
               "__pivot": [
@@ -1505,7 +1680,7 @@
               "height": 9,
               "defUid": 14,
               "px": [
-                690,
+                713,
                 744
               ],
               "fieldInstances": [
@@ -1529,7 +1704,7 @@
             {
               "__identifier": "MgNest",
               "__grid": [
-                380,
+                408,
                 371
               ],
               "__pivot": [
@@ -1544,7 +1719,7 @@
               "height": 5,
               "defUid": 16,
               "px": [
-                760,
+                816,
                 743
               ],
               "fieldInstances": [
@@ -1568,7 +1743,7 @@
             {
               "__identifier": "Tent",
               "__grid": [
-                410,
+                452,
                 368
               ],
               "__pivot": [
@@ -1583,7 +1758,7 @@
               "height": 8,
               "defUid": 21,
               "px": [
-                820,
+                904,
                 736
               ],
               "fieldInstances": [
@@ -1607,7 +1782,7 @@
             {
               "__identifier": "Depot",
               "__grid": [
-                450,
+                510,
                 361
               ],
               "__pivot": [
@@ -1622,7 +1797,7 @@
               "height": 16,
               "defUid": 29,
               "px": [
-                900,
+                1021,
                 723
               ],
               "fieldInstances": [
@@ -1646,7 +1821,7 @@
             {
               "__identifier": "Tent",
               "__grid": [
-                490,
+                569,
                 359
               ],
               "__pivot": [
@@ -1661,7 +1836,7 @@
               "height": 8,
               "defUid": 21,
               "px": [
-                980,
+                1138,
                 718
               ],
               "fieldInstances": [
@@ -1685,7 +1860,7 @@
             {
               "__identifier": "Flak",
               "__grid": [
-                530,
+                628,
                 373
               ],
               "__pivot": [
@@ -1700,7 +1875,7 @@
               "height": 9,
               "defUid": 14,
               "px": [
-                1060,
+                1256,
                 747
               ],
               "fieldInstances": [
@@ -1724,7 +1899,7 @@
             {
               "__identifier": "Tower",
               "__grid": [
-                560,
+                700,
                 383
               ],
               "__pivot": [
@@ -1739,7 +1914,7 @@
               "height": 30,
               "defUid": 23,
               "px": [
-                1120,
+                1400,
                 767
               ],
               "fieldInstances": [
@@ -1763,7 +1938,7 @@
             {
               "__identifier": "MgNest",
               "__grid": [
-                590,
+                727,
                 379
               ],
               "__pivot": [
@@ -1778,7 +1953,7 @@
               "height": 5,
               "defUid": 16,
               "px": [
-                1180,
+                1455,
                 759
               ],
               "fieldInstances": [
@@ -1802,7 +1977,7 @@
             {
               "__identifier": "Infantry",
               "__grid": [
-                630,
+                774,
                 380
               ],
               "__pivot": [
@@ -1817,7 +1992,7 @@
               "height": 6,
               "defUid": 19,
               "px": [
-                1260,
+                1549,
                 761
               ],
               "fieldInstances": [
@@ -1856,7 +2031,7 @@
             {
               "__identifier": "Building",
               "__grid": [
-                665,
+                825,
                 370
               ],
               "__pivot": [
@@ -1871,7 +2046,7 @@
               "height": 18,
               "defUid": 25,
               "px": [
-                1330,
+                1651,
                 741
               ],
               "fieldInstances": [
@@ -1895,7 +2070,7 @@
             {
               "__identifier": "MgNest",
               "__grid": [
-                710,
+                891,
                 358
               ],
               "__pivot": [
@@ -1910,7 +2085,7 @@
               "height": 5,
               "defUid": 16,
               "px": [
-                1420,
+                1783,
                 716
               ],
               "fieldInstances": [
@@ -1934,7 +2109,7 @@
             {
               "__identifier": "Tent",
               "__grid": [
-                735,
+                928,
                 365
               ],
               "__pivot": [
@@ -1949,7 +2124,7 @@
               "height": 8,
               "defUid": 21,
               "px": [
-                1470,
+                1856,
                 730
               ],
               "fieldInstances": [
@@ -1973,7 +2148,7 @@
             {
               "__identifier": "Infantry",
               "__grid": [
-                770,
+                979,
                 367
               ],
               "__pivot": [
@@ -1988,7 +2163,7 @@
               "height": 6,
               "defUid": 19,
               "px": [
-                1540,
+                1959,
                 734
               ],
               "fieldInstances": [
@@ -2027,7 +2202,7 @@
             {
               "__identifier": "Building",
               "__grid": [
-                810,
+                850,
                 374
               ],
               "__pivot": [
@@ -2042,7 +2217,7 @@
               "height": 18,
               "defUid": 25,
               "px": [
-                1620,
+                1700,
                 748
               ],
               "fieldInstances": [
@@ -2066,7 +2241,7 @@
             {
               "__identifier": "Bridge",
               "__grid": [
-                882,
+                1152,
                 377
               ],
               "__pivot": [
@@ -2081,7 +2256,7 @@
               "height": 6,
               "defUid": 30,
               "px": [
-                1765,
+                2305,
                 755
               ],
               "fieldInstances": []
@@ -2089,7 +2264,7 @@
             {
               "__identifier": "Building",
               "__grid": [
-                990,
+                1490,
                 361
               ],
               "__pivot": [
@@ -2104,7 +2279,7 @@
               "height": 18,
               "defUid": 25,
               "px": [
-                1980,
+                2980,
                 723
               ],
               "fieldInstances": [
@@ -2128,7 +2303,7 @@
             {
               "__identifier": "Infantry",
               "__grid": [
-                1030,
+                1360,
                 365
               ],
               "__pivot": [
@@ -2143,7 +2318,7 @@
               "height": 6,
               "defUid": 19,
               "px": [
-                2060,
+                2721,
                 730
               ],
               "fieldInstances": [
@@ -2182,7 +2357,7 @@
             {
               "__identifier": "Tent",
               "__grid": [
-                1065,
+                1412,
                 372
               ],
               "__pivot": [
@@ -2197,7 +2372,7 @@
               "height": 8,
               "defUid": 21,
               "px": [
-                2130,
+                2824,
                 744
               ],
               "fieldInstances": [
@@ -2221,7 +2396,7 @@
             {
               "__identifier": "MgNest",
               "__grid": [
-                1090,
+                1448,
                 373
               ],
               "__pivot": [
@@ -2236,7 +2411,7 @@
               "height": 5,
               "defUid": 16,
               "px": [
-                2180,
+                2897,
                 747
               ],
               "fieldInstances": [
@@ -2260,7 +2435,7 @@
             {
               "__identifier": "Building",
               "__grid": [
-                1135,
+                1514,
                 377
               ],
               "__pivot": [
@@ -2275,7 +2450,7 @@
               "height": 18,
               "defUid": 25,
               "px": [
-                2270,
+                3029,
                 754
               ],
               "fieldInstances": [
@@ -2299,7 +2474,7 @@
             {
               "__identifier": "Infantry",
               "__grid": [
-                1170,
+                1565,
                 368
               ],
               "__pivot": [
@@ -2314,7 +2489,7 @@
               "height": 6,
               "defUid": 19,
               "px": [
-                2340,
+                3131,
                 736
               ],
               "fieldInstances": [
@@ -2353,7 +2528,7 @@
             {
               "__identifier": "MgNest",
               "__grid": [
-                1210,
+                1624,
                 366
               ],
               "__pivot": [
@@ -2368,7 +2543,7 @@
               "height": 5,
               "defUid": 16,
               "px": [
-                2420,
+                3249,
                 733
               ],
               "fieldInstances": [
@@ -2392,7 +2567,7 @@
             {
               "__identifier": "Tower",
               "__grid": [
-                1240,
+                1668,
                 375
               ],
               "__pivot": [
@@ -2407,7 +2582,7 @@
               "height": 30,
               "defUid": 23,
               "px": [
-                2480,
+                3337,
                 751
               ],
               "fieldInstances": [
@@ -2431,7 +2606,7 @@
             {
               "__identifier": "Flak",
               "__grid": [
-                1270,
+                1712,
                 376
               ],
               "__pivot": [
@@ -2446,7 +2621,7 @@
               "height": 9,
               "defUid": 14,
               "px": [
-                2540,
+                3424,
                 752
               ],
               "fieldInstances": [
@@ -2470,7 +2645,7 @@
             {
               "__identifier": "Tent",
               "__grid": [
-                1310,
+                1771,
                 369
               ],
               "__pivot": [
@@ -2485,7 +2660,7 @@
               "height": 8,
               "defUid": 21,
               "px": [
-                2620,
+                3542,
                 739
               ],
               "fieldInstances": [
@@ -2509,7 +2684,7 @@
             {
               "__identifier": "Depot",
               "__grid": [
-                1350,
+                1829,
                 367
               ],
               "__pivot": [
@@ -2524,7 +2699,7 @@
               "height": 16,
               "defUid": 29,
               "px": [
-                2700,
+                3659,
                 734
               ],
               "fieldInstances": [
@@ -2548,7 +2723,7 @@
             {
               "__identifier": "Tent",
               "__grid": [
-                1390,
+                1888,
                 380
               ],
               "__pivot": [
@@ -2563,7 +2738,7 @@
               "height": 8,
               "defUid": 21,
               "px": [
-                2780,
+                3776,
                 761
               ],
               "fieldInstances": [
@@ -2587,7 +2762,7 @@
             {
               "__identifier": "MgNest",
               "__grid": [
-                1420,
+                1932,
                 378
               ],
               "__pivot": [
@@ -2602,7 +2777,7 @@
               "height": 5,
               "defUid": 16,
               "px": [
-                2840,
+                3864,
                 756
               ],
               "fieldInstances": [
@@ -2626,7 +2801,7 @@
             {
               "__identifier": "Flak",
               "__grid": [
-                1455,
+                1983,
                 365
               ],
               "__pivot": [
@@ -2641,7 +2816,7 @@
               "height": 9,
               "defUid": 14,
               "px": [
-                2910,
+                3967,
                 730
               ],
               "fieldInstances": [
@@ -2665,7 +2840,7 @@
             {
               "__identifier": "Airfield",
               "__grid": [
-                1480,
+                2020,
                 368
               ],
               "__pivot": [
@@ -2680,7 +2855,7 @@
               "height": 8,
               "defUid": 12,
               "px": [
-                2960,
+                4040,
                 736
               ],
               "fieldInstances": [
@@ -2719,7 +2894,7 @@
             {
               "__identifier": "Radar",
               "__grid": [
-                1725,
+                2265,
                 370
               ],
               "__pivot": [
@@ -2734,7 +2909,7 @@
               "height": 40,
               "defUid": 27,
               "px": [
-                3450,
+                4530,
                 740
               ],
               "fieldInstances": [
@@ -2754,6 +2929,262 @@
                   ]
                 }
               ]
+            }
+          ]
+        },
+        {
+          "__identifier": "Zones",
+          "__type": "Entities",
+          "__cWid": 2340,
+          "__cHei": 400,
+          "__gridSize": 2,
+          "__opacity": 1,
+          "__pxTotalOffsetX": 0,
+          "__pxTotalOffsetY": 0,
+          "__tilesetDefUid": null,
+          "__tilesetRelPath": null,
+          "iid": "32197203-8d65-401b-9cb5-9fc8856edce4",
+          "levelId": 32,
+          "layerDefUid": 37,
+          "pxOffsetX": 0,
+          "pxOffsetY": 0,
+          "visible": true,
+          "optionalRules": [],
+          "intGridCsv": [],
+          "autoLayerTiles": [],
+          "seed": 1944,
+          "overrideTilesetUid": null,
+          "gridTiles": [],
+          "entityInstances": [
+            {
+              "__identifier": "Field",
+              "__grid": [
+                340,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#8A8A50",
+              "iid": "16dd38c2-ff5c-4bcd-a152-de075ba21a20",
+              "width": 500,
+              "height": 8,
+              "defUid": 33,
+              "px": [
+                680,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Ridge",
+              "__grid": [
+                600,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#7A7A7A",
+              "iid": "28ed02ce-5be6-45a9-aa1a-18a9755a01ed",
+              "width": 300,
+              "height": 8,
+              "defUid": 36,
+              "px": [
+                1200,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Wood",
+              "__grid": [
+                750,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#4A6A40",
+              "iid": "736200ab-f4a8-4337-9b0f-b2a4231a6f59",
+              "width": 115,
+              "height": 8,
+              "defUid": 35,
+              "px": [
+                1500,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Village",
+              "__grid": [
+                807,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#9A7A60",
+              "iid": "a65eebf1-8b96-451b-b084-48aa906b83db",
+              "width": 110,
+              "height": 8,
+              "defUid": 34,
+              "px": [
+                1615,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Field",
+              "__grid": [
+                870,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#8A8A50",
+              "iid": "3a7e7218-cdc2-4c6b-a838-c2c3d5e66c8c",
+              "width": 510,
+              "height": 8,
+              "defUid": 33,
+              "px": [
+                1740,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Field",
+              "__grid": [
+                1750,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#8A8A50",
+              "iid": "9144977f-0d81-4bae-8321-9862f2a59052",
+              "width": 500,
+              "height": 8,
+              "defUid": 33,
+              "px": [
+                3500,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Ridge",
+              "__grid": [
+                1590,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#7A7A7A",
+              "iid": "b23856d3-973c-44c3-b06b-dc22d5d9cef4",
+              "width": 300,
+              "height": 8,
+              "defUid": 36,
+              "px": [
+                3180,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Wood",
+              "__grid": [
+                1532,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#4A6A40",
+              "iid": "c3615bc6-5033-43fe-bb40-60444eef630d",
+              "width": 115,
+              "height": 8,
+              "defUid": 35,
+              "px": [
+                3065,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Village",
+              "__grid": [
+                1477,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#9A7A60",
+              "iid": "98865cd3-d659-478a-9ff8-9f29295dde62",
+              "width": 110,
+              "height": 8,
+              "defUid": 34,
+              "px": [
+                2955,
+                790
+              ],
+              "fieldInstances": []
+            },
+            {
+              "__identifier": "Field",
+              "__grid": [
+                1215,
+                395
+              ],
+              "__pivot": [
+                0,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#8A8A50",
+              "iid": "85a74d2b-721c-4fe1-843e-29c1db8cd74c",
+              "width": 510,
+              "height": 8,
+              "defUid": 33,
+              "px": [
+                2430,
+                790
+              ],
+              "fieldInstances": []
             }
           ]
         }

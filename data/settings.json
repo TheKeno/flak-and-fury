@@ -80,6 +80,16 @@
     "margin": 4,
     "blend": 40
   },
+  "zones": {
+    "open": 0.75,
+    "field": 0.05,
+    "village": 0.05,
+    "wood": 0.5,
+    "ridge": 0.85,
+    "fieldTilt": 0.025,
+    "fieldSwell": 3,
+    "blend": 120
+  },
   "radar": {
     "sweepTime": 2.5,
     "afterglow": 3.2,
