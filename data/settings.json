@@ -82,6 +82,13 @@
     "lowGap": 60,
     "dropout": 0.6
   },
+  "runway": {
+    "concreteRadius": 0.6,
+    "concreteDepth": 0.7,
+    "fillTime": 20,
+    "craterPoints": 25,
+    "closePoints": 100
+  },
   "hud": {
     "lastFlightTime": 8
   },

@@ -24,6 +24,7 @@ const world = createWorld({
   fire: content.settings.fire,
   waves: content.settings.waves,
   pads: content.settings.pads,
+  runway: content.settings.runway,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
@@ -222,6 +223,12 @@ function handleEvents() {
         hangarWarnAt = performance.now() + 10000;
       }
     }
+    if (e.type === 'runwayCratered' && e.by === player.id && e.points > 0) {
+      renderer.message(e.closed ? `ENEMY RUNWAY CLOSED +${e.points}` : `RUNWAY HIT +${e.points}`, '#e8c860');
+    }
+    if (e.type === 'runwayClosed' && e.team === player.team) renderer.message('OUR RUNWAY IS CLOSED!', '#ff8070');
+    else if (e.type === 'runwayClosed' && e.by !== player.id) renderer.message('ENEMY RUNWAY CLOSED', '#e8c860');
+    if (e.type === 'runwayReopened') renderer.message(e.team === player.team ? 'OUR RUNWAY IS OPEN AGAIN' : 'ENEMY RUNWAY REOPENED', e.team === player.team ? '#a8e090' : '#ffb070');
     if (e.by === player.id && e.type === 'squadWiped') renderer.message(e.kind === 'engineers' ? 'ENGINEERS WIPED OUT' : 'INFANTRY SQUAD WIPED OUT', '#e8c860');
     if (e.type === 'shotDown') {
       if (e.by === player.id) renderer.message('ENEMY SHOT DOWN!', '#e8c860');

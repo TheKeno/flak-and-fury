@@ -1,6 +1,7 @@
 import { drawText, textWidth } from './font.js';
 import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
 import { hangarHealth } from '../sim/ground.js';
+import { homeRunway, runwayState, nextFill } from '../sim/runway.js';
 
 const JOBS = { repair: 'REPAIRING', refuel: 'REFUELLING', rearm: 'REARMING' };
 
@@ -58,6 +59,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   ctx.fillRect(x + 18, y + 1, 3, 3);
   drawText(ctx, gearText + (plane.gearManual ? ' (MAN)' : ''), x + 24, y, gearColour);
   y += 7;
+  y = runwayLamp(ctx, world, plane, x, y);
   drawText(ctx, `KILLS ${plane.kills}  LOST ${plane.deaths}  SCORE ${plane.score}`, x, y, '#e8c860');
   y += 8;
   if (plane.consciousness < 1) {
@@ -69,7 +71,8 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   const blink = Math.floor(performance.now() / 300) % 2 === 0;
   // In free look the camera is elsewhere: your plane's calls and bars would only cover the view.
   const centre = (str, cy, colour) => !freeLook && drawText(ctx, str, Math.round((W - textWidth(str)) / 2), cy, colour);
-  if (plane.state === 'dead') centre('CRASHED - BACK TO THE HANGAR', 60, '#ff9070');
+  if (plane.waiting) waitingMessage(world, plane, centre);
+  else if (plane.state === 'dead') centre('CRASHED - BACK TO THE HANGAR', 60, '#ff9070');
   else if (plane.dying) centre('GOING DOWN!', 60, blink ? '#ff6050' : '#ffb0a0');
   else if (plane.burning && plane.state === 'air') centre('ON FIRE - LAND NOW!', 60, blink ? '#ff6050' : '#ffc0a0');
   else if (plane.burning && plane.speed >= 2) centre('ON FIRE - STOP THE PLANE!', 60, blink ? '#ff6050' : '#ffc0a0');
@@ -104,6 +107,43 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
     const left = W - 6 - Math.max(...lines.map((l) => textWidth(l)));
     lines.forEach((l, i) => drawText(ctx, l, left, 4 + i * 7, '#f0f0e0'));
   }
+}
+
+// Your own runway: open, damaged (with the clear length) or closed for your plane.
+function runwayLamp(ctx, world, plane, x, y) {
+  const af = homeRunway(world, plane.team);
+  if (!af) return y;
+  const { state, length } = runwayState(world, af, plane.def.runwayNeeded ?? 0);
+  const colour = state === 'open' ? '#80d070' : state === 'damaged' ? '#e0b040' : '#d06050';
+  drawText(ctx, 'RWY', x, y, '#c8d0c0');
+  ctx.fillStyle = colour;
+  ctx.fillRect(x + 18, y + 1, 3, 3);
+  let text = state.toUpperCase();
+  if (state === 'damaged') text += ` ${Math.floor(length)}`;
+  if (state !== 'open') {
+    const t = nextFill(world, af);
+    text += Number.isFinite(t) ? `  FILL ${Math.ceil(t)}S` : '  NO CREW';
+  }
+  drawText(ctx, text, x + 24, y, colour);
+  return y + 7;
+}
+
+// Waiting at home for a runway long enough to take off from.
+function waitingMessage(world, plane, centre) {
+  const af = homeRunway(world, plane.team);
+  if (!af) return;
+  const needed = plane.def.runwayNeeded ?? 0;
+  const { length } = runwayState(world, af, needed);
+  if (hangarHealth(world, plane.team) <= 0) {
+    centre('AIRFIELD CLOSED - HANGAR DESTROYED', 60, '#ff7060');
+    centre('NO CREW TO FILL THE CRATERS. YOU ARE GROUNDED', 68, '#ffb090');
+    return;
+  }
+  // Would a plane with a shorter take-off run get off this runway? (Switching planes comes later.)
+  const shorter = Object.values(world.planeDefs).some((d) => (d.runwayNeeded ?? 0) <= length);
+  if (shorter) centre(`RUNWAY TOO SHORT FOR THE ${plane.def.name.toUpperCase()} - NEEDS ${needed}, ${Math.floor(length)} CLEAR`, 60, '#ffb090');
+  else centre('AIRFIELD CLOSED - CREWS FILLING CRATERS', 60, '#ffb090');
+  centre(`NEXT CRATER FILLED IN ${Math.ceil(nextFill(world, af))}S`, 68, '#f0e8c0');
 }
 
 function groundMessage(ctx, world, plane, centre) {

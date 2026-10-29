@@ -1,6 +1,9 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage } from './weapons.js';
 import { updateServicing, ownAirfieldAt } from './airfield.js';
+import { clearRunway } from './runway.js';
+
+export { clearRunway };
 
 export const GRAVITY = 90;
 const GEAR_HEIGHT = 4; // pivot height above the ground when parked
@@ -23,7 +26,7 @@ const BELLY_FRICTION = 55;
 const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the normal landing speed
 const STRANDED_TIME = 5; // seconds stopped away from home before the plane is recovered
 const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the ground; above, it rolls (and crashes)
-const RUNWAY_FLAT = 0.8; // runway this close to its level counts as crater-free (for spawning)
+const SPAWN_INSET = 15; // a plane starts this far into the clear stretch (counted in def.runwayNeeded)
 const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
 const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
 
@@ -128,28 +131,27 @@ export function createPlane(id, def, { team, nation, seats }) {
   };
 }
 
-// The longest stretch of an airfield's runway with no crater in it: { from, to } in world x.
-export function clearRunway(world, af) {
-  let best = null;
-  let start = null;
-  const end = af.x + af.width;
-  for (let x = af.x; x <= end; x++) {
-    const flat = x < end && Math.abs(world.terrain.heightAt(x) - af.height) < RUNWAY_FLAT;
-    if (flat && start === null) start = x;
-    if (!flat && start !== null) {
-      if (!best || x - start > best.to - best.from) best = { from: start, to: x };
-      start = null;
-    }
-  }
-  return best;
-}
-
 export function spawnAtAirfield(p, world) {
   const af = world.map.airfields.find((a) => a.team === p.team) ?? world.map.airfields[0];
   const facingRight = af.x + af.width / 2 < world.map.width / 2;
   // Never in a crater: at the start (in the take-off direction) of the longest clear stretch.
   const clear = af.height != null ? clearRunway(world, af) : null;
-  if (clear && clear.to - clear.from > 40) p.x = facingRight ? clear.from + 15 : clear.to - 15;
+  const length = clear ? clear.to - clear.from : 0;
+  if (af.height != null && length < (p.def.runwayNeeded ?? 0)) {
+    // Too short to take off: the plane waits off the runway (not counted as lost) until the crew have
+    // filled enough craters. stepPlane tries again every tick.
+    p.state = 'dead';
+    p.waiting = true;
+    p.respawnTimer = 0;
+    p.x = facingRight ? af.x + 50 : af.x + af.width - 50;
+    p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+    p.speed = p.vx = p.vy = p.sink = 0;
+    p.service = null;
+    p.burning = p.dying = false;
+    return false;
+  }
+  p.waiting = false;
+  if (clear && length > 40) p.x = facingRight ? clear.from + SPAWN_INSET : clear.to - SPAWN_INSET;
   else p.x = facingRight ? af.x + 50 : af.x + af.width - 50;
   p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
   p.angle = facingRight ? 0 : Math.PI;
@@ -180,6 +182,7 @@ export function spawnAtAirfield(p, world) {
   p.propBent = false;
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
+  return true;
 }
 
 // cause: why it went in. A plane already shot down keeps the cause of that ('guns', 'bomb', ...).

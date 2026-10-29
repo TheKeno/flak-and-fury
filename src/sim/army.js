@@ -9,6 +9,7 @@ import { GRAVITY } from './plane.js';
 import { makeGroundObject, surfaceAt, groundBox, blastGround, hurtSquad, damageGround, settleHull, mountPoint } from './ground.js';
 import { angleDiff } from './math.js';
 import { damagePlane } from './weapons.js';
+import { digCrater } from './runway.js';
 
 export const DEFAULT_WAVES = { first: 15, interval: 75, tanks: 2, maxTanks: 4, squads: 1, squadSize: 4, engineers: 3 };
 
@@ -205,7 +206,7 @@ function burstShell(world, s) {
     const d = Math.hypot(p.x - s.x, p.y - s.y);
     if (d < def.shellRadius) damagePlane(world, p, def.shellDamage * (1 - d / def.shellRadius), s.owner, p.x, p.y, 'tank');
   }
-  if (s.y - world.terrain.heightAt(s.x) < 3) world.terrain.crater(s.x, 4, 1.5);
+  if (s.y - world.terrain.heightAt(s.x) < 3) digCrater(world, s.x, 4, 1.5); // slowly wrecks a runway too
 }
 
 function stepTankShells(world, dt) {

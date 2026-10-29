@@ -12,6 +12,7 @@ import { createGround, planesHitStructures } from './ground.js';
 import { stepDefences, stepShells } from './defences.js';
 import { DEFAULT_FIRE } from './fire.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
+import { stepRunways, DEFAULT_RUNWAY } from './runway.js';
 
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
@@ -23,6 +24,7 @@ export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', a
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 // waves: how often and how big the tank columns are (src/sim/army.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
+// runway: crater sizes on concrete, crater filling and runway points (src/sim/runway.js).
 // groundDefs: ground object types (data/ground.json), shared the same way.
 export function createWorld({
   map,
@@ -35,6 +37,7 @@ export function createWorld({
   fire = { ...DEFAULT_FIRE },
   waves = { ...DEFAULT_WAVES },
   pads = { ...DEFAULT_PADS },
+  runway = { ...DEFAULT_RUNWAY },
 }) {
   const world = {
     tick: 0,
@@ -47,6 +50,7 @@ export function createWorld({
     collisions,
     fire,
     waves,
+    runway,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],
@@ -95,6 +99,7 @@ export function stepWorld(world, commands) {
   stepBullets(world, DT);
   stepShells(world, DT);
   stepBombs(world, DT);
+  stepRunways(world, DT);
   collide(world);
   planesHitStructures(world, crash);
 }

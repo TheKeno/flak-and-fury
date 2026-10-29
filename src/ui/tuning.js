@@ -18,6 +18,7 @@ const PLANE_FIELDS = [
   ['dragCoef', 'Drag', 0.002, 0.008, 0.0001, 'Air resistance. Top speed is about the square root of thrust / drag.'],
   ['stallSpeed', 'Stall speed', 30, 90, 1, 'Below this the wings stop lifting and the nose drops.'],
   ['takeoffSpeed', 'Take-off speed', 30, 90, 1, 'Speed needed to lift off the runway.'],
+  ['runwayNeeded', 'Runway needed', 60, 420, 5, 'Crater-free runway this plane needs to take off (it starts 15 in). Shorter and its runway counts as closed: it waits for the crew to fill craters. The runway is 420.'],
   ['maxLandingSpeed', 'Max landing speed', 50, 160, 1, 'Touching down faster than this is a crash.'],
   ['groundThrust', 'Ground acceleration', 0.1, 1.5, 0.05, 'Share of engine pull you get while rolling on the wheels. Lower = longer take-off roll.'],
   ['tailUpSpeed', 'Tail lifts at', 0.2, 1, 0.05, 'Share of take-off speed at which the tail has fully lifted during the take-off roll.'],
@@ -65,6 +66,13 @@ const SERVICING_FIELDS = [
   ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
   ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
   ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],
+];
+const RUNWAY_FIELDS = [
+  ['concreteRadius', 'Crater size on concrete', 0.1, 1.5, 0.05, 'How wide a crater is dug in a runway, as a share (1 = as on grass). Smaller = more hits needed to close it.'],
+  ['concreteDepth', 'Crater depth on concrete', 0.1, 1.5, 0.05, 'How deep a crater is dug in a runway, as a share.'],
+  ['fillTime', 'Time to fill a crater', 2, 120, 1, 'Seconds the ground crew take to fill one runway crater with the hangar undamaged. A damaged hangar is slower; a destroyed one fills none.'],
+  ['craterPoints', 'Points per runway crater', 0, 200, 5, 'For each crater you put in the enemy runway.'],
+  ['closePoints', 'Bonus for closing it', 0, 500, 5, 'Extra for the hit that closes the enemy runway (too short for any of their planes).'],
 ];
 const COLLISION_FIELDS = [
   ['headOnSpeed', 'Head-on: fatal from', 0, 300, 5, 'Closing speed at which two noses meeting kills both planes.'],
@@ -340,6 +348,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   );
   const hudSection = section('HUD', false, ...HUD_FIELDS.map((f) => add(slider(settings.hud, f))));
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
+  const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
   const audioSection = section(
     'Sound',
     true,
@@ -378,6 +387,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.camera, saved.settings.camera);
     Object.assign(settings.audio, saved.settings.audio);
     Object.assign(settings.servicing, saved.settings.servicing);
+    Object.assign(settings.runway, saved.settings.runway);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.fire, saved.settings.fire);
@@ -444,6 +454,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     waveSection,
     padSection,
     servicingSection,
+    runwaySection,
     cameraSection,
     freeSection,
     hudSection,

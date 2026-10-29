@@ -3,6 +3,7 @@ import { clamp } from './math.js';
 import { GRAVITY, attitude } from './plane.js';
 import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
 import { ignite, fireHit, stepFire } from './fire.js';
+import { digCrater } from './runway.js';
 
 const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
@@ -181,7 +182,7 @@ export function explode(world, x, y, def, ownerId, team) {
     if (d < def.blastRadius) damagePlane(world, p, def.blastDamage * (1 - d / def.blastRadius), ownerId, p.x, p.y, 'bomb');
   }
   blastGround(world, x, y, def, ownerId, team);
-  if (y - world.terrain.heightAt(x) < def.craterRadius) world.terrain.crater(x, def.craterRadius, def.craterDepth);
+  if (y - world.terrain.heightAt(x) < def.craterRadius) digCrater(world, x, def.craterRadius, def.craterDepth, ownerId);
 }
 
 export function stepBombs(world, dt) {

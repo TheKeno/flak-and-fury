@@ -51,6 +51,11 @@ later.
   - Looking around with the arrow keys or the mouse (sticky; per-plane rear visibility). Left mouse
     guns, right mouse bombs.
   - Persistent damage report and LAST FLIGHT report with cause of death.
+  - Runway damage: the runway is open, damaged (short, risky take-off) or closed by its longest
+    crater-free stretch against each plane's take-off run. Smaller craters on concrete (bombs and tank
+    shells), so closing one takes a raid of 2-3 good hits. Closed: you wait off the runway while the
+    crew fill a crater about every 20 s (slower with a damaged hangar, none with it destroyed:
+    grounded). Points for cratering the enemy runway, a bonus for closing it. RWY lamp on the HUD.
   - Live tuning panel with Save to files; synthesized sound for engines, guns, crew, body, gear,
     collisions.
 
@@ -66,7 +71,7 @@ later.
 7. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
    camo, nose, markings, squadron number), saved locally.
 8. **Match setup and music:** menu, rules, scoring (win conditions include **grounding the enemy**:
-   their runway closed for a while with their hangar destroyed), dynamic layered 1940s score (calm patrol layer,
+   their runway closed for a while with their hangar destroyed; the same is a **lose condition** for you), dynamic layered 1940s score (calm patrol layer,
    combat layers fade in), radio callouts per nation in its own language.
 9. **Progression:** currency from kills and targets, unlocks as **sidegrades** (more options, not more
    power), saved profile.
@@ -91,16 +96,25 @@ Then: more themes, co-op missions, online play.
 
 ## Backlog
 
-- **Runway damage (next up):** the runway's state is its longest crater-free stretch against what a
-  take-off needs: open, damaged (short take-off, risky), closed (no spawning until repaired). The
-  ground crew fills a runway crater every ~20 s, slower with a damaged hangar, not at all with it
-  destroyed. Points for cratering the enemy runway, more for closing it. Balance: smaller craters on
-  concrete, repair time, needed length, all as sliders; closing a runway should take a deliberate raid.
+- **Advise a plane that can take off:** when your runway is too short for your plane but long enough
+  for another type, the game should suggest switching to it (needs plane switching, milestone 6/7).
+  For now the waiting message only says the runway is too short for your plane.
 - **Buildings fit the time and place:** 1943 architecture for the country the map is fought in
   (e.g. Karelian log houses and saunas, Russian izbas, Normandy stone farms, English villages, Pacific
   huts), and military buildings (hangars, depots, radar, bunkers) styled after the nation that owns them.
 - **Roll while standing still** turns the plane round to face the other way (not upside down).
   Later animated, like the full roll animations in milestone 13.
+
+## Owner's notes (to discuss before building)
+
+- **Landscape:** larger semi-flat stretches, so it looks more real.
+- **Which buildings collide with planes:** to discuss. Landing is very hard at the moment.
+- **Ground decor:** hedges, trees, stone walls.
+- **Placement that makes sense:** objects placed for a reason; houses grouped in twos and threes, not
+  scattered singly.
+- **Animals.**
+- **More gore and blood** when shooting infantry and animals.
+- **A plane diving into a tank or infantry kills them.**
 
 ## Ideas agreed for later
 

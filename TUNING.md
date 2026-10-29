@@ -27,6 +27,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `maxSpeed` | Used for sound and engine pitch, not a hard limit. Keep it near √(thrust ÷ dragCoef). | |
 | `stallSpeed` | Below this the wings stop lifting and the nose drops. | 40 – 70 |
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
+| `runwayNeeded` | Crater-free runway the plane needs to take off, counted from the start of the clear stretch (it spawns 15 in). Shorter, and its runway counts as closed for it: it waits for the crew. Set from the measured roll plus a margin: Bf 109 rolls about 111 after the 15, the V-12 fighter about 148. The runway is 420. | 140 – 180 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundThrust` | Share of engine pull while rolling on the wheels. Lower = longer take-off roll. | 0.3 – 1 |
 | `tailUpSpeed` | Share of take-off speed at which the tail has lifted (visual). | 0.6 – 1 |
@@ -75,6 +76,18 @@ engine coughs and loses power, and it fails with `quitAt` seconds left. Land and
 fire out in `pilotTime` seconds in a field (the engine can be started again, with `engineHarm` damage
 left), the ground crew in `crewTime` on your own airstrip. The time keeps running while they work. All in
 the tuning panel's Fire section.
+
+`runway` (tuning panel: Runway damage): a runway's state is its longest crater-free stretch. Open: no
+craters. Damaged: cratered, but at least the plane's `runwayNeeded` is clear (you spawn at the start of
+that stretch: a short, risky take-off). Closed: shorter than that, and a plane that's shot down or
+recovered waits off the runway until the crew have filled enough craters. `concreteRadius` and
+`concreteDepth` shrink craters dug in a runway (tank shells too) as a share of their size on grass;
+at 0.6 / 0.7 a 250 lb bomb leaves a hole about 23 wide, so one stray bomb only damages a runway, two
+well-spaced hits close it and three close it for sure. The crew fill one hole (the one that frees the
+longest stretch) every `fillTime` seconds, divided by the hangar's health: half-wrecked takes twice as
+long, destroyed fills none, and with the runway closed that side is grounded. `craterPoints` for each
+crater in the enemy runway, plus `closePoints` for the hit that closes it (too short for any of their
+planes).
 
 `radar`: `sweepTime` (seconds for the beam to cross the map), `afterglow` (seconds a plot glows),
 `lowGap` (planes lower than this above the ground drop off the radar, friend or foe).
