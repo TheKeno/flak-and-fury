@@ -1,11 +1,12 @@
 // Draws the background guide image an LDtk map shows behind its objects: the game's hills (built from
 // the map's seed), the runways and the ceiling, so objects can be placed on the ground line.
-// The hills aren't stored in the map, so run this again after changing the seed, terrain or airfields:
+// The hills aren't stored in the map, so run this again after changing the seed, terrain, airfields or
+// where structures stand (they get level pads):
 //   node tools/map-guide.mjs countryside
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { importLdtk } from '../src/content/ldtk.js';
-import { buildTerrain } from '../src/sim/terrain.js';
+import { buildTerrain, structurePads } from '../src/sim/terrain.js';
 import { encodePngRgba } from './png.mjs';
 
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -14,7 +15,9 @@ export function writeGuide(ldtkUrl) {
   const project = JSON.parse(readFileSync(ldtkUrl, 'utf8'));
   const level = project.levels[0];
   const map = importLdtk(project);
-  const terrain = buildTerrain(structuredClone(map));
+  // Level pads under the structures where they stand now; redraw after moving them.
+  const load = (p) => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
+  const terrain = buildTerrain(structuredClone(map), structurePads(map, load('data/ground.json'), load('data/settings.json').pads));
   const w = level.pxWid;
   const h = level.pxHei;
   const rgba = new Uint8Array(w * h * 4);

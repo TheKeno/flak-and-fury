@@ -156,6 +156,10 @@ const DEFENCE_FIELDS = {
     ['spread', 'Spread', 0, 0.2, 0.005, 'Random aim error (rad).'],
   ],
 };
+const PAD_FIELDS = [
+  ['margin', 'Level ground beyond', 0, 30, 1, 'Extra flat ground on each side of a structure. Applies when the page is reloaded (after Save to files).'],
+  ['blend', 'Blend into the hill', 1, 80, 1, 'How far the flat pad eases back into the slope. Applies when the page is reloaded (after Save to files).'],
+];
 const WAVE_FIELDS = [
   ['first', 'First wave after', 0, 300, 5, 'Seconds from the start before the first tank columns roll out.'],
   ['interval', 'Time between waves', 10, 400, 5, 'Seconds between waves from an undamaged depot. A damaged depot takes up to 2.5 times as long.'],
@@ -298,6 +302,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
+  const padSection = section('Structure pads', false, ...PAD_FIELDS.map((f) => add(slider(settings.pads, f))));
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
   const restoreTargets = () => {
     createGround(world);
@@ -356,6 +361,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.fire, saved.settings.fire);
     Object.assign(settings.waves, saved.settings.waves);
+    Object.assign(settings.pads, saved.settings.pads);
     Object.assign(settings.hud, saved.settings.hud);
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;
@@ -411,6 +417,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     radarSection,
     groundSection,
     waveSection,
+    padSection,
     servicingSection,
     cameraSection,
     hudSection,

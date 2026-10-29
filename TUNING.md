@@ -142,6 +142,17 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 `waves` (in `data/settings.json`): `first` (seconds before the first wave), `interval` (seconds between
 waves), `tanks` and `squads` per wave, `squadSize`, `engineers` (sent when the bridge is down; 0 = none).
 
+`pads` (in `data/settings.json`, the tuning panel's **Structure pads**): every structure placed on the
+map (anything with a `sprite`: guns, tents, towers, buildings, radar, depots) stands on a level pad, so
+none tilts on a hillside. The pad is level at the average ground height under the object; on a steep
+slope it cuts into the high side and builds up the low side. Applies when the map is loaded (reload the
+page).
+
+| Field | What it does | Try |
+|---|---|---|
+| `margin` | Extra flat ground on each side of the object. | 2 – 10 |
+| `blend` | How far the pad eases back into the hill (smaller = sharper cut). | 10 – 40 |
+
 ## Paint and uniforms: `data/nations.json`
 
 Colours for each nation's planes (`paint`) and soldiers (`uniform`), as hex codes (`#rrggbb`).
@@ -162,7 +173,7 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   belongs to neither side. Redraw the guide picture after moving it.
 - **The hills** aren't stored in the map; the game builds them from `seed`. The picture behind the
   objects (`maps/countryside-guide.png`) shows them so you can see the ground line. After changing the
-  seed, terrain or airfields, redraw it:
+  seed, terrain or airfields, or moving a structure (each stands on a level pad), redraw it:
 
 ```bash
 node tools/map-guide.mjs countryside

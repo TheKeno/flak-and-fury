@@ -20,6 +20,7 @@ const world = createWorld({
   collisions: content.settings.collisions,
   fire: content.settings.fire,
   waves: content.settings.waves,
+  pads: content.settings.pads,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.

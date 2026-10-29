@@ -62,6 +62,10 @@
     "squadSize": 4,
     "engineers": 3
   },
+  "pads": {
+    "margin": 4,
+    "blend": 40
+  },
   "radar": {
     "sweepTime": 2.5,
     "afterglow": 3.2,

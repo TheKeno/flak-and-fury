@@ -122,3 +122,14 @@ test('radar health follows the radar station and fails when it is destroyed', as
   assert.equal(radarHealth(world, 1), 0);
   assert.equal(player.score, world.groundDefs.radar.points);
 });
+
+test('structures stand on level ground; squads on the natural slope', () => {
+  const { world } = makeWorld();
+  const structures = world.ground.filter((o) => o.def.sprite && !o.mobile && o.type !== 'hangar');
+  assert.ok(structures.length > 10);
+  for (const o of structures) {
+    const h = world.terrain.heightAt;
+    const half = o.def.width / 2;
+    assert.ok(Math.abs(h(o.x - half) - h(o.x + half)) < 0.01, `${o.type} at ${o.x} stands on a slope`);
+  }
+});

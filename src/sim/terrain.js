@@ -8,6 +8,16 @@ const RIVER_DEPTH = 16; // channel bed below the banks
 const RIVER_SIDE = 6; // width of the steep channel sides
 const RIVER_WATER = 6; // water surface below the banks
 
+export const DEFAULT_PADS = { margin: 4, blend: 40 };
+
+// Level ground for each structure placed on the map (guns, tents, buildings...: anything drawn with a
+// sprite), so none stands tilted on a hillside. Squads and the bridge stand on the ground as it is.
+export function structurePads(map, groundDefs, cfg = DEFAULT_PADS) {
+  return (map.ground ?? [])
+    .filter((o) => groundDefs[o.type]?.sprite)
+    .map((o) => ({ x: o.x, half: groundDefs[o.type].width / 2, margin: cfg.margin, blend: cfg.blend }));
+}
+
 const smooth = (t) => t * t * (3 - 2 * t);
 
 function valueNoise(rng, width, spacing) {
@@ -19,7 +29,8 @@ function valueNoise(rng, width, spacing) {
 }
 
 // Builds a height field (one height per world pixel column). y is up; 0 is the bottom of the world.
-export function buildTerrain(map) {
+// pads: level ground under structures (see structurePads).
+export function buildTerrain(map, pads = []) {
   const { width, seed } = map;
   const { base, amplitude } = map.terrain;
   const rng = createRng(seed);
@@ -44,6 +55,34 @@ export function buildTerrain(map) {
       heights[x] = lerp(heights[x], level, t);
     }
   }
+
+  // Structure pads: level at the average height under the object, a margin wider on each side, then
+  // eased into the hill. On a steep slope that cuts in on the high side and builds up the low side,
+  // like an emplacement dug into a hillside. Where neighbours' blends overlap, the nearer pad wins
+  // smoothly (weighted by closeness), so each pad stays flat and the ground between them has no step.
+  const weight = new Float32Array(width + 1);
+  const levelSum = new Float32Array(width + 1);
+  const reach = new Float32Array(width + 1);
+  for (const pad of pads) {
+    const left = Math.round(pad.x - pad.half - pad.margin);
+    const right = Math.round(pad.x + pad.half + pad.margin);
+    let sum = 0;
+    let n = 0;
+    for (let x = Math.max(0, Math.round(pad.x - pad.half)); x <= Math.min(width, Math.round(pad.x + pad.half)); x++, n++) sum += heights[x];
+    if (!n) continue;
+    const level = sum / n;
+    const blend = Math.max(1, pad.blend);
+    for (let x = Math.max(0, left - blend); x <= Math.min(width, right + blend); x++) {
+      let t = 1;
+      if (x < left) t = smooth((x - (left - blend)) / blend);
+      else if (x > right) t = smooth((right + blend - x) / blend);
+      const w = t / (1 - t + 1e-6);
+      weight[x] += w;
+      levelSum[x] += w * level;
+      reach[x] = Math.max(reach[x], t);
+    }
+  }
+  for (let x = 0; x <= width; x++) if (weight[x] > 0) heights[x] = lerp(heights[x], levelSum[x] / weight[x], reach[x]);
 
   // Rivers: level banks blended into the hills (like airfields), with a steep-sided channel between
   // them. river.bank is the height of both banks (and of a bridge's deck); river.water the surface.
