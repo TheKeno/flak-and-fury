@@ -70,6 +70,8 @@ const PALETTE = {
   Q: [66, 62, 56, 255], // barn roof (old slate)
   m: [122, 40, 36, 255], // roundel red (dull)
   5: [168, 146, 64, 255], // roundel yellow (dull)
+  6: [0, 128, 255, 255], // KEY optional marking, dark (black, or the fin's paint with the setting off)
+  7: [128, 255, 0, 255], // KEY optional marking, light (white, or the fin's paint)
 };
 
 // A tiny drawing surface of palette keys.

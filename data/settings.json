@@ -203,5 +203,8 @@
     "enemies": 2,
     "wingmanSkill": "normal",
     "enemySkill": "normal"
+  },
+  "markings": {
+    "historicalSwastika": false
   }
 }

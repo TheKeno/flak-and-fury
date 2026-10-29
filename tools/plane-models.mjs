@@ -150,6 +150,8 @@ const TONES = {
   white: ['x', 'x', '4'],
   red: ['m', 'm', 'm'], // fixed national colours, not paint keys: RAF roundel red and yellow
   yellow: ['5', '5', '5'],
+  optDark: ['6', '6', '6'], // optional marking (the German fin swastika): black and white with the
+  optLight: ['7', '7', '7'], // setting on, the fin's paint with it off (src/render/sprites.js)
 };
 
 function toneIndex(kind, light) {
@@ -201,23 +203,39 @@ export function hinomaru(du, dv, r) {
   const k = Math.hypot(du, dv) / r;
   return k > 1 ? null : k > 0.75 ? 'white' : 'marking';
 }
+// RAF type C roundel (red, thin white, blue) under the wings, radius r.
+export function roundelC(du, dv, r) {
+  const k = Math.hypot(du, dv) / r;
+  return k > 1 ? null : k > 0.5 ? 'marking' : k > 0.4 ? 'white' : 'red';
+}
+// Swastika arms (right-facing, the top arm towards +b) in units of the radius: reach L, half stroke w.
+function swastikaArms(a, b, L, w) {
+  const inBox = (a0, a1, b0, b1) => a >= a0 && a <= a1 && b >= b0 && b <= b1;
+  return (
+    inBox(-w, w, -L, L) ||
+    inBox(-L, L, -w, w) ||
+    inBox(-w, L, L - 2 * w, L) || // top arm turns right
+    inBox(L - 2 * w, L, -L, w) || // right arm turns down
+    inBox(-L, w, -L, -L + 2 * w) || // bottom arm turns left
+    inBox(-L, -L + 2 * w, -w, L) // left arm turns up
+  );
+}
+// The Luftwaffe's fin swastika, standing on a point, black with a thin white outline, reaching r. It
+// is optional (a setting, off by default), so it is drawn in the optDark / optLight keys.
+export function hakenkreuz(du, dv, r) {
+  const a = (du + dv) / Math.SQRT2 / r;
+  const b = (dv - du) / Math.SQRT2 / r;
+  if (swastikaArms(a, b, 0.62, 0.1)) return 'optDark';
+  if (swastikaArms(a, b, 0.62 + 0.09, 0.1 + 0.09)) return 'optLight';
+  return null;
+}
 // Finnish Air Force insignia of 1918-45 (the hakaristi, from Count von Rosen's emblem): an upright,
 // right-facing blue swastika on a white disc of radius r. dv points to the top arm.
 export function hakaristi(du, dv, r) {
   const a = du / r;
   const b = dv / r;
   if (Math.hypot(a, b) > 1) return null;
-  const L = 0.72; // arm reach
-  const w = 0.13; // half the stroke width
-  const inBox = (a0, a1, b0, b1) => a >= a0 && a <= a1 && b >= b0 && b <= b1;
-  const arms =
-    inBox(-w, w, -L, L) ||
-    inBox(-L, L, -w, w) ||
-    inBox(-w, L, L - 2 * w, L) || // top arm turns right
-    inBox(L - 2 * w, L, -L, w) || // right arm turns down
-    inBox(-L, w, -L, -L + 2 * w) || // bottom arm turns left
-    inBox(-L, -L + 2 * w, -w, L); // left arm turns up
-  return arms ? 'marking' : 'white';
+  return swastikaArms(a, b, 0.72, 0.13) ? 'marking' : 'white';
 }
 // Soviet red star of 1943, points at radius r, with a thin white outline.
 export function redStar(du, dv, r) {
@@ -395,6 +413,13 @@ export function tipBank(model, yaw, pitch) {
 
 const side = (n) => Math.abs(n[2]) > 0.35;
 
+// German spinner of 1943: black-green with a white spiral, from the tip at x0 back over len (model
+// units) round the axis at height yc.
+const spiralSpinner = (x0, yc, len) => (p) => {
+  const turn = Math.atan2(p[2], p[1] - yc) / (2 * Math.PI) + (x0 - p[0]) / len;
+  return { kind: ((turn % 1) + 1) % 1 < 0.25 ? 'white' : 'dark' };
+};
+
 // Messerschmitt Bf 109 F-4, from its real dimensions (8.94 m long, 9.92 m span; 5 model units to the
 // metre, with d measured back from the spinner tip and h up from the thrust line). Slim inline
 // cowling with a pointed spinner, deep cockpit section tapering hard to a slim tail, low framed
@@ -476,10 +501,16 @@ function bf109() {
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
     { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
-    { ...spinner, material: plain('nose') },
+    { ...spinner, material: spiralSpinner(X(0), Y(0), 0.72 * M) },
     { ...wing, material: wingMat },
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
-    { ...fin, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(8.15)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }) }, // rudder hinge
+    {
+      ...fin,
+      material: (p, n) => {
+        const k = side(n) && hakenkreuz(p[0] - X(8.25), p[1] - Y(0.82), 0.3 * M);
+        return { kind: k || 'paint', dark: !k && Math.abs(p[0] - X(8.15)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }; // rudder hinge
+      },
+    },
     { ...canopy, glass: true, material: canopyMat },
     { ...sphere([X(3.3), Y(0.74), 0], 0.17 * M), pilot: true, material: plain('pilot') },
     { ...box([X(1.35), Y(-0.6), 0], [0.35 * M, 0.11 * M, 0.2 * M]), material: (p) => ({ kind: p[0] > X(1.05) ? 'dark' : 'under' }) }, // oil cooler
@@ -602,10 +633,16 @@ function bf109g6() {
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
     { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
-    { ...spinner, material: plain('nose') },
+    { ...spinner, material: spiralSpinner(X(0), Y(0), 0.55 * M) },
     { ...wing, material: wingMat },
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
-    { ...fin, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(8.4)) < 0.04 * M && p[1] > Y(0.5) ? 1 : 0 }) }, // rudder hinge
+    {
+      ...fin,
+      material: (p, n) => {
+        const k = side(n) && hakenkreuz(p[0] - X(8.45), p[1] - Y(1.05), 0.32 * M);
+        return { kind: k || 'paint', dark: !k && Math.abs(p[0] - X(8.4)) < 0.04 * M && p[1] > Y(0.5) ? 1 : 0 }; // rudder hinge
+      },
+    },
     { ...canopy, glass: true, material: canopyMat },
     { ...sphere([X(3.8), Y(0.66), 0], 0.16 * M), pilot: true, material: plain('pilot') },
     { ...strut([X(1.4), Y(0.43), 0.36 * M], [X(2.05), Y(0.47), 0.38 * M], 0.09 * M), material: (p) => ({ kind: tone(p) }) }, // MG 131 bulges
@@ -947,6 +984,8 @@ function ki43() {
     const under = n[1] < -0.3;
     const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && hinomaru(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 4.0 * M, 0.5 * M);
     if (k) return { kind: k };
+    // Yellow identification strip along the inner leading edges (Army fighters from 1942).
+    if (s.u < 0.07 && s.k > 0.1 && s.k < 0.45) return { kind: 'yellow' };
     const hinge = s.k > 0.2 && Math.abs(s.u - 0.76) < 0.03; // flap and aileron line
     return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
   };
@@ -1198,8 +1237,11 @@ function spitfire() {
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
-    const k = n[1] > 0.6 && vn[2] > 0.3 && roundelB(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 3.6 * M, 0.7 * M);
+    const mid = p[0] - (s.le + s.te) / 2;
+    const k = vn[2] > 0.3 && ((n[1] > 0.6 && roundelB(mid, Math.abs(p[2]) - 3.6 * M, 0.7 * M)) || (n[1] < -0.6 && roundelC(mid, Math.abs(p[2]) - 3.6 * M, 0.41 * M)));
     if (k) return { kind: k };
+    // Yellow identification stripe along the outer leading edges.
+    if (s.u < 0.07 && s.k > 0.38 && s.k < 0.92) return { kind: 'yellow' };
     const hinge = s.k > 0.15 && s.k < 0.9 && Math.abs(s.u - 0.78) < 0.035; // flap and aileron line
     return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
   };

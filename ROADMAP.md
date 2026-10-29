@@ -158,6 +158,10 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Theatre markings (decide the theatre per nation first):** Germany: Eastern Front yellow (fuselage
+  band, wingtip undersides, lower cowl) or Mediterranean white band; P-47: European white cowl ring and
+  white fin and tailplane bands (its cowl ring is yellow for now). Markings that aren't the same both
+  ways round (the Finnish hakaristi, the German fin swastika) show mirrored when a plane flies left.
 - **Bots raid the enemy base:** bombing radar, flak, the runway and the hangar, and knocking down the
   bridge to stop a tank column. For match rules (milestone 9); for now bots only defend and support.
 - **Advise a plane that can take off:** when your runway is too short for your plane but long enough

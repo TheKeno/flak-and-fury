@@ -488,6 +488,15 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     el('label', { class: 'row select', title: 'Off: nothing. Low: blood, stains and bodies. Full: also limbs, thrown bodies and blood on the plane.' }, el('span', {}, 'Gore'), goreSelect),
     ...GORE_FIELDS.map((f) => add(slider(settings.gore, f))),
   );
+  // Historical markings: the German fin swastika is optional (off by default). The plane sprites are
+  // cached per setting, so they repaint at once.
+  const swastikaBox = el('input', { type: 'checkbox', onchange: () => (settings.markings.historicalSwastika = swastikaBox.checked) });
+  swastikaBox.checked = settings.markings.historicalSwastika;
+  const markingsSection = section(
+    'Markings',
+    false,
+    el('label', { class: 'row check', title: 'Show the swastika on German fins, as painted in 1943. Off: the fin is left plain.' }, el('span', {}, 'Historical swastika (German fins)'), swastikaBox),
+  );
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
   const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
   const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
@@ -557,6 +566,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.decor, saved.settings.decor);
     Object.assign(settings.hud, saved.settings.hud);
     Object.assign(settings.gore, saved.settings.gore);
+    Object.assign(settings.markings, saved.settings.markings);
     goreSelect.value = settings.gore.mode;
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;
@@ -565,6 +575,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     placeBots();
     parkBots();
     propBox.checked = settings.collisions.propStrikes;
+    swastikaBox.checked = settings.markings.historicalSwastika;
     for (const p of world.planes) p.guns.forEach(updateGunRates);
     getMixer()?.applyLevels();
     rows.forEach((r) => r.refresh());
@@ -628,6 +639,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     cameraSection,
     freeSection,
     goreSection,
+    markingsSection,
     hudSection,
     audioSection,
     el('p', { class: 'foot' }, `Editing plane type "${planeId}". Changes apply instantly to every plane of this type.`),

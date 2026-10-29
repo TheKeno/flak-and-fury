@@ -3,6 +3,8 @@
 // Paint key colours (hand-drawn sprites must use these exact RGB values):
 //   #ff00ff base   #c000c0 base shade   #800080 wing   #00ffff underside
 //   #ffff00 nose   #ff0000 national marking   #00c0c0 underside shade   #c0c000 nose shade
+//   #0080ff / #80ff00 optional marking, dark / light (the German fin swastika: black and white with
+//   the historical-markings setting on, the base colour with it off)
 export const ROTATION_STEPS = 128; // ~2.8 degrees per frame, so the nose shows where the guns point
 
 const KEYS = {
@@ -14,6 +16,8 @@ const KEYS = {
   '192,192,0': 'noseShade',
   '255,255,0': 'nose',
   '255,0,0': 'marking',
+  '0,128,255': 'optDark',
+  '128,255,0': 'optLight',
 };
 
 export function loadImage(url) {
@@ -38,7 +42,8 @@ function canvasOf(w, h) {
   return c;
 }
 
-export function paintSprite(img, paint) {
+// opts.swastika: draw the optional marking (see KEYS) instead of hiding it in the base colour.
+export function paintSprite(img, paint, opts = {}) {
   const base = hexToRgb(paint.base);
   const colours = {
     base,
@@ -49,6 +54,8 @@ export function paintSprite(img, paint) {
     nose: hexToRgb(paint.nose),
     noseShade: shadeRgb(hexToRgb(paint.nose), 0.75),
     marking: hexToRgb(paint.marking),
+    optDark: opts.swastika ? [28, 26, 24] : base,
+    optLight: opts.swastika ? [236, 236, 226] : base,
   };
   const c = canvasOf(img.width, img.height);
   const ctx = c.getContext('2d', { willReadFrequently: true });
@@ -112,8 +119,8 @@ export function frameIndex(angle) {
   return ((Math.round(t * ROTATION_STEPS) % ROTATION_STEPS) + ROTATION_STEPS) % ROTATION_STEPS;
 }
 
-export function buildPlaneSprite(img, def, paint) {
-  const painted = paintSprite(img, paint);
+export function buildPlaneSprite(img, def, paint, opts) {
+  const painted = paintSprite(img, paint, opts);
   return {
     upright: buildRotations(painted, def.pivot, false),
     inverted: buildRotations(painted, def.pivot, true),
@@ -123,8 +130,8 @@ export function buildPlaneSprite(img, def, paint) {
 // The transient frames from a plane's -frames.png sheet (roll, ground turn, ground loop; layout in its
 // .json). They show for a moment at a time, so they are rotated on demand and cached, not pre-built.
 // frame(row, index, angle, mirror) returns { canvas, radius }: the anchor sits at the canvas centre.
-export function buildPlaneFrames(sheetImg, meta, paint) {
-  const sheet = paintSprite(sheetImg, paint);
+export function buildPlaneFrames(sheetImg, meta, paint, opts) {
+  const sheet = paintSprite(sheetImg, paint, opts);
   const data = sheet.getContext('2d').getImageData(0, 0, sheet.width, sheet.height).data;
   const [cw, ch] = meta.cell;
   const cache = new Map();

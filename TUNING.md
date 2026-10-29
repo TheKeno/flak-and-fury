@@ -291,6 +291,15 @@ page).
 | `margin` | Extra flat ground on each side of the object. | 2 – 10 |
 | `blend` | How far the pad eases back into the hill (smaller = sharper cut). | 10 – 40 |
 
+## Markings: `data/settings.json` → `markings`
+
+National markings are painted on the 3D models as they were in 1943 (`tools/plane-models.mjs`). One is
+optional, in the tuning panel's Markings section:
+
+| Field | What it does | Try |
+|---|---|---|
+| `historicalSwastika` | Show the swastika on German fins (Bf 109 and later German planes). Off by default: the fin stays plain. The sprites are drawn with two key colours there (see `src/render/sprites.js`), painted black and white when on, the fin colour when off. | false |
+
 ## Paint and uniforms: `data/nations.json`
 
 Colours for each nation's planes (`paint`) and soldiers (`uniform`), as hex codes (`#rrggbb`).

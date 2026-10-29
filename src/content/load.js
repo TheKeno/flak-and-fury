@@ -62,21 +62,25 @@ export async function loadContent(mapName) {
     ),
   );
 
-  // Painted, rotated plane sprites are built on first use and cached per plane type + paint.
+  // Painted, rotated plane sprites are built on first use and cached per plane type + paint + markings
+  // setting, so switching the setting in the tuning panel repaints them at once.
   const cache = new Map();
   const frameCache = new Map();
+  const markings = () => ({ swastika: Boolean(settings.markings?.historicalSwastika) });
   const planeFrames = (plane) => {
     const sheet = sheets[plane.def.sprite];
     if (!sheet) return null;
     const paint = plane.paint ?? nations[plane.nation].paint;
-    const key = `${plane.def.sprite}|${JSON.stringify(paint)}`;
-    if (!frameCache.has(key)) frameCache.set(key, buildPlaneFrames(sheet.img, sheet.meta, paint));
+    const opts = markings();
+    const key = `${plane.def.sprite}|${JSON.stringify(paint)}|${opts.swastika}`;
+    if (!frameCache.has(key)) frameCache.set(key, buildPlaneFrames(sheet.img, sheet.meta, paint, opts));
     return frameCache.get(key);
   };
   const planeSprite = (plane) => {
     const paint = plane.paint ?? nations[plane.nation].paint;
-    const key = `${plane.def.sprite}|${JSON.stringify(paint)}`;
-    if (!cache.has(key)) cache.set(key, buildPlaneSprite(images[plane.def.sprite], plane.def, paint));
+    const opts = markings();
+    const key = `${plane.def.sprite}|${JSON.stringify(paint)}|${opts.swastika}`;
+    if (!cache.has(key)) cache.set(key, buildPlaneSprite(images[plane.def.sprite], plane.def, paint, opts));
     return cache.get(key);
   };
 

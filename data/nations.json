@@ -7,7 +7,7 @@
   "usa": {
     "name": "United States",
     "uniform": "#6e6a48",
-    "paint": { "base": "#9aa3a8", "under": "#c5ccd0", "nose": "#d6c23a", "marking": "#2b3f7a" }
+    "paint": { "base": "#55553a", "under": "#83878a", "nose": "#d6c23a", "marking": "#2b3f7a" }
   },
   "germany": {
     "name": "Germany",
