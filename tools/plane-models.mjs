@@ -177,26 +177,29 @@ export function roundelB(du, dv, r) {
   const k = Math.hypot(du, dv) / r;
   return k > 1 ? null : k > 0.4 ? 'marking' : 'red';
 }
+// Five-pointed star, its points at radius R, the top point towards +dv: at most 1 inside. The edge runs
+// straight from a point to the next inner corner (radius R * 0.382, 36 degrees round).
+function starRatio(du, dv, R) {
+  const Ri = R * 0.382;
+  const t = (36 * Math.PI) / 180;
+  const phi = (((Math.atan2(du, dv) % (2 * t)) + 2 * t) % (2 * t));
+  const al = phi > t ? 2 * t - phi : phi;
+  return Math.hypot(du, dv) / ((R * Ri * Math.sin(t)) / (R * Math.sin(al) + Ri * Math.sin(t - al)));
+}
 // US star and bar of late 1943: a white five-pointed star in a blue disc of radius r, white bars either
 // side, all outlined in blue. du runs along the bars, dv towards the star's top point.
 export function starBar(du, dv, r) {
   const a = Math.abs(du) / r;
   const b = Math.abs(dv) / r;
   const k = Math.hypot(du, dv) / r;
-  if (k <= 1) {
-    // Distance to the star's edge along this direction: straight lines from a point (radius R) to the
-    // next inner corner (radius R * 0.382, 36 degrees round).
-    const R = 0.97;
-    const Ri = R * 0.382;
-    const t = (36 * Math.PI) / 180;
-    const ang = Math.atan2(du, dv);
-    const phi = ((ang % (2 * t)) + 2 * t) % (2 * t);
-    const al = phi > t ? 2 * t - phi : phi;
-    const edge = (R * Ri * Math.sin(t)) / (R * Math.sin(al) + Ri * Math.sin(t - al));
-    return k <= edge ? 'white' : 'marking';
-  }
+  if (k <= 1) return starRatio(du, dv, 0.97 * r) <= 1 ? 'white' : 'marking';
   if (a <= 2.05 && b <= 0.33) return a <= 1.95 && b <= 0.25 ? 'white' : 'marking';
   return k <= 1.08 ? 'marking' : null;
+}
+// Soviet red star of 1943, points at radius r, with a thin white outline.
+export function redStar(du, dv, r) {
+  if (starRatio(du, dv, r * 0.82) <= 1) return 'marking';
+  return starRatio(du, dv, r) <= 1 ? 'white' : null;
 }
 
 // ----- Poses -----
@@ -740,6 +743,133 @@ function p47d() {
   };
 }
 
+// Lavochkin La-5FN, measured off a 3-view drawing (8.67 m long, 9.8 m span; 5 model units to the
+// metre, d back from the spinner tip, h up from the thrust line). Big round cowling for the ASh-82FN
+// radial with the carburettor intake fairing along its top, exhaust outlets on the sides, oil cooler
+// under the nose; cut-down rear decking only a little below the hood; deep, short rear fuselage; tall
+// rounded fin; wing with a swept leading edge, forward-swept trailing edge and rounded tips; tailplane
+// set high; two ShVAK cannon in the cowling; long main legs, tail wheel under the tail.
+function la5fn() {
+  const M = 5;
+  const X = (d) => 21.7 - d * M;
+  const Y = (h) => -0.1 + h * M; // the main wheels' bottom (h -1.98) lands at the usual -10
+  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+  const split = Y(-0.25);
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const fuselage = body(
+    st([
+      [0.53, 0.44, -0.44, 0.52],
+      [0.65, 0.59, -0.54, 0.62],
+      [0.76, 0.63, -0.59, 0.66],
+      [1.0, 0.66, -0.65, 0.68],
+      [1.5, 0.67, -0.66, 0.66],
+      [2.0, 0.67, -0.67, 0.62],
+      [2.5, 0.67, -0.68, 0.58],
+      [3.1, 0.67, -0.62, 0.54],
+      [3.3, 0.52, -0.61, 0.53],
+      [4.2, 0.52, -0.59, 0.48],
+      [4.6, 0.6, -0.57, 0.44],
+      [5.0, 0.81, -0.55, 0.41],
+      [5.55, 0.8, -0.48, 0.38],
+      [6.0, 0.8, -0.4, 0.33],
+      [6.46, 0.8, -0.32, 0.28],
+      [6.92, 0.79, -0.21, 0.24],
+      [7.5, 0.72, -0.07, 0.17],
+      [8.1, 0.62, 0.08, 0.1],
+      [8.6, 0.55, 0.42, 0.03],
+    ]),
+    2.4,
+  );
+  const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
+  const fuselageDecals = [
+    // Cowling joint and rear fuselage joint.
+    (p, n) => (side(n) && [line(1.95), line(5.3)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
+    // Red star on the rear fuselage.
+    (p, n) => {
+      const k = side(n) && redStar(p[0] - X(6.0), p[1] - Y(0.28), 0.46 * M);
+      return k ? { kind: k } : null;
+    },
+  ];
+  const wing = surface({ root: [X(1.6), X(4.5)], tip: [X(2.3), X(3.45)], span: 5.0 * M, at: Y(-0.42), rise: 0.087, thick: 0.2 * M, round: 0.2 });
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    // Red stars under both wings only, as the Soviets painted them.
+    const k = under && Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && redStar(Math.abs(p[2]) - 3.6 * M, p[0] - (s.le + s.te) / 2, 0.55 * M);
+    if (k) return { kind: k };
+    const hinge = s.k > 0.2 && Math.abs(s.u - 0.75) < 0.03; // flap and aileron line
+    const slat = s.k > 0.45 && s.k < 0.9 && Math.abs(s.u - 0.12) < 0.03; // leading-edge slats
+    return { kind: under ? 'under' : 'paint', dark: hinge || slat ? 1 : 0 };
+  };
+  const tailLE = [[0, 6.6], [0.31, 6.75], [0.69, 6.9], [1.0, 7.05], [1.31, 7.2], [1.58, 7.35], [1.74, 7.5], [1.76, 7.65]];
+  const tailTE = [[0, 8.22], [1.31, 8.1], [1.62, 7.95], [1.72, 7.8], [1.76, 7.65]];
+  const tailplane = surface({ root: [X(6.6), X(8.22)], span: 1.76 * M, at: Y(0.5), thick: 0.06 * M, round: 0, outline: (k) => [X(interp(tailLE, k * 1.76)[1]), X(interp(tailTE, k * 1.76)[1])] });
+  // Fin and rudder as drawn, [h, d] along each edge: the leading edge rising from the decking to a
+  // rounded top, the rudder straight down the back and curving in under the tailcone.
+  const finLE = [[0.1, 6.9], [0.8, 6.95], [0.87, 7.03], [1.0, 7.15], [1.12, 7.26], [1.2, 7.38], [1.31, 7.49], [1.46, 7.6], [1.54, 7.72], [1.58, 7.83], [1.62, 7.95]];
+  const finTE = [[0.1, 8.1], [0.21, 8.4], [0.29, 8.52], [0.44, 8.63], [0.86, 8.63], [1.12, 8.52], [1.31, 8.4], [1.43, 8.29], [1.5, 8.17], [1.58, 8.06], [1.62, 7.95]];
+  const fin = surface({ root: [X(6.9), X(8.63)], span: 1.52 * M, at: Y(0.1), thick: 0.07 * M, round: 0, outline: (k) => [X(interp(finLE, 0.1 + k * 1.52)[1]), X(interp(finTE, 0.1 + k * 1.52)[1])], vertical: true });
+  const finMat = (p, n) => {
+    const k = side(n) && redStar(p[0] - X(8.0), p[1] - Y(1.0), 0.36 * M);
+    if (k) return { kind: k };
+    return { kind: 'paint', dark: Math.abs(p[0] - X(8.15)) < 0.04 * M && p[1] > Y(0.5) ? 1 : 0 }; // rudder hinge
+  };
+  const canopy = body(
+    st([
+      [3.1, 0.7, 0.4, 0.25],
+      [3.3, 0.89, 0.4, 0.3],
+      [3.45, 0.93, 0.4, 0.32],
+      [4.1, 0.93, 0.4, 0.32],
+      [4.5, 0.86, 0.4, 0.3],
+      [5.0, 0.82, 0.4, 0.26],
+    ]),
+    3,
+  );
+  const canopyMat = (p) => ({ kind: [3.3, 4.15].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M) ? 'frame' : 'glass' });
+  const spinner = body(st([[0, 0.02, -0.02, 0.02], [0.08, 0.1, -0.1, 0.1], [0.19, 0.21, -0.21, 0.21], [0.3, 0.25, -0.25, 0.25], [0.42, 0.29, -0.29, 0.29], [0.55, 0.32, -0.32, 0.32]]), 2);
+  const plain = (kind) => () => ({ kind });
+  // Gear (world units in data/planes.json la5fn.wheels): main wheels on long legs from the wing,
+  // 2.8 m track; small tail wheel, sitting the plane about 16 degrees tail-down.
+  const wheelR = 0.33 * M;
+  const main = [X(2.12), Y(-1.65), 1.4 * M];
+  const tailR = 0.15 * M;
+  const tailW = [X(7.5), Y(-0.29), 0];
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...spinner, material: plain('nose') },
+    { ...box([X(0.56), Y(0), 0], [0.03 * M, 0.45 * M, 0.5 * M]), material: plain('dark') }, // the cowl's open front
+    { ...box([X(1.35), Y(0.66), 0], [0.6 * M, 0.06 * M, 0.12 * M]), material: (p) => ({ kind: p[0] > X(0.85) ? 'dark' : 'paint' }) }, // carburettor intake
+    { ...box([X(1.8), Y(-0.08), 0.62 * M], [0.15 * M, 0.17 * M, 0.06 * M], { mirror: true }), material: plain('dark') }, // exhaust outlets
+    { ...box([X(1.75), Y(-0.74), 0], [0.28 * M, 0.08 * M, 0.2 * M]), material: (p) => ({ kind: p[0] > X(1.55) ? 'dark' : 'under' }) }, // oil cooler
+    { ...strut([X(0.75), Y(0.45), 0.15 * M], [X(0.5), Y(0.45), 0.15 * M], 0.035 * M), material: plain('dark') }, // ShVAK muzzles
+    { ...wing, material: wingMat },
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fin, material: finMat },
+    { ...canopy, glass: true, material: canopyMat },
+    { ...sphere([X(3.85), Y(0.7), 0], 0.16 * M), pilot: true, material: plain('pilot') },
+    { ...strut([X(2.3), Y(-0.55), 1.35 * M], main, 0.06 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.09 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(7.4), Y(-0.05), 0], tailW, 0.05 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.05 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  return {
+    parts,
+    attach: {
+      exhaust: [X(1.8), Y(-0.08), 0.68 * M],
+      wingRootL: [X(3.0), Y(-0.42), 0.55 * M],
+      wingRootR: [X(3.0), Y(-0.42), -0.55 * M],
+      wingTipL: [X(2.8), Y(-0.42) + 4.9 * M * 0.087, 4.9 * M],
+      wingTipR: [X(2.8), Y(-0.42) + 4.9 * M * 0.087, -4.9 * M],
+      propHub: [X(0.55), Y(0), 0],
+      propRadius: 1.55 * M,
+      mainContact: [main[0], -10, 0],
+      track: main[2],
+    },
+  };
+}
+
 // Supermarine Spitfire Mk IX, measured off a 3-view drawing (9.47 m long, 11.23 m span, 2.4 m root
 // chord; 5 model units to the metre, d back from the spinner tip, h up from the thrust line). Long
 // Merlin 61 nose with a pointed spinner, six ejector stacks a side and a long carburettor intake under
@@ -880,4 +1010,4 @@ function spitfire() {
   };
 }
 
-export const MODELS = { bf109: bf109(), bf109g6: bf109g6(), spitfire: spitfire(), p47d: p47d() };
+export const MODELS = { bf109: bf109(), bf109g6: bf109g6(), spitfire: spitfire(), p47d: p47d(), la5fn: la5fn() };

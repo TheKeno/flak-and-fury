@@ -108,6 +108,19 @@
     "ammo": 40,
     "voice": "cannon20"
   },
+  "shvak_20": {
+    "name": "ShVAK 20 mm",
+    "type": "gun",
+    "class": "20 mm cannon",
+    "rpm": 450,
+    "damage": 3.4,
+    "velocity": 290,
+    "spread": 0.015,
+    "drop": 0.15,
+    "life": 1.54,
+    "ammo": 100,
+    "voice": "cannon20"
+  },
   "mk108_30": {
     "name": "MK 108 30 mm",
     "type": "gun",
@@ -120,6 +133,15 @@
     "life": 1.4,
     "ammo": 40,
     "voice": "cannon30"
+  },
+  "fab_100": {
+    "name": "FAB-100 bomb",
+    "type": "bomb",
+    "blastRadius": 28,
+    "blastDamage": 90,
+    "craterRadius": 13,
+    "craterDepth": 6,
+    "drag": 0.12
   },
   "gp_250": {
     "name": "250 lb GP bomb",

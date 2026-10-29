@@ -421,5 +421,107 @@
       "propBlades": 4,
       "gearRatio": 0.5
     }
+  },
+  "la5fn": {
+    "name": "La-5FN",
+    "nation": "ussr",
+    "role": "fighter",
+    "sprite": "la5fn",
+    "pivot": [
+      48,
+      20
+    ],
+    "noseOffset": [
+      9.5,
+      0
+    ],
+    "exhaustOffset": [
+      6.35,
+      -0.25
+    ],
+    "thrust": 88,
+    "dragCoef": 0.00362,
+    "groundFriction": 15,
+    "groundThrust": 0.45,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.45,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.4,
+    "slowTurnBonus": 0.9,
+    "slowTurnSpeed": 108,
+    "stallSpeed": 57,
+    "takeoffSpeed": 62,
+    "runwayNeeded": 150,
+    "maxLandingSpeed": 92,
+    "maxSpeed": 156,
+    "hp": 110,
+    "toughness": 1.2,
+    "rearView": 0.6,
+    "hitRadius": 6.8,
+    "endurance": 210,
+    "bombOffset": [
+      0,
+      -4
+    ],
+    "gearTime": 1.8,
+    "fixedTailWheel": false,
+    "wheels": [
+      {
+        "leg": [
+          5.1,
+          -1.425
+        ],
+        "wheel": [
+          5.55,
+          -4.175
+        ],
+        "stowed": [
+          5.4,
+          -1.3
+        ],
+        "r": 0.825
+      },
+      {
+        "leg": [
+          -7.65,
+          -0.175
+        ],
+        "wheel": [
+          -7.9,
+          -0.775
+        ],
+        "stowed": [
+          -7.9,
+          -0.2
+        ],
+        "r": 0.375,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.45,
+    "groundTurnTime": 1.5,
+    "groundLoopTime": 0.9,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "shvak_20",
+          "count": 2,
+          "synced": true
+        }
+      ],
+      "bombs": {
+        "weapon": "fab_100",
+        "count": 2
+      }
+    },
+    "engine": {
+      "layout": "radial",
+      "cylinders": 14,
+      "idleRpm": 700,
+      "cruiseRpm": 2200,
+      "maxRpm": 2500,
+      "propBlades": 3,
+      "gearRatio": 0.7
+    }
   }
 }

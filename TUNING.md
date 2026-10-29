@@ -28,7 +28,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `maxSpeed` | Used for sound and engine pitch, not a hard limit. Keep it near √(thrust ÷ dragCoef). | |
 | `stallSpeed` | Below this the wings stop lifting and the nose drops. | 40 – 70 |
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
-| `runwayNeeded` | Crater-free runway the plane needs to take off, counted from the start of the clear stretch (it spawns 15 in). Shorter, and its runway counts as closed for it: it waits for the crew. Set from the measured roll plus a margin: Bf 109 F-4 rolls about 111 after the 15, the G-6 about 121, the Spitfire about 92, the P-47D about 178. The runway is 420. | 120 – 210 |
+| `runwayNeeded` | Crater-free runway the plane needs to take off, counted from the start of the clear stretch (it spawns 15 in). Shorter, and its runway counts as closed for it: it waits for the crew. Set from the measured roll plus a margin: Bf 109 F-4 rolls about 111 after the 15, the G-6 about 121, the Spitfire about 92, the P-47D about 178, the La-5FN about 118. The runway is 420. | 120 – 210 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundThrust` | Share of engine pull while rolling on the wheels. Lower = longer take-off roll. | 0.3 – 1 |
 | `tailUpSpeed` | Share of take-off speed at which the tail has lifted (visual). | 0.6 – 1 |
