@@ -42,10 +42,10 @@ const PALETTE = {
   q: [120, 110, 76, 255], // canvas shade
   t: [128, 94, 62, 255], // timber
   T: [88, 64, 42, 255], // timber dark
-  y: [200, 190, 164, 255], // plaster wall
-  Y: [164, 154, 130, 255], // plaster shade
-  f: [146, 68, 50, 255], // roof tiles
-  F: [108, 50, 38, 255], // roof tile shade
+  y: [140, 132, 116, 255], // plaster wall (grimy: the look is grim)
+  Y: [112, 106, 94, 255], // plaster shade
+  f: [96, 58, 46, 255], // roof tiles (dull, sooty brick)
+  F: [70, 44, 36, 255], // roof tile shade
   n: [44, 56, 64, 255], // dark window glass
 };
 

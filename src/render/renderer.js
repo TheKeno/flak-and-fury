@@ -304,9 +304,9 @@ export function createRenderer(canvas, world, assets) {
       const river = map.rivers?.find((rv) => wx >= rv.x && wx <= rv.x + rv.width);
       if (river && t.heightAt(wx) < river.water) {
         const wy = Math.round(bh - (river.water - cam.y) * SCALE);
-        col(x, wy, top - wy, '#3f6a88');
-        col(x, wy + 3, top - wy - 3, '#365d79');
-        col(x, wy, 1, (ix + Math.floor(frame / 8)) % 7 < 2 ? '#a8d0e0' : '#6c98b4');
+        col(x, wy, top - wy, '#2e3f47');
+        col(x, wy + 3, top - wy - 3, '#253239');
+        col(x, wy, 1, (ix + Math.floor(frame / 8)) % 7 < 2 ? '#7d8e94' : '#4b5e66');
       }
     }
   }
