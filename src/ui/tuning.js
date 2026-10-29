@@ -172,7 +172,8 @@ const PAD_FIELDS = [
 const WAVE_FIELDS = [
   ['first', 'First wave after', 0, 300, 5, 'Seconds from the start before the first tank columns roll out.'],
   ['interval', 'Time between waves', 10, 400, 5, 'Seconds between waves from an undamaged depot. A damaged depot takes up to 2.5 times as long.'],
-  ['tanks', 'Tanks per wave', 0, 8, 1, 'Fewer from a damaged depot (always at least one while it stands).'],
+  ['tanks', 'Tanks per wave', 0, 8, 1, 'Fewer from a damaged depot (at least one while it stands, unless the side is at its cap).'],
+  ['maxTanks', 'Max tanks per side', 0, 20, 1, 'Tanks support the infantry: a wave only sends tanks while the side has fewer than this out.'],
   ['squads', 'Infantry squads per wave', 0, 6, 1, 'Fewer from a damaged depot.'],
   ['squadSize', 'Soldiers per squad', 1, 12, 1, ''],
   ['engineers', 'Engineers', 0, 8, 1, 'Engineers sent with a wave when the bridge is down (0 = none).'],

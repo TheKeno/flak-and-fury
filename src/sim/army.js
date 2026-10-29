@@ -10,7 +10,7 @@ import { makeGroundObject, surfaceAt, groundBox, blastGround, hurtSquad, damageG
 import { angleDiff } from './math.js';
 import { damagePlane } from './weapons.js';
 
-export const DEFAULT_WAVES = { first: 15, interval: 75, tanks: 2, squads: 1, squadSize: 4, engineers: 3 };
+export const DEFAULT_WAVES = { first: 15, interval: 75, tanks: 2, maxTanks: 4, squads: 1, squadSize: 4, engineers: 3 };
 
 const TANK_GUN = [12, 8]; // muzzle ahead of and above the tank's centre at the ground (along the hull)
 const SHELL_DROP = 0.25;
@@ -43,7 +43,10 @@ function spawnWave(world, team, side, depot) {
   const cfg = world.waves;
   const health = depot.hp / depot.maxHp;
   const units = [];
-  for (let i = 0; i < Math.max(1, Math.round(cfg.tanks * health)); i++) units.push(['tank']);
+  // Tanks support the infantry: no more than maxTanks a side on the field at once.
+  const out = world.ground.filter((o) => o.type === 'tank' && o.mobile && o.alive && o.team === team).length;
+  const tanks = Math.min(Math.max(1, Math.round(cfg.tanks * health)), (cfg.maxTanks ?? Infinity) - out);
+  for (let i = 0; i < tanks; i++) units.push(['tank']);
   for (let i = 0; i < Math.round(cfg.squads * health); i++) units.push(['infantry', cfg.squadSize]);
   const bridgeDown = world.ground.some((o) => o.type === 'bridge' && !o.alive);
   const engineersOut = world.ground.some((o) => o.type === 'engineers' && o.team === team && o.alive);

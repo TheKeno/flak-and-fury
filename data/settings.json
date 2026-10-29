@@ -65,6 +65,7 @@
     "first": 15,
     "interval": 75,
     "tanks": 2,
+    "maxTanks": 4,
     "squads": 1,
     "squadSize": 4,
     "engineers": 3

@@ -151,7 +151,7 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 | `rebuildTime` | Bridge: seconds a full squad of engineers needs to rebuild it from nothing. | 20 – 120 |
 
 `waves` (in `data/settings.json`): `first` (seconds before the first wave), `interval` (seconds between
-waves), `tanks` and `squads` per wave, `squadSize`, `engineers` (sent when the bridge is down; 0 = none).
+waves), `tanks` and `squads` per wave, `maxTanks` (a side never has more tanks out than this; waves then bring only infantry), `squadSize`, `engineers` (sent when the bridge is down; 0 = none).
 
 `pads` (in `data/settings.json`, the tuning panel's **Structure pads**): every structure placed on the
 map (anything with a `sprite`: guns, tents, towers, buildings, radar, depots) stands on a level pad, so

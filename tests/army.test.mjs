@@ -196,3 +196,13 @@ test('tanks drive over wrecks', () => {
   run(world, 60);
   assert.ok(tank.x > wreck.x + 20, `passed the wreck (at ${tank.x.toFixed(1)}, wreck ${wreck.x}, ${tank.why})`);
 });
+
+test('a side never has more tanks out than maxTanks', () => {
+  const world = makeWorld({ first: 0, interval: 5, tanks: 2, maxTanks: 4 });
+  // Nobody fights: the columns just pile up.
+  for (const o of world.ground) if (o.type !== 'depot' && o.team != null) o.alive = false;
+  let most = 0;
+  run(world, 60, () => (most = Math.max(most, units(world, 'tank', 0).length, units(world, 'tank', 1).length)));
+  assert.equal(most, 4);
+  assert.ok(units(world, 'infantry', 0).length > 2, 'infantry still comes');
+});
