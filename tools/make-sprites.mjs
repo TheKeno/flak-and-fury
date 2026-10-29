@@ -1,4 +1,6 @@
-// Generates the starter pixel-art PNGs in assets/sprites/.
+// Generates the starter pixel-art PNGs in assets/sprites/. Planes are 3D models (plane-models.mjs)
+// rendered to pixel art: <name>.png is the side view, <name>-frames.png the roll, ground-turn and
+// ground-loop frames, <name>.json their layout and the model's attach points.
 // Run: node tools/make-sprites.mjs
 // Sprites are drawn at 2 pixels per world unit (the game's render scale).
 // Once someone redraws a sprite by hand, remove it from SPRITES so it isn't overwritten.
@@ -7,6 +9,8 @@
 // so hand-drawn sprites must use the same keys (see src/render/sprites.js).
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
+import { MODELS, render, rollPose, groundPose, tipBank, project } from './plane-models.mjs';
+import { TAIL_DOWN } from '../src/sim/plane.js';
 
 const PALETTE = {
   '.': [0, 0, 0, 0],
@@ -17,6 +21,9 @@ const PALETTE = {
   N: [255, 255, 0, 255], // KEY paint: nose / spinner
   M: [255, 0, 0, 255], // KEY paint: national marking
   W: [128, 0, 128, 255], // KEY paint: wing (darker base)
+  1: [0, 192, 192, 255], // KEY paint: underside shade
+  2: [192, 192, 0, 255], // KEY paint: nose shade
+  4: [176, 176, 168, 255], // white in shadow
   C: [96, 136, 160, 255], // canopy glass
   c: [200, 228, 240, 255], // canopy highlight
   p: [92, 64, 44, 255], // pilot's leather helmet
@@ -169,82 +176,6 @@ function barn() {
   for (let k = 0; k <= 15; k++) g.set(28 + k, 17 + Math.round(k * 0.93), 'D'); // cross brace
   for (let y = 19; y <= 22; y++) g.span(y, 12, 16, 'd'); // hay loft hatch
   g.outline('d');
-  return g.rowsOut();
-}
-
-// Single-engine fighter, side view, nose to the right. 48x18; pivot (24, 10).
-function fighter() {
-  const g = grid(48, 18);
-  // Tail fin (drawn first, the fuselage overlaps its base).
-  for (let y = 0; y <= 8; y++) g.span(y, 1, 4 + Math.round(y * 0.9), 'B');
-  // Fuselage: top band in base colour, shaded flank, light underside.
-  g.rows({ 7: [9, 40], 8: [1, 44], 9: [0, 45], 10: [0, 46], 11: [0, 46], 12: [2, 45], 13: [6, 42] }, (y) =>
-    y <= 9 ? 'B' : y <= 11 ? 'S' : 'U',
-  );
-  // Tailplane.
-  g.rows({ 10: [0, 10], 11: [0, 9] }, 'W');
-  // Wing root seen edge-on beneath the fuselage.
-  g.rows({ 13: [17, 38], 14: [18, 37], 15: [21, 33] }, 'W');
-  // Panel lines.
-  for (const x of [15, 31]) for (let y = 8; y <= 11; y++) g.set(x, y, 'S');
-  // National marking.
-  g.disc(19, 10.5, 2.4, 'M');
-  // Canopy with pilot.
-  g.rows({ 2: [24, 29], 3: [22, 31], 4: [21, 32], 5: [20, 33], 6: [20, 33] }, 'C');
-  g.span(3, 24, 27, 'c');
-  g.span(4, 22, 23, 'c');
-  g.rows({ 5: [26, 27], 6: [25, 28] }, 'p');
-  g.set(27, 5, 'P');
-  // Exhaust stacks along the engine cowling.
-  for (const x of [34, 37, 40]) {
-    g.set(x, 9, 'e');
-    g.set(x + 1, 9, 'e');
-  }
-  // Spinner.
-  g.rows({ 8: [44, 45], 9: [44, 46], 10: [44, 47], 11: [44, 47], 12: [44, 45] }, 'N');
-  g.outline();
-  return g.rowsOut();
-}
-
-// Messerschmitt Bf 109, side view, nose to the right. 48x18; pivot (24, 10).
-// Long nose with pointed spinner, angular framed canopy, rounded fin, chin oil cooler, Balkenkreuz.
-function bf109() {
-  const g = grid(48, 18);
-  // Rounded fin with the rudder hinge line.
-  g.rows({ 1: [3, 6], 2: [2, 7], 3: [1, 8], 4: [1, 8], 5: [1, 9], 6: [1, 9] }, 'B');
-  for (let y = 2; y <= 7; y++) g.set(6, y, 'S');
-  // Slim fuselage tapering hard to the tail.
-  g.rows({ 6: [22, 34], 7: [8, 44], 8: [2, 45], 9: [1, 46], 10: [1, 47], 11: [2, 46], 12: [6, 44], 13: [14, 40] }, (y) =>
-    y <= 9 ? 'B' : y <= 11 ? 'S' : 'U',
-  );
-  // Tailplane, set high on the fin.
-  g.rows({ 7: [0, 12], 8: [0, 11] }, 'W');
-  // Wing root and the radiator bath under it.
-  g.rows({ 13: [18, 34], 14: [19, 33], 15: [22, 30] }, 'W');
-  g.span(15, 24, 28, 'S');
-  // Chin oil cooler with its dark intake.
-  g.rows({ 13: [37, 42], 14: [38, 42] }, 'U');
-  g.set(42, 13, 'e');
-  g.set(42, 14, 'e');
-  // Panel lines: cockpit rear and firewall.
-  for (let y = 8; y <= 11; y++) g.set(20, y, 'S');
-  for (let y = 7; y <= 11; y++) g.set(34, y, 'S');
-  // Supercharger intake on the cowling side.
-  g.span(8, 32, 33, 'e');
-  // Exhaust stacks.
-  for (const x of [35, 38, 41]) g.span(9, x, x + 1, 'e');
-  // Angular canopy, framed, with the pilot.
-  g.rows({ 3: [25, 30], 4: [24, 31], 5: [23, 32], 6: [23, 33] }, 'C');
-  g.span(4, 25, 26, 'c');
-  g.rows({ 5: [25, 26], 6: [24, 27] }, 'p');
-  g.set(26, 5, 'P');
-  for (const x of [28, 31]) for (let y = 3; y <= 6; y++) g.set(x, y, 'o');
-  // Pointed spinner.
-  g.rows({ 8: [45, 45], 9: [45, 46], 10: [45, 47], 11: [45, 46] }, 'N');
-  // Balkenkreuz: black cross with a white border.
-  g.rows({ 8: [15, 17], 9: [14, 18], 10: [14, 18], 11: [14, 18], 12: [15, 17] }, 'x');
-  g.rows({ 9: [16, 16], 10: [15, 17], 11: [16, 16] }, 'M');
-  g.outline();
   return g.rowsOut();
 }
 
@@ -473,8 +404,6 @@ function depot() {
 const SPRITES = {
   tank: tank(),
   depot: depot(),
-  fighter: fighter(),
-  bf109: bf109(),
   bomb: bomb(),
   hangar: hangar(),
   flak: flak(),
@@ -534,8 +463,66 @@ function encodePng(rows) {
   ]);
 }
 
+// Plane frame sheets. Every cell is CELL_W x CELL_H with the frame's anchor at a fixed pixel: the
+// pivot for roll frames, the main wheels' ground contact for the ground frames. Ground-turn frames
+// swing the nose away from the camera through tail-on to facing the other way; ground-loop frames
+// spin the plane round while it tips over, ending as the far wingtip touches the ground.
+const CELL_W = 81;
+const CELL_H = 65;
+const ROLL_FRAMES = 16; // a full roll: 8 per half roll
+const TURN_FRAMES = 13; // yaw 0..180 degrees
+const LOOP_FRAMES = 24;
+const LOOP_YAW = Math.PI * 2.5; // one and a quarter turns, ending nose away from the camera
+const PROP_RADIUS = 8.5;
+
+function planeSheet(model) {
+  const rows = [];
+  const props = {};
+  const add = (name, anchor, poses, gear) => {
+    rows.push({ name, anchor, frames: poses.map((ps) => render(model, ps, CELL_W, CELL_H, anchor, { gear })) });
+    // Propeller disc per frame: hub and the two half axes, in pixels from the anchor (y down).
+    props[name] = poses.map((ps) => {
+      const [hx, hy, hz] = project(ps, model.attach.propHub);
+      const ax = ps.dirToView([0, PROP_RADIUS, 0]);
+      const bx = ps.dirToView([0, 0, PROP_RADIUS]);
+      return [hx, hy, ax[0], -ax[1], bx[0], -bx[1], hz].map((v) => Math.round(v * 100) / 100);
+    });
+  };
+  const roll = Array.from({ length: ROLL_FRAMES }, (_, k) => rollPose((k / ROLL_FRAMES) * Math.PI * 2));
+  add('roll', [40, 32], roll, false);
+  add('rollGear', [40, 32], roll, true);
+  add('turn', [40, 46], Array.from({ length: TURN_FRAMES }, (_, k) => groundPose(model, (k / (TURN_FRAMES - 1)) * Math.PI, TAIL_DOWN)), true);
+  const bank = tipBank(model, LOOP_YAW, TAIL_DOWN);
+  add('loop', [40, 46], Array.from({ length: LOOP_FRAMES }, (_, k) => {
+    const s = k / (LOOP_FRAMES - 1);
+    return groundPose(model, LOOP_YAW * (1 - (1 - s) ** 1.6), TAIL_DOWN, bank * s ** 2.5);
+  }), true);
+  const width = CELL_W * Math.max(...rows.map((r) => r.frames.length));
+  const sheet = [];
+  for (const r of rows) {
+    for (let y = 0; y < CELL_H; y++) sheet.push(r.frames.map((f) => f[y]).join('').padEnd(width, '.'));
+  }
+  const meta = {
+    _notes: 'Generated by tools/make-sprites.mjs from tools/plane-models.mjs. Frame cells of the -frames.png sheet, row by row; anchor in cell pixels. props: per frame [hub x, hub y, half axis a x, y, half axis b x, y, hub depth] in pixels from the anchor. attach: model points in sprite pixels from the pivot (x nose, y up, z towards the camera).',
+    cell: [CELL_W, CELL_H],
+    rows: Object.fromEntries(rows.map((r, i) => [r.name, { row: i, count: r.frames.length, anchor: r.anchor }])),
+    props,
+    attach: model.attach,
+  };
+  return { sheet, meta };
+}
+
 const outDir = new URL('../assets/sprites/', import.meta.url);
 mkdirSync(outDir, { recursive: true });
+for (const [name, model] of Object.entries(MODELS)) {
+  // Side view at the old sprite's size and pivot (48 x 18, pivot 24, 10), without the gear: the game
+  // draws the gear so it can retract.
+  SPRITES[name] = render(model, rollPose(0), 48, 18, [24, 10], { gear: false });
+  const { sheet, meta } = planeSheet(model);
+  writeFileSync(new URL(`${name}-frames.png`, outDir), encodePng(sheet));
+  writeFileSync(new URL(`${name}.json`, outDir), JSON.stringify(meta) + '\n');
+  console.log(`wrote assets/sprites/${name}-frames.png and ${name}.json`);
+}
 for (const [name, rows] of Object.entries(SPRITES)) {
   writeFileSync(new URL(`${name}.png`, outDir), encodePng(rows));
   console.log(`wrote assets/sprites/${name}.png`);

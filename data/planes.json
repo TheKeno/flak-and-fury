@@ -42,6 +42,9 @@
     ],
     "gearTime": 1.6,
     "fixedTailWheel": false,
+    "rollTime": 0.5,
+    "groundTurnTime": 1.5,
+    "groundLoopTime": 0.9,
     "armament": {
       "guns": [
         {
@@ -106,6 +109,9 @@
     ],
     "gearTime": 1.8,
     "fixedTailWheel": true,
+    "rollTime": 0.5,
+    "groundTurnTime": 1.5,
+    "groundLoopTime": 0.9,
     "armament": {
       "guns": [
         {

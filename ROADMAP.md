@@ -27,6 +27,16 @@ later.
 - **Nations:** UK, USA, Germany, Japan, Finland, USSR. Each gets 3 airframes (fighter, heavy fighter,
   dive bomber) with flavour: Japan light and agile, Finland tough, USSR rugged, Germany fast climb,
   UK tight turn, USA heavy armament.
+- **Planes are 3D models rendered to pixel art** (`tools/plane-models.mjs`, run by
+  `tools/make-sprites.mjs`): a few simple shapes each (fuselage, wings, tailplane, fin, canopy,
+  spinner, gear), ray-cast to palette key colours with a crisp 1-pixel outline, so every angle (side
+  view, roll, turning round on the ground) matches and any paint applies to all of them. Chosen over
+  hand-drawn frames because of the many paint schemes and skins to come. The model has named attach
+  points (exhaust, wing roots, wingtips) for weathering later.
+- **Paint schemes, skins and weathering come later, on top of the model:** paint schemes per theatre,
+  map and season (winter whitewash, desert, night black), with camouflage on the upper surfaces and a
+  separate underside colour; unlockable paints and skins (cosmetic only, milestone 9); weathering as a
+  paint layer with a wear amount (exhaust staining, chipped wing roots).
 
 ## Done
 
@@ -82,6 +92,10 @@ later.
     stay 90 s, torn-off limbs and red mist from bombs, shells, cannon and propellers, bodies tossed by
     blasts, helmets spun high by a prop strike, blood on the nose, windscreen, propeller and your screen
     after running men down. Built on a gore profile so animals can reuse it.
+  - Planes as 3D models rendered to pixel art. Animated half roll in the air (always the same way
+    round: top, then belly), turning round on the ground by pivoting on the main wheels (nose away from
+    the camera, tail-on, round), and the ground loop: Shift while taxiing spins the plane round until a
+    wingtip digs in and it's wrecked.
   - Live tuning panel with Save to files; synthesized sound for engines, guns, crew, body, gear,
     collisions.
 
@@ -91,7 +105,7 @@ later.
    pattern, all 1943 types (the player's Bf 109 F-4 becomes a G-6, or stays as a lighter option). One
    standard tank per nation in the ground war, with a little flavour: Germany Panzer IV (StuG III as an
    option), USSR T-34/76, USA M4 Sherman, UK Churchill, Japan Type 97 Chi-Ha (thin armour), Finland
-   captured T-34 or the BT-42 / StuG "Sturmi". Later, rare heavies (Tiger, KV-1S) worth more points.
+   BT-42 (decided). Later, rare heavies (Tiger, KV-1S) worth more points.
 7. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
    camo, nose, markings, squadron number), saved locally.
 8. **Match setup and music:** menu, rules, scoring (win conditions include **grounding the enemy**:
@@ -113,8 +127,7 @@ later.
     generated sounds, mix them with recordings (CC0 samples, licences checked, downloads approved
     first), and add effects (per-environment reverb, filtering, distortion, compression). Also ambience
     per map, the Jericho siren and night-raid sirens. Hold off on fine-tuning sounds until then.
-13. **Polish:** balance, and **full roll animations** (the plane visibly rolls through its side view,
-    wings edge-on and belly showing, instead of flipping instantly).
+13. **Polish:** balance.
 
 Then: more themes, co-op missions, online play.
 
@@ -130,10 +143,11 @@ Then: more themes, co-op missions, online play.
 - **Buildings fit the time and place:** 1943 architecture for the country the map is fought in
   (e.g. Karelian log houses and saunas, Russian izbas, Normandy stone farms, English villages, Pacific
   huts), and military buildings (hangars, depots, radar, bunkers) styled after the nation that owns them.
-- **Roll while standing still** turns the plane round to face the other way (not upside down).
-  Later animated, like the full roll animations in milestone 13.
 
 ## Owner's notes (to discuss before building)
+
+- **Should the roll affect flying?** Today it is visual only (the plane flies inverted the moment Shift
+  is pressed). Maybe: no pitching mid-roll, a slight sink at knife-edge.
 
 - **Animals.** Their blood and gore should reuse the soldiers' gore profile (src/render/gore.js).
 

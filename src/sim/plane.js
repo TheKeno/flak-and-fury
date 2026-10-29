@@ -27,7 +27,8 @@ const BOUNCE_KICK = 14; // upward speed (units/s) a hard landing throws the plan
 const BOUNCE_SETTLE = 0.06; // nose below the slope after a bounce (rad), to come down again
 const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the normal landing speed
 const STRANDED_TIME = 5; // seconds before the crew tow a plane stuck on its own airfield out
-const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the ground; above, it rolls (and crashes)
+const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the ground; above, it ground-loops (and crashes)
+const LOOP_SLOWDOWN = 2.5; // a ground-looping plane sheds this share of its speed per second, skidding round
 const SPAWN_INSET = 15; // a plane starts this far into the clear stretch (counted in def.runwayNeeded)
 const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
 const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
@@ -42,7 +43,7 @@ const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 // the fuselage: standing on the ground they fire up at this angle. Wheel points in world units.
 const MAIN_WHEEL_BOTTOM = [3.5, -3.6 - 1.4];
 const TAIL_WHEEL_BOTTOM = [-10.5, -1.6 - 0.8];
-const TAIL_DOWN = Math.atan2(TAIL_WHEEL_BOTTOM[1] - MAIN_WHEEL_BOTTOM[1], MAIN_WHEEL_BOTTOM[0] - TAIL_WHEEL_BOTTOM[0]);
+export const TAIL_DOWN = Math.atan2(TAIL_WHEEL_BOTTOM[1] - MAIN_WHEEL_BOTTOM[1], MAIN_WHEEL_BOTTOM[0] - TAIL_WHEEL_BOTTOM[0]);
 
 function updateTilt(p, dt) {
   let target = 0;
@@ -66,6 +67,35 @@ export function attitude(p) {
   const [nx, ny] = off(angle);
   return { angle, x: p.x + ox - nx, y: p.y + oy - ny };
 }
+
+// Main wheels' ground contact point: the ground turn pivots about it, and the renderer anchors the
+// ground frames there.
+export function mainWheelContact(p) {
+  const f = p.inverted ? -1 : 1;
+  const [mx, my] = MAIN_WHEEL_BOTTOM;
+  const c = Math.cos(p.angle);
+  const s = Math.sin(p.angle);
+  return { x: p.x + c * mx - s * my * f, y: p.y + s * mx + c * my * f };
+}
+
+// The roll as drawn (visual only: p.inverted flips at once, as it always has). rollAngle runs 0..2PI,
+// 0 upright as drawn, PI upside down, and always turns the same way, so one roll shows the top and the
+// next the belly. Anything else that flips the plane over (map edges, turning round) just snaps it.
+function updateRoll(p, dt) {
+  const rest = p.inverted ? Math.PI : 0;
+  if (!p.rolling || p.state !== 'air') {
+    p.rolling = false;
+    p.rollAngle = rest;
+    return;
+  }
+  const left = (((rest - p.rollAngle) % TAU) + TAU) % TAU;
+  const step = (Math.PI / (p.def.rollTime ?? 0.5)) * dt;
+  if (left <= step + 1e-9) {
+    p.rollAngle = rest;
+    p.rolling = false;
+  } else p.rollAngle = (p.rollAngle + step) % TAU;
+}
+const TAU = Math.PI * 2;
 
 // "Upright" means the pilot's head points at the sky: flying right normally, or flying left after a roll.
 export const isUpright = (p) => Math.cos(p.angle) >= 0 !== p.inverted;
@@ -95,6 +125,10 @@ export function createPlane(id, def, { team, nation, seats }) {
     spinDir: 1,
     respawnTimer: 0,
     prevRoll: false,
+    rollAngle: 0, // visual roll, see updateRoll
+    rolling: false,
+    groundTurn: null, // 0..1 through turning round on the ground (pivoting on the main wheels)
+    groundLoop: null, // 0..1 through a ground loop (Shift while taxiing): it ends with a wingtip in the ground
     turnDir: 0,
     turnHold: 0, // seconds the current turn key has been held, for fine aiming
     hp: def.hp,
@@ -182,6 +216,9 @@ export function spawnAtAirfield(p, world) {
   p.strandedTimer = 0;
   p.tumble = p.tumbleSpin = p.tailDamage = p.wingPull = 0;
   p.propBent = false;
+  p.rolling = false;
+  p.rollAngle = p.inverted ? Math.PI : 0;
+  p.groundTurn = p.groundLoop = null;
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
   return true;
@@ -315,14 +352,28 @@ function updateConsciousness(p, cmd, world, dt) {
 function stepGround(p, cmd, world, dt) {
   const d = p.def;
 
-  // Shift on the ground: (nearly) stopped, the plane is turned round to face the other way, upright.
-  // Rolling while taxiing digs a wingtip in and cartwheels the plane into a wreck.
-  if (cmd.roll && !p.prevRoll && !p.belly) {
+  if (p.groundTurn != null) {
+    stepGroundTurn(p, world, dt);
+    return;
+  }
+  // Shift on the ground: (nearly) stopped, the plane pivots round on its main wheels to face the other
+  // way, upright. Rolling while taxiing ground-loops it: it spins round, tips over and digs a wingtip in.
+  if (cmd.roll && !p.prevRoll && !p.belly && p.groundLoop == null) {
     if (p.speed < TAXI_ROLL_SPEED) {
-      p.angle = wrapAngle(p.angle + Math.PI);
-      p.inverted = !p.inverted;
-    } else {
-      world.events.push({ type: 'roll', plane: p.id });
+      p.groundTurn = 0;
+      p.speed = p.vx = p.vy = 0;
+      world.events.push({ type: 'groundTurn', plane: p.id, x: p.x, y: p.y });
+      return;
+    }
+    p.groundLoop = 0;
+    world.events.push({ type: 'roll', plane: p.id });
+    world.events.push({ type: 'groundLoop', plane: p.id, x: p.x, y: p.y, speed: p.speed });
+  }
+  if (p.groundLoop != null) {
+    // Out of control, skidding round; the crash comes when the wingtip hits the ground.
+    p.groundLoop += dt / (d.groundLoopTime ?? 0.9);
+    p.speed *= Math.max(0, 1 - LOOP_SLOWDOWN * dt);
+    if (p.groundLoop >= 1) {
       crash(p, world, 'taxiRoll');
       return;
     }
@@ -335,7 +386,7 @@ function stepGround(p, cmd, world, dt) {
   const rolling = p.belly ? BELLY_FRICTION : d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1) * (onRunway ? 1 : GRASS_FRICTION);
   const friction = p.speed <= 0 ? 0 : rolling;
   // On its wheels a propeller pulls less than in flight, so the take-off roll builds speed slowly.
-  const thrust = d.thrust * p.throttle * p.power * (d.groundThrust ?? 1);
+  const thrust = p.groundLoop != null ? 0 : d.thrust * p.throttle * p.power * (d.groundThrust ?? 1);
   p.speed += (thrust - d.dragCoef * p.speed * p.speed - friction - GRAVITY * Math.sin(heading)) * dt;
   p.speed = Math.max(0, p.speed);
 
@@ -362,7 +413,7 @@ function stepGround(p, cmd, world, dt) {
     const wingLift = p.belly ? 0 : clamp((p.speed / d.takeoffSpeed) ** 2, 0, 1);
     const weight = GRAVITY * (1 - 0.9 * wingLift) * Math.cos(slope);
     const pull = p.speed * p.speed * curvature; // acceleration needed to follow the ground
-    if (!p.belly && -pull > weight) {
+    if (!p.belly && -pull > weight && p.groundLoop == null) {
       p.state = 'air';
       p.y = Math.max(oldY + p.vy * dt, groundY + 0.1);
       world.events.push({ type: 'leftGround', plane: p.id, x: p.x, y: p.y, speed: p.speed });
@@ -377,7 +428,7 @@ function stepGround(p, cmd, world, dt) {
 
   // Rotating the nose upwards at flying speed lifts off: counter-clockwise facing right, clockwise facing left.
   const noseUp = facingRight ? 1 : -1;
-  if (cmd.turn * noseUp > 0 && p.speed >= d.takeoffSpeed && !p.belly) {
+  if (cmd.turn * noseUp > 0 && p.speed >= d.takeoffSpeed && !p.belly && p.groundLoop == null) {
     p.state = 'air';
     p.angle = wrapAngle(p.angle + noseUp * 0.1);
     p.y += 1;
@@ -385,11 +436,29 @@ function stepGround(p, cmd, world, dt) {
   }
 }
 
+// Turning round on the ground: the plane stands still on its main wheels while the tail swings round
+// (it can't move or take off, and can still be shot). Done, it faces the other way, upright, with the
+// main wheels where they were.
+function stepGroundTurn(p, world, dt) {
+  p.speed = p.vx = p.vy = 0;
+  p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  p.groundTurn += dt / (p.def.groundTurnTime ?? 1.5);
+  if (p.groundTurn < 1) return;
+  const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
+  p.groundTurn = null;
+  p.x = clamp(p.x + 2 * dir * MAIN_WHEEL_BOTTOM[0], EDGE_MARGIN, world.map.width - EDGE_MARGIN);
+  p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  p.angle = wrapAngle(p.angle + Math.PI);
+  p.inverted = !p.inverted;
+  world.events.push({ type: 'turnedRound', plane: p.id, x: p.x, y: p.y });
+}
+
 function stepAir(p, cmd, world, dt) {
   const d = p.def;
 
   if (cmd.roll && !p.prevRoll && !p.blackout) {
     p.inverted = !p.inverted;
+    p.rolling = true;
     world.events.push({ type: 'roll', plane: p.id });
   }
 
@@ -457,6 +526,7 @@ function stepAir(p, cmd, world, dt) {
     p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
     p.angle = wrapAngle(Math.PI - p.angle);
     p.inverted = !p.inverted;
+    p.rolling = false;
   }
 
   const gearReady = p.gear >= 0.9;
@@ -606,12 +676,15 @@ function abandon(p, world) {
 
 export function stepPlane(p, cmd, world, dt) {
   if (p.state === 'dead') {
+    p.groundTurn = p.groundLoop = null;
     p.respawnTimer -= dt;
     if (p.respawnTimer <= 0) spawnAtAirfield(p, world);
     return;
   }
 
   if (p.dying) cmd = { ...NO_COMMAND, throttle: -1 };
+  // Turning round or ground-looping, the guns point nowhere useful.
+  if (p.groundTurn != null || p.groundLoop != null) cmd = { ...cmd, fire: false, bomb: false };
   p.throttle = clamp(p.throttle + cmd.throttle * 0.7 * dt, 0, 1);
   updateConsciousness(p, cmd, world, dt);
   updateEngine(p, world, dt);
@@ -620,6 +693,7 @@ export function stepPlane(p, cmd, world, dt) {
   if (p.state === 'ground') stepGround(p, cmd, world, dt);
   else stepAir(p, cmd, world, dt);
   updateTilt(p, dt);
+  updateRoll(p, dt);
   if (p.state !== 'dead') updateWeapons(p, cmd, world, dt);
   if (p.state !== 'dead') updateServicing(p, world, dt);
   if (p.state !== 'dead') updateGear(p, cmd, world, dt);

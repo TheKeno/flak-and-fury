@@ -1,5 +1,5 @@
 // Loads game content (data JSON, maps, sprites) from files, so it can be edited without touching code.
-import { loadImage, buildPlaneSprite, buildRotations } from '../render/sprites.js';
+import { loadImage, buildPlaneSprite, buildPlaneFrames, buildRotations } from '../render/sprites.js';
 import { importLdtk } from './ldtk.js';
 
 const toCanvas = (img) => {
@@ -47,8 +47,32 @@ export async function loadContent(mapName) {
     await Promise.all(spriteNames.map(async (n) => [n, await loadImage(`assets/sprites/${n}.png`)])),
   );
 
+  // Planes rendered from 3D models also have a sheet of roll and ground frames (see
+  // tools/make-sprites.mjs). A plane sprite without one simply flips and turns round at once.
+  const planeSprites = [...new Set(Object.values(planeDefs).map((d) => d.sprite))];
+  const sheets = Object.fromEntries(
+    await Promise.all(
+      planeSprites.map(async (n) => {
+        try {
+          return [n, { img: await loadImage(`assets/sprites/${n}-frames.png`), meta: await json(`assets/sprites/${n}.json`) }];
+        } catch {
+          return [n, null];
+        }
+      }),
+    ),
+  );
+
   // Painted, rotated plane sprites are built on first use and cached per plane type + paint.
   const cache = new Map();
+  const frameCache = new Map();
+  const planeFrames = (plane) => {
+    const sheet = sheets[plane.def.sprite];
+    if (!sheet) return null;
+    const paint = plane.paint ?? nations[plane.nation].paint;
+    const key = `${plane.def.sprite}|${JSON.stringify(paint)}`;
+    if (!frameCache.has(key)) frameCache.set(key, buildPlaneFrames(sheet.img, sheet.meta, paint));
+    return frameCache.get(key);
+  };
   const planeSprite = (plane) => {
     const paint = plane.paint ?? nations[plane.nation].paint;
     const key = `${plane.def.sprite}|${JSON.stringify(paint)}`;
@@ -58,5 +82,5 @@ export async function loadContent(mapName) {
 
   const bombSprite = buildRotations(toCanvas(images.bomb), [7, 3]);
 
-  return { planeDefs, nations, weapons, settings, groundDefs, notes, map, images, planeSprite, bombSprite };
+  return { planeDefs, nations, weapons, settings, groundDefs, notes, map, images, planeSprite, planeFrames, bombSprite };
 }

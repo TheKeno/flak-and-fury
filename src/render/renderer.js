@@ -14,7 +14,7 @@ import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
-import { attitude } from '../sim/plane.js';
+import { attitude, mainWheelContact } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
@@ -614,15 +614,70 @@ export function createRenderer(canvas, world, assets) {
   // Taildraggers sit tail-down on the ground; the sim keeps that tilt (the guns use it too).
   const groundAttitude = attitude;
 
+  // Which transient frame a plane shows, if any: rolling in the air, turning round or ground-looping.
+  const smooth = (t) => t * t * (3 - 2 * t);
+  function transientFrame(p, frames) {
+    if (!frames) return null;
+    const rows = frames.meta.rows;
+    if (p.groundLoop != null) return { row: 'loop', index: Math.min(rows.loop.count - 1, Math.round(p.groundLoop * (rows.loop.count - 1))) };
+    if (p.groundTurn != null) return { row: 'turn', index: Math.round(smooth(Math.min(1, p.groundTurn)) * (rows.turn.count - 1)) };
+    if (p.rolling) {
+      const row = p.gear > 0.5 ? 'rollGear' : 'roll';
+      return { row, index: Math.round((p.rollAngle / (Math.PI * 2)) * rows[row].count) % rows[row].count };
+    }
+    return null;
+  }
+
+  // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.
+  function drawPropDisc(p, cx, cy, [hx, hy, ax, ay, bx, by], rot, mirror) {
+    const m = mirror ? -1 : 1;
+    const c = Math.cos(rot);
+    const s = Math.sin(rot);
+    const turn = (x, y) => [x * m * c + y * s, -x * m * s + y * c];
+    const [px, py] = turn(hx, hy);
+    const [ax2, ay2] = turn(ax, ay);
+    const [bx2, by2] = turn(bx, by);
+    const spin = Math.floor(frame * (p.rpm / 400));
+    ctx.fillStyle = 'rgba(225,225,215,0.4)';
+    for (let k = 0; k < 48; k++) {
+      if ((k + spin) % 3 === 0) continue;
+      const t = (k / 48) * Math.PI * 2;
+      ctx.fillRect(Math.round(cx + px + Math.cos(t) * ax2 + Math.sin(t) * bx2), Math.round(cy + py + Math.cos(t) * ay2 + Math.sin(t) * by2), 1, 1);
+    }
+  }
+
   function drawPlane(p) {
     if (p.state === 'dead') return;
-    const set = assets.planeSprite(p)[p.inverted ? 'inverted' : 'upright'];
+    const frames = assets.planeFrames(p);
+    const shown = transientFrame(p, frames);
+    if (shown && shown.row !== 'roll' && shown.row !== 'rollGear') {
+      // On the ground, turning round or looping: the model's frame stands on the main wheels (gear
+      // included), facing-left frames mirrored, tilted with the ground's slope.
+      const right = Math.cos(p.angle) >= 0;
+      const rot = right ? p.angle : p.angle - Math.PI;
+      const at = mainWheelContact(p);
+      const cx = Math.round(toScreenX(at.x));
+      const cy = Math.round(toScreenY(at.y));
+      const prop = frames.meta.props[shown.row][shown.index];
+      if (prop[6] < 0) drawPropDisc(p, cx, cy, prop, rot, !right);
+      const f = frames.frame(shown.row, shown.index, rot, !right);
+      ctx.drawImage(f.canvas, cx - f.radius, cy - f.radius);
+      if (prop[6] >= 0) drawPropDisc(p, cx, cy, prop, rot, !right);
+      return;
+    }
     const view = groundAttitude(p);
     const sx = Math.round(toScreenX(view.x));
     const sy = Math.round(toScreenY(view.y));
-    drawGear(p, sx, sy, view.angle);
-    ctx.drawImage(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius);
-    gore.drawPlane(ctx, p, sx, sy, view.angle, SCALE);
+    if (shown) {
+      // Mid-roll: a frame of the model rolled about its long axis (gear drawn in it), rotated now.
+      const f = frames.frame(shown.row, shown.index, view.angle);
+      ctx.drawImage(f.canvas, sx - f.radius, sy - f.radius);
+    } else {
+      const set = assets.planeSprite(p)[p.inverted ? 'inverted' : 'upright'];
+      drawGear(p, sx, sy, view.angle);
+      ctx.drawImage(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius);
+      gore.drawPlane(ctx, p, sx, sy, view.angle, SCALE);
+    }
     drawMuzzleFlash(p, sx, sy, view.angle);
 
     // Propeller disc: a flickering line across the nose (reddened after running soldiers down).

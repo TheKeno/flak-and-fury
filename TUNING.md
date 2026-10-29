@@ -32,6 +32,9 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `groundThrust` | Share of engine pull while rolling on the wheels. Lower = longer take-off roll. | 0.3 – 1 |
 | `tailUpSpeed` | Share of take-off speed at which the tail has lifted (visual). | 0.6 – 1 |
 | `groundFriction` | How quickly the plane slows when rolling. | 10 – 30 |
+| `rollTime` | Seconds the half roll (Shift in the air) takes to draw. Visual only: the plane flies inverted the moment you press. Rolls always turn the same way, so one shows the top, the next the belly. | 0.3 – 0.8 |
+| `groundTurnTime` | Seconds to pivot round on the main wheels (Shift standing still). The plane can't move, take off or fire meanwhile, and can still be shot. | 1 – 2.5 |
+| `groundLoopTime` | Seconds from Shift while taxiing (at 5 px/s or more) until the spinning, tipping plane digs a wingtip in and is wrecked. | 0.6 – 1.2 |
 | `toughness` | Divides collision damage. 1 = normal, higher = sturdier. | 0.7 – 1.5 |
 | `rearView` | How far mouse look can swing back over the tail (0..1). | 0.3 – 1 |
 | `endurance` | Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much. | 120 – 600 |

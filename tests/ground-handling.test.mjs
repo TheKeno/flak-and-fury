@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
-import { isUpright, spawnAtAirfield, clearRunway } from '../src/sim/plane.js';
+import { isUpright, spawnAtAirfield, clearRunway, mainWheelContact } from '../src/sim/plane.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 
@@ -29,26 +29,48 @@ const steps = (world, n, cmd = IDLE) => {
   for (let i = 0; i < n; i++) stepWorld(world, { p1: cmd });
 };
 
-test('Shift standing still turns the plane round, still upright', () => {
+test('Shift standing still pivots the plane round on its main wheels, still upright', () => {
   const { world, p } = makeWorld();
   steps(world, 30);
   const facing = Math.cos(p.angle) >= 0;
+  const wheel = mainWheelContact(p).x;
+  const x = p.x;
   steps(world, 1, { ...IDLE, roll: true });
-  steps(world, 30);
+  const ticks = Math.round(p.def.groundTurnTime * 60);
+  // Half-way: still facing the old way, going nowhere even at full throttle, guns quiet.
+  steps(world, Math.floor(ticks / 2), { ...IDLE, throttle: 1, fire: true });
+  assert.ok(p.groundTurn > 0.4 && p.groundTurn < 0.6, `half-way (${p.groundTurn})`);
+  assert.equal(Math.cos(p.angle) >= 0, facing, 'not turned yet');
+  assert.equal(p.x, x, "doesn't move");
+  assert.equal(p.speed, 0);
+  assert.ok(!world.events.some((e) => e.type === 'shot' && e.plane === p.id), "can't fire");
+  steps(world, ticks - Math.floor(ticks / 2) - 2);
+  assert.notEqual(p.groundTurn, null, 'still turning just before the end');
+  steps(world, 3);
+  assert.equal(p.groundTurn, null, 'done');
   assert.notEqual(Math.cos(p.angle) >= 0, facing, 'faces the other way');
   assert.ok(isUpright(p), 'right way up');
+  assert.ok(Math.abs(mainWheelContact(p).x - wheel) < 0.5, 'pivoted about the main wheels');
   assert.equal(p.state, 'ground');
 });
 
-test('rolling while taxiing cartwheels the plane into a wreck', () => {
+test('rolling while taxiing ground-loops the plane: a wreck when the wingtip hits', () => {
   const { world, p } = makeWorld();
   steps(world, 60 * 6, { ...IDLE, throttle: 1 });
   assert.ok(p.speed > 5, `taxiing (${p.speed.toFixed(1)})`);
+  const crashed = () => world.events.find((e) => e.type === 'crash' && e.plane === p.id);
   let crash = null;
+  let ticks = 0;
   stepWorld(world, { p1: { ...IDLE, roll: true } });
-  crash = world.events.find((e) => e.type === 'crash' && e.plane === p.id);
+  assert.notEqual(p.groundLoop, null, 'ground loop under way');
+  while (!(crash = crashed()) && ticks < 600) {
+    stepWorld(world, { p1: { ...IDLE, throttle: 1, turn: 1 } });
+    ticks++;
+    if (!crashed()) assert.equal(p.state, 'ground', 'stays on the ground, out of control');
+  }
   assert.ok(crash, 'crashed');
   assert.equal(crash.cause, 'taxiRoll');
+  assert.ok(Math.abs(ticks + 1 - p.def.groundLoopTime * 60) <= 1, `crashed after groundLoopTime (${ticks + 1} ticks)`);
 });
 
 test('planes never spawn in a crater; one stuck in a crater is recovered', () => {
