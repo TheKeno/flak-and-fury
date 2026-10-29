@@ -1,5 +1,111 @@
 {
   "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot. nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
+  "bf109g6": {
+    "name": "Bf 109 G-6",
+    "nation": "germany",
+    "role": "fighter",
+    "sprite": "bf109g6",
+    "pivot": [
+      46,
+      20
+    ],
+    "noseOffset": [
+      10.1,
+      -0.4
+    ],
+    "exhaustOffset": [
+      7.8,
+      -0.9
+    ],
+    "thrust": 89,
+    "dragCoef": 0.0037,
+    "groundFriction": 14,
+    "groundThrust": 0.45,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.35,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.4,
+    "slowTurnBonus": 0.9,
+    "slowTurnSpeed": 108,
+    "stallSpeed": 59,
+    "takeoffSpeed": 64,
+    "runwayNeeded": 150,
+    "maxLandingSpeed": 92,
+    "maxSpeed": 155,
+    "hp": 95,
+    "toughness": 1,
+    "rearView": 0.45,
+    "hitRadius": 6.5,
+    "endurance": 240,
+    "bombOffset": [
+      0,
+      -4
+    ],
+    "gearTime": 1.8,
+    "fixedTailWheel": true,
+    "wheels": [
+      {
+        "leg": [
+          4.9,
+          -1.675
+        ],
+        "wheel": [
+          5.725,
+          -4.175
+        ],
+        "stowed": [
+          5.7,
+          -1.55
+        ],
+        "r": 0.825
+      },
+      {
+        "leg": [
+          -8.3,
+          0.025
+        ],
+        "wheel": [
+          -8.5,
+          -0.65
+        ],
+        "stowed": [
+          -8.5,
+          -0.65
+        ],
+        "r": 0.35,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.5,
+    "groundTurnTime": 1.5,
+    "groundLoopTime": 0.9,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "mg131",
+          "count": 2,
+          "synced": true
+        },
+        {
+          "weapon": "mg151_20",
+          "count": 1
+        }
+      ],
+      "bombs": {
+        "weapon": "sc_250",
+        "count": 1
+      }
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 800,
+      "cruiseRpm": 2300,
+      "maxRpm": 2800,
+      "propBlades": 3,
+      "gearRatio": 0.593
+    }
+  },
   "bf109": {
     "name": "Bf 109 F-4",
     "nation": "germany",

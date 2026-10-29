@@ -38,7 +38,7 @@ content.settings.rules = world.rules;
 // hangar (milestone 8). Each flies in its own nation's colours; your wingmen fly your plane.
 const params = new URLSearchParams(location.search);
 const planeId = (key, fallback) => (content.planeDefs[params.get(key)] ? params.get(key) : fallback);
-const choice = { plane: planeId('plane', 'bf109'), enemy: planeId('enemy', 'spitfire') };
+const choice = { plane: planeId('plane', 'bf109g6'), enemy: planeId('enemy', 'spitfire') };
 const nationOf = (defId) => content.planeDefs[defId].nation;
 const player = addPlane(world, { defId: choice.plane, team: 0, nation: nationOf(choice.plane), controller: 'p1' });
 // Bots: your wingmen and the enemy, as many and as good as the rules say (Testing in the tuning panel).
