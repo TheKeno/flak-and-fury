@@ -958,7 +958,7 @@ export function createRenderer(canvas, world, assets) {
       drawMessages();
       const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
       if (free) {
-        banner('FREE LOOK  ARROWS MOVE (SHIFT FAST)  WHEEL ZOOM  V BACK TO THE PLANE', 122, '#f0e8c0');
+        banner('FREE LOOK  MOUSE OR ARROWS MOVE (SHIFT FAST)  WHEEL ZOOM  V BACK', 122, '#f0e8c0');
         banner(`1 FRONT  2 BRIDGE  3 YOUR PLANE   W/S SPEED: ${free.speed}X`, 130, free.speed > 1 ? '#ffd870' : '#f0e8c0');
       }
       if (paused) banner('PAUSED - P TO RESUME', 142, '#f0f0e0');

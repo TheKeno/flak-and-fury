@@ -2,7 +2,7 @@ import { loadContent } from './content/load.js';
 import { createWorld, addPlane, stepWorld, DT } from './sim/world.js';
 import { autopilotCommand } from './sim/ai.js';
 import { createKeyboard } from './input/keyboard.js';
-import { createMouseLook } from './input/mouse.js';
+import { createMouse } from './input/mouse.js';
 import { createRenderer, MAX_ZOOM } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
@@ -33,7 +33,7 @@ const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', con
 addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'uk', controller: 'bot:target' });
 const renderer = createRenderer(canvas, world, content);
 const keyboard = createKeyboard();
-const look = createMouseLook(canvas, content.settings.camera);
+const mouse = createMouse(canvas, content.settings.camera);
 
 let showHelp = true;
 let paused = false;
@@ -100,8 +100,11 @@ function moveFreeLook(dt) {
   const speed = freeCfg.panSpeed * free.zoom * (k('ShiftLeft') || k('ShiftRight') ? 3 : 1) * dt;
   const dx = (k('ArrowRight') ? 1 : 0) - (k('ArrowLeft') ? 1 : 0);
   const dy = (k('ArrowUp') ? 1 : 0) - (k('ArrowDown') ? 1 : 0);
-  free.tx = clamp(free.tx + dx * speed, 0, world.map.width);
-  free.ty = clamp(free.ty + dy * speed, 0, world.map.ceiling + 160);
+  // The mouse drags the view along too.
+  const [mx, my] = mouse.takePan();
+  const perPixel = freeCfg.mousePan * free.zoom;
+  free.tx = clamp(free.tx + dx * speed + mx * perPixel, 0, world.map.width);
+  free.ty = clamp(free.ty + dy * speed - my * perPixel, 0, world.map.ceiling + 160);
   const e = 1 - Math.exp(-dt * 6);
   free.x += (free.tx - free.x) * e;
   free.y += (free.ty - free.y) * e;
@@ -119,7 +122,8 @@ let mixer = null;
 
 addEventListener('keydown', (e) => {
   if (e.code === 'KeyH') showHelp = !showHelp;
-  if (e.code === 'KeyT') tuning.toggle();
+  // The panel needs the cursor back.
+  if (e.code === 'KeyT' && tuning.toggle()) mouse.release();
   if (e.code === 'KeyM' && mixer) mixer.setMuted((muted = !muted));
   if (e.code === 'KeyP') setPaused(!paused);
   if (e.code === 'KeyV') setFreeLook(!free.on);
@@ -223,6 +227,13 @@ function handleEvents() {
   }
 }
 
+// Left mouse fires the guns, right mouse drops bombs, alongside Space and E.
+function withMouse(cmd) {
+  cmd.fire ||= mouse.fire;
+  cmd.bomb ||= mouse.bomb;
+  return cmd;
+}
+
 let lastSweeps = 0;
 let last = performance.now();
 let acc = 0;
@@ -232,14 +243,17 @@ function frame(now) {
   acc += dt * (free.on ? SPEEDS[free.speed] : 1);
   if (paused) acc = 0;
   while (acc >= DT) {
-    const cmd = free.on ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : keyboard.read();
+    const cmd = free.on ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : withMouse(keyboard.read());
     stepWorld(world, { p1: cmd });
     handleEvents();
     acc -= DT;
   }
+  mouse.panMode = free.on;
+  mouse.update(dt);
   if (free.on) moveFreeLook(dt);
-  // Mouse look wins while the right button is held; otherwise the arrow keys look around.
-  const view = free.on ? null : look.active ? look : keyboard.readLook();
+  // Held arrow keys look around (and spring back); otherwise the mouse's sticky look holds the view.
+  const keys = keyboard.readLook();
+  const view = free.on ? null : keys.active ? keys : mouse;
   const shown = free.on ? { x: free.x, y: free.y, zoom: free.zoom, speed: SPEEDS[free.speed] } : null;
   renderer.render(player, dt, { showHelp, look: view, free: shown, paused });
   sound?.setLook(renderer.cam.lookX, Boolean(view?.active));
@@ -254,6 +268,7 @@ function frame(now) {
 // Browsers only allow audio after a click, so the game waits for one.
 overlay.addEventListener('click', async () => {
   overlay.classList.add('hidden');
+  mouse.capture();
   mixer = await createMixer(content.settings.audio);
   // Open the game as localhost:8080/?mute to start silent (M toggles sound as usual).
   if (new URLSearchParams(location.search).has('mute')) mixer.setMuted((muted = true));

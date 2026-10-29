@@ -62,8 +62,11 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 `audio.hearRange` is how far engines, tanks and most sounds carry before fading to silence (a screen is
 about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns and machine-gun fire.
 
+`camera.lookSensitivity` is the mouse travel (pixels) for a full look; `camera.lookReturn` the seconds
+without moving the mouse before the view eases back to looking ahead.
+
 `freeLook` (V, the debug view for the ground war): `panSpeed` moves the camera with the arrows,
-`zoom` is how wide the view starts, `autopilotHeight` is how high above the ground the autopilot flies
+`mousePan` (world units per pixel) with the mouse, `zoom` is how wide the view starts, `autopilotHeight` is how high above the ground the autopilot flies
 your plane meanwhile.
 
 `fire`: a burning plane has `burnTime` seconds to live, whatever its hit points; each hit point of

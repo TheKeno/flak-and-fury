@@ -22,10 +22,13 @@ Then open <http://localhost:8080> and click to start the engine. Headphones reco
 | W / S | Throttle up / down |
 | A / D | Rotate counter-clockwise / clockwise |
 | Left Shift | Roll (turn around when stopped on the ground) |
-| Space | Guns |
-| E | Bombs |
+| Space or left mouse | Guns |
+| E or right mouse | Bombs |
 | G | Landing gear (overrides the automatic gear) |
-| Arrow keys, or right mouse (hold + drag) | Look around: ahead, up, down or back over your tail |
+| Mouse | Look around (sticky: stays put, eases back ahead after 10 s without moving). Click the game to capture the mouse, Esc frees it |
+| Arrow keys | Look around while held |
+| V | Free look: mouse or arrows move the camera, wheel zooms, 1/2/3 jump, W/S fast forward; an autopilot flies your plane |
+| P | Pause |
 | T | Tuning panel |
 | M | Mute |
 | H | Hide help |

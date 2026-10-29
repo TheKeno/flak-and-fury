@@ -51,7 +51,8 @@ const CAMERA_FIELDS = [
   ['leadSpeedY', 'Swing speed (up/down)', 0.2, 8, 0.1, 'How quickly the view swings up into a climb or down into a dive.'],
   ['height', 'Plane height on screen', 0.2, 0.8, 0.01, 'Where the plane sits vertically (0 = bottom, 1 = top).'],
   ['lookRange', 'Mouse look: reach', 0, 0.5, 0.01, 'How far the camera slides when you hold right mouse and point (share of the view).'],
-  ['lookSensitivity', 'Mouse look: drag for full look', 40, 600, 10, 'How far (screen pixels) you drag with right mouse held to turn your head all the way. Lower = more sensitive.'],
+  ['lookSensitivity', 'Mouse look: travel for full look', 40, 600, 10, 'How far (screen pixels) you move the mouse to turn your head all the way. Lower = more sensitive.'],
+  ['lookReturn', 'Mouse look: back to front after', 1, 30, 0.5, 'Seconds without moving the mouse before the view eases back to looking ahead.'],
   ['lookSpeed', 'Mouse look: speed', 0.5, 12, 0.1, 'How quickly the view follows the pointer and eases back. Lower = heavier, more resistance.'],
   ['lookZoom', 'Mouse look: zoom-out', 0, 0.4, 0.01, 'Extra zoom-out while looking around.'],
   ['zoomMax', 'Speed zoom: max zoom-out', 1, 1.8, 0.01, '1 = no zoom. 1.35 = see 35% more of the world at top speed.'],
@@ -194,6 +195,7 @@ const AUDIO_FIELDS = [
 const FREE_FIELDS = [
   ['panSpeed', 'Camera speed', 50, 1000, 10, 'How fast the arrows move the free-look camera (Shift: three times as fast).'],
   ['zoom', 'Starting zoom-out', 1, 1.8, 0.05, 'How wide the view is when free look starts. The mouse wheel changes it.'],
+  ['mousePan', 'Mouse speed', 0.1, 3, 0.05, 'World units the camera moves per pixel of mouse travel in free look.'],
   ['autopilotHeight', 'Autopilot height', 60, 500, 10, 'Height above the ground the autopilot holds your plane at while you look around (a screen is about 270 high).'],
 ];
 
@@ -457,9 +459,11 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
 
   return {
     showPaused,
+    // Returns true when the panel is now open.
     toggle() {
       panel.classList.toggle('hidden');
       if (panel.classList.contains('hidden')) document.activeElement?.blur();
+      return !panel.classList.contains('hidden');
     },
   };
 }

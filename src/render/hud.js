@@ -94,10 +94,12 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
       'A/D    ROTATE',
       'W/S    THROTTLE',
       'SHIFT  ROLL / TURN ON GROUND',
-      'SPACE GUNS  E BOMBS  G GEAR',
-      'ARROWS / RIGHT DRAG  LOOK',
+      'SPACE / L.MOUSE  GUNS',
+      'E / R.MOUSE  BOMBS   G GEAR',
+      'MOUSE / ARROWS  LOOK',
       'V FREE LOOK  P PAUSE',
       'M MUTE  T TUNING  H HIDE HELP',
+      'CLICK GRABS MOUSE  ESC FREES',
     ];
     const left = W - 6 - Math.max(...lines.map((l) => textWidth(l)));
     lines.forEach((l, i) => drawText(ctx, l, left, 4 + i * 7, '#f0f0e0'));

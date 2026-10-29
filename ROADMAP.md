@@ -48,7 +48,8 @@ later.
   - Graded collisions (fatal / hard / graze) with uneven damage shares, the taran prop-into-tail
     strike and wing pull.
   - WWII radar CRT: sweep, afterglow, IFF pulse, low-level gap.
-  - Looking around with the arrow keys or right mouse + drag (per-plane rear visibility).
+  - Looking around with the arrow keys or the mouse (sticky; per-plane rear visibility). Left mouse
+    guns, right mouse bombs.
   - Persistent damage report and LAST FLIGHT report with cause of death.
   - Live tuning panel with Save to files; synthesized sound for engines, guns, crew, body, gear,
     collisions.
@@ -68,9 +69,10 @@ later.
    combat layers fade in), radio callouts per nation in its own language.
 9. **Progression:** currency from kills and targets, unlocks as **sidegrades** (more options, not more
    power), saved profile.
-10. **Crewed bombers:** turret seats **aimed and fired with the mouse** (crosshair within the turret's
-    arc, left click fires). Solo: fly with the keyboard and work the turret with the mouse at the same
-    time; otherwise a bot gunner takes the seat.
+10. **Crewed bombers:** a gunner's seat has a **crosshair aimed with the mouse** within the turret's
+    arc (left click fires; the mouse only aims turrets while you're in a gunner seat). The pilot gets a
+    **bomb indicator** (where the bombs will land). Solo: you fly and bomb while AI gunners man the
+    turrets; with friends, each takes a seat, and bots fill the empty ones.
 11. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
     muzzle flashes light up the ground, planes and buildings around them; fires, burning wrecks and
     tracers glow; buildings, hangars and the airfield emit light (lit windows, runway lamps); lights
