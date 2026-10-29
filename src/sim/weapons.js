@@ -8,6 +8,15 @@ const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most thi
 const BOMB_INTERVAL = 0.35;
 const TRACER_EVERY = 3;
 
+// Firing rate of synchronized (through-the-propeller) guns, 0..1: full from SYNC_FULL of max RPM,
+// down to SYNC_MIN at idle; 0 with the propeller stopped.
+const SYNC_FULL = 0.8;
+const SYNC_MIN = 0.35;
+export function syncRate(p) {
+  if (p.rpm < 60) return 0;
+  return Math.min(1, Math.max(SYNC_MIN, p.rpm / (p.def.engine.maxRpm * SYNC_FULL)));
+}
+
 // Recomputes how a battery of guns is merged into projectiles (after its rpm changes).
 export function updateGunRates(g) {
   const roundsPerSec = (g.def.rpm / 60) * g.count;
@@ -18,9 +27,9 @@ export function updateGunRates(g) {
 
 export function armPlane(p, weapons) {
   const arm = p.def.armament ?? { guns: [] };
-  p.guns = arm.guns.map(({ weapon, count }) => {
+  p.guns = arm.guns.map(({ weapon, count, synced = false }) => {
     const w = weapons[weapon];
-    const g = { weapon, def: w, count, ammo: w.ammo * count, cooldown: 0, fired: 0 }; // ammo in rounds
+    const g = { weapon, def: w, count, synced, ammo: w.ammo * count, cooldown: 0, fired: 0 }; // ammo in rounds
     updateGunRates(g);
     return g;
   });
@@ -37,7 +46,8 @@ function localToWorld(p, [ox, oy]) {
 }
 
 export function updateWeapons(p, cmd, world, dt) {
-  const canFight = p.state === 'air' && !p.dying && !p.blackout;
+  // On the ground too: guns point skywards on a taildragger, and a bomb lands right under you.
+  const canFight = (p.state === 'air' || p.state === 'ground') && !p.dying && !p.blackout;
   for (const g of p.guns) {
     g.cooldown = Math.max(0, g.cooldown - dt);
     if (!cmd.fire || !canFight || g.cooldown > 0) continue;
@@ -46,7 +56,11 @@ export function updateWeapons(p, cmd, world, dt) {
       p.emptyClicked = true;
       continue;
     }
-    g.cooldown += g.interval;
+    // Guns firing through the propeller are timed to miss the blades: they slow with the engine, and
+    // with the propeller stopped they can't fire at all.
+    const rate = g.synced ? syncRate(p) : 1;
+    if (rate <= 0) continue;
+    g.cooldown += g.interval / rate;
     g.fired++;
     const rounds = Math.min(g.ammo, g.roundsPerVolley);
     g.ammo -= rounds;

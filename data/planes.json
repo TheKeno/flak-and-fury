@@ -108,7 +108,8 @@
       "guns": [
         {
           "weapon": "mg17",
-          "count": 2
+          "count": 2,
+          "synced": true
         },
         {
           "weapon": "mg151_20",

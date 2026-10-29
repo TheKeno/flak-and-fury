@@ -156,6 +156,7 @@ const CAUSES = {
 };
 
 function causeText(e) {
+  if (e.by === e.plane && e.cause === 'bomb') return 'BLEW YOURSELF UP WITH YOUR OWN BOMB';
   const killer = world.planes.find((pl) => pl.id === e.by);
   const name = killer ? `${killer.def.name.toUpperCase()} (${content.nations[killer.nation]?.name.toUpperCase() ?? ''})` : null;
   return (CAUSES[e.cause] ?? CAUSES.ground)(name, e);
@@ -171,6 +172,7 @@ function handleEvents() {
     if (e.plane === player.id && e.type === 'spawn') renderer.startLastFlightTimer();
     if (e.plane === player.id) {
       if (e.type === 'fuelLow') renderer.message('LOW FUEL - HEAD HOME', '#ffb070');
+      if (e.type === 'bombRelease' && player.state === 'ground') renderer.message('BOMB AWAY... ON THE GROUND?!', '#ffd870');
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
       if (e.type === 'bellyLanding') renderer.message(e.collapsed ? 'GEAR COLLAPSED!' : 'BELLY LANDING!', '#ff9070');
