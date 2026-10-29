@@ -16,7 +16,7 @@
     "lookSensitivity": 200
   },
   "audio": {
-    "master": 0.25,
+    "master": 0.03,
     "engine": 0.13,
     "sfx": 1,
     "ambience": 0.5,

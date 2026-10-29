@@ -81,7 +81,7 @@
     ],
     "thrust": 88,
     "dragCoef": 0.0037,
-    "groundFriction": 18,
+    "groundFriction": 14,
     "groundThrust": 0.45,
     "tailUpSpeed": 0.85,
     "turnRate": 1.4,
