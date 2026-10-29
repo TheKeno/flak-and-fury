@@ -149,8 +149,24 @@ Then: more themes, co-op missions, online play.
   ground. It must not feel the same every time: vary the outcome by what was hit, where on the plane,
   speed and angle (flat spin, tumbling, cartwheel along the ground, a long burning arc, a near-recovery
   that fails), and use the world's random numbers so no two look alike.
+- **Tank wrecks and ways to die** (best built with the milestone 6 tanks, as 3D models): the wreck is
+  the same model, damaged: scorched paint and soot, thrown track, lost road wheels, open hatches, a
+  drooping or bent gun, mixed at random so no two wrecks look alike. Ways to die, by weapon and chance:
+  - *Knocked out:* stops, smoke from the hatches; the crew **bail out** when they can (and can be
+    strafed, or make it home).
+  - *Brewed up:* burns for a while, ammo cooks off, leaves a scorched hulk.
+  - *Catastrophic:* flame jet from the turret ring, the **turret is blown off**, spins through the air
+    and lands upside down nearby (and can land on infantry, a tank or a low plane).
+  - *Mobility kill:* a thrown track; the tank is stuck but still alive and fighting.
+  Per-tank chances (`turretTossChance`, burn chance) for 1943 flavour: Sherman brews up easily, Chi-Ha
+  dies outright, Churchill usually just knocked out. Bombs and heavy shells make turret tosses likelier.
+  Wrecks **stay the whole match** and keep smoking (the front line reads as a row of hulks); they don't
+  block tanks but give **infantry cover**.
 
 ## Owner's notes (to discuss before building)
+
+- **Leaning towards a MOBA direction:** the ground war matters more and more, so ground combat should
+  be really cool. Discuss what that means for lanes, waves, objectives and the planes' role.
 
 - **Should the roll affect flying?** Today it is visual only (the plane flies inverted the moment Shift
   is pressed). Maybe: no pitching mid-roll, a slight sink at knife-edge.
