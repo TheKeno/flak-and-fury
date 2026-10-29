@@ -143,6 +143,12 @@ Then: more themes, co-op missions, online play.
 - **Buildings fit the time and place:** 1943 architecture for the country the map is fought in
   (e.g. Karelian log houses and saunas, Russian izbas, Normandy stone farms, English villages, Pacific
   huts), and military buildings (hangars, depots, radar, bunkers) styled after the nation that owns them.
+- **Dramatic crashes:** only a head-on hit kills at once. A glancing hit (a wing clipping a tree, a
+  building, a hill, another plane) starts a short, dramatic death instead: the plane keeps flying for a
+  few seconds, spinning or tumbling in an arc, maybe shedding a wing or trailing fire, then hits the
+  ground. It must not feel the same every time: vary the outcome by what was hit, where on the plane,
+  speed and angle (flat spin, tumbling, cartwheel along the ground, a long burning arc, a near-recovery
+  that fails), and use the world's random numbers so no two look alike.
 
 ## Owner's notes (to discuss before building)
 
