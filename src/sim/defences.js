@@ -170,11 +170,25 @@ function stepMg(world, obj, dt) {
   }
 }
 
+// Is the straight line between two points above the ground all the way? (Rounds fly nearly flat
+// over the short ranges soldiers fight at.)
+function lineClear(world, x0, y0, x1, y1) {
+  const steps = Math.ceil(Math.abs(x1 - x0) / 4);
+  for (let i = 1; i < steps; i++) {
+    const k = i / steps;
+    if (y0 + (y1 - y0) * k < surfaceAt(world, x0 + (x1 - x0) * k)) return false;
+  }
+  return true;
+}
+
 function stepInfantry(world, obj, dt) {
   const def = obj.def;
   const [h] = MUZZLE.infantry;
   const target = pickTarget(world, obj, obj.x, surfaceAt(world, obj.x) + h);
   obj.target = target?.id ?? null;
+  // Soldiers (negative ids) behind a hill can't be shot from here: the squad moves on instead of
+  // standing to fight (see holdUp in army.js). A plane overhead doesn't stop the march.
+  obj.hasShot = Boolean(target && target.id < 0 && lineClear(world, obj.x, surfaceAt(world, obj.x) + h, target.x, target.y));
   for (const s of obj.soldiers) {
     if (s.hp <= 0) continue;
     s.cooldown -= dt;
@@ -183,6 +197,7 @@ function stepInfantry(world, obj, dt) {
     const x = obj.x + s.dx;
     const y = surfaceAt(world, x) + h;
     if (Math.hypot(target.x - x, target.y - y) > def.range) continue;
+    if (target.id < 0 && !obj.hasShot) continue;
     const { angle } = lead(x, y, target, def.velocity, 0.1);
     obj.aim = angle;
     fireBullet(world, obj, x, y, angle, 'infantry');

@@ -143,3 +143,25 @@ test('tank hulls tilt with the ground and settle to its slope', () => {
   assert.ok(Math.abs(tank.tilt - slope) < 0.01);
   assert.ok(tank.baseY >= surfaceAt(world, tank.x) - 1e-9);
 });
+
+test('two tanks meeting anywhere over the hills fight it out instead of freezing', () => {
+  // Over a crest or on a steep slope a tank may have no shot: it must drive on until it has one (or
+  // they're hull to hull), not stand there shelling the hill or doing nothing.
+  const frozen = [];
+  for (let x0 = 300; x0 < 3300; x0 += 50) {
+    const world = makeWorld({ first: 1e6 });
+    for (const o of world.ground) if (o.team != null) o.alive = false;
+    const a = makeGroundObject(world, 'tank', 0, x0, { mobile: true });
+    const b = makeGroundObject(world, 'tank', 1, x0 + 140, { mobile: true });
+    a.dir = 1;
+    b.dir = -1;
+    world.ground.push(a, b);
+    let hurt = false;
+    for (let i = 0; i < 40 * 60 && !hurt; i++) {
+      stepWorld(world, {});
+      hurt = a.hp < a.maxHp || b.hp < b.maxHp;
+    }
+    if (!hurt) frozen.push(`${Math.round(a.x)}/${Math.round(b.x)} (${a.why}/${b.why})`);
+  }
+  assert.deepEqual(frozen, [], 'every pair traded hits within 40 s');
+});

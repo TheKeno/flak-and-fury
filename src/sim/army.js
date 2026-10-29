@@ -15,8 +15,12 @@ export const DEFAULT_WAVES = { first: 15, interval: 75, tanks: 2, squads: 1, squ
 const TANK_GUN = [12, 8]; // muzzle ahead of and above the tank's centre at the ground (along the hull)
 const SHELL_DROP = 0.25;
 const SHELL_LIFE = 2;
+const SHOT_DT = 1 / 60; // the sim's step, so trial shots fly like real ones
 const CLEAR_WRECK = 90; // seconds before a tank wreck is cleared away
 const CLEAR_SQUAD = 30; // and a squad that was wiped out
+const TOUCHING = 2; // closer than this to an enemy, a unit can't push on whatever it can shoot
+const AIM_TRIES = [0, 0.04, 0.08, 0.14, -0.03]; // gun raised (or dipped) from the flat shot, tried in turn
+const MAX_CANDIDATES = 4; // targets a gunner considers before giving up for now
 
 // Half the length of a ground object along the ground.
 const halfLength = (o) => (o.soldiers ? Math.abs(o.soldiers[0].dx) + o.def.width / 2 : (o.width ?? o.def.width) / 2);
@@ -69,7 +73,9 @@ function holdUp(world, u) {
     // Engineers slip through their own column, and nobody queues behind them.
     if (o.mobile && o.alive && o.team === u.team && !engineers && o.type !== 'engineers' && clear < u.def.gap) return 'queue';
     if (o.type === 'tank' && !o.alive && world.tick - o.wreckedAt < o.def.wreckBlock * 60 && clear < 1) return 'wreck';
-    if (o.alive && o.team != null && o.team !== u.team && clear < u.def.engageRange) return 'fight';
+    // Stop to fight only with something to shoot at from here; otherwise push on to a better spot
+    // (over the crest, onto the bridge) until nose to nose.
+    if (o.alive && o.team != null && o.team !== u.team && clear < u.def.engageRange && (u.hasShot || clear < TOUCHING)) return 'fight';
   }
   for (const river of world.map.rivers ?? []) {
     const bank = dir > 0 ? river.x : river.x + river.width;
@@ -81,27 +87,83 @@ function holdUp(world, u) {
   return null;
 }
 
-// Nearest enemy ground target for a tank's main gun: other tanks first, then defences, then the rest.
-function gunTarget(world, u) {
+// Enemy ground targets in reach of a tank's main gun, best first: other tanks, then defences and
+// soldiers, then the rest; nearer first within each.
+function gunTargets(world, u) {
   const rank = (o) => (o.type === 'tank' ? 0 : o.type === 'flak' || o.type === 'mgNest' || o.soldiers ? 1 : 2);
-  let best = null;
-  let bestKey = Infinity;
+  const found = [];
   for (const o of world.ground) {
     if (!o.alive || o.team == null || o.team === u.team) continue;
     const d = Math.abs(o.x - u.x);
     if (d > u.def.gunRange || (o.x - u.x) * u.dir < -10) continue;
-    const key = rank(o) * 10000 + d;
-    if (key < bestKey) {
-      best = o;
-      bestKey = key;
-    }
+    found.push([rank(o) * 10000 + d, o]);
   }
-  return best;
+  return found.sort((a, b) => a[0] - b[0]).slice(0, MAX_CANDIDATES).map(([, o]) => o);
 }
 
-function fireGun(world, u, target) {
+// Moves a shell one step; true once it bursts: against an enemy object, on the ground, or at the end
+// of its flight. Shared by real shells and the gunner's trial shots.
+function moveShell(world, s, dt) {
+  s.vy -= GRAVITY * SHELL_DROP * dt;
+  s.x += s.vx * dt;
+  s.y += s.vy * dt;
+  s.life -= dt;
+  s.struck = world.ground.some((o) => {
+    if (!o.alive || o.team == null || o.team === s.team) return false;
+    const [l, b, r, t] = groundBox(world, o);
+    return s.x >= l && s.x <= r && s.y >= b && s.y <= t;
+  });
+  const ground = surfaceAt(world, s.x);
+  if (s.struck || s.y <= ground || s.life <= 0 || s.x < 0 || s.x > world.map.width) {
+    s.y = Math.max(s.y, ground);
+    return true;
+  }
+  return false;
+}
+
+// Would a shell fired this way do any good? Flown ahead in the sim: it must strike an enemy, or burst
+// close enough to the target to hurt it, not bury itself in a hill on the way.
+function shotLands(world, u, x, y, angle, target) {
+  const def = u.def;
+  const s = { team: u.team, x, y, vx: Math.cos(angle) * def.gunVelocity, vy: Math.sin(angle) * def.gunVelocity, life: SHELL_LIFE };
+  while (!moveShell(world, s, SHOT_DT));
+  return s.struck || boxDistance(world, target, s.x, s.y) < def.shellRadius * 0.6;
+}
+
+// How far (x, y) is from a ground object's box; 0 inside it.
+function boxDistance(world, o, x, y) {
+  const [l, b, r, t] = groundBox(world, o);
+  return Math.hypot(Math.max(l - x, 0, x - r), Math.max(b - y, 0, y - t));
+}
+
+// Fires at the best target the gun can actually hit from here; false if there's none.
+function fireGun(world, u) {
   const def = u.def;
   const [x, y] = mountPoint(world, u, TANK_GUN[0], TANK_GUN[1]);
+  for (const target of gunTargets(world, u)) {
+    // Hull to hull the shell can't miss, however the slopes tilt the two tanks.
+    const touching = Math.abs(target.x - u.x) - halfLength(u) - halfLength(target) < TOUCHING;
+    if (touching || boxDistance(world, target, x, y) < def.shellRadius * 0.6) {
+      world.events.push({ type: 'tankFire', id: u.id, x, y, angle: u.dir > 0 ? 0 : Math.PI });
+      burstShell(world, { owner: u.id, team: u.team, def, x, y });
+      return true;
+    }
+    const angle = aimAt(world, u, x, y, target);
+    if (angle === null) continue;
+    const a = angle + world.rng.range(-0.02, 0.02);
+    u.gunAim = angle - (u.tilt ?? 0); // relative to the hull, so the gun rides with it between shots
+    world.tankShells.push({ id: world.nextId++, owner: u.id, team: u.team, def, x, y, vx: Math.cos(a) * def.gunVelocity, vy: Math.sin(a) * def.gunVelocity, life: SHELL_LIFE });
+    world.events.push({ type: 'tankFire', id: u.id, x, y, angle: a });
+    return true;
+  }
+  return false;
+}
+
+// The gun angle that lands a shell on the target from (x, y), or null: the flat shot first, then
+// raised to lob over a crest (or dipped), within how far the gun elevates and depresses from the
+// hull, so a tank on a slope can't hit everything.
+function aimAt(world, u, x, y, target) {
+  const def = u.def;
   // Aim at the middle of the target, or at the nearest man of a squad.
   const [, b, , t] = groundBox(world, target);
   const man = target.soldiers?.filter((s) => s.hp > 0).sort((m, n) => Math.abs(target.x + m.dx - x) - Math.abs(target.x + n.dx - x))[0];
@@ -109,15 +171,15 @@ function fireGun(world, u, target) {
   const ty = man ? b + 3 : b + (t - b) * 0.5;
   // A low, flat shot; aim high by the drop over the flight time.
   const flight = Math.hypot(tx - x, ty - y) / def.gunVelocity;
-  const angle = Math.atan2(ty - y + 0.5 * GRAVITY * SHELL_DROP * flight * flight, tx - x);
-  // The gun only elevates and depresses so far from the hull, so a tank on a slope can't hit everything.
-  const elevation = u.dir > 0 ? angleDiff(angle, u.tilt ?? 0) : angleDiff(Math.PI + (u.tilt ?? 0), angle);
-  if (elevation < -(def.gunDepression ?? 0.2) || elevation > (def.gunElevation ?? 0.5)) return false;
-  const a = angle + world.rng.range(-0.02, 0.02);
-  u.gunAim = angle - (u.tilt ?? 0); // relative to the hull, so the gun rides with it between shots
-  world.tankShells.push({ id: world.nextId++, owner: u.id, team: u.team, def, x, y, vx: Math.cos(a) * def.gunVelocity, vy: Math.sin(a) * def.gunVelocity, life: SHELL_LIFE });
-  world.events.push({ type: 'tankFire', id: u.id, x, y, angle: a });
-  return true;
+  const flat = Math.atan2(ty - y + 0.5 * GRAVITY * SHELL_DROP * flight * flight, tx - x);
+  const up = tx >= x ? 1 : -1; // raising the gun turns the angle this way
+  for (const raise of AIM_TRIES) {
+    const angle = flat + raise * up;
+    const elevation = u.dir > 0 ? angleDiff(angle, u.tilt ?? 0) : angleDiff(Math.PI + (u.tilt ?? 0), angle);
+    if (elevation < -(def.gunDepression ?? 0.2) || elevation > (def.gunElevation ?? 0.5)) continue;
+    if (shotLands(world, u, x, y, angle, target)) return angle;
+  }
+  return null;
 }
 
 function burstShell(world, s) {
@@ -136,18 +198,7 @@ function stepTankShells(world, dt) {
   const list = world.tankShells;
   for (let i = list.length - 1; i >= 0; i--) {
     const s = list[i];
-    s.vy -= GRAVITY * SHELL_DROP * dt;
-    s.x += s.vx * dt;
-    s.y += s.vy * dt;
-    s.life -= dt;
-    const struck = world.ground.some((o) => {
-      if (!o.alive || o.team == null || o.team === s.team) return false;
-      const [l, b, r, t] = groundBox(world, o);
-      return s.x >= l && s.x <= r && s.y >= b && s.y <= t;
-    });
-    const ground = surfaceAt(world, s.x);
-    if (struck || s.y <= ground || s.life <= 0 || s.x < 0 || s.x > world.map.width) {
-      s.y = Math.max(s.y, ground);
+    if (moveShell(world, s, dt)) {
       burstShell(world, s);
       list.splice(i, 1);
     }
@@ -230,6 +281,7 @@ export function stepArmy(world, dt) {
     }
     const why = u.working ? 'working' : u.returning ? null : holdUp(world, u);
     u.moving = !why;
+    u.why = why; // for debugging: what holds it up
     if (u.moving) {
       // Slower uphill, a little quicker downhill.
       const slope = world.terrain.slopeAngle(u.x) * u.dir;
@@ -238,9 +290,12 @@ export function stepArmy(world, dt) {
     if (u.type === 'tank') {
       settleHull(world, u, dt);
       u.gunCooldown = Math.max(0, (u.gunCooldown ?? world.rng.range(0, u.def.gunInterval)) - dt);
-      const target = u.gunCooldown <= 0 ? gunTarget(world, u) : null;
-      // Out of the gun's reach from this slope: try again shortly, as the tank moves on.
-      if (target) u.gunCooldown = fireGun(world, u, target) ? u.def.gunInterval * world.rng.range(0.85, 1.15) : 0.5;
+      if (u.gunCooldown <= 0) {
+        // No shot from here (a hill in the way, or the gun can't reach from this slope): the tank
+        // moves on and tries again shortly. It keeps its place while reloading after a shot.
+        u.hasShot = fireGun(world, u);
+        u.gunCooldown = u.hasShot ? u.def.gunInterval * world.rng.range(0.85, 1.15) : 0.5;
+      }
     }
   }
   stepTankShells(world, dt);
