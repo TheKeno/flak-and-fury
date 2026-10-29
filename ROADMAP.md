@@ -65,7 +65,11 @@ later.
 11. **Night raid theme:** lighting layer, sweeping searchlights that catch and cone you (flak gets
     accurate), exhaust glow (throttle down to hide), tracers give you away, shootable searchlights,
     pathfinder flares, night-fighter radar (Lichtenstein) and Schräge Musik.
-12. **Polish:** balance, and **full roll animations** (the plane visibly rolls through its side view,
+12. **Sound pass:** the synthesized sounds so far are placeholders. Rework them properly: reshape the
+    generated sounds, mix them with recordings (CC0 samples, licences checked, downloads approved
+    first), and add effects (per-environment reverb, filtering, distortion, compression). Also ambience
+    per map, the Jericho siren and night-raid sirens. Hold off on fine-tuning sounds until then.
+13. **Polish:** balance, and **full roll animations** (the plane visibly rolls through its side view,
     wings edge-on and belly showing, instead of flipping instantly).
 
 Then: more themes, co-op missions, online play.
@@ -73,7 +77,7 @@ Then: more themes, co-op missions, online play.
 ## Backlog
 
 - **Roll while standing still** turns the plane round to face the other way (not upside down).
-  Later animated, like the full roll animations in milestone 12.
+  Later animated, like the full roll animations in milestone 13.
 
 ## Ideas agreed for later
 
@@ -91,5 +95,3 @@ Then: more themes, co-op missions, online play.
   heavy cannon (MK 108, 37 mm, 40 mm Vickers S), rockets (RP-3, RS-82, HVAR, Wfr.Gr.21), bombs (GP,
   SD2 cluster, incendiary, Tallboy, torpedo, depth charge, Upkeep), gadgets (Schräge Musik, Jericho
   siren, drop tank, armour, self-sealing tanks).
-- **Sound still to do:** CC0 sample layers (licences checked, downloads approved first), per-environment
-  reverb, ambience per map, Jericho siren, night-raid sirens.
