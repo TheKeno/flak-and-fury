@@ -248,6 +248,42 @@ const FREE_FIELDS = [
   ['autopilotHeight', 'Autopilot height', 60, 500, 10, 'Height above the ground the autopilot holds your plane at while you look around (a screen is about 270 high).'],
 ];
 
+// Bot pilots: shared numbers (settings.bots), then each difficulty level's (settings.bots.levels.<level>).
+const BOT_FIELDS = [
+  ['cruiseHeight', 'Patrol height', 60, 500, 10, 'Height above the ground bots patrol at.'],
+  ['terrainClear', 'Ground clearance', 20, 150, 5, 'Clearance over the ground (and trees, towers, buildings) bots keep in ordinary flight. They pull up earlier in a steep, fast dive.'],
+  ['patrolSpan', 'Patrol beat', 100, 1500, 50, 'Length of the beat bots fly behind the front (or short of the enemy flak, whichever is nearer home).'],
+  ['flakMargin', 'Flak margin', 0, 400, 10, 'Extra distance bots keep outside the reach of enemy flak guns.'],
+  ['groundRange', 'Ground attack reach', 300, 4000, 50, 'How far from their own hangar bots go after enemy tanks and troops.'],
+  ['bombHeight', 'Bombing height', 60, 300, 5, 'Height of a level bombing run.'],
+  ['strafePullout', 'Strafing pull-out', 20, 120, 5, 'Height at which a strafing dive on troops pulls out.'],
+  ['approachLength', 'Approach length', 200, 1000, 25, 'Final approach: from the turn-in to the touchdown point.'],
+  ['glideSlope', 'Glide slope', 0.04, 0.25, 0.01, 'Descent angle on final approach (rad).'],
+  ['approachSpeed', 'Approach speed', 0.6, 1, 0.01, "Speed on final as a share of the plane's max landing speed."],
+  ['fuelReserve', 'Fuel reserve', 0, 0.4, 0.01, 'Fuel kept over what the trip home needs. Below that, the bot goes home.'],
+  ['takeoffGap', 'Take-off gap', 0, 15, 0.5, 'Seconds between bots of one side taking off together.'],
+];
+const BOT_LEVEL_FIELDS = [
+  ['reaction', 'Reaction time', 0.05, 2, 0.05, 'Seconds between decisions: spotting a plane on its tail, picking a target, going home.'],
+  ['lookout', 'Lookout range', 100, 1500, 10, "How far the pilot sees enemy planes. Beyond it, only what the side's radar shows."],
+  ['aimError', 'Aim wander', 0, 0.2, 0.005, 'How far (rad) the aim drifts off the perfect lead.'],
+  ['aimTolerance', 'Fires within', 0.01, 0.3, 0.005, 'How close (rad) the nose must be to the aim point to fire. Wider = more rounds wasted.'],
+  ['fireRange', 'Firing range', 80, 400, 5, 'Distance within which the bot opens fire on a plane.'],
+  ['evadeChance', 'Evade chance', 0, 1, 0.05, 'Chance per decision of noticing an enemy on its tail and breaking.'],
+  ['turnFight', 'Turn fighting', 0, 1, 0.05, 'In a hard turn after a plane, throttles back towards the speed where the plane turns tightest (just over the stall). 0: never, full power round the same circle. 1: right down to it.'],
+  ['stallMargin', 'Stall margin', 0, 0.8, 0.01, 'Speed kept over the stall (share): below it the nose goes down. Low = tighter, riskier fighting.'],
+  ['turnHard', 'Stick strength', 0.3, 1, 0.05, 'Share of the full turn rate the pilot uses.'],
+  ['flakAvoid', 'Flak and MG respect', 0, 1, 0.05, '1: keeps out of flak and over MG reach. 0: flies straight through.'],
+  ['bombError', 'Bombing error', 0, 80, 1, 'How far (units) bombs can land from the aim point.'],
+  ['hpReturn', 'Goes home below', 0, 1, 0.05, 'Share of hit points under which the bot heads home for repairs.'],
+  ['ammoReturn', 'Goes home on ammo', 0, 1, 0.01, 'Share of gun ammunition under which the bot (with no bombs left) heads home to rearm.'],
+];
+const BOT_LEVELS = [
+  ['easy', 'Easy'],
+  ['normal', 'Normal'],
+  ['ace', 'Ace'],
+];
+
 const BOT_MODES = [
   ['on', 'On: fly and fight'],
   ['passive', 'Passive: fly, never shoot'],
@@ -288,7 +324,7 @@ function slider(obj, [key, label, min, max, step, help], onChange) {
   return row;
 }
 
-export function createTuningPanel({ content, world, player, getMixer, onPause }) {
+export function createTuningPanel({ content, world, player, placeBots, getMixer, onPause }) {
   const { planeDefs, weapons, settings, groundDefs, notes } = content;
   // What Reset returns to: the values last loaded from or saved to the files.
   const snapshot = () => structuredClone({ planeDefs, weapons, settings, groundDefs });
@@ -344,6 +380,24 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     ...BOT_MODES.map(([v, label]) => el('option', { value: v }, label)),
   );
   botSelect.value = world.rules.bots;
+  // How many bots on each side, and how good. Applied at once: planes are added or taken away.
+  const botPickers = [];
+  const pick = (key, label, help, options) => {
+    const box = el(
+      'select',
+      {
+        onchange: () => {
+          world.rules[key] = typeof world.rules[key] === 'number' ? Number(box.value) : box.value;
+          placeBots();
+        },
+      },
+      ...options.map(([v, l]) => el('option', { value: v }, l)),
+    );
+    box.value = world.rules[key];
+    botPickers.push([box, key]);
+    return el('label', { class: 'row select', title: help }, el('span', {}, label), box);
+  };
+  const counts = [0, 1, 2, 3].map((n) => [n, String(n)]);
   const ruleBoxes = [];
   const toggle = (key, label, help) => {
     const box = el('input', { type: 'checkbox', onchange: () => (world.rules[key] = box.checked) });
@@ -354,7 +408,11 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   const testSection = section(
     'Testing',
     true,
-    el('label', { class: 'row select', title: 'Turn the enemy AI off or make it harmless while you test.' }, el('span', {}, 'Enemy AI'), botSelect),
+    el('label', { class: 'row select', title: 'Turn the bots (both sides) off or make them harmless while you test.' }, el('span', {}, 'Bots'), botSelect),
+    pick('wingmen', 'Wingmen', 'Bots flying on your side.', counts),
+    pick('wingmanSkill', 'Wingman level', 'How good your wingmen are. The levels are set under Bots.', BOT_LEVELS),
+    pick('enemies', 'Enemy planes', 'Bots flying against you.', counts),
+    pick('enemySkill', 'Enemy level', 'How good the enemy pilots are. The levels are set under Bots.', BOT_LEVELS),
     toggle('ramming', 'Mid-air collisions', 'Planes that touch both go down.'),
     toggle('friendlyFire', 'Friendly fire', 'Your rounds and bombs can hit your own side.'),
     toggle('autoGear', 'Automatic landing gear', 'Gear raises after take-off and lowers on approach. G always overrides for the rest of the flight. Off: G only.'),
@@ -376,6 +434,12 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   const zoneSection = section('Landscape zones', false, ...ZONE_FIELDS.map((f) => add(slider(settings.zones, f))));
   const padSection = section('Structure pads', false, ...PAD_FIELDS.map((f) => add(slider(settings.pads, f))));
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
+  const botSection = section(
+    'Bots',
+    false,
+    ...BOT_FIELDS.map((f) => add(slider(settings.bots, f))),
+    ...BOT_LEVELS.map(([level, name]) => section(name, false, ...BOT_LEVEL_FIELDS.map((f) => add(slider(settings.bots.levels[level], f))))),
+  );
   const restoreTargets = () => {
     createGround(world);
     createArmy(world);
@@ -460,6 +524,10 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.landing, saved.settings.landing);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
+    for (const [k, v] of Object.entries(saved.settings.bots)) {
+      if (k === 'levels') for (const l of Object.keys(v)) Object.assign(settings.bots.levels[l], v[l]);
+      else settings.bots[k] = v;
+    }
     Object.assign(settings.fire, saved.settings.fire);
     Object.assign(settings.waves, saved.settings.waves);
     Object.assign(settings.pads, saved.settings.pads);
@@ -471,6 +539,8 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;
     for (const [box, key] of ruleBoxes) box.checked = world.rules[key];
+    for (const [box, key] of botPickers) box.value = world.rules[key];
+    placeBots();
     parkBots();
     propBox.checked = settings.collisions.propStrikes;
     for (const p of world.planes) p.guns.forEach(updateGunRates);
@@ -525,6 +595,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     collisionSection,
     fireSection,
     radarSection,
+    botSection,
     groundSection,
     waveSection,
     zoneSection,

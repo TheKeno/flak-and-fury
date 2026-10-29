@@ -1,5 +1,5 @@
 import { loadContent } from './content/load.js';
-import { createWorld, addPlane, stepWorld, DT } from './sim/world.js';
+import { createWorld, addPlane, setBots, stepWorld, DT } from './sim/world.js';
 import { autopilotCommand } from './sim/ai.js';
 import { createKeyboard } from './input/keyboard.js';
 import { createMouse } from './input/mouse.js';
@@ -28,13 +28,23 @@ const world = createWorld({
   runway: content.settings.runway,
   landing: content.settings.landing,
   decor: content.settings.decor,
+  bots: content.settings.bots,
+  radar: content.settings.radar,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
 content.settings.rules = world.rules;
 const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
-// A sparring partner until real bots arrive in milestone 5.
-addPlane(world, { defId: 'fighter_v12', team: 1, nation: 'uk', controller: 'bot:target' });
+// Bots: your wingmen and the enemy, as many and as good as the rules say (Testing in the tuning panel).
+// Each side flies its nation's fighter until the hangar (milestone 7) lets you choose.
+const SIDES = [
+  { team: 0, nation: 'germany', defId: 'bf109', count: 'wingmen', skill: 'wingmanSkill' },
+  { team: 1, nation: 'uk', defId: 'fighter_v12', count: 'enemies', skill: 'enemySkill' },
+];
+const placeBots = () => {
+  for (const s of SIDES) setBots(world, { ...s, count: world.rules[s.count], skill: world.rules[s.skill] });
+};
+placeBots();
 const renderer = createRenderer(canvas, world, content);
 const keyboard = createKeyboard();
 const mouse = createMouse(canvas, content.settings.camera);
@@ -45,6 +55,7 @@ const tuning = createTuningPanel({
   content,
   world,
   player,
+  placeBots,
   getMixer: () => mixer,
   onPause: (p) => setPaused(p),
 });

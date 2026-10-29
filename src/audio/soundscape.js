@@ -71,6 +71,12 @@ export function createSoundscape(mixer, world, cfg = {}) {
         doppler: where.doppler,
       });
     }
+    // A plane taken out of the game (fewer bots set in the tuning panel) takes its engine with it.
+    for (const [id, v] of engines) {
+      if (world.planes.some((p) => p.id === id)) continue;
+      v.dispose();
+      engines.delete(id);
+    }
   }
 
   // Ground crew sounds, placed beside the plane.

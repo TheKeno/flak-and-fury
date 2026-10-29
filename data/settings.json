@@ -119,6 +119,67 @@
     "craterPoints": 25,
     "closePoints": 100
   },
+  "bots": {
+    "cruiseHeight": 220,
+    "terrainClear": 55,
+    "patrolSpan": 500,
+    "flakMargin": 80,
+    "groundRange": 2300,
+    "bombHeight": 110,
+    "strafePullout": 40,
+    "approachLength": 500,
+    "glideSlope": 0.12,
+    "approachSpeed": 0.8,
+    "fuelReserve": 0.08,
+    "takeoffGap": 4,
+    "levels": {
+      "easy": {
+        "turnFight": 0,
+        "reaction": 0.6,
+        "lookout": 380,
+        "aimError": 0.06,
+        "aimTolerance": 0.1,
+        "fireRange": 200,
+        "evadeChance": 0.3,
+        "stallMargin": 0.35,
+        "turnHard": 0.75,
+        "flakAvoid": 0.4,
+        "bombError": 30,
+        "hpReturn": 0.25,
+        "ammoReturn": 0.05
+      },
+      "normal": {
+        "turnFight": 0.5,
+        "reaction": 0.35,
+        "lookout": 520,
+        "aimError": 0.03,
+        "aimTolerance": 0.07,
+        "fireRange": 230,
+        "evadeChance": 0.6,
+        "stallMargin": 0.2,
+        "turnHard": 0.9,
+        "flakAvoid": 0.8,
+        "bombError": 15,
+        "hpReturn": 0.35,
+        "ammoReturn": 0.1
+      },
+      "ace": {
+        "turnFight": 1,
+        "reaction": 0.18,
+        "lookout": 700,
+        "aimError": 0.01,
+        "aimTolerance": 0.045,
+        "fireRange": 250,
+        "evadeChance": 0.9,
+        "stallMargin": 0.1,
+        "turnHard": 1,
+        "flakAvoid": 1,
+        "bombError": 6,
+        "hpReturn": 0.45,
+        "ammoReturn": 0.15
+      }
+    }
+  },
   "gore": {
     "mode": "full",
     "blood": 1,
@@ -136,7 +197,11 @@
   "rules": {
     "friendlyFire": false,
     "ramming": true,
-    "bots": "off",
-    "autoGear": true
+    "bots": "on",
+    "autoGear": true,
+    "wingmen": 1,
+    "enemies": 2,
+    "wingmanSkill": "normal",
+    "enemySkill": "normal"
   }
 }

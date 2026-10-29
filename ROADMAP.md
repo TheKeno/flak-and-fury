@@ -42,6 +42,17 @@ later.
   destroyed it goes dark). Fire is an emergency landing (about 20 s to live; pilot 5 s in a field,
   ground crew 1.5 s at home). Tank waves from each side's depot with infantry, a hangar they shell,
   a river with a bridge that engineers rebuild. Synthesized sound for all of it.
+- **5. Proper bots:** wingmen and enemies, set per side (count and level) in the tuning panel. Easy /
+  normal / ace levels from data: reaction time (and how stale their picture of a target gets), lookout,
+  aim, firing discipline, turn fighting (throttling back for the tightest turn), stall margin, evasion,
+  flak respect, bombing accuracy, when to go home. They take off in turn, patrol between the front and
+  home short of enemy flak, chase what they see or their radar shows (a destroyed radar blinds them
+  beyond their lookout), break when someone is on their tail, cover a teammate's attack instead of
+  queueing behind it, and steer clear of collisions, the ground and trees. They bomb enemy tanks
+  closing on their base (the release worked out from the bomb's fall; never their own runway or the
+  bridge) and strafe troops near home or their own engineers. Low on fuel, ammunition or hit points they
+  fly a proper circuit home, land, wait for the crew and take off again; burning or with a dead engine
+  they land at home if they can make it, otherwise in the nearest clear field towards home.
 - **Extras:**
   - Bf 109 F-4 for the player.
   - Retractable gear with G override, belly landings, taildragger ground attitude, long take-off roll.
@@ -76,8 +87,6 @@ later.
 
 ## Milestones ahead
 
-5. **Proper bots:** patrol, chase, evade, return to base when low on fuel or ammo; difficulty levels;
-   bomb enemy tanks near their base and cover their own engineers.
 6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
    pattern, all 1943 types (the player's Bf 109 F-4 becomes a G-6, or stays as a lighter option). One
    standard tank per nation in the ground war, with a little flavour: Germany Panzer IV (StuG III as an
@@ -111,6 +120,10 @@ Then: more themes, co-op missions, online play.
 
 ## Backlog
 
+- **Two players, each with a bot wingman (1p + 1b vs 1p + 1b):** bot counts per side are already in the
+  rules; it needs a second human seat (split screen or online play).
+- **Bots raid the enemy base:** bombing radar, flak, the runway and the hangar, and knocking down the
+  bridge to stop a tank column. For match rules (milestone 8); for now bots only defend and support.
 - **Advise a plane that can take off:** when your runway is too short for your plane but long enough
   for another type, the game should suggest switching to it (needs plane switching, milestone 6/7).
   For now the waiting message only says the runway is too short for your plane.

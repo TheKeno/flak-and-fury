@@ -6,7 +6,7 @@ import { buildTerrain, structurePads, DEFAULT_PADS, DEFAULT_ZONES } from './terr
 import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LANDING } from './plane.js';
 import { stepBullets, stepBombs } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
-import { botCommand } from './ai.js';
+import { botCommand, DEFAULT_BOTS, DEFAULT_RADAR } from './ai.js';
 import { DEFAULT_SERVICING } from './airfield.js';
 import { createGround, planesHitStructures } from './ground.js';
 import { stepDefences, stepShells } from './defences.js';
@@ -20,7 +20,18 @@ export const DT = 1 / TICK_RATE;
 
 // bots: 'on' (fly and fight), 'passive' (fly but never shoot or bomb), 'off' (stay parked).
 // autoGear: landing gear raises and lowers itself (G still overrides).
-export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', autoGear: true };
+// wingmen, enemies: how many bots fly with you and against you; wingmanSkill, enemySkill: their level
+// (easy, normal, ace). Read by the game's setup (src/main.js) and the tuning panel.
+export const DEFAULT_RULES = {
+  friendlyFire: false,
+  ramming: true,
+  bots: 'on',
+  autoGear: true,
+  wingmen: 1,
+  enemies: 2,
+  wingmanSkill: 'normal',
+  enemySkill: 'normal',
+};
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 // waves: how often and how big the tank columns are (src/sim/army.js).
@@ -28,6 +39,7 @@ export const DEFAULT_RULES = { friendlyFire: false, ramming: true, bots: 'on', a
 // decor: hedges, walls and trees placed from the map's zones (src/sim/decor.js).
 // landing: how forgiving touchdowns are (src/sim/plane.js).
 // runway: crater sizes on concrete, crater filling and runway points (src/sim/runway.js).
+// bots: bot pilots' numbers and difficulty levels (src/sim/ai.js); radar: what their radar picture sees.
 // groundDefs: ground object types (data/ground.json), shared the same way.
 export function createWorld({
   map,
@@ -44,6 +56,8 @@ export function createWorld({
   runway = { ...DEFAULT_RUNWAY },
   landing = { ...DEFAULT_LANDING },
   decor = { ...DEFAULT_DECOR },
+  bots = structuredClone(DEFAULT_BOTS),
+  radar = { ...DEFAULT_RADAR },
 }) {
   const world = {
     tick: 0,
@@ -59,6 +73,8 @@ export function createWorld({
     runway,
     landing,
     decor,
+    bots,
+    radar,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],
@@ -86,6 +102,15 @@ export function addPlane(world, { defId, team, nation, controller }) {
   world.planes.push(p);
   spawnAtAirfield(p, world);
   return p;
+}
+
+// Sets a side's bots to count planes at the given level, adding or removing bot planes (humans are
+// left alone). defId, nation: what new ones fly.
+export function setBots(world, { team, count, skill, defId, nation }) {
+  const bots = world.planes.filter((p) => p.team === team && p.seats.some((s) => s.controller.startsWith('bot')));
+  for (const p of bots.slice(count)) world.planes.splice(world.planes.indexOf(p), 1);
+  for (const p of bots.slice(0, count)) p.seats[0].controller = `bot:${skill}`;
+  for (let i = bots.length; i < count; i++) addPlane(world, { defId, team, nation, controller: `bot:${skill}` });
 }
 
 export function stepWorld(world, commands) {

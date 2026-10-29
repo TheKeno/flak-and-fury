@@ -118,6 +118,56 @@ Diving into a tank destroys it with the plane (the points go to the plane). Flyi
 infantry kills the soldiers it strikes, `runDownDamage` hit points each. All of these are also in the
 tuning panel's Collisions section.
 
+## Bots: `data/settings.json` → `bots`, `rules`
+
+How many bots fly and how good they are is in `rules` (tuning panel: Testing): `wingmen` (bots on
+your side) and `enemies`, with `wingmanSkill` and `enemySkill` set to `easy`, `normal` or `ace`. Changes
+apply at once: planes are added or taken away. `bots` there is `on`, `passive` (fly, never shoot or
+bomb) or `off` (parked).
+
+A bot patrols between the front and its own side (never into enemy flak), chases enemy planes it sees
+or its radar shows, breaks when one gets on its tail, bombs enemy tanks and strafes troops near home or
+near its own engineers, and goes home to land and be serviced when low on fuel, ammunition or hit
+points. Burning or with a dead engine it puts down at home if it can make it, otherwise in the nearest
+clear field towards home.
+
+Shared numbers (tuning panel: Bots):
+
+| Field | What it does | Try |
+|---|---|---|
+| `cruiseHeight` | Patrol height above the ground. | 150 – 300 |
+| `terrainClear` | Clearance over the ground, trees and buildings in ordinary flight. In a steep, fast dive they pull out earlier, by what the pull-out costs. | 40 – 80 |
+| `patrolSpan` | Length of the patrol beat, back from the front (or from short of the enemy flak, if that's nearer home). | 300 – 800 |
+| `flakMargin` | Extra distance kept outside the reach of enemy flak. | 50 – 150 |
+| `groundRange` | How far from their own hangar bots go after enemy tanks and troops. | 1500 – 3000 |
+| `bombHeight` | Height of a level bombing run. The release is worked out from the bomb's real fall. | 90 – 150 |
+| `strafePullout` | Height at which a strafing dive on troops pulls out. | 30 – 60 |
+| `approachLength` | Final approach: from the turn-in to the touchdown point. | 400 – 700 |
+| `glideSlope` | Descent angle on final (rad). | 0.08 – 0.15 |
+| `approachSpeed` | Speed on final, as a share of the plane's `maxLandingSpeed`. | 0.75 – 0.9 |
+| `fuelReserve` | Fuel kept over what the trip home needs. | 0.05 – 0.15 |
+| `takeoffGap` | Seconds between bots of one side taking off together (a bot alongside you goes after you). | 3 – 6 |
+
+Each level (`bots.levels.easy`, `normal`, `ace`; tuning panel: Bots → Easy / Normal / Ace):
+
+| Field | What it does | Easy / Normal / Ace |
+|---|---|---|
+| `reaction` | Seconds between decisions, and how often the pilot updates its picture of a target. A slow pilot's lead goes stale when the target manoeuvres. | 0.6 / 0.35 / 0.18 |
+| `lookout` | How far it sees enemy planes. Beyond that, only its radar's picture (none with the radar station destroyed). | 380 / 520 / 700 |
+| `aimError` | How far (rad) its aim wanders off the perfect lead. | 0.06 / 0.03 / 0.01 |
+| `aimTolerance` | How close (rad) the nose must be to the aim point to fire, widened by how big the target looks. | 0.1 / 0.07 / 0.045 |
+| `fireRange` | Distance within which it opens fire on a plane. | 200 / 230 / 250 |
+| `evadeChance` | Chance per decision of noticing a plane on its tail and breaking. | 0.3 / 0.6 / 0.9 |
+| `stallMargin` | Speed kept over the stall (share). Lower = tighter, riskier fighting. | 0.35 / 0.2 / 0.1 |
+| `turnFight` | In a hard turn after a plane, throttles back towards the speed where the plane turns tightest. 0 never, 1 right down to it. | 0 / 0.5 / 1 |
+| `turnHard` | Share of the full turn rate it uses. | 0.75 / 0.9 / 1 |
+| `flakAvoid` | 1 keeps out of flak and above MG reach; 0 flies straight through. | 0.4 / 0.8 / 1 |
+| `bombError` | How far (world units) its bombs can land from the aim point. | 30 / 15 / 6 |
+| `hpReturn` | Share of hit points under which it goes home for repairs. | 0.25 / 0.35 / 0.45 |
+| `ammoReturn` | Share of gun ammunition under which (with no bombs left) it goes home to rearm. | 0.05 / 0.1 / 0.15 |
+
+Bots between themselves rarely score kills: a badly hit pilot breaks off and goes home for repairs.
+
 ## Decor: `data/settings.json` → `decor`
 
 Hedges, stone walls, trees and barns aren't placed in LDtk: the game places them from the map's zones,
