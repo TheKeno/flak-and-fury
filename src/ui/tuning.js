@@ -3,6 +3,7 @@
 import { updateGunRates } from '../sim/weapons.js';
 import { spawnAtAirfield } from '../sim/plane.js';
 import { rearmFully } from '../sim/airfield.js';
+import { ignite } from '../sim/fire.js';
 import { createGround } from '../sim/ground.js';
 import { createArmy } from '../sim/army.js';
 
@@ -53,6 +54,7 @@ const CAMERA_FIELDS = [
   ['lookSensitivity', 'Mouse look: drag for full look', 40, 600, 10, 'How far (screen pixels) you drag with right mouse held to turn your head all the way. Lower = more sensitive.'],
   ['lookSpeed', 'Mouse look: speed', 0.5, 12, 0.1, 'How quickly the view follows the pointer and eases back. Lower = heavier, more resistance.'],
   ['lookZoom', 'Mouse look: zoom-out', 0, 0.4, 0.01, 'Extra zoom-out while looking around.'],
+  ['watchZoom', 'Watch camera: zoom-out', 0, 0.8, 0.05, 'How much wider the view is when V watches the ground war.'],
   ['zoomMax', 'Speed zoom: max zoom-out', 1, 1.8, 0.01, '1 = no zoom. 1.35 = see 35% more of the world at top speed.'],
   ['zoomStartSpeed', 'Speed zoom: starts at', 0, 250, 5, 'Speed (px/s) where the view begins to widen. Level top speed is about 150.'],
   ['zoomFullSpeed', 'Speed zoom: full at', 0, 300, 5, 'Speed (px/s) where the view is fully zoomed out. Dives reach about 200.'],
@@ -388,14 +390,17 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     say('Plane repaired and rearmed');
   }
 
+  // The game owns the pause (P works too); the button asks for it and shows the state.
   let paused = false;
-  const pauseBtn = el('button', {
-    onclick: () => {
-      paused = !paused;
-      pauseBtn.textContent = paused ? 'Resume' : 'Pause';
-      onPause(paused);
-    },
-  }, 'Pause');
+  const pauseBtn = el('button', { onclick: () => onPause(!paused) }, 'Pause');
+  function showPaused(p) {
+    paused = p;
+    pauseBtn.textContent = p ? 'Resume' : 'Pause';
+  }
+
+  function setOnFire() {
+    say(ignite(world, player) ? 'Your plane is on fire' : 'No fire: already burning or going down');
+  }
 
   const panel = el(
     'div',
@@ -406,6 +411,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
       el('button', { onclick: reset, title: 'Go back to the values last loaded from the files' }, 'Reset'),
       el('button', { onclick: refill, title: 'Repair, refuel and rearm your plane' }, 'Repair & rearm'),
       pauseBtn,
+      el('button', { onclick: setOnFire, title: 'Set your plane on fire to try the fire emergency' }, 'Set me on fire'),
     ),
     status,
     testSection,
@@ -432,6 +438,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
   });
 
   return {
+    showPaused,
     toggle() {
       panel.classList.toggle('hidden');
       if (panel.classList.contains('hidden')) document.activeElement?.blur();

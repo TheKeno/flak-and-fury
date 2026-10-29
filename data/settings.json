@@ -13,6 +13,7 @@
     "lookRange": 0.33,
     "lookSpeed": 4.5,
     "lookZoom": 0.12,
+    "watchZoom": 0.5,
     "lookSensitivity": 200
   },
   "audio": {

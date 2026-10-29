@@ -6,6 +6,7 @@ import { createRenderer } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
 import { createTuningPanel } from './ui/tuning.js';
+import { surfaceAt } from './sim/ground.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
@@ -39,8 +40,43 @@ const tuning = createTuningPanel({
   world,
   player,
   getMixer: () => mixer,
-  onPause: (p) => (paused = p),
+  onPause: (p) => setPaused(p),
 });
+function setPaused(p) {
+  paused = p;
+  tuning.showPaused(p);
+}
+
+// V cycles the camera: your plane, the front line of the ground war, the bridge.
+const WATCH_MODES = [null, 'front', 'bridge'];
+let watchMode = 0;
+function watchPoint() {
+  const mode = WATCH_MODES[watchMode];
+  if (!mode) return null;
+  const bridge = world.ground.find((o) => o.type === 'bridge');
+  let x = bridge?.x ?? world.map.width / 2;
+  let label = 'THE BRIDGE';
+  if (mode === 'front') {
+    label = 'THE FRONT';
+    // Each side's leading unit, measured in its own direction of advance; the front is between them.
+    const home = (team) => world.map.airfields.find((a) => a.team === team);
+    const dir = Math.sign((home(1)?.x ?? 1) - (home(0)?.x ?? 0)) || 1;
+    const lead = (team, sign) => {
+      let best = null;
+      for (const o of world.ground) {
+        if (!o.mobile || !o.alive || o.team !== team) continue;
+        if (best === null || o.x * sign > best * sign) best = o.x;
+      }
+      return best;
+    };
+    const a = lead(0, dir);
+    const b = lead(1, -dir);
+    if (a !== null && b !== null) x = (a + b) / 2;
+    else if (a !== null || b !== null) x = a ?? b;
+    else label = 'THE FRONT (NO TROOPS OUT)';
+  }
+  return { x, y: surfaceAt(world, x), label };
+}
 // Clicking the game takes keyboard focus back from the tuning panel.
 canvas.addEventListener('mousedown', () => document.activeElement?.blur());
 let muted = false;
@@ -51,6 +87,8 @@ addEventListener('keydown', (e) => {
   if (e.code === 'KeyH') showHelp = !showHelp;
   if (e.code === 'KeyT') tuning.toggle();
   if (e.code === 'KeyM' && mixer) mixer.setMuted((muted = !muted));
+  if (e.code === 'KeyP') setPaused(!paused);
+  if (e.code === 'KeyV') watchMode = (watchMode + 1) % WATCH_MODES.length;
 });
 
 const CAUSES = {
@@ -159,7 +197,7 @@ function frame(now) {
   }
   // Mouse look wins while the right button is held; otherwise the arrow keys look around.
   const view = look.active ? look : keyboard.readLook();
-  renderer.render(player, dt, { showHelp, look: view });
+  renderer.render(player, dt, { showHelp, look: view, watch: watchPoint(), paused });
   sound?.setLook(renderer.cam.lookX, view.active);
   if (renderer.radarSweeps !== lastSweeps) {
     lastSweeps = renderer.radarSweeps;

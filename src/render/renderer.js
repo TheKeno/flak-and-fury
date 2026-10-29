@@ -151,8 +151,8 @@ export function createRenderer(canvas, world, assets) {
   const toScreenY = (wy) => bh - (wy - cam.y) * SCALE;
 
   // Speed zoom: above zoomStartSpeed the view widens, reaching zoomMax at zoomFullSpeed.
-  function updateZoom(focus, dt) {
-    let target = 1;
+  function updateZoom(focus, dt, widen = 0) {
+    let target = 1 + widen;
     if (focus && focus.state === 'air') {
       const span = Math.max(1, camCfg.zoomFullSpeed - camCfg.zoomStartSpeed);
       const t = clamp((focus.speed - camCfg.zoomStartSpeed) / span, 0, 1);
@@ -187,9 +187,20 @@ export function createRenderer(canvas, world, assets) {
     cam.lookY += cam.lookVY * step;
   }
 
-  function updateCamera(focus, dt, look) {
-    if (!focus) return;
-    if (focus.state !== 'dead') {
+  function updateCamera(focus, dt, look, watch) {
+    if (watch) {
+      // Watching the ground war: drift over to the spot with the ground low in a wider view. Eased on
+      // its own unrounded position, since the pixel snap below would swallow small steps.
+      updateZoom(null, dt, camCfg.watchZoom);
+      const k = cam.watching ? 1 - Math.exp(-dt * 3) : 1;
+      cam.wx = (cam.watching ? cam.wx : cam.x) + (watch.x - vw / 2 - (cam.watching ? cam.wx : cam.x)) * k;
+      cam.wy = (cam.watching ? cam.wy : cam.y) + (watch.y - vh * 0.3 - (cam.watching ? cam.wy : cam.y)) * k;
+      cam.watching = true;
+      cam.x = cam.wx;
+      cam.y = cam.wy;
+    } else if (!focus) return;
+    else cam.watching = false;
+    if (!watch && focus.state !== 'dead') {
       updateLook(focus, dt, look);
       updateZoom(focus, dt);
       // Sideways the view leads where the nose points; up and down it leads along the flight path,
@@ -895,11 +906,11 @@ export function createRenderer(canvas, world, assets) {
         for (let i = 0; i < 6; i++) particles.spawn('dust', e.x, e.y - 3, (Math.random() - 0.5) * 30, 8, 0.8, 0.8);
       }
     },
-    render(focus, dt, { showHelp, look }) {
+    render(focus, dt, { showHelp, look, watch, paused }) {
       frame++;
       frameDt = dt;
       fitDisplay();
-      updateCamera(focus, dt, look);
+      updateCamera(focus, dt, look, watch);
       for (const p of world.planes) emitEffects(p, dt);
       emitGroundEffects(dt);
       particles.update(dt, world.terrain);
@@ -925,6 +936,9 @@ export function createRenderer(canvas, world, assets) {
       }
       drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight });
       drawMessages();
+      const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
+      if (watch) banner(`WATCHING ${watch.label} - V FOR NEXT`, 40, '#f0e8c0');
+      if (paused) banner('PAUSED - P TO RESUME', 110, '#f0f0e0');
       // Under the scope: the state of your own radar, then whether you're under the enemy's.
       const labels = [];
       if (radar.health <= 0) {

@@ -3,7 +3,8 @@
 **Easiest: press T in the game.** The tuning panel has sliders for the plane, its guns and bombs, the
 camera and the sound. Changes apply instantly while you fly. Hover a slider for an explanation.
 "Save to files" writes the values into the data files below, "Reset" goes back to what the files say,
-"Repair & rearm" fixes up your plane, and "Pause" freezes the game while you adjust. Click the game
+"Repair & rearm" fixes up your plane, "Set me on fire" lets you try the fire emergency, and "Pause"
+(or P) freezes the game while you adjust. Click the game
 again to fly with the keyboard after using the panel.
 
 All gameplay numbers live in plain data files. Edit, save, then **reload the game page** (F5): no restart
@@ -57,7 +58,8 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 ## Ground crew and camera: `data/settings.json`
 
 `servicing`: `crewDelay` (seconds before the crew start), `repairPerSec` (hit points per second),
-`refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings.
+`refuelTime` and `rearmTime` (seconds). `camera` and `audio` hold the camera and volume settings;
+`camera.watchZoom` is how much wider the view gets when V watches the ground war.
 
 `fire`: a burning plane has `burnTime` seconds to live, whatever its hit points; each hit point of
 damage taken while burning takes `hitShortens` seconds off. Once less than `roughAt` of the time is left the
