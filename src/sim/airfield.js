@@ -3,6 +3,7 @@
 // work already done is kept. A dry engine is started again once the tank is full.
 import { clamp } from './math.js';
 import { hangarHealth } from './ground.js';
+import { allGuns } from './weapons.js';
 
 const FULL_TANK = 0.99;
 const TOP_UP_BELOW = 0.9; // once serviced, an idling engine only brings the crew back below this
@@ -17,12 +18,12 @@ function needs(p, serviced) {
   // A stopped engine is started at the end of refuelling, even when the tank is already full.
   if (p.fuel < (serviced ? TOP_UP_BELOW : FULL_TANK) || !p.engineRunning) return 'refuel';
   const fullBombs = p.def.armament?.bombs?.count ?? 0;
-  if (p.guns.some((g) => g.ammo < g.def.ammo * g.count) || (p.bombs && p.bombs.count < fullBombs)) return 'rearm';
+  if (allGuns(p).some((g) => g.ammo < g.def.ammo * g.count) || (p.bombs && p.bombs.count < fullBombs)) return 'rearm';
   return 'done';
 }
 
 export function rearmFully(p) {
-  for (const g of p.guns) g.ammo = g.def.ammo * g.count;
+  for (const g of allGuns(p)) g.ammo = g.def.ammo * g.count;
   if (p.bombs) p.bombs.count = p.def.armament.bombs.count;
 }
 

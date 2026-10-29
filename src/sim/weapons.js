@@ -35,8 +35,20 @@ export function armPlane(p, weapons) {
     return g;
   });
   p.bombs = arm.bombs ? { weapon: arm.bombs.weapon, def: weapons[arm.bombs.weapon], count: arm.bombs.count, cooldown: 0 } : null;
+  // Gunners' guns (a rear gunner, a turret): aimed by an AI gunner within an arc, in the plane's own
+  // frame in degrees (0 = straight ahead, 90 = up over the canopy, 180 = straight back).
+  p.turrets = (arm.turrets ?? []).map(({ weapon, count = 1, offset, arc }) => {
+    const w = weapons[weapon];
+    const [a0, a1] = arc.map((deg) => (deg * Math.PI) / 180);
+    const t = { weapon, def: w, count, offset, arc: [a0, a1], aim: (a0 + a1) / 2, ammo: w.ammo * count, cooldown: 0, fired: 0 };
+    updateGunRates(t);
+    return t;
+  });
   p.emptyClicked = false;
 }
+
+// Every gun on the plane, the pilot's and the gunners', for ammunition checks and rearming.
+export const allGuns = (p) => [...p.guns, ...(p.turrets ?? [])];
 
 // Local offset on the plane (x forward, y up from the pilot's view) to a world position, as the
 // plane actually sits (tail-down on the ground).
@@ -86,6 +98,7 @@ export function updateWeapons(p, cmd, world, dt) {
     world.events.push({ type: 'shot', plane: p.id, voice: w.voice, x, y });
   }
   if (!cmd.fire) p.emptyClicked = false;
+  updateTurrets(p, world, dt, canFight);
 
   const b = p.bombs;
   if (b) {
@@ -98,6 +111,61 @@ export function updateWeapons(p, cmd, world, dt) {
       world.bombsInFlight.push(bomb);
       world.events.push({ type: 'bombRelease', plane: p.id, bomb: bomb.id, x, y });
     }
+  }
+}
+
+// AI gunners: each turns its gun towards the nearest enemy plane within its arc and reach, leading it
+// by the rounds' flight time, and fires once on target. Gunners are bots too: they hold fire unless
+// the rules' bots are on.
+const GUNNER_TRAVERSE = 2.5; // rad/s the gun swings
+const GUNNER_ON_TARGET = 0.08; // rad off the aim point at which the gunner opens fire
+const GUNNER_SPREAD = 2; // times the weapon's own spread: a gunner on a moving plane is less steady
+const wrap2pi = (a) => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+function updateTurrets(p, world, dt, canFight) {
+  if (!p.turrets.length) return;
+  const { angle } = attitude(p);
+  const f = p.inverted ? -1 : 1;
+  for (const t of p.turrets) {
+    t.cooldown = Math.max(0, t.cooldown - dt);
+    const w = t.def;
+    const [x, y] = localToWorld(p, t.offset);
+    // The target: the nearest enemy whose lead point lies inside the arc, within 80% of the reach.
+    let want = null;
+    let best = w.velocity * w.life * 0.8;
+    if (canFight && world.rules.bots === 'on' && t.ammo > 0) {
+      for (const e of world.planes) {
+        if (e.team === p.team || (e.state !== 'air' && e.state !== 'ground')) continue;
+        const dist = Math.hypot(e.x - x, e.y - y);
+        if (dist >= best) continue;
+        const time = dist / w.velocity;
+        const local = wrap2pi(f * (Math.atan2(e.y + (e.vy - p.vy) * time - y, e.x + (e.vx - p.vx) * time - x) - angle));
+        if (local < t.arc[0] || local > t.arc[1]) continue;
+        best = dist;
+        want = local;
+      }
+    }
+    const goal = want ?? (t.arc[0] + t.arc[1]) / 2; // no target: back to the middle of the arc
+    t.aim += clamp(goal - t.aim, -GUNNER_TRAVERSE * dt, GUNNER_TRAVERSE * dt);
+    if (want == null || Math.abs(want - t.aim) > GUNNER_ON_TARGET || t.cooldown > 0) continue;
+    t.cooldown += t.interval;
+    t.fired++;
+    const rounds = Math.min(t.ammo, t.roundsPerVolley);
+    t.ammo -= rounds;
+    const a = angle + f * t.aim + world.rng.range(-w.spread, w.spread) * GUNNER_SPREAD;
+    world.bullets.push({
+      id: world.nextId++,
+      owner: p.id,
+      team: p.team,
+      x,
+      y,
+      vx: p.vx + Math.cos(a) * w.velocity,
+      vy: p.vy + Math.sin(a) * w.velocity,
+      life: w.life,
+      drop: w.drop,
+      damage: w.damage * rounds,
+      tracer: t.fired % TRACER_EVERY === 0,
+    });
+    world.events.push({ type: 'shot', plane: p.id, voice: w.voice, x, y, gunner: true });
   }
 }
 

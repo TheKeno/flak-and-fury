@@ -132,6 +132,16 @@ export function strut(a, b, r) {
   };
 }
 
+// A part built round z = 0 moved out to z = ±zc: a pair of engine nacelles or twin fins.
+export function mirrorZ(part, zc) {
+  const hz = Math.max(Math.abs(part.box[0][2]), Math.abs(part.box[1][2]));
+  return {
+    ...part,
+    box: [[part.box[0][0], part.box[0][1], -(zc + hz)], [part.box[1][0], part.box[1][1], zc + hz]],
+    field: ([x, y, z]) => part.field([x, y, Math.abs(z) - zc]),
+  };
+}
+
 // ----- Materials -----
 // A material returns { kind, dark } for a hit: kind picks the tone ramp, dark steps it darker
 // (panel lines, hinge lines).
@@ -1183,6 +1193,163 @@ function b239() {
   };
 }
 
+// Messerschmitt Bf 110 G-2, measured off a 3-view drawing (12.07 m long, 16.25 m span; 5 model units
+// to the metre, d back from the nose tip, h up from the nose's centre line, the engines' thrust line
+// 0.06 m below it). Slim, pointed gun nose; long, heavily framed glasshouse canopy for the pilot and
+// the rear gunner, his twin MG 81Z poking out of the back; straight fuselage tapering to the tail;
+// two DB 605 nacelles 2.43 m out with oil coolers under them and the radiator baths under the outer
+// wings; wing with a straight leading edge and a forward-swept trailing edge; tailplane on top of the
+// tailcone with the twin rounded fins at its tips; main wheels under the nacelles, tail wheel.
+function bf110() {
+  const M = 5;
+  const X = (d) => 30 - d * M;
+  const Y = (h) => 2.05 + h * M; // the main wheels' bottom (h -2.41) lands at the usual -10
+  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+  const split = Y(-0.2);
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const fuselage = body(
+    st([
+      [0.0, 0.0, -0.02, 0.03],
+      [0.08, 0.15, -0.15, 0.2],
+      [0.3, 0.38, -0.28, 0.33],
+      [0.53, 0.45, -0.38, 0.38],
+      [0.75, 0.51, -0.45, 0.41],
+      [0.98, 0.55, -0.51, 0.45],
+      [1.21, 0.6, -0.55, 0.48],
+      [1.45, 0.63, -0.58, 0.49],
+      [1.6, 0.62, -0.6, 0.5],
+      [1.9, 0.45, -0.63, 0.5],
+      [2.5, 0.45, -0.66, 0.5],
+      [5.0, 0.45, -0.66, 0.48],
+      [5.2, 0.68, -0.65, 0.46],
+      [5.85, 0.68, -0.62, 0.42],
+      [7.1, 0.6, -0.58, 0.33],
+      [8.57, 0.53, -0.5, 0.26],
+      [10.04, 0.45, -0.4, 0.18],
+      [10.68, 0.36, -0.34, 0.14],
+      [11.3, 0.3, -0.15, 0.08],
+      [11.7, 0.25, 0.1, 0.02],
+    ]),
+    2.3,
+  );
+  const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
+  const fuselageDecals = [
+    // Balkenkreuz on the rear fuselage.
+    (p, n) => {
+      const k = side(n) && cross(p[0] - X(7.6), p[1] - Y(0.02), 0.95);
+      return k ? { kind: k } : null;
+    },
+    // Panel lines: gun bay, rear fuselage joints.
+    (p, n) => (side(n) && [line(1.3), line(6.3), line(9.2)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
+  ];
+  const wing = surface({ root: [X(2.4), X(5.87)], tip: [X(3.33), X(4.43)], span: 8.13 * M, at: Y(-0.45), rise: 0.03, thick: 0.22 * M, round: 0.08 });
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && cross(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 6.3 * M, 1.15);
+    if (k) return { kind: k };
+    const hinge = s.k > 0.15 && Math.abs(s.u - 0.74) < 0.03; // flap and aileron line
+    const slat = s.k > 0.6 && s.k < 0.93 && Math.abs(s.u - 0.12) < 0.03; // leading-edge slats
+    return { kind: under ? 'under' : 'paint', dark: hinge || slat ? 1 : 0 };
+  };
+  // Engine nacelles, 2.43 m out on each side, round the thrust line.
+  const nz = 2.43 * M;
+  const nacelle = mirrorZ(
+    body(
+      st([
+        [1.55, 0.42, -0.5, 0.47],
+        [2.0, 0.46, -0.8, 0.5],
+        [2.45, 0.44, -0.92, 0.5],
+        [2.9, 0.4, -0.85, 0.48],
+        [3.5, 0.32, -0.75, 0.44],
+        [4.5, 0.18, -0.55, 0.34],
+        [5.5, 0.04, -0.35, 0.18],
+        [6.2, -0.04, -0.2, 0.04],
+      ]),
+      2.3,
+    ),
+    nz,
+  );
+  const spinner = mirrorZ(body(st([[0.92, -0.04, -0.08, 0.02], [1.05, 0.14, -0.26, 0.2], [1.2, 0.24, -0.36, 0.3], [1.4, 0.34, -0.46, 0.4], [1.55, 0.39, -0.51, 0.45]]), 2), nz);
+  // Ventral gun tray under the wing root with the two MG 151/20 cannon.
+  const gunTray = body(st([[3.9, -0.55, -0.62, 0.14], [4.1, -0.55, -0.78, 0.24], [5.3, -0.55, -0.8, 0.26], [5.7, -0.55, -0.66, 0.18], [5.9, -0.55, -0.6, 0.08]]), 2.5);
+  // Radiator baths under the outer wings, slipper-shaped: rounded intake, flat bottom, tapered rear.
+  const radiators = mirrorZ(body(st([[3.0, -0.62, -0.9, 0.22], [3.15, -0.6, -1.05, 0.28], [3.4, -0.6, -1.12, 0.3], [4.3, -0.6, -1.12, 0.3], [4.8, -0.6, -0.92, 0.24], [5.0, -0.62, -0.75, 0.15]]), 3), 3.33 * M);
+  const tailplane = surface({ root: [X(10.35), X(11.7)], tip: [X(10.4), X(11.65)], span: 2.32 * M, at: Y(0.3), thick: 0.07 * M, round: 0.1 });
+  // Twin fins at the tailplane tips, traced off the drawing, [h, d] along each edge: a gently curved
+  // leading edge, a broad round top and the rudder's trailing edge straight down with rounded corners.
+  const finLE = [[-0.31, 11.32], [-0.26, 10.96], [-0.21, 10.83], [-0.15, 10.77], [-0.09, 10.72], [0.02, 10.68], [0.15, 10.66], [0.3, 10.67], [0.47, 10.7], [0.58, 10.73], [0.7, 10.77], [0.81, 10.83], [0.92, 10.89], [0.98, 10.94], [1.04, 10.99], [1.1, 11.04], [1.15, 11.1], [1.19, 11.25], [1.2, 11.35]];
+  const finTE = [[-0.31, 11.32], [-0.26, 11.83], [-0.21, 11.92], [-0.15, 11.98], [-0.09, 12.02], [-0.04, 12.04], [0.87, 12.04], [0.92, 11.98], [0.98, 11.94], [1.04, 11.89], [1.09, 11.83], [1.15, 11.74], [1.19, 11.55], [1.2, 11.35]];
+  const finOutline = (k) => [X(interp(finLE, -0.31 + k * 1.51)[1]), X(interp(finTE, -0.31 + k * 1.51)[1])];
+  const fins = mirrorZ(surface({ root: [X(10.66), X(12.04)], span: 1.51 * M, at: Y(-0.31), thick: 0.08 * M, round: 0, outline: finOutline, vertical: true }), 2.3 * M);
+  const finMat = (p, n) => {
+    const k = side(n) && hakenkreuz(p[0] - X(11.45), p[1] - Y(0.42), 0.32 * M);
+    return { kind: k || 'paint', dark: !k && Math.abs(p[0] - X(11.75)) < 0.04 * M && p[1] > Y(-0.1) ? 1 : 0 }; // rudder hinge
+  };
+  const canopy = body(
+    st([
+      [1.45, 0.63, 0.3, 0.22],
+      [1.6, 0.72, 0.3, 0.3],
+      [1.77, 0.85, 0.3, 0.38],
+      [1.95, 0.96, 0.3, 0.42],
+      [2.1, 0.98, 0.3, 0.43],
+      [4.53, 0.98, 0.3, 0.42],
+      [4.83, 0.87, 0.3, 0.4],
+      [5.15, 0.68, 0.3, 0.35],
+    ]),
+    3,
+  );
+  const canopyMat = (p) => ({ kind: [1.8, 2.25, 2.7, 3.15, 3.6, 4.05, 4.5, 4.85].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
+  const plain = (kind) => () => ({ kind });
+  // Gear (world units in data/planes.json bf110.wheels): big main wheels under the nacelles, tail wheel
+  // under the tail, about 11.5 degrees tail-down.
+  const wheelR = 0.46 * M;
+  const main = [X(3.0), Y(-1.95), nz];
+  const tailR = 0.11 * M;
+  const tailW = [X(11.16), Y(-0.63), 0];
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...nacelle, material: (p) => ({ kind: tone(p) }) },
+    { ...spinner, material: spiralSpinner(X(0.92), Y(-0.06), 0.63 * M) },
+    { ...box([X(2.45), Y(-0.86), nz], [0.35 * M, 0.08 * M, 0.25 * M], { mirror: true }), material: (p) => ({ kind: p[0] > X(2.15) ? 'dark' : 'under' }) }, // oil coolers
+    { ...radiators, material: (p) => ({ kind: p[0] > X(3.1) ? 'dark' : 'under' }) }, // radiator baths, intakes dark
+    { ...gunTray, material: (p) => ({ kind: p[0] > X(4.0) ? 'dark' : 'under' }) }, // ventral MG 151/20 tray, muzzles dark
+    { ...box([X(1.9), Y(0.0), nz + 0.5 * M], [0.4 * M, 0.06 * M, 0.06 * M], { mirror: true }), material: (p) => ({ kind: Math.floor((X(1.5) - p[0]) / (0.13 * M)) % 2 ? 'metal' : 'dark' }) }, // exhaust stacks
+    { ...wing, material: wingMat },
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fins, material: finMat },
+    { ...canopy, glass: true, material: canopyMat },
+    { ...sphere([X(2.4), Y(0.72), 0], 0.16 * M), pilot: true, material: plain('pilot') },
+    { ...sphere([X(4.35), Y(0.7), 0], 0.16 * M), pilot: true, material: plain('pilot') }, // rear gunner
+    { ...strut([X(5.0), Y(0.82), 0], [X(5.45), Y(1.12), 0], 0.05 * M), material: plain('dark') }, // MG 81Z
+    { ...strut([X(0.35), Y(0.22), 0.12 * M], [X(0.05), Y(0.2), 0.12 * M], 0.03 * M), material: plain('dark') }, // nose MG 17 muzzles
+    { ...strut([X(3.15), Y(-0.85), nz], main, 0.08 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.13 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(10.95), Y(-0.32), 0], tailW, 0.04 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.05 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  return {
+    parts,
+    attach: {
+      exhaust: [X(1.9), Y(0.0), nz + 0.56 * M],
+      wingRootL: [X(4.0), Y(-0.45), 0.5 * M],
+      wingRootR: [X(4.0), Y(-0.45), -0.5 * M],
+      wingTipL: [X(3.9), Y(-0.45) + 8.0 * M * 0.03, 8.0 * M],
+      wingTipR: [X(3.9), Y(-0.45) + 8.0 * M * 0.03, -8.0 * M],
+      propHub: [X(1.2), Y(-0.06), nz],
+      propHubs: [
+        [X(1.2), Y(-0.06), nz],
+        [X(1.2), Y(-0.06), -nz],
+      ],
+      propRadius: 1.65 * M,
+      mainContact: [main[0], -10, 0],
+      track: main[2],
+    },
+  };
+}
+
 // Supermarine Spitfire Mk IX, measured off a 3-view drawing (9.47 m long, 11.23 m span, 2.4 m root
 // chord; 5 model units to the metre, d back from the spinner tip, h up from the thrust line). Long
 // Merlin 61 nose with a pointed spinner, six ejector stacks a side and a long carburettor intake under
@@ -1326,4 +1493,4 @@ function spitfire() {
   };
 }
 
-export const MODELS = { bf109: bf109(), bf109g6: bf109g6(), spitfire: spitfire(), p47d: p47d(), la5fn: la5fn(), ki43: ki43(), b239: b239() };
+export const MODELS = { bf109: bf109(), bf109g6: bf109g6(), spitfire: spitfire(), p47d: p47d(), la5fn: la5fn(), ki43: ki43(), b239: b239(), bf110: bf110() };

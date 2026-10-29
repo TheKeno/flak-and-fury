@@ -1,5 +1,5 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
-import { armPlane, updateWeapons, updateDamage } from './weapons.js';
+import { armPlane, updateWeapons, updateDamage, allGuns } from './weapons.js';
 import { updateServicing, ownAirfieldAt } from './airfield.js';
 import { clearRunway } from './runway.js';
 
@@ -672,11 +672,11 @@ function recover(p, world) {
     hp: p.hp, engineDamage: p.engineDamage, tailDamage: p.tailDamage, wingPull: p.wingPull, propBent: p.propBent,
     belly: p.belly, gear: p.gear, gearDown: p.gearDown, fuel: p.fuel, engineRunning: p.engineRunning,
   };
-  const ammo = p.guns.map((g) => g.ammo);
+  const ammo = allGuns(p).map((g) => g.ammo);
   const bombs = p.bombs?.count;
   if (!spawnAtAirfield(p, world)) return; // runway closed: it waits, and comes back new
   Object.assign(p, kept);
-  p.guns.forEach((g, i) => (g.ammo = ammo[i]));
+  allGuns(p).forEach((g, i) => (g.ammo = ammo[i]));
   if (p.bombs) p.bombs.count = bombs;
   p.y = world.terrain.heightAt(p.x) + (p.belly ? BELLY_HEIGHT : GEAR_HEIGHT);
 }

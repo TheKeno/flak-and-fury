@@ -43,6 +43,19 @@
     "ammo": 450,
     "voice": "rifle"
   },
+  "mg81z": {
+    "name": "MG 81Z (twin)",
+    "type": "gun",
+    "class": "twin rifle-calibre MG (gunner)",
+    "rpm": 1900,
+    "damage": 0.39,
+    "velocity": 285,
+    "spread": 0.016,
+    "drop": 0.12,
+    "life": 1.4,
+    "ammo": 480,
+    "voice": "rifle"
+  },
   "m2_browning": {
     "name": ".50 M2 Browning",
     "type": "gun",

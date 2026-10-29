@@ -28,7 +28,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `maxSpeed` | Used for sound and engine pitch, not a hard limit. Keep it near √(thrust ÷ dragCoef). | |
 | `stallSpeed` | Below this the wings stop lifting and the nose drops. | 40 – 70 |
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
-| `runwayNeeded` | Crater-free runway the plane needs to take off, counted from the start of the clear stretch (it spawns 15 in). Shorter, and its runway counts as closed for it: it waits for the crew. Set from the measured roll plus a margin: Bf 109 F-4 rolls about 111 after the 15, the G-6 about 121, the Spitfire about 92, the P-47D about 178, the La-5FN about 118, the Ki-43-II about 89, the B-239 about 112. The runway is 420. | 120 – 210 |
+| `runwayNeeded` | Crater-free runway the plane needs to take off, counted from the start of the clear stretch (it spawns 15 in). Shorter, and its runway counts as closed for it: it waits for the crew. Set from the measured roll plus a margin: Bf 109 F-4 rolls about 111 after the 15, the G-6 about 121, the Spitfire about 92, the P-47D about 178, the La-5FN about 118, the Ki-43-II about 89, the B-239 about 112, the Bf 110 G-2 about 184. The runway is 420. | 120 – 220 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundThrust` | Share of engine pull while rolling on the wheels. Lower = longer take-off roll. | 0.3 – 1 |
 | `tailUpSpeed` | Share of take-off speed at which the tail has lifted (visual). | 0.6 – 1 |
@@ -46,6 +46,8 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `wheels` | Optional: the gear in world units from the pivot (leg top, wheel centre, stowed centre, radius; `tail: true` for the tail wheel). The plane stands on these wheels, its tail-down angle comes from them, and the 3D model's gear must match (`tools/plane-models.mjs`, then `node tools/make-sprites.mjs`). Without it a plane uses the default gear. | |
 | `armament.guns` | Which guns (names from `weapons.json`) and how many. `synced: true` marks guns firing through the propeller (on the cowling): they slow with engine RPM (full from 80% of max, about a third at idle) and can't fire with the propeller stopped. Wing guns and hub cannon aren't synced. | |
 | `armament.bombs` | Bomb type and how many per sortie. | |
+| `armament.turrets` | AI gunners (a rear gunner, a turret): `weapon`, `count`, `offset` (the gun's mount in world units from the pivot) and `arc` (where it can fire, in degrees in the plane's own frame: 0 ahead, 90 up, 180 straight back). The gunner picks the nearest enemy in its arc and reach, leads it and fires; it holds fire unless the bots are on (Testing), and the crew rearm it. Shown as "Gunner" sections in the tuning panel. | |
+| `propOffset` | Optional: where the propeller line is drawn in flight, for twins whose engines aren't in the nose (world units from the pivot). | |
 | `engine.*` | Engine sound: `layout` `inline` or `radial`, cylinder count, rpm at idle/cruise/max, propeller blades and gearing. | |
 
 ## Weapons: `data/weapons.json`

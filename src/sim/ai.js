@@ -14,6 +14,7 @@ import { isUpright, GRAVITY } from './plane.js';
 import { ownAirfieldAt } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { clearRunway } from './runway.js';
+import { allGuns } from './weapons.js';
 
 const DT = 1 / 60;
 
@@ -110,7 +111,7 @@ function needsService(p) {
   if (p.hp < p.def.hp || p.engineDamage > 0 || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent || p.belly) return true;
   if (p.fuel < 0.9 || !p.engineRunning) return true;
   const fullBombs = p.def.armament?.bombs?.count ?? 0;
-  return p.guns.some((g) => g.ammo < g.def.ammo * g.count) || Boolean(p.bombs && p.bombs.count < fullBombs);
+  return allGuns(p).some((g) => g.ammo < g.def.ammo * g.count) || Boolean(p.bombs && p.bombs.count < fullBombs);
 }
 
 function groundCommand(world, p, b) {

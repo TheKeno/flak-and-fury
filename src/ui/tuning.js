@@ -1,7 +1,7 @@
 // Live tuning panel (press T). Sliders edit the loaded data objects directly, so changes apply
 // instantly; "Save to files" writes them back to data/*.json through the local dev server (on the
 // web build it downloads them instead).
-import { updateGunRates } from '../sim/weapons.js';
+import { updateGunRates, allGuns } from '../sim/weapons.js';
 import { spawnAtAirfield } from '../sim/plane.js';
 import { rearmFully } from '../sim/airfield.js';
 import { ignite } from '../sim/fire.js';
@@ -350,14 +350,14 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     ...PLANE_FIELDS.map((f) => add(slider(def, f, showTopSpeed))),
   );
 
-  const gunSections = (def.armament?.guns ?? []).map(({ weapon, count }) =>
+  const gunSections = [...(def.armament?.guns ?? []), ...(def.armament?.turrets ?? []).map((t) => ({ ...t, gunner: true }))].map(({ weapon, count = 1, gunner }) =>
     section(
-      `Guns: ${count} × ${weapons[weapon].name}`,
+      `${gunner ? 'Gunner' : 'Guns'}: ${count} × ${weapons[weapon].name}`,
       false,
       ...GUN_FIELDS.map((f) =>
         add(
           slider(weapons[weapon], f, (key) => {
-            if (key === 'rpm') for (const p of world.planes) p.guns.forEach(updateGunRates);
+            if (key === 'rpm') for (const p of world.planes) allGuns(p).forEach(updateGunRates);
           }),
         ),
       ),
@@ -576,7 +576,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     parkBots();
     propBox.checked = settings.collisions.propStrikes;
     swastikaBox.checked = settings.markings.historicalSwastika;
-    for (const p of world.planes) p.guns.forEach(updateGunRates);
+    for (const p of world.planes) allGuns(p).forEach(updateGunRates);
     getMixer()?.applyLevels();
     rows.forEach((r) => r.refresh());
     showTopSpeed();

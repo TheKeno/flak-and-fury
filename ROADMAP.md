@@ -108,7 +108,7 @@ later.
    - **UK** (tight turn): Spitfire Mk IX (replaces the placeholder `fighter_v12`), Mosquito FB.VI,
      Hurricane Mk IID "tin opener" (40 mm, in the dive-bomber slot: the RAF had no real dive bomber);
      tank Churchill Mk IV.
-   - **USA** (heavy armament): P-47D Thunderbolt, P-38H Lightning, A-36A Apache; tank M4A1 Sherman.
+   - **USA** (heavy armament): P-47D Thunderbolt, P-38J Lightning, A-36A Apache; tank M4A1 Sherman.
    - **USSR** (rugged): La-5FN, Pe-3, Il-2M3 Shturmovik (attack slot); tank T-34/76 model 1943.
    - **Japan** (light, agile): Ki-43-II Hayabusa, Ki-45 KAI Toryu, D3A2 "Val"; tank Shinhoto Chi-Ha
      (thin armour).

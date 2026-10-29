@@ -1,5 +1,5 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot. nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset, bombOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -726,6 +726,133 @@
       "maxRpm": 2500,
       "propBlades": 3,
       "gearRatio": 0.6875
+    }
+  },
+  "bf110": {
+    "name": "Bf 110 G-2",
+    "nation": "germany",
+    "role": "heavy fighter",
+    "sprite": "bf110",
+    "spriteSize": [
+      124,
+      36
+    ],
+    "pivot": [
+      62,
+      20
+    ],
+    "noseOffset": [
+      15,
+      1.2
+    ],
+    "propOffset": [
+      12,
+      0.9
+    ],
+    "exhaustOffset": [
+      10.25,
+      1
+    ],
+    "thrust": 80,
+    "dragCoef": 0.00356,
+    "groundFriction": 17,
+    "groundThrust": 0.48,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.05,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.5,
+    "slowTurnBonus": 0.5,
+    "slowTurnSpeed": 115,
+    "stallSpeed": 62,
+    "takeoffSpeed": 66,
+    "runwayNeeded": 215,
+    "maxLandingSpeed": 98,
+    "maxSpeed": 150,
+    "hp": 170,
+    "toughness": 1.6,
+    "rearView": 0.9,
+    "hitRadius": 10,
+    "endurance": 420,
+    "bombOffset": [
+      0,
+      -1.5
+    ],
+    "gearTime": 2.4,
+    "fixedTailWheel": false,
+    "wheels": [
+      {
+        "leg": [
+          7.125,
+          -1.1
+        ],
+        "wheel": [
+          7.5,
+          -3.85
+        ],
+        "stowed": [
+          6,
+          -0.5
+        ],
+        "r": 1.15
+      },
+      {
+        "leg": [
+          -12.375,
+          0.225
+        ],
+        "wheel": [
+          -12.9,
+          -0.55
+        ],
+        "stowed": [
+          -12.9,
+          0.1
+        ],
+        "r": 0.275,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.75,
+    "groundTurnTime": 2.2,
+    "groundLoopTime": 1.3,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "mg17",
+          "count": 4
+        },
+        {
+          "weapon": "mg151_20",
+          "count": 2
+        }
+      ],
+      "bombs": {
+        "weapon": "sc_250",
+        "count": 2
+      },
+      "turrets": [
+        {
+          "weapon": "mg81z",
+          "count": 1,
+          "offset": [
+            2,
+            3.4
+          ],
+          "arc": [
+            95,
+            200
+          ]
+        }
+      ]
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 750,
+      "cruiseRpm": 2300,
+      "maxRpm": 2800,
+      "propBlades": 3,
+      "gearRatio": 0.593
     }
   }
 }
