@@ -88,6 +88,9 @@ Then: more themes, co-op missions, online play.
 
 ## Backlog
 
+- **Buildings fit the time and place:** 1943 architecture for the country the map is fought in
+  (e.g. Karelian log houses and saunas, Russian izbas, Normandy stone farms, English villages, Pacific
+  huts), and military buildings (hangars, depots, radar, bunkers) styled after the nation that owns them.
 - **Roll while standing still** turns the plane round to face the other way (not upside down).
   Later animated, like the full roll animations in milestone 13.
 
