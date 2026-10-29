@@ -158,6 +158,10 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Rebuild the Bf 109 F-4** (the lighter German option) from a 3-view drawing, like the other
+  milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
+  slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of
+  the G-6 model carries over (slimmer cowl without the gun bulges, smaller spinner).
 - **Theatre markings (decide the theatre per nation first):** Germany: Eastern Front yellow (fuselage
   band, wingtip undersides, lower cowl) or Mediterranean white band; P-47: European white cowl ring and
   white fin and tailplane bands (its cowl ring is yellow for now). Markings that aren't the same both
