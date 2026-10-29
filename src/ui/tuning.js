@@ -140,6 +140,12 @@ const DEFENCE_FIELDS = {
     ['range', 'MG reach', 30, 400, 5, 'The coaxial MG: how far it shoots at low planes and soldiers.'],
     ['mgAltitude', 'MG: planes below', 0, 200, 5, 'It only shoots at planes lower than this above the ground.'],
     ['wreckBlock', 'Wreck blocks the way', 0, 120, 1, 'Seconds a knocked-out tank blocks the road for the tanks behind it.'],
+    ['aaRange', 'Roof MG: reach', 0, 400, 5, 'How far the roof (anti-aircraft) MG reaches. 0 takes it off.'],
+    ['aaAltitude', 'Roof MG: planes below', 0, 400, 5, 'It only shoots at planes lower than this above the ground.'],
+    ['aaDamage', 'Roof MG: damage per round', 0, 2, 0.05, 'Mostly for show: keep it low.'],
+    ['aaSpread', 'Roof MG: spread', 0, 0.2, 0.005, 'How wild its aim is (radians).'],
+    ['aaBurst', 'Roof MG: burst length', 0.1, 2, 0.05, 'Seconds of fire per burst.'],
+    ['aaPause', 'Roof MG: pause between bursts', 0, 8, 0.1, 'Seconds of rest between bursts (varies a little).'],
   ],
   engineers: [
     ['speed', 'Speed', 1, 20, 0.5, 'How fast engineers march to the river.'],

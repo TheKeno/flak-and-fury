@@ -144,6 +144,9 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 | `shellRadius`, `shellDamage` | Tank shell blast. | 8 – 20, 15 – 50 |
 | `range`, `mgAltitude` | Tank coaxial MG: reach, and only planes lower than this above the ground. | 100 – 200, 20 – 80 |
 | `wreckBlock` | Seconds a knocked-out tank blocks the road. | 10 – 60 |
+| `aaRange`, `aaAltitude` | Roof (anti-aircraft) MG: reach, and only planes lower than this above the ground. 0 range takes it off. | 120 – 250, 80 – 200 |
+| `aaDamage`, `aaSpread` | Roof MG: damage per round (mostly for show) and how wild its aim is. | 0.1 – 0.4, 0.04 – 0.1 |
+| `aaBurst`, `aaPause`, `aaRpm`, `aaVelocity`, `aaTurnRate` | Roof MG: burst and rest in seconds, rate of fire, round speed, how fast it swings. | 0.3 – 1, 2 – 5 |
 | `rebuildTime` | Bridge: seconds a full squad of engineers needs to rebuild it from nothing. | 20 – 120 |
 
 `waves` (in `data/settings.json`): `first` (seconds before the first wave), `interval` (seconds between
