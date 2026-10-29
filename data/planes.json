@@ -523,5 +523,107 @@
       "propBlades": 3,
       "gearRatio": 0.7
     }
+  },
+  "ki43": {
+    "name": "Ki-43-II Hayabusa",
+    "nation": "japan",
+    "role": "fighter",
+    "sprite": "ki43",
+    "pivot": [
+      47,
+      20
+    ],
+    "noseOffset": [
+      10.25,
+      -0.3
+    ],
+    "exhaustOffset": [
+      7.8,
+      -0.45
+    ],
+    "thrust": 84,
+    "dragCoef": 0.00429,
+    "groundFriction": 14,
+    "groundThrust": 0.45,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.75,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.35,
+    "slowTurnBonus": 1.2,
+    "slowTurnSpeed": 100,
+    "stallSpeed": 50,
+    "takeoffSpeed": 54,
+    "runwayNeeded": 120,
+    "maxLandingSpeed": 88,
+    "maxSpeed": 140,
+    "hp": 70,
+    "toughness": 0.8,
+    "rearView": 0.8,
+    "hitRadius": 6.5,
+    "endurance": 360,
+    "bombOffset": [
+      0,
+      -4
+    ],
+    "gearTime": 1.6,
+    "fixedTailWheel": true,
+    "wheels": [
+      {
+        "leg": [
+          5.625,
+          -1.825
+        ],
+        "wheel": [
+          5.75,
+          -4.25
+        ],
+        "stowed": [
+          5.7,
+          -1.6
+        ],
+        "r": 0.75
+      },
+      {
+        "leg": [
+          -7.625,
+          -1.275
+        ],
+        "wheel": [
+          -7.85,
+          -1.9
+        ],
+        "stowed": [
+          -7.85,
+          -1.9
+        ],
+        "r": 0.25,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.6,
+    "groundTurnTime": 1.4,
+    "groundLoopTime": 0.9,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "ho103",
+          "count": 2,
+          "synced": true
+        }
+      ],
+      "bombs": {
+        "weapon": "army_100",
+        "count": 2
+      }
+    },
+    "engine": {
+      "layout": "radial",
+      "cylinders": 14,
+      "idleRpm": 700,
+      "cruiseRpm": 2400,
+      "maxRpm": 2800,
+      "propBlades": 3,
+      "gearRatio": 0.7
+    }
   }
 }
