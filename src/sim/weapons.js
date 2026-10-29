@@ -1,6 +1,6 @@
 // Guns, bombs, damage and explosions.
 import { clamp } from './math.js';
-import { GRAVITY } from './plane.js';
+import { GRAVITY, attitude } from './plane.js';
 import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
 import { ignite, fireHit, stepFire } from './fire.js';
 
@@ -37,12 +37,14 @@ export function armPlane(p, weapons) {
   p.emptyClicked = false;
 }
 
-// Local offset on the plane (x forward, y up from the pilot's view) to a world position.
+// Local offset on the plane (x forward, y up from the pilot's view) to a world position, as the
+// plane actually sits (tail-down on the ground).
 function localToWorld(p, [ox, oy]) {
-  const c = Math.cos(p.angle);
-  const s = Math.sin(p.angle);
+  const { angle, x, y } = attitude(p);
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
   const f = p.inverted ? -1 : 1;
-  return [p.x + c * ox - s * oy * f, p.y + s * ox + c * oy * f];
+  return [x + c * ox - s * oy * f, y + s * ox + c * oy * f];
 }
 
 export function updateWeapons(p, cmd, world, dt) {
@@ -66,7 +68,7 @@ export function updateWeapons(p, cmd, world, dt) {
     g.ammo -= rounds;
     const w = g.def;
     const [x, y] = localToWorld(p, p.def.noseOffset);
-    const a = p.angle + world.rng.range(-w.spread, w.spread);
+    const a = attitude(p).angle + world.rng.range(-w.spread, w.spread); // along the fuselage, nose-up on the ground
     world.bullets.push({
       id: world.nextId++,
       owner: p.id,

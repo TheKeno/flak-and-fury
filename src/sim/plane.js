@@ -29,6 +29,37 @@ export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fir
 
 const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 
+// Taildraggers sit tail-down on the ground: tilted nose-up about the main wheels until the tail wheel
+// touches. As the take-off roll picks up speed the tail lifts, and the plane rolls level from about
+// tailUpSpeed (share of take-off speed). Kept in the sim (p.groundTilt) because the guns point along
+// the fuselage: standing on the ground they fire up at this angle. Wheel points in world units.
+const MAIN_WHEEL_BOTTOM = [3.5, -3.6 - 1.4];
+const TAIL_WHEEL_BOTTOM = [-10.5, -1.6 - 0.8];
+const TAIL_DOWN = Math.atan2(TAIL_WHEEL_BOTTOM[1] - MAIN_WHEEL_BOTTOM[1], MAIN_WHEEL_BOTTOM[0] - TAIL_WHEEL_BOTTOM[0]);
+
+function updateTilt(p, dt) {
+  let target = 0;
+  if (p.state === 'ground' && !p.belly && p.gear >= 1) {
+    const t = clamp(p.speed / (p.def.takeoffSpeed * (p.def.tailUpSpeed ?? 0.85)), 0, 1);
+    target = TAIL_DOWN * (1 - t * t * (3 - 2 * t));
+  }
+  p.groundTilt = (p.groundTilt ?? target) + (target - (p.groundTilt ?? target)) * Math.min(1, dt * 3.5);
+}
+
+// The plane as it actually sits: its angle and pivot with the ground tilt applied (rotated nose-up
+// about the main wheel's contact point, so the main wheels stay on the ground).
+export function attitude(p) {
+  const tilt = p.groundTilt ?? 0;
+  if (Math.abs(tilt) < 0.001) return { angle: p.angle, x: p.x, y: p.y };
+  const angle = p.angle + (Math.cos(p.angle) >= 0 ? tilt : -tilt);
+  const f = p.inverted ? -1 : 1;
+  const [mx, my] = MAIN_WHEEL_BOTTOM;
+  const off = (a) => [Math.cos(a) * mx - Math.sin(a) * my * f, Math.sin(a) * mx + Math.cos(a) * my * f];
+  const [ox, oy] = off(p.angle);
+  const [nx, ny] = off(angle);
+  return { angle, x: p.x + ox - nx, y: p.y + oy - ny };
+}
+
 // "Upright" means the pilot's head points at the sky: flying right normally, or flying left after a roll.
 export const isUpright = (p) => Math.cos(p.angle) >= 0 !== p.inverted;
 
@@ -455,6 +486,7 @@ export function stepPlane(p, cmd, world, dt) {
 
   if (p.state === 'ground') stepGround(p, cmd, world, dt);
   else stepAir(p, cmd, world, dt);
+  updateTilt(p, dt);
   if (p.state !== 'dead') updateWeapons(p, cmd, world, dt);
   if (p.state !== 'dead') updateServicing(p, world, dt);
   if (p.state !== 'dead') updateGear(p, cmd, world, dt);

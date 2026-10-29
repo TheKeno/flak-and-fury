@@ -13,6 +13,7 @@ import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
+import { attitude } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
@@ -605,34 +606,8 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // Taildraggers sit tail-down on the ground: tilted nose-up about the main wheels until the tail wheel
-  // touches. As the take-off roll picks up speed the tail lifts, and the plane rolls level from about
-  // tailUpSpeed (share of take-off speed). Visual only; the simulation keeps the plane level.
-  const MAIN_WHEEL_BOTTOM = [3.5, -3.6 - 1.4];
-  const TAIL_WHEEL_BOTTOM = [-10.5, -1.6 - 0.8];
-  const TAIL_DOWN = Math.atan2(TAIL_WHEEL_BOTTOM[1] - MAIN_WHEEL_BOTTOM[1], MAIN_WHEEL_BOTTOM[0] - TAIL_WHEEL_BOTTOM[0]);
-  const tilts = new Map(); // plane id -> current tail-down tilt (radians), eased
-  let frameDt = 1 / 60;
-
-  function groundAttitude(p) {
-    let target = 0;
-    if (p.state === 'ground' && !p.belly && p.gear >= 1) {
-      const t = clamp(p.speed / (p.def.takeoffSpeed * (p.def.tailUpSpeed ?? 0.85)), 0, 1);
-      target = TAIL_DOWN * (1 - t * t * (3 - 2 * t));
-    }
-    let tilt = tilts.get(p.id) ?? target;
-    tilt += (target - tilt) * Math.min(1, frameDt * 3.5);
-    tilts.set(p.id, tilt);
-    if (Math.abs(tilt) < 0.001) return { angle: p.angle, x: p.x, y: p.y };
-    // Rotate nose-up about the main wheel's contact point, so the main wheels stay on the ground.
-    const angle = p.angle + (Math.cos(p.angle) >= 0 ? tilt : -tilt);
-    const f = p.inverted ? -1 : 1;
-    const [mx, my] = MAIN_WHEEL_BOTTOM;
-    const off = (a) => [Math.cos(a) * mx - Math.sin(a) * my * f, Math.sin(a) * mx + Math.cos(a) * my * f];
-    const [ox, oy] = off(p.angle);
-    const [nx, ny] = off(angle);
-    return { angle, x: p.x + ox - nx, y: p.y + oy - ny };
-  }
+  // Taildraggers sit tail-down on the ground; the sim keeps that tilt (the guns use it too).
+  const groundAttitude = attitude;
 
   function drawPlane(p) {
     if (p.state === 'dead') return;
@@ -928,7 +903,6 @@ export function createRenderer(canvas, world, assets) {
     },
     render(focus, dt, { showHelp, look, free, paused }) {
       frame++;
-      frameDt = dt;
       fitDisplay();
       updateCamera(focus, dt, look, free);
       for (const p of world.planes) emitEffects(p, dt);

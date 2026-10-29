@@ -62,3 +62,15 @@ test('a bomb dropped standing on the ground blows you up', () => {
   assert.equal(crash.cause, 'bomb');
   assert.equal(crash.by, p.id, 'by its own bomb');
 });
+
+test('standing tail-down on the ground, the guns fire up along the fuselage', () => {
+  const { world, p } = makeWorld();
+  for (let i = 0; i < 120; i++) stepWorld(world, {}); // settle on the tail wheel
+  for (let i = 0; i < 30; i++) stepWorld(world, { p1: FIRE });
+  const mine = world.bullets.filter((b) => b.owner === p.id);
+  assert.ok(mine.length > 0);
+  for (const b of mine) {
+    const climb = Math.atan2(b.vy, Math.abs(b.vx));
+    assert.ok(climb > 0.1 && climb < 0.35, `rounds climb at about the tail-down angle (${climb.toFixed(2)} rad)`);
+  }
+});
