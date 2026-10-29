@@ -1,5 +1,5 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot. nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and bombOffset are in world units from the pivot. nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -315,6 +315,111 @@
       "maxRpm": 3000,
       "propBlades": 4,
       "gearRatio": 0.477
+    }
+  },
+  "p47d": {
+    "name": "P-47D Thunderbolt",
+    "nation": "usa",
+    "role": "fighter",
+    "sprite": "p47d",
+    "spriteSize": [
+      112,
+      36
+    ],
+    "pivot": [
+      56,
+      24
+    ],
+    "noseOffset": [
+      13,
+      0.7
+    ],
+    "exhaustOffset": [
+      6,
+      -0.9
+    ],
+    "thrust": 82,
+    "dragCoef": 0.00328,
+    "groundFriction": 16,
+    "groundThrust": 0.45,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.2,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.45,
+    "slowTurnBonus": 0.6,
+    "slowTurnSpeed": 115,
+    "stallSpeed": 62,
+    "takeoffSpeed": 66,
+    "runwayNeeded": 205,
+    "maxLandingSpeed": 95,
+    "maxSpeed": 158,
+    "hp": 140,
+    "toughness": 1.4,
+    "rearView": 0.45,
+    "hitRadius": 8.5,
+    "endurance": 300,
+    "bombOffset": [
+      0,
+      -5
+    ],
+    "gearTime": 2,
+    "fixedTailWheel": false,
+    "wheels": [
+      {
+        "leg": [
+          5,
+          -1.4
+        ],
+        "wheel": [
+          6.725,
+          -3.975
+        ],
+        "stowed": [
+          6.2,
+          -1.5
+        ],
+        "r": 1.025
+      },
+      {
+        "leg": [
+          -9,
+          -0.775
+        ],
+        "wheel": [
+          -9.35,
+          -1.4
+        ],
+        "stowed": [
+          -9.3,
+          -0.5
+        ],
+        "r": 0.475,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.45,
+    "groundTurnTime": 1.8,
+    "groundLoopTime": 1.1,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "m2_browning",
+          "count": 8
+        }
+      ],
+      "bombs": {
+        "weapon": "gp_500",
+        "count": 2
+      }
+    },
+    "engine": {
+      "layout": "radial",
+      "cylinders": 18,
+      "idleRpm": 700,
+      "cruiseRpm": 2250,
+      "maxRpm": 2700,
+      "propBlades": 4,
+      "gearRatio": 0.5
     }
   }
 }

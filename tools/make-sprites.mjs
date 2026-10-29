@@ -526,10 +526,11 @@ function planeSheet(model, tailDown) {
 const outDir = new URL('../assets/sprites/', import.meta.url);
 mkdirSync(outDir, { recursive: true });
 for (const [name, model] of Object.entries(MODELS)) {
-  // Side view, 96 x 36 at the pivot planes.json gives, without the gear: the game draws the gear so
-  // it can retract.
+  // Side view, 96 x 36 (or the plane's spriteSize) at the pivot planes.json gives, without the gear:
+  // the game draws the gear so it can retract.
   const def = defOf(name);
-  SPRITES[name] = render(model, rollPose(0), 96, 36, def.pivot, { gear: false, res: RES });
+  const [w, h] = def.spriteSize ?? [96, 36];
+  SPRITES[name] = render(model, rollPose(0), w, h, def.pivot, { gear: false, res: RES });
   const { sheet, meta } = planeSheet(model, wheelGeometry(def).tailDown);
   writeFileSync(new URL(`${name}-frames.png`, outDir), encodePng(sheet));
   writeFileSync(new URL(`${name}.json`, outDir), JSON.stringify(meta) + '\n');

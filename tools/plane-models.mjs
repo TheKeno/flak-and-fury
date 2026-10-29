@@ -177,6 +177,27 @@ export function roundelB(du, dv, r) {
   const k = Math.hypot(du, dv) / r;
   return k > 1 ? null : k > 0.4 ? 'marking' : 'red';
 }
+// US star and bar of late 1943: a white five-pointed star in a blue disc of radius r, white bars either
+// side, all outlined in blue. du runs along the bars, dv towards the star's top point.
+export function starBar(du, dv, r) {
+  const a = Math.abs(du) / r;
+  const b = Math.abs(dv) / r;
+  const k = Math.hypot(du, dv) / r;
+  if (k <= 1) {
+    // Distance to the star's edge along this direction: straight lines from a point (radius R) to the
+    // next inner corner (radius R * 0.382, 36 degrees round).
+    const R = 0.97;
+    const Ri = R * 0.382;
+    const t = (36 * Math.PI) / 180;
+    const ang = Math.atan2(du, dv);
+    const phi = ((ang % (2 * t)) + 2 * t) % (2 * t);
+    const al = phi > t ? 2 * t - phi : phi;
+    const edge = (R * Ri * Math.sin(t)) / (R * Math.sin(al) + Ri * Math.sin(t - al));
+    return k <= edge ? 'white' : 'marking';
+  }
+  if (a <= 2.05 && b <= 0.33) return a <= 1.95 && b <= 0.25 ? 'white' : 'marking';
+  return k <= 1.08 ? 'marking' : null;
+}
 
 // ----- Poses -----
 // A pose maps model points to view space: view = M · (model - origin) + offset. View x right, y up,
@@ -587,6 +608,138 @@ function bf109g6() {
   };
 }
 
+// Republic P-47D Thunderbolt (razorback), measured off a 3-view drawing (11.0 m long, 12.4 m span;
+// 5 model units to the metre, d back from the propeller hub, h up from the thrust line). Huge round
+// cowling, deeper below than above for the intercooler intake, with a small hub cap ahead of it; long
+// flat cowl top to the windscreen; razorback spine falling straight from the hood to the fin; deep
+// belly; long sloping fin; wing with a straight leading edge and an elliptical trailing edge, four
+// .50s a side sticking out of it; very wide-track gear raking forward; tail wheel under the tail.
+function p47d() {
+  const M = 5;
+  const X = (d) => 27.5 - d * M;
+  const Y = (h) => 1.45 + h * M; // the main wheels' bottom (h -2.29) lands at the usual -10
+  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+  const split = Y(-0.45);
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const fuselage = body(
+    st([
+      [0.62, 0.36, -0.72, 0.45],
+      [0.9, 0.6, -0.91, 0.58],
+      [1.15, 0.65, -0.98, 0.62],
+      [1.64, 0.69, -1.06, 0.64],
+      [2.14, 0.71, -1.1, 0.65],
+      [2.63, 0.71, -1.12, 0.66],
+      [3.37, 0.71, -1.14, 0.66],
+      [3.62, 0.66, -1.14, 0.66],
+      [4.4, 0.62, -1.12, 0.66],
+      [5.5, 0.66, -1.06, 0.66],
+      [6.2, 0.68, -1.04, 0.64],
+      [6.82, 0.6, -0.95, 0.6],
+      [7.31, 0.52, -0.9, 0.55],
+      [7.8, 0.45, -0.8, 0.5],
+      [8.3, 0.38, -0.7, 0.44],
+      [8.79, 0.3, -0.64, 0.38],
+      [9.09, 0.27, -0.58, 0.33],
+      [9.53, 0.22, -0.45, 0.25],
+      [10.27, 0.15, -0.37, 0.14],
+      [10.76, 0.1, -0.3, 0.07],
+      [10.95, 0.08, -0.15, 0.03],
+    ]),
+    2.2,
+  );
+  // Razorback: the narrow ridge from the hood straight down to the fin.
+  const spine = body(st([[5.75, 0.95, 0.4, 0.36], [6.2, 0.83, 0.4, 0.3], [6.82, 0.73, 0.35, 0.22], [7.31, 0.62, 0.3, 0.17], [7.8, 0.52, 0.25, 0.13], [8.3, 0.42, 0.2, 0.1], [9.03, 0.28, 0.1, 0.06]]), 2.2);
+  const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
+  const fuselageDecals = [
+    // Cowl ring at the front, panel lines: cowl flaps, firewall, rear fuselage joint.
+    (p) => (p[0] > X(0.85) ? { kind: 'nose' } : null),
+    (p, n) => (side(n) && [line(1.64), line(3.2), line(8.0)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
+    // Turbo-supercharger waste gate and intercooler exit doors low on the side.
+    (p, n) => (side(n) && p[1] < Y(-0.5) && p[1] > Y(-0.8) && p[0] < X(2.9) && p[0] > X(3.35) ? { kind: 'dark' } : null),
+    // Star and bar on the rear fuselage.
+    (p, n) => {
+      const k = side(n) && starBar(p[0] - X(7.15), p[1] - Y(-0.18), 0.42 * M);
+      return k ? { kind: k } : null;
+    },
+  ];
+  const wingLE = [[0, 2.78], [5.0, 2.78], [5.53, 2.91], [5.81, 3.03], [5.96, 3.15], [6.06, 3.28], [6.1, 3.45]];
+  const wingTE = [[0, 5.45], [0.7, 5.4], [2.2, 5.26], [3.11, 5.13], [3.73, 5.01], [4.21, 4.89], [4.58, 4.76], [4.91, 4.64], [5.18, 4.52], [5.38, 4.39], [5.59, 4.27], [5.75, 4.14], [5.88, 4.02], [5.98, 3.9], [6.04, 3.77], [6.08, 3.65], [6.1, 3.45]];
+  const wing = surface({ root: [X(2.78), X(5.45)], span: 6.1 * M, at: Y(-0.85), rise: 0.086, thick: 0.2 * M, round: 0, outline: (k) => [X(interp(wingLE, k * 6.1)[1]), X(interp(wingTE, k * 6.1)[1])] });
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    // US practice: the star on the port wing's upper surface and the starboard wing's underside, its top
+    // point forward and the bars along the span.
+    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && (under ? p[2] < 0 : p[2] > 0) && starBar(Math.abs(p[2]) - 4.6 * M, p[0] - (s.le + s.te) / 2, 0.5 * M);
+    if (k) return { kind: k };
+    const hinge = s.k > 0.2 && Math.abs(s.u - 0.76) < 0.03; // flap and aileron line
+    return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
+  };
+  const tailLE = [[0, 9.15], [0.56, 9.34], [0.97, 9.46], [1.4, 9.59], [1.84, 9.71], [2.23, 9.84], [2.37, 9.96], [2.45, 10.08], [2.47, 10.25]];
+  const tailTE = [[0, 10.88], [1.55, 10.82], [2.04, 10.7], [2.29, 10.58], [2.41, 10.45], [2.47, 10.25]];
+  const tailplane = surface({ root: [X(9.15), X(10.88)], span: 2.47 * M, at: Y(0.05), thick: 0.07 * M, round: 0, outline: (k) => [X(interp(tailLE, k * 2.47)[1]), X(interp(tailTE, k * 2.47)[1])] });
+  // Fin and rudder as drawn, [h, d] along each edge: a long sloping leading edge to a rounded top, the
+  // rudder straight down the back and tucked in under the tailcone.
+  const finLE = [[-0.24, 9.0], [0.28, 9.03], [0.41, 9.15], [0.59, 9.28], [0.79, 9.4], [0.97, 9.53], [1.16, 9.65], [1.35, 9.77], [1.53, 9.9], [1.67, 10.02], [1.75, 10.14], [1.8, 10.27], [1.805, 10.33]];
+  const finTE = [[-0.24, 10.88], [-0.07, 11.0], [0.35, 11.0], [0.92, 10.88], [1.27, 10.76], [1.52, 10.64], [1.68, 10.51], [1.78, 10.39], [1.805, 10.33]];
+  const fin = surface({ root: [X(9.0), X(11.0)], span: 2.045 * M, at: Y(-0.24), thick: 0.08 * M, round: 0, outline: (k) => [X(interp(finLE, -0.24 + k * 2.045)[1]), X(interp(finTE, -0.24 + k * 2.045)[1])], vertical: true });
+  const canopy = body(
+    st([
+      [3.6, 0.69, 0.5, 0.3],
+      [3.86, 0.87, 0.5, 0.33],
+      [4.1, 1.02, 0.5, 0.35],
+      [4.48, 1.04, 0.5, 0.35],
+      [4.85, 1.02, 0.5, 0.35],
+      [5.34, 0.98, 0.5, 0.34],
+      [5.83, 0.91, 0.5, 0.3],
+    ]),
+    3,
+  );
+  const canopyMat = (p) => ({ kind: [3.88, 4.55, 5.2].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M) ? 'frame' : 'glass' });
+  const hub = body(st([[0, 0.03, -0.03, 0.03], [0.15, 0.12, -0.12, 0.12], [0.35, 0.16, -0.16, 0.16], [0.62, 0.2, -0.2, 0.2]]), 2);
+  const plain = (kind) => () => ({ kind });
+  // Four .50s a side, staggered, sticking out of the leading edge 2.7 to 3.45 m out.
+  const guns = [[2.7, 0.48], [2.95, 0.42], [3.2, 0.36], [3.45, 0.3]].map(([z, out]) => ({ ...strut([X(2.85), Y(-0.85) + z * M * 0.086, z * M], [X(2.78 - out), Y(-0.85) + z * M * 0.086, z * M], 0.04 * M), material: plain('dark') }));
+  // Gear (world units in data/planes.json p47d.wheels): big main wheels well forward on long legs,
+  // 4.7 m track; tail wheel under the tail, sitting the plane about 11 degrees tail-down.
+  const wheelR = 0.41 * M;
+  const main = [X(2.81), Y(-1.88), 2.36 * M];
+  const tailR = 0.19 * M;
+  const tailW = [X(9.24), Y(-0.85), 0];
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...spine, material: plain('paint') },
+    { ...hub, material: plain('metal') },
+    { ...wing, material: wingMat },
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fin, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(10.45)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }) }, // rudder hinge
+    { ...canopy, glass: true, material: canopyMat },
+    { ...sphere([X(4.55), Y(0.78), 0], 0.17 * M), pilot: true, material: plain('pilot') },
+    { ...box([X(0.64), Y(-0.18), 0], [0.03 * M, 0.42 * M, 0.42 * M]), material: plain('dark') }, // the cowl's open front
+    ...guns,
+    { ...strut([X(3.5), Y(-0.85), 2.25 * M], main, 0.08 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.11 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(9.1), Y(-0.6), 0], tailW, 0.06 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.06 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  return {
+    parts,
+    attach: {
+      exhaust: [X(3.1), Y(-0.65), 0.67 * M],
+      wingRootL: [X(4.0), Y(-0.85), 0.66 * M],
+      wingRootR: [X(4.0), Y(-0.85), -0.66 * M],
+      wingTipL: [X(3.45), Y(-0.85) + 6.0 * M * 0.086, 6.0 * M],
+      wingTipR: [X(3.45), Y(-0.85) + 6.0 * M * 0.086, -6.0 * M],
+      propHub: [X(0.3), Y(0), 0],
+      propRadius: 1.98 * M,
+      mainContact: [main[0], -10, 0],
+      track: main[2],
+    },
+  };
+}
+
 // Supermarine Spitfire Mk IX, measured off a 3-view drawing (9.47 m long, 11.23 m span, 2.4 m root
 // chord; 5 model units to the metre, d back from the spinner tip, h up from the thrust line). Long
 // Merlin 61 nose with a pointed spinner, six ejector stacks a side and a long carburettor intake under
@@ -727,4 +880,4 @@ function spitfire() {
   };
 }
 
-export const MODELS = { bf109: bf109(), bf109g6: bf109g6(), spitfire: spitfire() };
+export const MODELS = { bf109: bf109(), bf109g6: bf109g6(), spitfire: spitfire(), p47d: p47d() };

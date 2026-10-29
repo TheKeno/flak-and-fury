@@ -130,6 +130,15 @@
     "craterDepth": 7,
     "drag": 0.12
   },
+  "gp_500": {
+    "name": "500 lb GP bomb",
+    "type": "bomb",
+    "blastRadius": 42,
+    "blastDamage": 160,
+    "craterRadius": 18,
+    "craterDepth": 8,
+    "drag": 0.1
+  },
   "sc_250": {
     "name": "SC 250 bomb",
     "type": "bomb",
