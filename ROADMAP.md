@@ -124,17 +124,22 @@ later.
     arc (left click fires; the mouse only aims turrets while you're in a gunner seat). The pilot gets a
     **bomb indicator** (where the bombs will land). Solo: you fly and bomb while AI gunners man the
     turrets; with friends, each takes a seat, and bots fill the empty ones.
-12. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
+12. **Heavy bombers:** four-engined 1943 heavies per nation where they existed (e.g. B-17, Lancaster,
+    Pe-8, He 177, G4M as the closest Japanese type; Finland has none), historically accurate 3D models
+    like every plane. Big, slow, tough, many gunner seats, a bomb aimer, huge loads; crews of players
+    and bots as in milestone 11. Later **selectable as a regular plane depending on the scenario**
+    (e.g. a raid map), not in every match.
+13. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
     muzzle flashes light up the ground, planes and buildings around them; fires, burning wrecks and
     tracers glow; buildings, hangars and the airfield emit light (lit windows, runway lamps); lights
     cast onto smoke. Then the night raid: sweeping searchlights that catch and cone you (flak gets
     accurate), exhaust glow (throttle down to hide), tracers give you away, shootable searchlights,
     pathfinder flares, night-fighter radar (Lichtenstein) and Schräge Musik.
-13. **Sound pass:** the synthesized sounds so far are placeholders. Rework them properly: reshape the
+14. **Sound pass:** the synthesized sounds so far are placeholders. Rework them properly: reshape the
     generated sounds, mix them with recordings (CC0 samples, licences checked, downloads approved
     first), and add effects (per-environment reverb, filtering, distortion, compression). Also ambience
     per map, the Jericho siren and night-raid sirens. Hold off on fine-tuning sounds until then.
-14. **Polish:** balance.
+15. **Polish:** balance.
 
 Then: more themes, co-op missions, matchmaking.
 
