@@ -87,6 +87,17 @@ function holdUp(world, u) {
   return null;
 }
 
+// Clear distance to the nearest enemy on the ground ahead (Infinity if none).
+function enemyAhead(world, u) {
+  let best = Infinity;
+  for (const o of world.ground) {
+    if (!o.alive || o.team == null || o.team === u.team) continue;
+    const ahead = (o.x - u.x) * u.dir;
+    if (ahead > 0) best = Math.min(best, ahead - halfLength(u) - halfLength(o));
+  }
+  return best;
+}
+
 // Enemy ground targets in reach of a tank's main gun, best first: other tanks, then defences and
 // soldiers, then the rest; nearer first within each.
 function gunTargets(world, u) {
@@ -280,12 +291,16 @@ export function stepArmy(world, dt) {
       }
     }
     const why = u.working ? 'working' : u.returning ? null : holdUp(world, u);
-    u.moving = !why;
+    // A lead tank in a firefight keeps creeping forward as it shoots, making room for the tanks
+    // behind to come into range, until it's close to the enemy.
+    const creep = why === 'fight' && u.type === 'tank' && u.hasShot && enemyAhead(world, u) > (u.def.creepHold ?? Infinity);
+    const pace = !why ? 1 : creep ? u.def.creepSpeed ?? 0 : 0;
+    u.moving = pace > 0;
     u.why = why; // for debugging: what holds it up
     if (u.moving) {
       // Slower uphill, a little quicker downhill.
       const slope = world.terrain.slopeAngle(u.x) * u.dir;
-      u.x += u.dir * u.def.speed * Math.min(1.3, Math.max(0.3, 1 - slope * 2)) * dt;
+      u.x += u.dir * u.def.speed * pace * Math.min(1.3, Math.max(0.3, 1 - slope * 2)) * dt;
     }
     if (u.type === 'tank') {
       settleHull(world, u, dt);

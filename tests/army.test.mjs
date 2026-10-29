@@ -165,3 +165,34 @@ test('two tanks meeting anywhere over the hills fight it out instead of freezing
   }
   assert.deepEqual(frozen, [], 'every pair traded hits within 40 s');
 });
+
+test('a lead tank creeps forward while it fights, stopping short of the enemy', () => {
+  const world = makeWorld({ first: 1e6 });
+  for (const o of world.ground) if (o.team != null) o.alive = false;
+  const tank = makeGroundObject(world, 'tank', 0, 2300, { mobile: true });
+  tank.dir = 1;
+  const target = makeGroundObject(world, 'building', 1, 2420);
+  target.hp = target.maxHp = 1e9; // stands there to be shot at
+  world.ground.push(tank, target);
+  run(world, 3);
+  const start = tank.x;
+  let fired = 0;
+  run(world, 40, (events) => (fired += events.filter((e) => e.type === 'tankFire').length));
+  const clear = target.x - tank.x - (tank.def.width + target.def.width) / 2;
+  assert.ok(fired >= 3, 'kept firing');
+  assert.ok(tank.x > start + 10, `crept forward (${(tank.x - start).toFixed(1)})`);
+  assert.ok(clear >= tank.def.creepHold - 2 && clear < tank.def.creepHold + 10, `stopped about creepHold short (${clear.toFixed(1)})`);
+});
+
+test('tanks drive over wrecks', () => {
+  const world = makeWorld({ first: 1e6 });
+  for (const o of world.ground) if (o.team != null) o.alive = false;
+  const wreck = makeGroundObject(world, 'tank', 0, 2340, { mobile: true });
+  wreck.dir = 1;
+  const tank = makeGroundObject(world, 'tank', 0, 2300, { mobile: true });
+  tank.dir = 1;
+  world.ground.push(wreck, tank);
+  damageGround(world, wreck, Infinity, null);
+  run(world, 60);
+  assert.ok(tank.x > wreck.x + 20, `passed the wreck (at ${tank.x.toFixed(1)}, wreck ${wreck.x}, ${tank.why})`);
+});

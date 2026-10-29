@@ -143,7 +143,8 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 | `tiltRate` | How quickly a tank's hull settles to the ground's slope (higher = follows every bump). | 2 – 8 |
 | `shellRadius`, `shellDamage` | Tank shell blast. | 8 – 20, 15 – 50 |
 | `range`, `mgAltitude` | Tank coaxial MG: reach, and only planes lower than this above the ground. | 100 – 200, 20 – 80 |
-| `wreckBlock` | Seconds a knocked-out tank blocks the road. | 10 – 60 |
+| `wreckBlock` | Seconds a knocked-out tank blocks the road; 0 lets tanks drive over wrecks. | 0 – 60 |
+| `creepSpeed`, `creepHold` | A lead tank keeps rolling forward at this share of its speed while it fights (so the tanks behind get into range), until this close to the enemy. | 0.2 – 0.5, 30 – 80 |
 | `aaRange`, `aaAltitude` | Roof (anti-aircraft) MG: reach, and only planes lower than this above the ground. 0 range takes it off. | 120 – 250, 80 – 200 |
 | `aaDamage`, `aaSpread` | Roof MG: damage per round (mostly for show) and how wild its aim is. | 0.1 – 0.4, 0.04 – 0.1 |
 | `aaBurst`, `aaPause`, `aaRpm`, `aaVelocity`, `aaTurnRate` | Roof MG: burst and rest in seconds, rate of fire, round speed, how fast it swings. | 0.3 – 1, 2 – 5 |
