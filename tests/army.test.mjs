@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
-import { damageGround, makeGroundObject, hangarHealth } from '../src/sim/ground.js';
+import { damageGround, makeGroundObject, hangarHealth, settleHull, surfaceAt } from '../src/sim/ground.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
@@ -120,4 +120,26 @@ test('with its hangar destroyed, an airfield has no ground crew', () => {
   run(world, 10);
   assert.equal(p.service, null);
   assert.equal(p.hp, p.def.hp / 2, 'not repaired');
+});
+
+test('tank hulls tilt with the ground and settle to its slope', () => {
+  const world = makeWorld({ first: 1 });
+  let maxTilt = 0;
+  let shots = 0;
+  run(world, 300, (events) => {
+    shots += events.filter((e) => e.type === 'tankFire').length;
+    for (const u of world.ground) if (u.type === 'tank' && u.alive) maxTilt = Math.max(maxTilt, Math.abs(u.tilt));
+  });
+  assert.ok(maxTilt > 0.03, `tanks never tilted (max ${maxTilt})`);
+  assert.ok(maxTilt < 0.8, `tilt too steep (${maxTilt})`);
+  assert.ok(shots > 0, 'tilted tanks still fire');
+  // A parked tank comes to rest at the slope between its track ends, never below the ground.
+  const tank = world.ground.find((u) => u.type === 'tank' && u.alive);
+  assert.ok(tank, 'a tank is still alive');
+  tank.mobile = false;
+  for (let i = 0; i < 300; i++) settleHull(world, tank, 1 / 60);
+  const half = tank.def.width * 0.4;
+  const slope = Math.atan2(surfaceAt(world, tank.x + half) - surfaceAt(world, tank.x - half), half * 2);
+  assert.ok(Math.abs(tank.tilt - slope) < 0.01);
+  assert.ok(tank.baseY >= surfaceAt(world, tank.x) - 1e-9);
 });

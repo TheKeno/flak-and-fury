@@ -132,6 +132,8 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 | `engageRange` | An enemy this close ahead stops the unit to fight. | 60 – 200 |
 | `bulletFactor` / `roofFactor` | Tank armour: share of bullet damage from the front and sides, and from a steep dive onto the roof. Bombs do full damage. | 0.02 – 0.1 / 0.2 – 0.5 |
 | `gunRange`, `gunInterval`, `gunVelocity` | Tank main gun (ground targets only): reach, seconds between shots, shell speed. | 120 – 250, 3 – 8 |
+| `gunDepression`, `gunElevation` | How far the main gun dips below and lifts above the hull (radians). The hull tilts with the ground, so a tank on a slope can't reach everything. | 0.1 – 0.3, 0.3 – 0.7 |
+| `tiltRate` | How quickly a tank's hull settles to the ground's slope (higher = follows every bump). | 2 – 8 |
 | `shellRadius`, `shellDamage` | Tank shell blast. | 8 – 20, 15 – 50 |
 | `range`, `mgAltitude` | Tank coaxial MG: reach, and only planes lower than this above the ground. | 100 – 200, 20 – 80 |
 | `wreckBlock` | Seconds a knocked-out tank blocks the road. | 10 – 60 |

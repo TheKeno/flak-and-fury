@@ -466,6 +466,7 @@ export function createRenderer(canvas, world, assets) {
   }
 
   // Tank: running tracks while it moves, the gun pointing where it last fired, muzzle flashes.
+  // Drawn in the hull's frame (the gun's aim is kept relative to the hull).
   function drawTankDetails(obj, left, top, w, dir) {
     if (obj.moving) {
       ctx.fillStyle = '#2c2e2c';
@@ -511,16 +512,26 @@ export function createRenderer(canvas, world, assets) {
       const dir = facingOf(obj);
       const turns = obj.type === 'flak' || obj.type === 'mgNest' || obj.type === 'tank';
       const gun = obj.type === 'flak' || obj.type === 'mgNest';
+      if (obj.type === 'tank') {
+        // Drawn in the hull's own frame: turned about the middle of the tracks to the ground's slope.
+        const tilt = obj.tilt ?? 0;
+        const by = Math.round(toScreenY(obj.baseY ?? surfaceAt(world, obj.x))) + 2;
+        const sprite = obj.alive ? img : wreckOf(name, img);
+        ctx.save();
+        ctx.translate(sx, by);
+        ctx.rotate(-tilt);
+        const l = -Math.round(img.width / 2);
+        ctx.drawImage(dir < 0 ? flipped(obj.alive ? name : `${name}|wreck`, sprite) : sprite, l, -sprite.height);
+        if (obj.alive) drawTankDetails(obj, l, -img.height, img.width, dir);
+        ctx.restore();
+        continue;
+      }
       if (!obj.alive) {
         const w = wreckOf(name, img);
         ctx.drawImage(turns && dir < 0 ? flipped(`${name}|wreck`, w) : w, left, sy - w.height);
         continue;
       }
       ctx.drawImage(turns && dir < 0 ? flipped(name, img) : img, left, sy - img.height);
-      if (obj.type === 'tank') {
-        drawTankDetails(obj, left, sy - img.height, img.width, dir);
-        continue;
-      }
       const top = sy - img.height;
       // Barrel pivots, measured on the right-facing sprite.
       const pivot = (px) => (dir > 0 ? left + px : left + img.width - 1 - px);

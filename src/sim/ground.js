@@ -52,6 +52,27 @@ export function surfaceAt(world, x) {
   return world.terrain.heightAt(x);
 }
 
+// A tank's hull follows the ground: it rests on the higher of its track ends and the ground under its
+// middle (so it bridges a dip and rocks over a crest), tilted to the slope between the track ends.
+// The tilt eases towards the slope at tiltRate, so it settles rather than snapping.
+export function settleHull(world, u, dt) {
+  const half = u.def.width * 0.4;
+  const back = surfaceAt(world, u.x - half);
+  const front = surfaceAt(world, u.x + half);
+  const slope = Math.atan2(front - back, half * 2);
+  u.tilt = u.tilt === undefined ? slope : u.tilt + (slope - u.tilt) * Math.min(1, dt * (u.def.tiltRate ?? 4));
+  u.baseY = Math.max(surfaceAt(world, u.x), (back + front) / 2);
+}
+
+// A point on a ground object, given as forward (along its facing) and up from where it stands, in
+// world units: on a tank it turns with the tilted hull.
+export function mountPoint(world, obj, forward, up) {
+  const fx = forward * (obj.dir ?? 1);
+  const t = obj.tilt ?? 0;
+  const y = obj.baseY ?? surfaceAt(world, obj.x);
+  return [obj.x + Math.cos(t) * fx - Math.sin(t) * up, y + Math.sin(t) * fx + Math.cos(t) * up];
+}
+
 const riverOf = (world, obj) => world.map.rivers?.find((rv) => Math.abs(rv.x + rv.width / 2 - obj.x) < 1);
 
 // Hit box: [left, bottom, right, top] in world units, standing on the ground (which craters can lower).

@@ -9,7 +9,7 @@ import { GRAVITY } from './plane.js';
 import { damagePlane } from './weapons.js';
 import { angleDiff } from './math.js';
 import { ignite } from './fire.js';
-import { surfaceAt } from './ground.js';
+import { surfaceAt, mountPoint } from './ground.js';
 
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
@@ -78,11 +78,15 @@ function lead(x, y, p, speed, drop) {
   return { angle: Math.atan2(dy, dx), t };
 }
 
-// The barrel swings towards the wanted angle at turnRate, between its elevation limits.
+// The barrel swings towards the wanted angle at turnRate, between its elevation limits (measured from
+// a tank's tilted hull).
 function swing(obj, wanted, dt) {
   const lo = obj.def.minElevation ?? -0.6;
-  let a = wanted < -Math.PI / 2 ? wanted + Math.PI * 2 : wanted; // measure from the right, round over the top
-  a = Math.min(Math.PI - lo, Math.max(lo, a));
+  const base = obj.tilt ?? 0;
+  let a = wanted - base; // measure from the right, round over the top
+  while (a < -Math.PI / 2) a += Math.PI * 2;
+  while (a >= Math.PI * 1.5) a -= Math.PI * 2;
+  a = base + Math.min(Math.PI - lo, Math.max(lo, a));
   const diff = a - obj.aim; // both within the elevation limits, so it never swings through the ground
   const step = obj.def.turnRate * dt;
   obj.aim += Math.abs(diff) <= step ? diff : Math.sign(diff) * step;
@@ -143,8 +147,7 @@ function stepFlak(world, obj, dt) {
 function stepMg(world, obj, dt) {
   const def = obj.def;
   const [h, len] = MUZZLE[obj.type];
-  const px = obj.x;
-  const py = surfaceAt(world, obj.x) + h;
+  const [px, py] = mountPoint(world, obj, 0, h);
   if (obj.rest > 0) obj.rest -= dt;
   const target = pickTarget(world, obj, px, py);
   obj.target = target?.id ?? null;

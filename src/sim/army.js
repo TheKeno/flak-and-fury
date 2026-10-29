@@ -6,12 +6,13 @@
 // when it's down, each side sends engineers with its next wave to rebuild it.
 // Damaging a depot slows and shrinks its waves; destroyed, it sends no more.
 import { GRAVITY } from './plane.js';
-import { makeGroundObject, surfaceAt, groundBox, blastGround, hurtSquad, damageGround } from './ground.js';
+import { makeGroundObject, surfaceAt, groundBox, blastGround, hurtSquad, damageGround, settleHull, mountPoint } from './ground.js';
+import { angleDiff } from './math.js';
 import { damagePlane } from './weapons.js';
 
 export const DEFAULT_WAVES = { first: 15, interval: 75, tanks: 2, squads: 1, squadSize: 4, engineers: 3 };
 
-const TANK_GUN = [12, 8]; // muzzle ahead of and above the tank's centre at the ground
+const TANK_GUN = [12, 8]; // muzzle ahead of and above the tank's centre at the ground (along the hull)
 const SHELL_DROP = 0.25;
 const SHELL_LIFE = 2;
 const CLEAR_WRECK = 90; // seconds before a tank wreck is cleared away
@@ -100,9 +101,7 @@ function gunTarget(world, u) {
 
 function fireGun(world, u, target) {
   const def = u.def;
-  const gy = surfaceAt(world, u.x);
-  const x = u.x + u.dir * TANK_GUN[0];
-  const y = gy + TANK_GUN[1];
+  const [x, y] = mountPoint(world, u, TANK_GUN[0], TANK_GUN[1]);
   // Aim at the middle of the target, or at the nearest man of a squad.
   const [, b, , t] = groundBox(world, target);
   const man = target.soldiers?.filter((s) => s.hp > 0).sort((m, n) => Math.abs(target.x + m.dx - x) - Math.abs(target.x + n.dx - x))[0];
@@ -111,10 +110,14 @@ function fireGun(world, u, target) {
   // A low, flat shot; aim high by the drop over the flight time.
   const flight = Math.hypot(tx - x, ty - y) / def.gunVelocity;
   const angle = Math.atan2(ty - y + 0.5 * GRAVITY * SHELL_DROP * flight * flight, tx - x);
+  // The gun only elevates and depresses so far from the hull, so a tank on a slope can't hit everything.
+  const elevation = u.dir > 0 ? angleDiff(angle, u.tilt ?? 0) : angleDiff(Math.PI + (u.tilt ?? 0), angle);
+  if (elevation < -(def.gunDepression ?? 0.2) || elevation > (def.gunElevation ?? 0.5)) return false;
   const a = angle + world.rng.range(-0.02, 0.02);
-  u.gunAim = angle;
+  u.gunAim = angle - (u.tilt ?? 0); // relative to the hull, so the gun rides with it between shots
   world.tankShells.push({ id: world.nextId++, owner: u.id, team: u.team, def, x, y, vx: Math.cos(a) * def.gunVelocity, vy: Math.sin(a) * def.gunVelocity, life: SHELL_LIFE });
   world.events.push({ type: 'tankFire', id: u.id, x, y, angle: a });
+  return true;
 }
 
 function burstShell(world, s) {
@@ -233,12 +236,11 @@ export function stepArmy(world, dt) {
       u.x += u.dir * u.def.speed * Math.min(1.3, Math.max(0.3, 1 - slope * 2)) * dt;
     }
     if (u.type === 'tank') {
+      settleHull(world, u, dt);
       u.gunCooldown = Math.max(0, (u.gunCooldown ?? world.rng.range(0, u.def.gunInterval)) - dt);
       const target = u.gunCooldown <= 0 ? gunTarget(world, u) : null;
-      if (target) {
-        fireGun(world, u, target);
-        u.gunCooldown = u.def.gunInterval * world.rng.range(0.85, 1.15);
-      }
+      // Out of the gun's reach from this slope: try again shortly, as the tank moves on.
+      if (target) u.gunCooldown = fireGun(world, u, target) ? u.def.gunInterval * world.rng.range(0.85, 1.15) : 0.5;
     }
   }
   stepTankShells(world, dt);
