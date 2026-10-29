@@ -122,14 +122,19 @@ function destroy(world, obj, byId) {
   world.events.push({ type: 'groundDestroyed', id: obj.id, kind: obj.type, x: obj.x, y: (bottom + top) / 2, by: byId ?? null, points: obj.def.points });
 }
 
-// Damage to one soldier of a squad; the squad is gone once the last one falls.
-function hurtSoldier(world, obj, s, amount, byId) {
+// Damage to one soldier of a squad; the squad is gone once the last one falls. `how` says what did it
+// (cause: bullet, blast or runDown; dir: which way it was travelling) for the gore effects. A killing
+// blow carries its force, in multiples of a soldier's hit points.
+function hurtSoldier(world, obj, s, amount, byId, how = {}) {
   if (s.hp <= 0) return;
   s.hp -= amount;
   if (s.hp > 0) return;
   s.hp = 0;
   award(world, byId, obj, obj.def.points);
-  world.events.push({ type: 'soldierKilled', id: obj.id, x: obj.x + s.dx, y: surfaceAt(world, obj.x + s.dx), by: byId ?? null, points: obj.def.points });
+  world.events.push({
+    type: 'soldierKilled', id: obj.id, x: obj.x + s.dx, y: surfaceAt(world, obj.x + s.dx), by: byId ?? null, points: obj.def.points,
+    cause: how.cause ?? 'other', dir: how.dir ?? 0, force: amount / obj.def.hp,
+  });
   obj.hp = obj.soldiers.reduce((n, o) => n + o.hp, 0);
   if (obj.soldiers.every((o) => o.hp <= 0)) {
     obj.alive = false;
@@ -183,9 +188,9 @@ export function bulletHitsGround(world, b, ox, oy) {
       // Rounds pass between soldiers; only one that strikes near a man counts.
       const s = obj.soldiers.find((o) => o.hp > 0 && Math.abs(obj.x + o.dx - hx) < obj.def.width);
       if (!s) continue;
-      hurtSoldier(world, obj, s, dmg, b.owner);
+      hurtSoldier(world, obj, s, dmg, b.owner, { cause: 'bullet', dir: Math.sign(b.vx) });
     } else damageGround(world, obj, dmg, b.owner);
-    world.events.push({ type: 'groundHit', id: obj.id, kind: obj.type, x: hx, y: hy, damage: dmg });
+    world.events.push({ type: 'groundHit', id: obj.id, kind: obj.type, x: hx, y: hy, damage: dmg, dir: Math.sign(b.vx) });
     return true;
   }
   return false;
@@ -210,7 +215,7 @@ export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = fa
       for (const s of obj.soldiers) {
         const gy = surfaceAt(world, obj.x + s.dx);
         const d = Math.hypot(obj.x + s.dx - x, gy + obj.def.height / 2 - y);
-        if (d < def.blastRadius) hurtSoldier(world, obj, s, def.blastDamage * (1 - d / def.blastRadius), ownerId);
+        if (d < def.blastRadius) hurtSoldier(world, obj, s, def.blastDamage * (1 - d / def.blastRadius), ownerId, { cause: 'blast', dir: Math.sign(obj.x + s.dx - x) });
       }
       continue;
     }
@@ -310,9 +315,10 @@ function runDown(world, p, obj, margin, crash) {
     if (s.hp <= 0) continue;
     const sx = obj.x + s.dx;
     if (Math.abs(p.x - sx) > margin + 1 || p.y - surfaceAt(world, sx) > obj.def.height + margin) continue;
-    hurtSoldier(world, obj, s, Infinity, p.id);
+    const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
+    hurtSoldier(world, obj, s, Infinity, p.id, { cause: 'runDown', dir });
     p.hp -= world.collisions.runDownDamage;
-    world.events.push({ type: 'runDown', plane: p.id, x: sx, y: surfaceAt(world, sx) + 2 });
+    world.events.push({ type: 'runDown', plane: p.id, dir, x: sx, y: surfaceAt(world, sx) + 2 });
     if (p.hp <= 0) {
       crash(p, world, 'infantryRam');
       return;

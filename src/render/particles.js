@@ -7,6 +7,7 @@ const KINDS = {
   dust: { gravity: 6, drag: 2.0, colours: ['#b9a27c', '#9c8562', '#7d6a4e'], grow: 1.8 },
   debris: { gravity: 90, drag: 0.2, colours: ['#2a2622', '#3c3630', '#56504a'], grow: 0 },
   flakpuff: { gravity: -1.5, drag: 1.6, colours: ['#2e2c2a', '#3a3734', '#46433f', '#55524e'], grow: 1.6 },
+  mist: { gravity: 8, drag: 2.2, colours: ['#5a1814', '#44110f', '#2e0b0a'], grow: 0.7 },
   spark: { gravity: 40, drag: 0.5, colours: ['#fff8d0', '#ffd060', '#ff9030'], grow: 0 },
 };
 

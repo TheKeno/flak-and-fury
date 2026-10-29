@@ -67,6 +67,10 @@ later.
     level villages with their houses grouped, woods, ridges; neighbouring zones crossfade. Decor
     placed from the zones: hedges and stone walls at field ends, woods, lone trees, barns. Hedges cost
     speed, walls tear the gear off, trees and barns are solid.
+  - Gore (off / low / full): blood sprays scaled to the weapon, stains and spreading pools, bodies that
+    stay 90 s, torn-off limbs and red mist from bombs, shells, cannon and propellers, bodies tossed by
+    blasts, helmets spun high by a prop strike, blood on the nose, windscreen, propeller and your screen
+    after running men down. Built on a gore profile so animals can reuse it.
   - Live tuning panel with Save to files; synthesized sound for engines, guns, crew, body, gear,
     collisions.
 
@@ -118,8 +122,7 @@ Then: more themes, co-op missions, online play.
 
 ## Owner's notes (to discuss before building)
 
-- **Animals.**
-- **More gore and blood** when shooting infantry and animals.
+- **Animals.** Their blood and gore should reuse the soldiers' gore profile (src/render/gore.js).
 
 ## Ideas agreed for later
 

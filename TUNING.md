@@ -133,6 +133,28 @@ its speed and losing `hedgeDamage` hit points. A stone wall tears the gear off (
 ground the plane goes down on its belly), and one flown into fuselage-first is a crash. In the tuning
 panel's Decor section (spacing and lone trees apply on reload).
 
+## Gore: `data/settings.json` → `gore`
+
+Blood and bodies when soldiers are hit. Purely visual: the simulation only reports how a man died (the
+`soldierKilled` event carries `cause`: bullet, blast or runDown, plus `dir` and `force`, the blow in
+multiples of a soldier's hit points). `mode` is `off` (the old flat bodies and a puff of dust), `low`
+(blood sprays, stains on the ground, bodies that stay and a spreading pool) or `full` (also torn-off
+limbs, bodies tossed by blasts, red mist, and blood on the plane and your screen after running men down).
+All blood is dark and muted. In the tuning panel's Gore section.
+
+| Field | What it does | Try |
+|---|---|---|
+| `mode` | `off`, `low` or `full`. | full |
+| `blood` | Multiplier on the drops sprayed per hit and kill. | 0 – 3 |
+| `bodyLife`, `stainLife` | Seconds bodies/pieces and blood stains last before fading. | 30 – 300 |
+| `limbForce` | A killing blow of `1 + limbForce` soldiers' hit points always tears a man apart; below that, the chance rises with the force (20 mm cannon: sometimes, bombs and shells: nearly always, a propeller: always). | 2 – 8 |
+| `mistForce` | Blows this strong leave a red cloud, a stain and a few pieces. | 8 – 20 |
+| `slapstick` | Chance a blast that doesn't tear a man apart throws him into the air, spinning, to land as a body. | 0 – 1 |
+| `planeBloodTime` | Seconds smears on the nose, windscreen and a reddened propeller last. | 10 – 60 |
+| `spatterTime` | Seconds blood stays on your own screen. | 5 – 30 |
+
+A propeller strike always tears the man apart and sends his helmet spinning high into the air.
+
 ## Ground targets: `data/ground.json`
 
 One entry per kind of ground object (`flak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`,

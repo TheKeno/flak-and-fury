@@ -119,6 +119,17 @@
     "craterPoints": 25,
     "closePoints": 100
   },
+  "gore": {
+    "mode": "full",
+    "blood": 1,
+    "bodyLife": 90,
+    "stainLife": 120,
+    "limbForce": 4,
+    "mistForce": 12,
+    "slapstick": 0.35,
+    "planeBloodTime": 25,
+    "spatterTime": 12
+  },
   "hud": {
     "lastFlightTime": 8
   },

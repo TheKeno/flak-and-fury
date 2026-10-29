@@ -218,6 +218,16 @@ const WAVE_FIELDS = [
   ['squadSize', 'Soldiers per squad', 1, 12, 1, ''],
   ['engineers', 'Engineers', 0, 8, 1, 'Engineers sent with a wave when the bridge is down (0 = none).'],
 ];
+const GORE_FIELDS = [
+  ['blood', 'Blood amount', 0, 3, 0.1, 'Multiplier on the drops sprayed when soldiers are hit or killed.'],
+  ['bodyLife', 'Bodies stay for', 5, 300, 5, 'Seconds a body (and any pieces) lies before fading.'],
+  ['stainLife', 'Blood stains stay for', 5, 300, 5, 'Seconds blood on the ground lasts before fading.'],
+  ['limbForce', 'Limbs: force scale', 0.5, 20, 0.5, 'A killing blow of this many soldiers’ hit points tears a man apart for certain (cannon shells sometimes, bombs and shells nearly always; a propeller always).'],
+  ['mistForce', 'Red mist from', 2, 40, 1, 'Blows this many times a soldier’s hit points leave only a cloud, a stain and a few pieces.'],
+  ['slapstick', 'Thrown bodies', 0, 1, 0.05, 'Chance a bomb or shell blast tosses a whole man into the air instead of dropping him.'],
+  ['planeBloodTime', 'Blood on the plane', 2, 120, 1, 'Seconds the smears on the nose, windscreen and propeller last after running soldiers down.'],
+  ['spatterTime', 'Blood on the screen', 2, 60, 1, 'Seconds the spatters last on your screen after running soldiers down.'],
+];
 const HUD_FIELDS = [
   ['lastFlightTime', 'Last-flight report', 0, 30, 1, 'Seconds the LAST FLIGHT damage report stays after you respawn.'],
 ];
@@ -380,6 +390,18 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     ),
   );
   const hudSection = section('HUD', false, ...HUD_FIELDS.map((f) => add(slider(settings.hud, f))));
+  const goreSelect = el(
+    'select',
+    { title: 'Off: nothing. Low: blood, stains and bodies. Full: also limbs, thrown bodies and blood on the plane.', onchange: () => (settings.gore.mode = goreSelect.value) },
+    ...[['off', 'Off'], ['low', 'Low'], ['full', 'Full']].map(([v, label]) => el('option', { value: v }, label)),
+  );
+  goreSelect.value = settings.gore.mode;
+  const goreSection = section(
+    'Gore',
+    false,
+    el('label', { class: 'row select', title: 'Off: nothing. Low: blood, stains and bodies. Full: also limbs, thrown bodies and blood on the plane.' }, el('span', {}, 'Gore'), goreSelect),
+    ...GORE_FIELDS.map((f) => add(slider(settings.gore, f))),
+  );
   const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
   const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
   const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
@@ -444,6 +466,8 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     Object.assign(settings.zones, saved.settings.zones);
     Object.assign(settings.decor, saved.settings.decor);
     Object.assign(settings.hud, saved.settings.hud);
+    Object.assign(settings.gore, saved.settings.gore);
+    goreSelect.value = settings.gore.mode;
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;
     for (const [box, key] of ruleBoxes) box.checked = world.rules[key];
@@ -510,6 +534,7 @@ export function createTuningPanel({ content, world, player, getMixer, onPause })
     runwaySection,
     cameraSection,
     freeSection,
+    goreSection,
     hudSection,
     audioSection,
     el('p', { class: 'foot' }, `Editing plane type "${planeId}". Changes apply instantly to every plane of this type.`),

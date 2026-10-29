@@ -9,6 +9,7 @@ import { createRng, clamp } from '../sim/math.js';
 import { frameIndex, paintSprite } from './sprites.js';
 import { drawHud, damageLines } from './hud.js';
 import { createParticles } from './particles.js';
+import { createGore } from './gore.js';
 import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
 import { fireStage } from '../sim/fire.js';
@@ -317,6 +318,9 @@ export function createRenderer(canvas, world, assets) {
   // blackened stump of its lower part.
   const groundFlashes = new Map(); // ground object id (soldiers: "id:index") -> frames of muzzle flash left
   const nationOf = (team) => map.airfields.find((a) => a.team === team)?.nation;
+  const gore = createGore(world, assets.settings.gore, particles, {
+    uniformOf: (id) => assets.nations[nationOf(world.ground.find((o) => o.id === id)?.team)]?.uniform,
+  });
   const facingOf = (obj) => obj.dir ?? (obj.x < map.width / 2 ? 1 : -1);
   const spriteCache = new Map();
   // Tanks wear their nation's paint; everything else is drawn as it is.
@@ -392,6 +396,7 @@ export function createRenderer(canvas, world, assets) {
       const gy = Math.round(toScreenY(surfaceAt(world, wx))) + 1;
       if (gx < -10 || gx > bw + 10) return;
       if (s.hp <= 0) {
+        if (gore.on) return; // the gore layer lays the body where it fell
         // Fallen: lying flat.
         ctx.fillStyle = uniform;
         ctx.fillRect(gx - 3, gy - 2, 5, 2);
@@ -617,9 +622,10 @@ export function createRenderer(canvas, world, assets) {
     const sy = Math.round(toScreenY(view.y));
     drawGear(p, sx, sy, view.angle);
     ctx.drawImage(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius);
+    gore.drawPlane(ctx, p, sx, sy, view.angle, SCALE);
     drawMuzzleFlash(p, sx, sy, view.angle);
 
-    // Propeller disc: a flickering line across the nose.
+    // Propeller disc: a flickering line across the nose (reddened after running soldiers down).
     const c = Math.cos(view.angle);
     const s = Math.sin(view.angle);
     const r = (p.def.noseOffset[0] + 0.5) * SCALE;
@@ -627,9 +633,10 @@ export function createRenderer(canvas, world, assets) {
     const py = sy - s * r;
     const spin = Math.floor(frame * (p.rpm / 400));
     const reach = 4 * SCALE + 1;
+    const bloody = gore.bloodied(p.id) > 0;
     for (let k = -reach; k <= reach; k++) {
       if ((k + spin) % 3 === 0) continue;
-      ctx.fillStyle = Math.abs(k) > reach - 2 ? 'rgba(225,225,215,0.3)' : 'rgba(225,225,215,0.5)';
+      ctx.fillStyle = bloody ? `rgba(120,40,34,${Math.abs(k) > reach - 2 ? 0.35 : 0.55})` : Math.abs(k) > reach - 2 ? 'rgba(225,225,215,0.3)' : 'rgba(225,225,215,0.5)';
       ctx.fillRect(Math.round(px + s * k), Math.round(py + c * k), 1, 1);
     }
   }
@@ -837,6 +844,7 @@ export function createRenderer(canvas, world, assets) {
       messages.push({ text, colour, until: performance.now() + 3500 });
     },
     onEvent(e) {
+      gore.onEvent(e);
       if (e.type === 'crash') particles.explosion(e.x, e.y, 1);
       if (e.type === 'shot') flashes.set(e.plane, 2);
       if (e.type === 'hit') particles.sparks(e.x, e.y, 3 + Math.min(6, e.damage));
@@ -849,7 +857,7 @@ export function createRenderer(canvas, world, assets) {
       if (e.type === 'shotDown') particles.explosion(e.x, e.y, 0.5);
       if (e.type === 'groundHit') {
         if (METAL.has(e.kind)) particles.sparks(e.x, e.y, 2 + Math.min(4, e.damage));
-        else particles.spawn('dust', e.x, e.y, (Math.random() - 0.5) * 16, 10 + Math.random() * 12, 0.4, 0.6);
+        else if (!(gore.on && (e.kind === 'infantry' || e.kind === 'engineers'))) particles.spawn('dust', e.x, e.y, (Math.random() - 0.5) * 16, 10 + Math.random() * 12, 0.4, 0.6); // men bleed instead
       }
       if (e.type === 'groundDestroyed') {
         particles.explosion(e.x, e.y, BLAST_SIZE[e.kind] ?? 0.6);
@@ -887,7 +895,7 @@ export function createRenderer(canvas, world, assets) {
       if (e.type === 'shrapnel') particles.sparks(e.x, e.y, 3 + Math.min(6, e.damage / 3));
       // The crew shovel a crater full: a little dust over the patch.
       if (e.type === 'runwayFilled') for (let i = 0; i < 6; i++) particles.spawn('dust', e.x + (Math.random() - 0.5) * e.width, world.terrain.heightAt(e.x) + 1, (Math.random() - 0.5) * 10, 6 + Math.random() * 8, 0.6, 0.8);
-      if (e.type === 'soldierKilled') particles.spawn('dust', e.x, e.y + 2, 0, 8, 0.5, 0.7);
+      if (e.type === 'soldierKilled' && !gore.on) particles.spawn('dust', e.x, e.y + 2, 0, 8, 0.5, 0.7);
       if (e.type === 'collision') {
         if (e.severity === 'fatal') particles.explosion(e.x, e.y, 1.2);
         else if (e.severity === 'hard') {
@@ -921,10 +929,12 @@ export function createRenderer(canvas, world, assets) {
       for (const p of world.planes) emitEffects(p, dt);
       emitGroundEffects(dt);
       particles.update(dt, world.terrain);
+      gore.update(dt);
 
       drawBackground();
       drawTerrain();
       drawGround();
+      gore.draw(ctx, toScreenX, toScreenY, SCALE, (x) => surfaceAt(world, x), bw);
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       drawProjectiles();
       for (const p of world.planes) drawPlane(p);
@@ -941,6 +951,7 @@ export function createRenderer(canvas, world, assets) {
         if (left <= 0) lastFlight = null;
         else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
       }
+      if (focus) gore.drawSpatters(hud, focus.id);
       drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
       drawMessages();
       const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
