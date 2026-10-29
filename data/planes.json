@@ -625,5 +625,107 @@
       "propBlades": 3,
       "gearRatio": 0.7
     }
+  },
+  "b239": {
+    "name": "Brewster B-239",
+    "nation": "finland",
+    "role": "fighter",
+    "sprite": "b239",
+    "pivot": [
+      47,
+      20
+    ],
+    "noseOffset": [
+      9.5,
+      0
+    ],
+    "exhaustOffset": [
+      5.75,
+      -1.45
+    ],
+    "thrust": 84,
+    "dragCoef": 0.00461,
+    "groundFriction": 15,
+    "groundThrust": 0.45,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.6,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.4,
+    "slowTurnBonus": 1,
+    "slowTurnSpeed": 100,
+    "stallSpeed": 52,
+    "takeoffSpeed": 56,
+    "runwayNeeded": 140,
+    "maxLandingSpeed": 88,
+    "maxSpeed": 135,
+    "hp": 110,
+    "toughness": 1.3,
+    "rearView": 0.7,
+    "hitRadius": 6.5,
+    "endurance": 300,
+    "bombOffset": [
+      0,
+      -4
+    ],
+    "gearTime": 2.4,
+    "fixedTailWheel": true,
+    "wheels": [
+      {
+        "leg": [
+          5.25,
+          -1.575
+        ],
+        "wheel": [
+          5.95,
+          -4.1
+        ],
+        "stowed": [
+          5.275,
+          -1.725
+        ],
+        "r": 0.9
+      },
+      {
+        "leg": [
+          -7.5,
+          -0.975
+        ],
+        "wheel": [
+          -7.8,
+          -1.525
+        ],
+        "stowed": [
+          -7.8,
+          -1.525
+        ],
+        "r": 0.325,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.5,
+    "groundTurnTime": 1.4,
+    "groundLoopTime": 0.9,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "m2_browning",
+          "count": 2,
+          "synced": true
+        },
+        {
+          "weapon": "m2_browning",
+          "count": 2
+        }
+      ]
+    },
+    "engine": {
+      "layout": "radial",
+      "cylinders": 9,
+      "idleRpm": 650,
+      "cruiseRpm": 2100,
+      "maxRpm": 2500,
+      "propBlades": 3,
+      "gearRatio": 0.6875
+    }
   }
 }
