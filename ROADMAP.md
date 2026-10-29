@@ -18,6 +18,11 @@ later.
 - **Crewed planes are core:** a plane has seats (pilot, gunners, bomb aimer), each bound to a player or
   bot.
 - **Workflow:** Claude builds, the owner directs and tunes with the in-game tuning panel (T).
+- **Setting: 1943** (give or take a year). All six nations fighting with mature, distinct types, and
+  the year of the dam raid, Kursk, the night-raid peak (Window, Schräge Musik) and the Continuation
+  War. Planes, tanks and weapons should fit it.
+- **Look: grim.** It's war: dark, muted, desaturated colours (dark earth, drab grass, smoky skies).
+  When unsure, go darker.
 - **Up to 4 players**, bots fill slots. Online networking decided later (PeerJS or a small server).
 - **Nations:** UK, USA, Germany, Japan, Finland, USSR. Each gets 3 airframes (fighter, heavy fighter,
   dive bomber) with flavour: Japan light and agile, Finland tough, USSR rugged, Germany fast climb,
@@ -52,7 +57,11 @@ later.
 
 5. **Proper bots:** patrol, chase, evade, return to base when low on fuel or ammo; difficulty levels;
    bomb enemy tanks near their base and cover their own engineers.
-6. **Six nations × 3 planes:** data-driven stats and sprites, following the Bf 109 pattern.
+6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
+   pattern, all 1943 types (the player's Bf 109 F-4 becomes a G-6, or stays as a lighter option). One
+   standard tank per nation in the ground war, with a little flavour: Germany Panzer IV (StuG III as an
+   option), USSR T-34/76, USA M4 Sherman, UK Churchill, Japan Type 97 Chi-Ha (thin armour), Finland
+   captured T-34 or the BT-42 / StuG "Sturmi". Later, rare heavies (Tiger, KV-1S) worth more points.
 7. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
    camo, nose, markings, squadron number), saved locally.
 8. **Match setup and music:** menu, rules, scoring, dynamic layered 1940s score (calm patrol layer,
@@ -62,7 +71,10 @@ later.
 10. **Crewed bombers:** turret seats **aimed and fired with the mouse** (crosshair within the turret's
     arc, left click fires). Solo: fly with the keyboard and work the turret with the mouse at the same
     time; otherwise a bot gunner takes the seat.
-11. **Night raid theme:** lighting layer, sweeping searchlights that catch and cone you (flak gets
+11. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
+    muzzle flashes light up the ground, planes and buildings around them; fires, burning wrecks and
+    tracers glow; buildings, hangars and the airfield emit light (lit windows, runway lamps); lights
+    cast onto smoke. Then the night raid: sweeping searchlights that catch and cone you (flak gets
     accurate), exhaust glow (throttle down to hide), tracers give you away, shootable searchlights,
     pathfinder flares, night-fighter radar (Lichtenstein) and Schräge Musik.
 12. **Sound pass:** the synthesized sounds so far are placeholders. Rework them properly: reshape the
