@@ -1148,7 +1148,7 @@ function renderLayer(id, key) {
     host = mixer.recordings.createLayerHost([testKey]);
     delete layer.attach[testKey];
     const tick = () => {
-      host.update({ [driver.key]: state.value }, where(), layer.hearing === 'cockpit' || listen.distance === 0);
+      host.update({ [driver.key]: state.value }, where(), listen.distance === 0);
       frame = requestAnimationFrame(tick);
     };
     tick();
@@ -1633,7 +1633,7 @@ function testFlight(buildId, vehicles, kind) {
       } else {
         const rpm = spec.idleRpm + (spec.maxRpm - spec.idleRpm) * state.throttle;
         voice.update({ rpm, load: state.throttle, roughness: 0.08 + state.damage * 0.5, misfire: state.damage * 0.22, gain: w.gain, pan: w.pan, cutoff: w.cutoff, doppler: w.doppler });
-        host.update({ rpm, load: state.throttle, speed: state.speed, turn: state.turn, damage: state.damage, altitude: 200, ground: 0, inverted: 0, service: 0 }, w, !flyby);
+        host.update({ rpm, load: state.throttle, speed: state.speed, turn: state.turn, damage: state.damage, altitude: 200, ground: 0, inverted: 0, service: 0 }, w, !flyby && listen.distance === 0);
       }
       frame = requestAnimationFrame(tick);
     };
