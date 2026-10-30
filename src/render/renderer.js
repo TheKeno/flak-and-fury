@@ -14,6 +14,7 @@ import { createParticles } from './particles.js';
 import { createGore } from './gore.js';
 import { drawText, textWidth, lineHeight, setTextSize } from './font.js';
 import { createRadar, SCOPE, PHOSPHOR } from './radar.js';
+import { frameFight } from './fight-cam.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
 import { localToWorld } from '../sim/weapons.js';
@@ -151,7 +152,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1 };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -166,6 +167,7 @@ export function createRenderer(canvas, world, assets) {
       const span = Math.max(1, camCfg.zoomFullSpeed - camCfg.zoomStartSpeed);
       const t = clamp((focus.speed - camCfg.zoomStartSpeed) / span, 0, 1);
       target = 1 + (camCfg.zoomMax - 1) * t * t * (3 - 2 * t);
+      target = Math.max(target, 1 + (cam.fightZoom - 1) * cam.fight); // whichever shows more, not both
     }
     target += camCfg.lookZoom * Math.min(1, Math.hypot(cam.lookX, cam.lookY)); // glancing around widens the view
     const k = cam.snapped ? 1 - Math.exp(-dt * camCfg.zoomSpeed) : 1;
@@ -196,6 +198,23 @@ export function createRenderer(canvas, world, assets) {
     cam.lookY += cam.lookVY * step;
   }
 
+  // Dogfight camera: with enemy planes about, the view eases over to frame them. cam.fight is how far
+  // into that we are (0 to 1). The hold keeps it from letting go the moment someone flies out of range.
+  function updateFight(focus, dt) {
+    const flying = camCfg.fightOn && focus.state === 'air' && !focus.dying;
+    const frame = flying && frameFight(focus, world.planes, camCfg, cam.fightHold > 0 ? camCfg.fightExit : camCfg.fightEnter, W, H);
+    cam.fightHold = !flying ? 0 : frame ? camCfg.fightHold : Math.max(0, cam.fightHold - dt);
+    const k = 1 - Math.exp(-dt * camCfg.fightSpeed);
+    if (frame) {
+      // The first frame of a fight starts in place: only cam.fight has to ease in.
+      const start = cam.fight < 0.01;
+      cam.fightX += (frame.x - cam.fightX) * (start ? 1 : k);
+      cam.fightY += (frame.y - cam.fightY) * (start ? 1 : k);
+      cam.fightZoom += (frame.zoom - cam.fightZoom) * (start ? 1 : k);
+    }
+    cam.fight += ((cam.fightHold > 0 ? 1 : 0) - cam.fight) * (1 - Math.exp(-dt * camCfg.fightBlend));
+  }
+
   // free: free look, { x, y, zoom } for the centre of the view; the camera goes where it's sent.
   function updateCamera(focus, dt, look, free) {
     if (free) {
@@ -206,6 +225,7 @@ export function createRenderer(canvas, world, assets) {
     } else if (!focus) return;
     if (!free && focus.state !== 'dead') {
       updateLook(focus, dt, look);
+      updateFight(focus, dt);
       updateZoom(focus, dt);
       // Sideways the view leads where the nose points; up and down it leads along the flight path,
       // so a stalling plane that's sinking nose-up still shows the ground it's falling towards.
@@ -223,11 +243,18 @@ export function createRenderer(canvas, world, assets) {
       const margin = 0.08;
       const limit = vw * (0.5 - margin);
       const knee = Math.min(vw * camCfg.leadX, limit * 0.85);
-      const off = cam.leadX + cam.lookX * vw * camCfg.lookRange;
+      // Some of the look-ahead stays in a fight, so you still see what you're flying into; near the
+      // ground the framing fades out altogether, because then the ground matters most.
+      const lowFade = clamp((focus.y - world.terrain.heightAt(focus.x)) / camCfg.fightLowAlt, 0, 1);
+      const fight = cam.fight * lowFade;
+      const leadShare = 1 - fight * (1 - camCfg.fightLeadKeep);
+      const off = cam.leadX * leadShare + cam.fightX * fight + cam.lookX * vw * camCfg.lookRange;
       const past = Math.abs(off) - knee;
       const softOff = past <= 0 ? off : Math.sign(off) * (knee + (limit - knee) * Math.tanh(past / (limit - knee)));
       cam.x = focus.x + softOff - vw / 2;
-      cam.y = focus.y + cam.leadY + cam.lookY * vh * camCfg.lookRange - vh * camCfg.height;
+      const restY = vh * (0.5 - camCfg.height); // the view centre above the plane outside a fight
+      const centreY = cam.leadY * leadShare + restY * (1 - fight) + cam.fightY * fight;
+      cam.y = focus.y + centreY + cam.lookY * vh * camCfg.lookRange - vh / 2;
       cam.x = clamp(cam.x, focus.x - vw * (1 - margin), focus.x - vw * margin);
       cam.y = clamp(cam.y, focus.y - vh * (1 - margin), focus.y - vh * margin);
       cam.snapped = true;

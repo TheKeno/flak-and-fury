@@ -114,7 +114,7 @@ later.
   - **Options menu** (`src/ui/options.js`), from the title screen and Esc in game: two keys or mouse
     buttons per action (a taken key swaps), mouse look on/off, sensitivity and look return, volumes,
     mute in the background, gunsight style/size/opacity/colour/range, HUD text size, opacity, units,
-    help at start, radar outline, screen shake, camera lead, speed zoom, fullscreen, sharp or smooth
+    help at start, radar outline, screen shake, camera lead, speed zoom, dogfight camera, fullscreen, sharp or smooth
     scaling, historical markings (on by default for now), gore, and an online callsign. Kept in the
     browser, written over the data files' values. Esc pauses single player (P is gone); online it
     opens the menu while the V autopilot flies the plane. Losing the mouse (the browser's own Esc,

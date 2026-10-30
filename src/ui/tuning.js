@@ -65,6 +65,17 @@ const CAMERA_FIELDS = [
   ['zoomFullSpeed', 'Speed zoom: full at', 0, 300, 5, 'Speed (px/s) where the view is fully zoomed out. Dives reach about 200.'],
   ['zoomSpeed', 'Speed zoom: smoothness', 0.2, 5, 0.1, 'How quickly the zoom follows your speed. Lower = slower, smoother.'],
   ['shake', 'Screen shake', 0, 2, 0.05, 'Multiplier on every screen shake (bumps, hard landings, collisions). 0 = none.'],
+  ['fightEnter', 'Dogfight: starts within', 100, 800, 10, 'How near an enemy plane must come to start the dogfight camera (a screen is about 480 wide).'],
+  ['fightExit', 'Dogfight: ends beyond', 100, 1200, 10, 'How far enemies must be for the fight to end. Keep it above the start range, so the camera does not pump.'],
+  ['fightHold', 'Dogfight: hold', 0, 8, 0.1, 'Seconds the framing stays after the last enemy leaves.'],
+  ['fightBlend', 'Dogfight: ease in and out', 0.2, 5, 0.1, 'How quickly the view goes into and out of dogfight framing.'],
+  ['fightSpeed', 'Dogfight: follow speed', 0.2, 6, 0.1, 'How quickly the framing follows the planes. Lower = calmer on fast passes.'],
+  ['fightZoomMax', 'Dogfight: max zoom-out', 1, 1.8, 0.01, 'The widest the view goes to fit enemies. Wider shows more, but makes planes smaller.'],
+  ['fightLeadKeep', 'Dogfight: look-ahead kept', 0, 1, 0.01, 'How much of the normal look-ahead stays during a fight.'],
+  ['fightPlanes', 'Dogfight: planes framed', 1, 6, 1, 'How many of the most urgent enemies the view frames.'],
+  ['fightRear', 'Dogfight: pull from behind', 1, 3, 0.05, 'How much more an enemy behind you counts than one ahead.'],
+  ['fightLeaveSpeed', 'Dogfight: pulling away at', 20, 300, 5, 'Above this speed away from you, an enemy has passed: it barely moves the view and is not zoomed for.'],
+  ['fightLowAlt', 'Dogfight: fades below', 1, 400, 10, 'Height above the ground where the framing starts fading out, gone at the ground.'],
 ];
 const CREW_FIELDS = [
   ['crewDelay', 'Crew reaction time', 0, 5, 0.1, 'Seconds after you stop before the ground crew set off from the hangar.'],

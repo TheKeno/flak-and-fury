@@ -17,7 +17,19 @@
     "lookReturn": 10,
     "mouseLook": true,
     "lookReturnOn": true,
-    "shake": 1
+    "shake": 1,
+    "fightOn": true,
+    "fightEnter": 500,
+    "fightExit": 750,
+    "fightHold": 2.5,
+    "fightBlend": 1,
+    "fightSpeed": 1.5,
+    "fightZoomMax": 1.6,
+    "fightLeadKeep": 0.4,
+    "fightPlanes": 3,
+    "fightRear": 1.5,
+    "fightLeaveSpeed": 100,
+    "fightLowAlt": 120
   },
   "audio": {
     "master": 0.03,

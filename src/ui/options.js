@@ -64,6 +64,7 @@ function optionList(settings, defaults) {
       choices: [[0, 'OFF'], [0.5, 'LOW'], [1, 'NORMAL'], [1.5, 'HIGH']], initial: 1,
       set: (m) => set('camera.zoomMax', 1 + (def('camera.zoomMax') - 1) * m),
     }],
+    ['view', 'camera.fightOn', 'Dogfight camera', 'toggle', { help: 'With enemy planes near, the view moves and widens to keep them in frame.' }],
     ['view', 'display.smooth', 'Pixel scaling', 'choice', { choices: [[false, 'SHARP'], [true, 'SMOOTH']] }],
 
     ['content', 'markings.historicalSwastika', 'Historical markings', 'toggle', { help: 'The swastika on German tail fins, as painted in 1943. Off: the fin is left plain.' }],
