@@ -31,6 +31,9 @@ export function createRecordings(mixer, sound) {
   const buffers = new Map();
   const derived = new Map(); // reversed and seamless versions
   const scopes = new Map();
+  const heads = new Map(); // where each file is being heard, for the Sound Lab's play marker
+  // A one-shot's position is worked out when asked for, from when it started.
+  const headFrom = (file, begin, at, speed, length, backwards) => heads.set(file, { begin, at, speed, length, backwards });
 
   async function ensure(path) {
     if (buffers.has(path)) return buffers.get(path);
@@ -115,7 +118,7 @@ export function createRecordings(mixer, sound) {
     open(Math.random() * seamless(file, xfadeOf()).duration, ctx.currentTime);
     return {
       // Called every frame. r: how fast it plays now.
-      setRate(r, tc = 0.04) {
+      setRate(r, audible = true, tc = 0.04) {
         const now = ctx.currentTime;
         const length = src.buffer.duration;
         pos += (now - last) * rate;
@@ -123,6 +126,7 @@ export function createRecordings(mixer, sound) {
         rate = r;
         src.playbackRate.setTargetAtTime(r, now, tc);
         if (pos >= length) pos %= length;
+        if (audible) heads.set(file, { loop: (file.start ?? 0) + Math.max(0, pos), seen: now });
         // A very short crossfade covers the join, since the two are cut from different places.
         const swap = (at, offset) => {
           const oldSrc = src;
@@ -209,6 +213,8 @@ export function createRecordings(mixer, sound) {
         })();
     src.connect(env).connect(tweaks(group, dest));
     src.start(at, start, length);
+    headFrom(file, group.reverse ? file.end ?? raw.duration : start, at, speed, length, group.reverse);
+    src.addEventListener('ended', () => heads.delete(file));
     return src;
   }
 
@@ -221,7 +227,7 @@ export function createRecordings(mixer, sound) {
     return {
       update(where, value = 1, { gain = 1, pitch = 0 } = {}) {
         const m = mapRange(value, group);
-        src.setRate(2 ** ((group.pitch + pitch) / 12) * m.pitch * (where.doppler ?? 1));
+        src.setRate(2 ** ((group.pitch + pitch) / 12) * m.pitch * (where.doppler ?? 1), group.gain * gain * m.gain * where.gain > 0.001);
         chain.place(where, group.gain * gain * m.gain);
       },
       stop() {
@@ -256,7 +262,7 @@ export function createRecordings(mixer, sound) {
         voices.forEach((v, i) => {
           const mix = i === hi ? Math.sqrt(t) : i === lo ? Math.sqrt(1 - t) : 0;
           setT(v.g.gain, mix * (v.clip.gain ?? 1) * level, ctx, 0.06);
-          v.srcs.forEach((s, n) => s.setRate((rpm / v.clip.rpm) * doppler * (1 + detune * (n - (engines - 1) / 2))));
+          v.srcs.forEach((s, n) => s.setRate((rpm / v.clip.rpm) * doppler * (1 + detune * (n - (engines - 1) / 2)), mix > 0.02 && level > 0.001));
         });
       },
       stop() {
@@ -283,7 +289,7 @@ export function createRecordings(mixer, sound) {
         for (const v of voices) {
           const on = v.clip.role === 'idle' ? !moving : moving;
           setT(v.g.gain, on ? (v.clip.gain ?? 1) * (rec.clipLevel ?? 1) : 0, ctx, 0.3);
-          v.s.setRate(1);
+          v.s.setRate(1, on);
         }
       },
       stop() {
@@ -318,6 +324,8 @@ export function createRecordings(mixer, sound) {
     g.gain.linearRampToValueAtTime(0, at + caught + fade);
     src.connect(g).connect(dest);
     src.start(at, begin, Math.min(end - begin, caught + fade));
+    headFrom(file, begin, at, 1, Math.min(end - begin, caught + fade), false);
+    src.addEventListener('ended', () => heads.delete(file));
     return { caught, fade, stop() { try { src.stop(); } catch { /* already over */ } g.disconnect(); } };
   }
 
@@ -392,6 +400,16 @@ export function createRecordings(mixer, sound) {
   return {
     buffers,
     ensure,
+    // Seconds into the file being heard now, or null.
+    headOf(file) {
+      const h = heads.get(file);
+      if (!h) return null;
+      const now = ctx.currentTime;
+      if (h.loop !== undefined) return now - h.seen < 0.25 ? h.loop : null;
+      const done = (now - h.at) * h.speed;
+      if (done < 0 || done > h.length) return null;
+      return h.backwards ? h.begin - done : h.begin + done;
+    },
     load: () => Promise.all([...pathsIn(sound)].map(ensure)),
     trigger,
     playGroup,

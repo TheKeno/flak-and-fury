@@ -210,6 +210,7 @@ async function audio() {
     await mixer.recordings.load();
     voices = buildVoices(mixer.ctx, sound.guns);
     mixer.setMuted(muted);
+    movePlayMarkers();
     scope = mixer.ctx.createAnalyser();
     scope.fftSize = 1024;
     mixer.limiter.connect(scope);
@@ -907,6 +908,22 @@ function dropBox(text, onFiles) {
 }
 
 // The waveform: drag the two markers to trim.
+// Play markers: one small loop moves them all, without redrawing the waveforms under them.
+const playMarkers = new Set();
+function movePlayMarkers() {
+  for (const item of playMarkers) {
+    if (!item.marker.isConnected) {
+      playMarkers.delete(item);
+      continue;
+    }
+    const buf = mixer.recordings.buffers.get(item.file.path);
+    const head = buf ? mixer.recordings.headOf(item.file) : null;
+    item.marker.style.display = head === null ? 'none' : '';
+    if (head !== null) item.marker.style.left = `${(head / buf.duration) * 100}%`;
+  }
+  requestAnimationFrame(movePlayMarkers);
+}
+
 function waveform(file, locked, onChange) {
   const c = el('canvas', { width: 700, height: 70, style: 'width:100%;max-width:700px;height:70px;background:#0b0c0d;display:block;touch-action:none' });
   const draw = () => {
@@ -965,7 +982,9 @@ function waveform(file, locked, onChange) {
     onChange?.();
   };
   audio().then(() => mixer.recordings.ensure(file.path)).then(draw);
-  return c;
+  const marker = el('div', { style: 'position:absolute;top:0;bottom:0;width:2px;background:#d9542b;display:none;pointer-events:none' });
+  playMarkers.add({ marker, file });
+  return el('div', { style: 'position:relative;width:100%;max-width:700px' }, c, marker);
 }
 
 function fileRow(file, locked, remove, onChange, extra = []) {
