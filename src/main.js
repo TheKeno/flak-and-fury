@@ -7,7 +7,7 @@ import { createRenderer, MAX_ZOOM } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
 import { createTuningPanel } from './ui/tuning.js';
-import { createOptions, cleanName, toggleFullscreen } from './ui/options.js';
+import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText as sinkUnits } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
 import { NO_COMMAND } from './sim/plane.js';
@@ -161,7 +161,10 @@ canvas.addEventListener('wheel', (e) => {
   free.zoom = clamp(free.zoom * Math.exp(e.deltaY * 0.0012), 1, MAX_ZOOM);
 }, { passive: false });
 // Clicking the game takes keyboard focus back from the tuning panel.
-canvas.addEventListener('mousedown', () => document.activeElement?.blur());
+canvas.addEventListener('mousedown', () => {
+  document.activeElement?.blur();
+  if (started && !menuOpen) backToFullscreen();
+});
 let muted = false;
 let sound = null;
 let mixer = null;
@@ -241,9 +244,20 @@ function closeMenu() {
   pauseScreen.classList.add('hidden');
   menuOpen = false;
   if (!online()) setPaused(false);
-  mouse.capture();
+  backToFullscreen();
   // After the player's own Esc the browser won't hand the mouse back without a click.
   setTimeout(() => !mouse.locked() && !menuOpen && renderer.message('CLICK THE GAME TO GRAB THE MOUSE', '#f0e8c0'), 150);
+}
+// Firefox can't keep Esc in fullscreen: back into it (and the mouse grabbed again) on the click that
+// resumes. Going fullscreen can drop the mouse for a moment; that mustn't reopen the menu.
+let fullscreenAt = -1e9;
+function backToFullscreen() {
+  const going = restoreFullscreen();
+  if (going) {
+    fullscreenAt = performance.now();
+    going.then(() => mouse.capture());
+  }
+  mouse.capture();
 }
 function menuKey() {
   if (!started) {
@@ -256,7 +270,7 @@ function menuKey() {
   if (options.isOpen) options.back();
   else closeMenu();
 }
-mouse.onLockLost = openMenu;
+mouse.onLockLost = () => performance.now() - fullscreenAt > 800 && openMenu();
 document.addEventListener('fullscreenchange', () => !document.fullscreenElement && openMenu());
 document.getElementById('resume').addEventListener('click', closeMenu);
 document.getElementById('quit').addEventListener('click', () => location.reload());

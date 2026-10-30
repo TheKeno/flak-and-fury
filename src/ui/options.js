@@ -400,14 +400,24 @@ export function createOptions({ settings, bindings, parent, onChange }) {
 
 // Fullscreen through the game (not the browser's own F11) can claim Esc with the Keyboard Lock API
 // (Chrome, Edge): a tap then reaches the game and opens the menu, and only holding Esc leaves
-// fullscreen. Elsewhere Esc still leaves fullscreen, and the menu opens as fullscreen ends.
-export function toggleFullscreen() {
-  if (document.fullscreenElement) {
-    navigator.keyboard?.unlock?.();
-    document.exitFullscreen?.();
-    return;
-  }
+// fullscreen. Elsewhere (Firefox) Esc still leaves fullscreen and the menu opens as it ends; the game
+// remembers it was wanted and goes back on the next click (Resume, or clicking the game).
+let fullscreenWanted = false;
+const enterFullscreen = () =>
   document.documentElement.requestFullscreen?.()
     .then(() => navigator.keyboard?.lock?.(['Escape']))
-    .catch(() => {});
+    .catch(() => {}) ?? Promise.resolve();
+
+export function toggleFullscreen() {
+  fullscreenWanted = !document.fullscreenElement;
+  if (fullscreenWanted) return enterFullscreen();
+  navigator.keyboard?.unlock?.();
+  return document.exitFullscreen?.().catch(() => {});
+}
+
+// Back into fullscreen if it was turned on in the game and left without the player turning it off.
+// Only works from a click or a key other than Esc (browsers ask for that). Null when there's nothing to do.
+export function restoreFullscreen() {
+  if (!fullscreenWanted || document.fullscreenElement) return null;
+  return enterFullscreen();
 }
