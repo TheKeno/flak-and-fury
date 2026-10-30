@@ -20,7 +20,7 @@ export const DRIVERS = {
   plane: [
     { key: 'rpm', label: 'Rpm', min: 0, max: 3200, read: (p) => p.rpm },
     { key: 'load', label: 'Throttle', min: 0, max: 1, read: (p) => p.load },
-    { key: 'speed', label: 'Airspeed', min: 0, max: 400, read: (p) => p.speed },
+    { key: 'speed', label: 'Airspeed', min: 0, max: 250, read: (p) => p.speed },
     { key: 'turn', label: 'Turn strength', min: 0, max: 4, read: (p, w, turn) => turn },
     { key: 'inverted', label: 'Rolled over', min: 0, max: 1, read: (p) => (p.inverted ? 1 : 0) },
     { key: 'altitude', label: 'Height over ground', min: 0, max: 800, read: (p, w) => p.y - w.terrain.heightAt(p.x) },

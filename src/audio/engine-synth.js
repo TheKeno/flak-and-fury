@@ -42,21 +42,34 @@ export function createEngineVoice(mixer, engine, build, count = 1, recId = null)
   const set = (param, v, tc = 0.04) => param.setTargetAtTime(v, ctx.currentTime, tc);
   let startAt = -Infinity;
   let running = false;
+  let startClip = null; // a recorded start-up, when the build has one
+  // Its own way out: the engine's out is still closed while it plays.
+  const startPan = ctx.createStereoPanner();
+  const startOut = ctx.createGain();
+  startPan.connect(startOut).connect(mixer.buses.engine);
+  startOut.connect(send);
 
   return {
     // Plays the starter motor and the engine catching. The sim's rpm takes over afterwards.
     start() {
       startAt = ctx.currentTime;
       running = true;
-      starterWhine(mixer, STARTER_TIME + 0.3);
+      startClip?.stop();
+      startClip = mixer.recordings?.playStartup(recId, startPan) ?? null;
+      if (!startClip && (mixer.recordings?.synthLevel(recId) ?? 1) > 0) starterWhine(mixer, STARTER_TIME + 0.3);
     },
     stop() {
       running = false;
+      startClip?.stop();
+      startClip = null;
     },
     update({ rpm, load, roughness = 0.1, misfire = 0, gain = 1, pan = 0, cutoff = 18000, doppler = 1 }) {
       const t = ctx.currentTime - startAt;
       let level = running ? 1 : 0;
-      if (t < STARTER_TIME) {
+      if (startClip) {
+        // The running engine stays silent until the recording says it has caught.
+        if (t < startClip.caught) level = 0;
+      } else if (t < STARTER_TIME) {
         level = 0;
       } else if (t < STARTER_TIME + CATCH_TIME) {
         const k = (t - STARTER_TIME) / CATCH_TIME;
@@ -76,7 +89,9 @@ export function createEngineVoice(mixer, engine, build, count = 1, recId = null)
       synthLevel.gain.value = mixer.recordings?.synthLevel(recId) ?? 1;
       clips?.update({ rpm, load, misfire, doppler });
       set(panner.pan, pan);
-      set(out.gain, level * gain, running ? 0.05 : 0.02);
+      set(startPan.pan, pan);
+      set(startOut.gain, gain);
+      set(out.gain, level * gain, startClip && t < startClip.caught + startClip.fade ? Math.max(0.05, startClip.fade / 3) : running ? 0.05 : 0.02);
     },
     // The Sound Lab added or changed recorded clips.
     refreshClips() {
@@ -90,6 +105,8 @@ export function createEngineVoice(mixer, engine, build, count = 1, recId = null)
       for (const node of nodes) node.port.postMessage(synth);
     },
     dispose() {
+      startClip?.stop();
+      startOut.disconnect();
       clips?.stop();
       out.disconnect();
       for (const node of nodes) node.disconnect();

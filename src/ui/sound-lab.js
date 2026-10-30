@@ -193,7 +193,9 @@ let mixer = null;
 let voices = null;
 let scope = null;
 let muted = new URLSearchParams(location.search).has('mute');
-let tab = 'sounds';
+let tab = 'design';
+let design = { type: 'build', id: 'inline' };
+const drops = new Map(); // what the last drop on a slot should warn about
 let selected = 'build:inline';
 let vehicleSel = null;
 let filterNotDone = false;
@@ -322,7 +324,8 @@ function updateCount() {
 function renderList() {
   const list = $('list');
   list.replaceChildren();
-  list.style.display = tab === 'sounds' ? '' : 'none';
+  list.style.display = tab === 'sounds' || tab === 'design' ? '' : 'none';
+  if (tab === 'design') return renderPicker();
   if (tab !== 'sounds') return;
   const filter = el('input', { type: 'checkbox', checked: filterNotDone, onchange: (e) => { filterNotDone = e.target.checked; renderList(); } });
   list.append(el('label', {}, filter, ' only not done'), el('div', { className: 'buttons' }, button('New layer', addLayer, 'Your own sound, attached to vehicles: wing creak, tracks, rattles')));
@@ -632,7 +635,7 @@ function renderVehicles() {
     f.sort = key;
     renderMain();
   } })));
-  const body = rows.map((r) => el('tr', { onclick: () => { vehicleSel = r.v.id; renderMain(); } },
+  const body = rows.map((r) => el('tr', { onclick: () => { design = { type: 'vehicle', id: r.v.id }; setTab('design'); } },
     ...COLS.map(([key]) => (key === 'engine'
       ? el('td', {}, r.engine, sound.engines[r.v.engine]?.checked ? null : el('span', { className: 'dim', textContent: ' (unchecked)' }))
       : key === 'status'
@@ -724,6 +727,9 @@ function makeOwnCopy(engId) {
   let id = `${engId}Build`;
   for (let n = 2; sound.builds[id]; n++) id = `${engId}Build${n}`;
   sound.builds[id] = { ...clone(from), name: eng.name };
+  // The recordings come along, and so do the layers attached to the build it left.
+  if (sound.recordings[`build:${eng.build}`]) sound.recordings[`build:${id}`] = clone(sound.recordings[`build:${eng.build}`]);
+  for (const l of Object.values(sound.layers)) if (l.attach[`build:${eng.build}`]) l.attach[`build:${id}`] = clone(l.attach[`build:${eng.build}`]);
   sound.status[`build:${id}`] = { reference: `Split from ${from.name}.` }; // a new sound to work on: not done yet
   eng.build = id;
   touch();
@@ -759,11 +765,13 @@ function renderGuide() {
   const h = (t) => el('h3', { textContent: t });
   return el('div', { className: 'wide' }, el('h2', { textContent: 'Guide' }),
     h('Working here'),
+    p('Sound Design is the place to start. Pick a shared sound or an engine on the left, drop files on the slots, and hover a slot for what it expects. Test Flight plays everything together. The other tabs hold the full settings; Advanced on a slot takes you there.'),
     p('Pick a sound, press Play or Fire, and drag. Engines change as you drag; guns are re-rendered when you let go. Press Save to write the files; the game picks them up on its next reload. Saving does not commit to git.'),
     p('Tick a sound in the list when it is finished: its sliders lock until you untick it. Your notes stay editable and are the way to leave instructions for Claude for later.'),
     h('Shared builds'),
     p('A vehicle uses a real engine, and an engine uses a sound build. A build lists everything it changes. To give one engine its own sound, open a vehicle in the Vehicles tab and press Make own copy. The copy starts as an exact copy and is not done, because it is a new sound to work on. Cylinders, rpm and propeller stay with the vehicle, so planes on one build still differ.'),
     h('Hearing it as in the game'),
+    p('Start-up: on the Start-up slot, drag the start and end markers around the part you want and the pale Caught marker to where the engine is running. The running engine stays silent until then and fades in as the clip fades out. A plane can start rolling during a long clip, because only the sound follows it.'),
     p('For the running game: put the game and the Lab in separate windows side by side, because a hidden tab stops drawing and is muted. The header says Game linked when it is listening. Changes reach it as you drag; guns, reverb, clips and layers update when you let go or add a file. The game keeps them until it reloads, so press Save to keep them. The Under menu plays a running engine beneath whatever you audition, to hear whether a sound survives in the mix.'),
     p('The Listen from slider applies the game\'s distance fade, muffling and delay. The Master level here is the game\'s, so it can be very quiet; turn it up on the Mix tab while working if you need to, and remember it saves too.'),
     h('Finding an engine clip\'s rpm by ear'),
@@ -784,6 +792,7 @@ function renderMain() {
   const main = $('main');
   main.replaceChildren();
   main.scrollTop = 0;
+  if (tab === 'design') return main.append(renderDesign());
   if (tab === 'vehicles') return main.append(renderVehicles());
   if (tab === 'mix') return main.append(renderMix());
   if (tab === 'guide') return main.append(renderGuide());
@@ -836,6 +845,7 @@ function allFiles() {
   for (const r of Object.values(sound.recordings)) {
     r.groups?.forEach((g) => files.push(...g.files));
     if (r.clips) files.push(...r.clips);
+    if (r.startup) files.push(...r.startup.files);
   }
   for (const l of Object.values(sound.layers)) files.push(...l.group.files);
   return files;
@@ -844,7 +854,7 @@ function allFiles() {
 function filesOf(id) {
   if (id.startsWith('layer:')) return sound.layers[id.slice(6)]?.group.files ?? [];
   const r = sound.recordings[id];
-  return [...(r?.groups ?? []).flatMap((g) => g.files), ...(r?.clips ?? [])];
+  return [...(r?.groups ?? []).flatMap((g) => g.files), ...(r?.clips ?? []), ...(r?.startup?.files ?? [])];
 }
 
 function licenceFlag(id) {
@@ -922,6 +932,10 @@ function waveform(file, locked, onChange) {
     g.fillStyle = '#a8905c';
     g.fillRect(a - 1, 0, 2, c.height);
     g.fillRect(b - 1, 0, 2, c.height);
+    if (file.caught != null) {
+      g.fillStyle = '#c4c5bb';
+      g.fillRect((file.caught / buf.duration) * c.width - 1, 0, 2, c.height);
+    }
   };
   let grab = null;
   c.onpointerdown = (e) => {
@@ -929,6 +943,7 @@ function waveform(file, locked, onChange) {
     if (!buf || locked) return;
     const t = (e.offsetX / c.clientWidth) * buf.duration;
     grab = Math.abs(t - file.start) < Math.abs(t - file.end) ? 'start' : 'end';
+    if (file.caught != null && Math.abs(t - file.caught) < Math.abs(t - file[grab])) grab = 'caught';
     c.setPointerCapture(e.pointerId);
   };
   c.onpointermove = (e) => {
@@ -936,7 +951,9 @@ function waveform(file, locked, onChange) {
     const buf = mixer.recordings.buffers.get(file.path);
     const t = Math.max(0, Math.min(buf.duration, (e.offsetX / c.clientWidth) * buf.duration));
     if (grab === 'start') file.start = Math.min(t, file.end - 0.005);
-    else file.end = Math.max(t, file.start + 0.005);
+    else if (grab === 'end') file.end = Math.max(t, file.start + 0.005);
+    else file.caught = Math.max(file.start, Math.min(file.end, t));
+    if (file.caught != null) file.caught = Math.max(file.start, Math.min(file.end, file.caught));
     draw();
   };
   c.onpointerup = () => {
@@ -1191,6 +1208,458 @@ function layerList(v) {
   return rows.length ? rows : [el('div', { className: 'dim', textContent: 'No layers yet: New layer on the Sounds tab.' })];
 }
 
+// --- Sound Design: one page per sound, a list of slots to drop files on ---
+const ENGINE_SLOTS = [
+  ['idle', 'Idle', 'idleRpm', 'A steady loop of the engine at idle, 5-10 s, with no rpm change. Close and exterior if possible, with no wind or speech.'],
+  ['cruise', 'Cruise', 'cruiseRpm', 'The same at a steady mid rpm. Optional: if idle and full sound fine together, leave it empty.'],
+  ['full', 'Full', 'maxRpm', 'The same at full power and steady rpm. Avoid flypasts: the pitch changes and they cannot loop.'],
+];
+const STARTUP_HELP = 'One whole start: starter, cough and catching, ideally 3-6 s after trimming. It should end on a running engine. Drag the pale Caught marker to where it is running.';
+const TANK_SLOTS = [
+  ['idle', 'Standing', 'A steady loop of the engine idling with the tank still, 5-10 s.'],
+  ['move', 'Moving', 'A steady loop of the engine working as the tank drives, 5-10 s, ideally without tracks.'],
+  ['tracks', 'Tracks', 'A steady loop of squealing, clanking tracks, 5-10 s. It only plays while the tank moves.'],
+];
+const m = (a, b, c, d, e, f) => ({ mapFrom: a, mapTo: b, gainLow: c, gainHigh: d, pitchLow: e, pitchHigh: f });
+const AIRFRAME_SLOTS = {
+  airflow: ['Airflow', 'continuous', 'speed', m(30, 160, 0, 1, 0.8, 1.3), 'A steady loop of air rushing past, 5-10 s, with no engine in it. It plays louder and higher with airspeed. Even car or wind noise works.'],
+  rattle: ['Rattle', 'continuous', 'speed', m(80, 170, 0, 1, 1, 1.1), 'A steady loop of loose metal shaking, 5-10 s. It gets louder with airspeed, so it should not have obvious hits that give the loop away.'],
+  creak: ['Creak', 'triggered', 'turn', null, '3-4 short creaks or groans of 1-2 s, each different. One plays at random in hard turns, so they need to sound good alone and not be too loud.'],
+  damage: ['Damage', 'continuous', 'damage', m(0.1, 0.8, 0, 1, 1, 1), 'A steady loop of knocking or rough rattling, 5-10 s. It fades in as the plane takes damage, so it should sound like something is broken.'],
+};
+const LOOPING = new Set(['idle', 'cruise', 'full', 'move', 'tracks', 'airflow', 'rattle', 'damage']);
+
+const pageBuild = () => {
+  if (design.type === 'build') return design.id;
+  if (design.type === 'engine') return sound.engines[design.id]?.build;
+  return sound.engines[sound.vehicles.find((v) => v.id === design.id)?.engine]?.build;
+};
+
+// Measures only what it can and warns without blocking.
+function checkDrop(key, buf) {
+  const notes = [];
+  if (LOOPING.has(key) && buf.duration > 30) notes.push(`This is ${buf.duration.toFixed(0)} s: a loop usually needs 5-10 s.`);
+  if (LOOPING.has(key) && buf.duration < 1) notes.push('Very short for a loop: repeats will be obvious.');
+  if (!LOOPING.has(key) && key !== 'startup' && buf.duration > 4) notes.push(`This is ${buf.duration.toFixed(1)} s: long for a one-shot. Consider trimming.`);
+  const d = buf.getChannelData(0);
+  let peak = 0;
+  for (let i = 0; i < d.length; i += 8) peak = Math.max(peak, Math.abs(d[i]));
+  let lead = 0;
+  while (lead < d.length && Math.abs(d[lead]) < peak * 0.05) lead++;
+  if (lead / buf.sampleRate > 0.25) notes.push(`It has ${(lead / buf.sampleRate).toFixed(1)} s of silence at the start: drag the start marker in.`);
+  if (peak < 0.05) notes.push('It is very quiet.');
+  return notes.join(' ');
+}
+
+function slotRow({ key, name, help, files, group, level, play, advanced, locked, onFiles, body, sub, shared }) {
+  const filled = files.length > 0;
+  const tick = el('input', { type: 'checkbox', checked: filled, disabled: true });
+  const summary = el('summary', { title: help },
+    tick, el('span', { className: 'sname', textContent: name }),
+    el('span', { className: 'sfile', textContent: filled ? files.map((f) => f.path.split('/').pop()).join(', ') : help.split(/[.:]/)[0] }),
+    sub ? el('span', { className: 'dim', textContent: sub }) : null,
+    filled && play ? button('▶', (e) => { e.preventDefault(); play(); }, 'Play it alone') : null,
+    level ? (() => {
+      const input = el('input', { type: 'range', min: 0, max: 3, step: 0.01, value: level.obj[level.key] ?? 1, title: 'Level', disabled: locked, style: 'width:90px' });
+      input.onclick = (e) => e.stopPropagation();
+      input.oninput = () => { level.obj[level.key] = Number(input.value); broadcast(false); };
+      input.onchange = touch;
+      return input;
+    })() : null,
+    advanced ? button('Advanced', (e) => { e.preventDefault(); advanced(); }) : null);
+  const box = el('details', { className: `slot${filled ? '' : ' empty'}` }, summary);
+  if (drops.get(key)) {
+    box.open = true;
+    box.append(el('div', { className: 'warn sbody', textContent: drops.get(key) }));
+  }
+  const inner = el('div', { className: 'sbody' }, el('div', { className: 'dim', textContent: help }));
+  if (body) inner.append(...body);
+  if (!locked) {
+    const take = async (raw) => {
+      const added = await upload(raw);
+      if (!added.length) return;
+      drops.set(key, added.map((f) => checkDrop(key, mixer.recordings.buffers.get(f.path))).filter(Boolean).join(' '));
+      onFiles(added);
+      touch();
+      updateCount();
+      renderList();
+      renderMain();
+    };
+    inner.append(dropBoxFor(take, filled));
+    box.ondragover = (e) => { e.preventDefault(); box.classList.add('over'); };
+    box.ondragleave = () => box.classList.remove('over');
+    box.ondrop = (e) => {
+      e.preventDefault();
+      box.classList.remove('over');
+      take([...e.dataTransfer.files]);
+    };
+  }
+  box.append(inner);
+  void group;
+  void shared;
+  return box;
+}
+
+function dropBoxFor(take, filled) {
+  const input = el('input', { type: 'file', multiple: true, accept: '.wav,.mp3,.ogg,.flac', style: 'display:none' });
+  input.onchange = () => take([...input.files]);
+  const box = el('div', { className: 'dim', textContent: filled ? 'Drop or click to add or replace' : 'Drop a file on this slot, or click', style: 'border:1px dashed var(--line);padding:8px;margin:6px 0;cursor:pointer' }, input);
+  box.onclick = (e) => { if (e.target !== input) input.click(); };
+  return box;
+}
+
+// The airframe sounds are ordinary layers, made the first time a file lands on the slot.
+function airframeLayer(key) {
+  const id = `slot_${key}`;
+  if (sound.layers[id]) return sound.layers[id];
+  const [name, type, driver, mapping] = AIRFRAME_SLOTS[key];
+  sound.layers[id] = { name, type, kind: 'plane', hearing: 'cockpit', driver, threshold: 1.5, cooldown: 3, chance: 0.4, group: { ...newGroup(), ...(mapping ?? {}) }, attach: { 'all:plane': { gain: 1, pitch: 0 } } };
+  return sound.layers[id];
+}
+
+const removeFile = (list, i) => button('Remove', () => { list.splice(i, 1); drops.clear(); touch(); updateCount(); renderList(); renderMain(); });
+
+function engineSlots(buildId, specs, locked) {
+  const id = `build:${buildId}`;
+  const rec = recOf(id);
+  rec.clips ??= [];
+  const spec = specs[0] ?? {};
+  const row = ([key, name, rpmKey, help]) => {
+    const clip = rec.clips.find((c) => c.slot === key);
+    const rpm = clip ? el('input', { type: 'number', min: 100, max: 6000, value: clip.rpm, disabled: locked, title: 'The rpm it was recorded at', style: 'width:90px', onchange: () => { clip.rpm = Number(rpm.value); touch(); } }) : null;
+    return slotRow({
+      key, name, locked, help: `${help} About ${spec[rpmKey] ?? 2300} rpm on this engine.`,
+      files: clip ? [clip] : [],
+      sub: clip ? `${clip.rpm} rpm` : null,
+      level: clip ? { obj: clip, key: 'gain' } : null,
+      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
+      advanced: () => { selected = id; setTab('sounds'); },
+      onFiles: ([f]) => {
+        if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
+        rec.clips.push({ ...f, slot: key, gain: 1, xfade: 0.05, rpm: spec[rpmKey] ?? 2300 });
+      },
+      body: clip ? [el('label', {}, 'Recorded at rpm ', rpm), fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam.'], null, locked)] : [],
+    });
+  };
+  rec.startup ??= { files: [], gain: 1, fade: 0.6 };
+  const st = rec.startup;
+  const startRow = slotRow({
+    key: 'startup', name: 'Start-up', locked, help: STARTUP_HELP, files: st.files,
+    level: st.files.length ? { obj: st, key: 'gain' } : null,
+    play: st.files.length ? () => mixer?.recordings.playGroup({ ...newGroup(), pitchVar: 0, gainVar: 0, files: st.files }, where()) : null,
+    onFiles: (added) => { for (const f of added) st.files.push({ ...f, caught: f.end * 0.8 }); },
+    body: [...st.files.map((f, i) => fileRow(f, locked, () => { st.files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
+      slider(st, ['fade', 'Fade into the engine, s', 0.05, 3, 0.05, 'How long the clip and the running engine cross after Caught.'], null, locked)],
+  });
+  return [el('h3', { textContent: 'Engine' }), ...ENGINE_SLOTS.map(row), startRow];
+}
+
+function tankSlots(buildId, locked) {
+  const id = `build:${buildId}`;
+  const rec = recOf(id);
+  rec.clips ??= [];
+  return [el('h3', { textContent: 'Engine and tracks' }), ...TANK_SLOTS.map(([key, name, help]) => {
+    const clip = rec.clips.find((c) => c.role === key);
+    return slotRow({
+      key, name, locked, help, files: clip ? [clip] : [],
+      level: clip ? { obj: clip, key: 'gain' } : null,
+      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
+      advanced: () => { selected = id; setTab('sounds'); },
+      onFiles: ([f]) => {
+        if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
+        rec.clips.push({ ...f, role: key, gain: 1, xfade: 0.05 });
+      },
+      body: clip ? [fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam.'], null, locked)] : [],
+    });
+  })];
+}
+
+// A shared slot on a plane's own page can have its own volume and pitch there.
+function layerOverride(layer, vehicleId) {
+  const key = `plane:${vehicleId}`;
+  const a = layer.attach[key];
+  const own = el('input', { type: 'checkbox', checked: Boolean(a), onchange: () => {
+    if (own.checked) layer.attach[key] = { gain: 1, pitch: 0 };
+    else delete layer.attach[key];
+    touch();
+    renderMain();
+  } });
+  return el('div', {}, el('label', {}, own, ' own volume and pitch on this plane'),
+    a ? slider(a, ['gain', 'Volume here', 0, 3, 0.01, ''], null, false) : null,
+    a ? slider(a, ['pitch', 'Pitch here, semitones', -24, 24, 0.1, 'Lower for heavy planes.'], null, false) : null);
+}
+
+function layerSlot(key, layer, help, locked, vehicleId) {
+  const files = layer?.group.files ?? [];
+  return slotRow({
+    key, name: layer?.name ?? AIRFRAME_SLOTS[key]?.[0], locked, help, files,
+    level: layer && files.length ? { obj: layer.group, key: 'gain' } : null,
+    play: files.length ? () => mixer?.recordings.playGroup({ ...layer.group, pitchVar: 0 }, where()) : null,
+    advanced: layer ? () => { selected = `layer:${Object.keys(sound.layers).find((k) => sound.layers[k] === layer)}`; setTab('sounds'); } : null,
+    onFiles: (added) => {
+      const target = layer ?? airframeLayer(key);
+      if (target.type === 'continuous') target.group.files = added.slice(0, 1);
+      else target.group.files.push(...added);
+    },
+    body: [...files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
+      layer && vehicleId ? layerOverride(layer, vehicleId) : null].filter(Boolean),
+  });
+}
+
+function airframeSlots(locked, vehicleId) {
+  return [el('h3', { textContent: 'Airframe: shared with all aircraft' }),
+    ...Object.entries(AIRFRAME_SLOTS).map(([key, def]) => layerSlot(key, sound.layers[`slot_${key}`], `${def[4]} Follows ${DRIVERS.plane.find((d) => d.key === def[2]).label.toLowerCase()}.`, locked, vehicleId))];
+}
+
+// Guns of the planes on this page, by the sound they use.
+function gunVoices(vehicles) {
+  const voiceNames = new Set();
+  const weaponsBy = new Map();
+  for (const v of vehicles) {
+    for (const g of planes[v.id]?.armament?.guns ?? []) {
+      const voice = weapons[g.weapon]?.voice;
+      if (!voice) continue;
+      voiceNames.add(voice);
+      if (!weaponsBy.has(voice)) weaponsBy.set(voice, new Set());
+      weaponsBy.get(voice).add(weapons[g.weapon].name ?? g.weapon);
+    }
+  }
+  if (!voiceNames.size) for (const n of ['rifle', 'heavy', 'cannon20', 'cannon30']) voiceNames.add(n);
+  return [...voiceNames].map((n) => [n, [...(weaponsBy.get(n) ?? [])]]);
+}
+
+function groupSlot(id, key, name, help, locked, playIt, sub) {
+  const rec = recOf(id);
+  rec.groups ??= [];
+  const group = rec.groups[0];
+  const files = group?.files ?? [];
+  return slotRow({
+    key, name, help, locked, files, sub,
+    level: group && files.length ? { obj: group, key: 'gain' } : null,
+    play: files.length ? playIt : null,
+    advanced: () => { selected = id; setTab('sounds'); },
+    onFiles: (added) => {
+      if (!rec.groups[0]) rec.groups[0] = newGroup();
+      rec.groups[0].files.push(...added);
+    },
+    body: files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
+  });
+}
+
+function otherSlots(vehicles, locked) {
+  const fire = (name) => () => {
+    const near = listen.distance === 0;
+    sfx.play(mixer, voices[name], where(listen.distance, settings.audio.bangRange), { gain: near ? 0.42 : 0.8, reverb: near ? 0.08 : 0.3 });
+  };
+  return [el('h3', { textContent: 'Guns: shared by calibre' }),
+    ...gunVoices(vehicles).map(([name, used]) => groupSlot(`gun:${name}`, `gun${name}`, gunTitle(name), '3-4 single shots, each with the crack and a short tail, and trimmed tight to the start. No bursts: the game fires each round itself.', locked, fire(name), used.join(', '))),
+    el('h3', { textContent: 'Landing: shared with all aircraft' }),
+    groupSlot('sfx:touchdown', 'touchdown', 'Touchdown', '2-3 short thumps of wheels hitting the ground, under 1 s, with no engine in them.', locked, () => sfx.touchdown(mixer, where(), 40))];
+}
+
+// Slots added by hand on this engine or plane.
+function extraSlots(attachKey, kind, locked) {
+  const mine = Object.entries(sound.layers).filter(([id, l]) => l.attach[attachKey] && !id.startsWith('slot_'));
+  const add = button('+ Add slot', () => {
+    const name = prompt('Name of the new slot? (siren, wooden creak...)');
+    if (!name) return;
+    const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '')}${Object.keys(sound.layers).length}`;
+    sound.layers[id] = { name, type: 'continuous', kind, hearing: 'cockpit', driver: DRIVERS[kind][0].key, threshold: 1, cooldown: 3, chance: 1, group: newGroup(), attach: { [attachKey]: { gain: 1, pitch: 0 } } };
+    touch();
+    updateCount();
+    renderList();
+    renderMain();
+  }, 'Your own sound here. Advanced sets what it follows and whether it loops.');
+  return [el('h3', { textContent: 'Extra slots' }),
+    ...mine.map(([id, l]) => layerSlot(id, l, `Your own slot. It follows ${DRIVERS[l.kind].find((d) => d.key === l.driver)?.label ?? l.driver}. Advanced changes that.`, locked)),
+    locked ? el('span') : el('div', { className: 'buttons' }, add)];
+}
+
+function slotCounts(buildId) {
+  const rec = sound.recordings[`build:${buildId}`];
+  const kind = sound.builds[buildId].kind;
+  if (kind === 'tank') return [TANK_SLOTS.filter(([k]) => rec?.clips?.some((c) => c.role === k)).length, TANK_SLOTS.length];
+  const clips = ENGINE_SLOTS.filter(([k]) => rec?.clips?.some((c) => c.slot === k)).length;
+  const start = rec?.startup?.files?.length ? 1 : 0;
+  const air = Object.keys(AIRFRAME_SLOTS).filter((k) => sound.layers[`slot_${k}`]?.group.files.length).length;
+  return [clips + start + air, ENGINE_SLOTS.length + 1 + Object.keys(AIRFRAME_SLOTS).length];
+}
+
+function renderPicker() {
+  const list = $('list');
+  const item = (type, id, text, cls, extra) => el('div', {
+    className: `row ${cls}${design.type === type && design.id === id ? ' sel' : ''}`,
+    onclick: () => { design = { type, id }; renderList(); renderMain(); },
+  }, el('span', { textContent: text }), extra ? el('span', { className: 'dim', textContent: extra }) : null);
+  const section = (kind, title) => {
+    list.append(el('div', { className: 'group', textContent: title }));
+    for (const [buildId, b] of Object.entries(sound.builds).filter(([, x]) => x.kind === kind)) {
+      const [have, all] = slotCounts(buildId);
+      list.append(item('build', buildId, b.name, '', ` ${have}/${all}`));
+      for (const [engId, eng] of Object.entries(sound.engines).filter(([, e]) => e.build === buildId)) {
+        const users = sound.vehicles.filter((v) => v.engine === engId);
+        if (!users.length) continue;
+        list.append(item('engine', engId, eng.name, 'indent'));
+        for (const v of users) {
+          list.append(item('vehicle', v.id, `${v.name}${v.count > 1 ? ` × ${v.count}` : ''}`, 'indent2', inGame(v) ? '' : v.later ? ' (later)' : ' (planned)'));
+        }
+      }
+    }
+  };
+  section('plane', 'Aircraft');
+  section('tank', 'Tanks');
+}
+
+function synthToggle(id, locked) {
+  const rec = recOf(id);
+  const on = (rec.synth ?? 1) > 0;
+  const startup = rec.startup?.files?.length;
+  return el('div', { className: 'buttons' },
+    el('label', { title: 'Off leaves only your recordings. With no clips in it, this sound goes silent.' },
+      el('input', { type: 'checkbox', checked: on, disabled: locked, onchange: (e) => {
+        if (e.target.checked) rec.synth = rec.synthWas || 1;
+        else {
+          rec.synthWas = rec.synth ?? 1;
+          rec.synth = 0;
+        }
+        touch();
+        renderMain();
+      } }), ' Synth on'),
+    !on && !rec.clips?.length ? el('span', { className: 'warn', textContent: 'No clips and no synth: this engine is silent.' }) : null,
+    !on && !startup && sound.builds[id.slice(6)]?.kind === 'plane' ? el('span', { className: 'warn', textContent: 'No start-up clip: engine starts are silent.' }) : null);
+}
+
+// Everything on the page, together: one engine voice and the layers on it.
+function testFlight(buildId, vehicles, kind) {
+  const usable = vehicles.length ? vehicles : sound.vehicles.filter((v) => v.kind === kind).slice(0, 1);
+  const state = { vehicle: usable.find(inGame)?.id ?? usable[0]?.id, throttle: 0.8, speed: 100, turn: 0, damage: 0, moving: 1 };
+  const box = el('div', {}, el('h3', { textContent: 'Test Flight' }));
+  let running = null;
+  let flyby = 0;
+  const run = async () => {
+    await audio();
+    stopLive();
+    const v = sound.vehicles.find((x) => x.id === state.vehicle);
+    const build = sound.builds[buildId];
+    const recId = `build:${buildId}`;
+    const host = mixer.recordings.createLayerHost([`${kind}:${v?.id}`, recId, `all:${kind}`]);
+    let voice;
+    if (kind === 'tank') voice = createTankEngine(mixer, build, recId);
+    else {
+      voice = createEngineVoice(mixer, engineOf(v), build, v.count, recId);
+      voice.start();
+    }
+    const spec = v ? engineOf(v) : {};
+    let frame = 0;
+    const tick = () => {
+      const t = flyby ? (mixer.now - flyby) / 6 : 0;
+      if (t >= 1) flyby = 0;
+      const w = flyby ? where(-700 + t * 1400, settings.audio.hearRange, 233) : where();
+      if (kind === 'tank') {
+        voice.update(w, Boolean(state.moving));
+        host.update({ moving: state.moving, speed: state.moving ? 5 : 0 }, w, false);
+      } else {
+        const rpm = spec.idleRpm + (spec.maxRpm - spec.idleRpm) * state.throttle;
+        voice.update({ rpm, load: state.throttle, roughness: 0.08 + state.damage * 0.5, misfire: state.damage * 0.22, gain: w.gain, pan: w.pan, cutoff: w.cutoff, doppler: w.doppler });
+        host.update({ rpm, load: state.throttle, speed: state.speed, turn: state.turn, damage: state.damage, altitude: 200, ground: 0, inverted: 0, service: 0 }, w, !flyby);
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    running = voice;
+    runBtn.textContent = 'Stop';
+    live = {
+      stop() {
+        cancelAnimationFrame(frame);
+        if (kind === 'tank') voice.stop();
+        else voice.dispose();
+        host.stop();
+        running = null;
+        runBtn.textContent = 'Run';
+      },
+    };
+  };
+  const runBtn = button('Run', () => (running ? stopLive() : run()));
+  const pick = el('select', { onchange: () => { state.vehicle = pick.value; if (running) run(); } },
+    ...usable.map((v) => el('option', { value: v.id, textContent: `${v.name}${v.count > 1 ? ` × ${v.count}` : ''}`, selected: v.id === state.vehicle })));
+  box.append(el('div', { className: 'buttons' }, runBtn, 'as', pick,
+    kind === 'plane' ? button('Start-up', () => running?.start(), 'Plays the start again') : null,
+    button('Flyby', () => { if (mixer) flyby = mixer.now; }, 'Passes by over 6 seconds. Cockpit-only layers go quiet, as they would outside.')));
+  if (kind === 'tank') box.append(testSlider(state, 'moving', 'Moving', 0, 1, 1));
+  else box.append(testSlider(state, 'throttle', 'Throttle', 0, 1, 0.01), testSlider(state, 'speed', 'Airspeed', 0, 250, 1), testSlider(state, 'turn', 'Turn strength', 0, 4, 0.05), testSlider(state, 'damage', 'Damage', 0, 1, 0.01));
+  return box;
+}
+
+function renderDesign() {
+  const buildId = pageBuild();
+  const build = sound.builds[buildId];
+  if (!build) {
+    design = { type: 'build', id: 'inline' };
+    return renderDesign();
+  }
+  const id = `build:${buildId}`;
+  const kind = build.kind;
+  const doneId = `design:${design.type}:${design.id}`;
+  const locked = Boolean(sound.status[doneId]?.done);
+  const vehicle = design.type === 'vehicle' ? sound.vehicles.find((v) => v.id === design.id) : null;
+  const engine = design.type === 'engine' ? sound.engines[design.id] : vehicle ? sound.engines[vehicle.engine] : null;
+  const engineId = design.type === 'engine' ? design.id : vehicle?.engine;
+  const usingBuild = vehiclesOnBuild(buildId);
+  const onPage = vehicle ? [vehicle] : design.type === 'engine' ? sound.vehicles.filter((v) => v.engine === design.id) : usingBuild;
+  const enginesOnBuild = Object.entries(sound.engines).filter(([, e]) => e.build === buildId);
+  const title = vehicle?.name ?? engine?.name ?? build.name;
+  const finished = el('input', { type: 'checkbox', checked: locked, onchange: () => {
+    statusOf(doneId).done = finished.checked;
+    touch();
+    renderMain();
+  } });
+  const page = el('div', { className: 'wide' },
+    el('h2', { textContent: title }),
+    el('div', { className: 'dim', textContent: `Sound: ${build.name}. ${vehicle ? `Engine: ${engine?.name}${vehicle.count > 1 ? ` × ${vehicle.count}` : ''}.` : `Planes: ${onPage.map((v) => v.name).join(', ') || 'none'}.`}` }));
+  if (enginesOnBuild.length > 1) {
+    page.append(el('p', { className: 'warn', textContent: `Shared sound. Engine and start-up slots here also affect: ${enginesOnBuild.filter(([k]) => k !== engineId).map(([, e]) => e.name).join(', ')}.` }));
+  }
+  if (engineId && engine) {
+    const same = el('select', { onchange: () => { engine.build = same.value; touch(); renderList(); renderMain(); } },
+      ...Object.entries(sound.builds).filter(([, b]) => b.kind === kind).map(([k, b]) => el('option', { value: k, textContent: b.name, selected: k === buildId })));
+    page.append(el('div', { className: 'buttons' },
+      enginesOnBuild.length > 1 ? button('Give this engine its own sound', () => { makeOwnCopy(engineId); renderList(); }, 'An exact copy to start from, for this engine alone') : null,
+      el('label', {}, 'Same as ', same)));
+  }
+  const others = Object.entries(sound.builds).filter(([k, b]) => b.kind === kind && k !== buildId);
+  if (others.length) {
+    const from = el('select', {}, el('option', { value: '', textContent: 'Copy clips from...' }), ...others.map(([k, b]) => el('option', { value: k, textContent: b.name })));
+    from.onchange = () => {
+      if (!from.value || !confirm(`Replace this sound's clips and start-up with those of ${sound.builds[from.value].name}?`)) return;
+      const src = sound.recordings[`build:${from.value}`] ?? {};
+      const rec = recOf(id);
+      rec.clips = clone(src.clips ?? []);
+      rec.startup = clone(src.startup ?? { files: [], gain: 1, fade: 0.6 });
+      rec.synth = src.synth ?? 1;
+      touch();
+      updateCount();
+      renderList();
+      renderMain();
+    };
+    page.append(el('div', { className: 'buttons' }, from));
+  }
+  page.append(
+    synthToggle(id, locked),
+    el('label', {}, finished, ' finished: locks this page'),
+    testFlight(buildId, onPage, kind),
+    distanceControl(),
+    ...(kind === 'tank' ? tankSlots(buildId, locked) : [
+      ...engineSlots(buildId, onPage.map(engineOf), locked),
+      ...airframeSlots(locked, vehicle?.id),
+      ...otherSlots(onPage, locked),
+    ]),
+    ...extraSlots(vehicle ? `${kind}:${vehicle.id}` : id, kind, locked),
+  );
+  if (vehicle) page.append(el('div', { className: 'buttons' }, button('Edit vehicle details', () => { vehicleSel = vehicle.id; setTab('vehicles'); })));
+  drops.clear();
+  return page;
+}
+
 document.querySelectorAll('[data-tab]').forEach((b) => { b.onclick = () => setTab(b.dataset.tab); });
 $('save').onclick = saveAll;
 const showMute = () => {
@@ -1207,7 +1676,7 @@ addEventListener('beforeunload', (e) => {
 });
 showMute();
 updateCount();
-setTab('sounds');
+setTab('design');
 
 // The running engine under auditions. It has its own life: changing page leaves it on.
 let bed = null;

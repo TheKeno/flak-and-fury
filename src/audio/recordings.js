@@ -20,6 +20,7 @@ function pathsIn(sound) {
   for (const r of Object.values(sound.recordings ?? {})) {
     r.groups?.forEach((g) => add(g.files));
     add(r.clips);
+    add(r.startup?.files);
   }
   for (const l of Object.values(sound.layers ?? {})) add(l.group?.files);
   return paths;
@@ -239,6 +240,32 @@ export function createRecordings(mixer, sound) {
     };
   }
 
+  // A recorded engine start: plays from its start point, and at its caught point fades away as the
+  // running engine fades in. Returns the seconds until caught, or null if there is no recording.
+  function playStartup(recId, dest) {
+    const startup = sound.recordings?.[recId]?.startup;
+    const files = (startup?.files ?? []).filter((f) => buffers.has(f.path));
+    if (!files.length) return null;
+    const file = files[Math.floor(Math.random() * files.length)];
+    const buf = buffers.get(file.path);
+    const begin = file.start ?? 0;
+    const end = file.end ?? buf.duration;
+    const caught = Math.max(0, Math.min(end, file.caught ?? end) - begin);
+    const fade = Math.min(startup.fade ?? 0.6, end - begin - caught + 0.001);
+    const at = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    const level = startup.gain ?? 1;
+    g.gain.setValueAtTime(0, at);
+    g.gain.linearRampToValueAtTime(level, at + 0.01);
+    g.gain.setValueAtTime(level, at + caught);
+    g.gain.linearRampToValueAtTime(0, at + caught + fade);
+    src.connect(g).connect(dest);
+    src.start(at, begin, Math.min(end - begin, caught + fade));
+    return { caught, fade, stop() { try { src.stop(); } catch { /* already over */ } g.disconnect(); } };
+  }
+
   // A view of the mixer whose buses pass through the sound's synth level, so any synthesized
   // sound can be turned down beside its recordings without knowing about them.
   function scoped(id) {
@@ -316,6 +343,7 @@ export function createRecordings(mixer, sound) {
     createLoop,
     createClips,
     createTankClips,
+    playStartup,
     createLayerHost,
     scoped,
     synthLevel,

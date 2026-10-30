@@ -71,6 +71,12 @@ test('a live change keeps the objects running voices hold', () => {
   assert.equal('old' in data, false);
 });
 
+test('the slots an engine shares are found through a vehicle, an engine and a build', () => {
+  for (const b of Object.keys(sound.builds)) {
+    assert.ok(sound.vehicles.some((v) => sound.engines[v.engine]?.build === b), `nothing uses ${b}`);
+  }
+});
+
 test('an unlisted plane falls back on its layout', () => {
   assert.equal(engineSoundFor(sound, 'nosuchplane', 'radial').build, sound.builds.radial);
   assert.equal(engineSoundFor(sound, 'bf110').count, 2);

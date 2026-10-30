@@ -52,6 +52,15 @@
       tbody tr { cursor: pointer; }
       tbody tr:hover { background: #20242a; }
       .wide { max-width: 760px; }
+      .slot { border: 1px solid var(--line); margin: 3px 0; }
+      .slot summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 4px 8px; cursor: pointer; list-style: none; }
+      .slot .sname { width: 120px; }
+      .slot .sfile { flex: 1; min-width: 140px; color: var(--dim); }
+      .slot.empty { border-style: dashed; }
+      .slot.over { border-color: var(--accent); }
+      .slot .sbody { padding: 4px 10px 10px; }
+      .indent { margin-left: 16px; }
+      .indent2 { margin-left: 32px; color: var(--dim); }
       @media (max-width: 760px) {
         #tabview { flex-direction: column; }
         #list { width: 100%; max-height: 35%; border-right: 0; border-bottom: 1px solid var(--line); }
@@ -62,6 +71,7 @@
   <body>
     <header>
       <strong>SOUND LAB</strong>
+      <button data-tab="design">Sound Design</button>
       <button data-tab="sounds">Sounds</button>
       <button data-tab="vehicles">Vehicles</button>
       <button data-tab="mix">Mix</button>
