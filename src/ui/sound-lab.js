@@ -1558,7 +1558,7 @@ function synthToggle(id, locked) {
 // Everything on the page, together: one engine voice and the layers on it.
 function testFlight(buildId, vehicles, kind) {
   const usable = vehicles.length ? vehicles : sound.vehicles.filter((v) => v.kind === kind).slice(0, 1);
-  const state = { vehicle: usable.find(inGame)?.id ?? usable[0]?.id, throttle: 0.8, speed: 100, turn: 0, damage: 0, moving: 1 };
+  const state = { vehicle: usable.find(inGame)?.id ?? usable[0]?.id, throttle: 0, speed: 0, turn: 0, damage: 0, moving: 1 }; // Run: the start-up, then idle on the ground
   const box = el('div', {}, el('h3', { textContent: 'Test Flight' }));
   let running = null;
   let flyby = 0;
@@ -1611,6 +1611,7 @@ function testFlight(buildId, vehicles, kind) {
   box.append(el('div', { className: 'buttons' }, runBtn, 'as', pick,
     kind === 'plane' ? button('Start-up', () => running?.start(), 'Plays the start again') : null,
     button('Flyby', () => { if (mixer) flyby = mixer.now; }, 'Passes by over 6 seconds. Cockpit-only layers go quiet, as they would outside.')));
+  box.append(slider(settings.audio, LEVEL_FIELDS[0], () => mixer?.applyLevels(), false));
   if (kind === 'tank') box.append(testSlider(state, 'moving', 'Moving', 0, 1, 1));
   else box.append(testSlider(state, 'throttle', 'Throttle', 0, 1, 0.01), testSlider(state, 'speed', 'Airspeed', 0, 250, 1), testSlider(state, 'turn', 'Turn strength', 0, 4, 0.05), testSlider(state, 'damage', 'Damage', 0, 1, 0.01));
   return box;
