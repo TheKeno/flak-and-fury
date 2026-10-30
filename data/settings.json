@@ -34,7 +34,12 @@
   "servicing": {
     "crewDelay": 1.2,
     "crewWalkSpeed": 50,
+    "crewSetup": 1,
     "crewRespawn": 3,
+    "crewStartle": 1.2,
+    "crewKillSpeed": 2.5,
+    "crewTurnKillNose": 0.3,
+    "crewTurnKillWing": 0.4,
     "repairPerSec": 25,
     "refuelTime": 5,
     "rearmTime": 3,

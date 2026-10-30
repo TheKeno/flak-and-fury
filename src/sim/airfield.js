@@ -9,7 +9,10 @@ import { allGuns } from './weapons.js';
 const FULL_TANK = 0.99;
 const TOP_UP_BELOW = 0.9; // once serviced, an idling engine only brings the crew back below this
 
-export const DEFAULT_SERVICING = { crewDelay: 1.2, crewWalkSpeed: 50, crewRespawn: 3, repairPerSec: 25, refuelTime: 5, rearmTime: 3, recoveryTime: 20 };
+export const DEFAULT_SERVICING = {
+  crewDelay: 1.2, crewWalkSpeed: 50, crewSetup: 1, crewRespawn: 3, crewStartle: 1.2, crewKillSpeed: 2.5, crewTurnKillNose: 0.3, crewTurnKillWing: 0.4,
+  repairPerSec: 25, refuelTime: 5, rearmTime: 3, recoveryTime: 20,
+};
 
 // The ground crew are two mechanics in world.crew: { id, team, plane (the id they're sent to, null
 // once they head home), slot, x, y, state, t }. state: wait (at the hangar, reacting), out (walking to
@@ -17,16 +20,14 @@ export const DEFAULT_SERVICING = { crewDelay: 1.2, crewWalkSpeed: 50, crewRespaw
 // home). Slot 0 works at the nose, slot 1 at the wing.
 const CREW_AT = [9, -3]; // where along the plane each slot works, ahead of its centre
 const CREW_LAG = 0.25; // seconds the second man sets off after the first
-// Seconds the crew stand frozen at the job when the engine opens up: long enough for a plane opening
-// the throttle fully to start rolling into them (the throttle takes about a second to open).
-const CREW_STARTLE = 1.2;
-const CREW_SETUP = 1; // seconds at the plane setting up their equipment before work starts
-// Turning round on the spot (Shift) kills the men at the plane: how far through the turn the propeller
-// reaches the nose man and the wing the other.
-const TURN_KILL = [0.3, 0.4];
-const KILL_SPEED = 2.5; // a plane rolling faster than this runs down crew under its nose and wings
+// Crew numbers live in settings.servicing (crewSetup, crewStartle, crewKillSpeed, crewTurnKill*):
+// crewStartle is the time the crew stand frozen at the job when the engine opens up, long enough for a
+// plane opening the throttle fully to start rolling into them; crewKillSpeed is how fast a plane has to
+// roll to run down crew under its nose and wings; crewTurnKill* is how far through a turn on the spot
+// (Shift) the propeller reaches the nose man and the wing the other.
+const setting = (cfg, key) => cfg[key] ?? DEFAULT_SERVICING[key];
 const DT_MIN = 1e-3; // keeps a waiting service's wait above 0
-const walkSpeed = (cfg) => cfg.crewWalkSpeed ?? DEFAULT_SERVICING.crewWalkSpeed;
+const walkSpeed = (cfg) => setting(cfg, 'crewWalkSpeed');
 const facing = (p) => (Math.cos(p.angle) >= 0 ? 1 : -1);
 
 // Sends out whoever the plane's crew is missing.
@@ -60,7 +61,7 @@ export function stepCrew(world, dt) {
   for (let i = world.crew.length - 1; i >= 0; i--) {
     const c = world.crew[i];
     const p = c.plane != null ? world.planes.find((o) => o.id === c.plane) : null;
-    if (c.plane != null && !p?.service) sendBack(c, c.state === 'work' || c.state === 'setup' ? CREW_STARTLE : 0);
+    if (c.plane != null && !p?.service) sendBack(c, c.state === 'work' || c.state === 'setup' ? setting(world.servicing, 'crewStartle') : 0);
     if (c.state === 'wait') {
       c.t -= dt;
       if (c.t <= 0) c.state = c.plane == null ? 'back' : 'out';
@@ -79,18 +80,18 @@ export function stepCrew(world, dt) {
           continue;
         }
         c.state = 'setup';
-        c.t = CREW_SETUP;
+        c.t = setting(world.servicing, 'crewSetup');
       } else c.x += Math.sign(d) * speed * dt;
     }
     c.y = world.terrain.heightAt(c.x);
-    const by = world.planes.find((o) => o.state === 'ground' && o.speed > KILL_SPEED && underPlane(o, c.x));
+    const by = world.planes.find((o) => o.state === 'ground' && o.speed > setting(world.servicing, 'crewKillSpeed') && underPlane(o, c.x));
     if (by) {
       killCrew(world, i, by, 'runDown');
       continue;
     }
     // A plane turning on the spot swings its propeller and wing through whoever stands at it. With the
     // engine stopped it is just the wing, so less of a mess.
-    if (p && p.groundTurn != null && p.groundTurn >= TURN_KILL[c.slot] && (c.state === 'work' || c.state === 'setup')) {
+    if (p && p.groundTurn != null && p.groundTurn >= setting(world.servicing, c.slot === 0 ? 'crewTurnKillNose' : 'crewTurnKillWing') && (c.state === 'work' || c.state === 'setup')) {
       killCrew(world, i, p, p.engineRunning ? 'runDown' : 'other');
     }
   }
@@ -105,7 +106,7 @@ function underPlane(p, x) {
 function killCrew(world, i, p, cause) {
   const c = world.crew[i];
   world.crew.splice(i, 1);
-  world.crewDown[c.team] = world.servicing.crewRespawn ?? DEFAULT_SERVICING.crewRespawn;
+  world.crewDown[c.team] = setting(world.servicing, 'crewRespawn');
   // Force in a soldier's hit points, as for infantry: the faster the plane, the worse it is (a turn on
   // the spot counts as 4).
   world.events.push({

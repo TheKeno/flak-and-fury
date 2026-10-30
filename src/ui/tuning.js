@@ -65,10 +65,17 @@ const CAMERA_FIELDS = [
   ['zoomFullSpeed', 'Speed zoom: full at', 0, 300, 5, 'Speed (px/s) where the view is fully zoomed out. Dives reach about 200.'],
   ['zoomSpeed', 'Speed zoom: smoothness', 0.2, 5, 0.1, 'How quickly the zoom follows your speed. Lower = slower, smoother.'],
 ];
-const SERVICING_FIELDS = [
+const CREW_FIELDS = [
   ['crewDelay', 'Crew reaction time', 0, 5, 0.1, 'Seconds after you stop before the ground crew set off from the hangar.'],
   ['crewWalkSpeed', 'Crew walking speed', 10, 150, 1, 'World units per second the crew walk from the hangar to your plane. Stop far down the strip and they take longer.'],
+  ['crewSetup', 'Setting up at the plane', 0, 5, 0.1, 'Seconds the crew spend getting their equipment ready when they reach the plane, before any work starts. Every visit, replacements included.'],
   ['crewRespawn', 'Replacement crew after', 0, 30, 0.5, 'Seconds after a mechanic is run down before another walks out from the hangar to carry on the job.'],
+  ['crewStartle', 'Frozen when engine opens up', 0, 4, 0.1, 'Seconds the crew stand at the job when you open the throttle, before they run. Long enough and you roll into them.'],
+  ['crewKillSpeed', 'Run down from', 0.5, 20, 0.5, 'Speed (units per second) above which a rolling plane runs down crew under its nose and wings.'],
+  ['crewTurnKillNose', 'Turn on the spot: nose man dies at', 0, 1, 0.05, 'How far through a Shift turn on the spot the propeller reaches the man at the nose (0 = at once, 1 = end of the turn).'],
+  ['crewTurnKillWing', 'Turn on the spot: wing man dies at', 0, 1, 0.05, 'How far through a Shift turn on the spot the wing reaches the man beside it.'],
+];
+const SERVICING_FIELDS = [
   ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
   ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
   ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],
@@ -511,7 +518,12 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     false,
     el('label', { class: 'row check', title: 'Show the swastika on German fins, as painted in 1943. Off: the fin is left plain.' }, el('span', {}, 'Historical swastika (German fins)'), swastikaBox),
   );
-  const servicingSection = section('Ground crew', false, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f))));
+  const servicingSection = section(
+    'Ground crew',
+    false,
+    section('Crew on foot', true, ...CREW_FIELDS.map((f) => add(slider(settings.servicing, f)))),
+    section('Work', true, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f)))),
+  );
   const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
   const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
   const audioSection = section(
