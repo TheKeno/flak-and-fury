@@ -15,7 +15,7 @@ import { radarHealth } from '../sim/ground.js';
 
 export const SCOPE = { x: 132, y: 2, w: 216, h: 24 }; // position on the 480x270 HUD
 const RES = 4; // scope canvas pixels per HUD pixel
-const PHOSPHOR = [110, 255, 140];
+export const PHOSPHOR = [110, 255, 140];
 
 const rgba = (a) => `rgba(${PHOSPHOR[0]},${PHOSPHOR[1]},${PHOSPHOR[2]},${a.toFixed(3)})`;
 
@@ -162,6 +162,11 @@ export function createRadar(world, cfg) {
     },
     get sweeps() {
       return sweeps;
+    },
+    // How brightly an enemy plane's echo glows on your scope, 0 when it isn't plotted.
+    enemyGlow(id) {
+      const plot = plots.get(id);
+      return plot && !plot.friendly && health > 0 ? Math.max(0, plot.glow) : 0;
     },
     // Is this plane currently below the enemy's radar?
     belowRadar: (p) => p.state === 'air' && p.y - world.terrain.heightAt(p.x) < cfg.lowGap,

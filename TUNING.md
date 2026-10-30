@@ -117,6 +117,11 @@ the sweep stutters and echoes drift or vanish (`dropout` = share of echoes lost 
 destroyed); when it's destroyed the scope goes dark for the rest of the match. The station's hit
 points are under Ground targets.
 
+Enemy planes your scope has plotted get a phosphor-green outline on screen, flaring as the beam
+sweeps them and fading with the echo (so no outline for low flyers or with the station lost):
+`outline` (true / false), `outlineAlpha` (strength, 0 hides it; try 0.4 – 0.8), `outlineNear` and
+`outlineFar` (full strength up to the first distance, gone at the second; try 200 / 900).
+
 `net`: online play (tuning panel → Online). `snapshotEvery`: how often the host sends its world to
 guests, in sim ticks (60 a second; 3 = 20 snapshots a second). `delay`: how many seconds in the past
 a guest sees the host's world, so things glide smoothly between snapshots (raise it if planes stutter

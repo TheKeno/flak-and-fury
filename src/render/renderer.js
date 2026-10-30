@@ -13,7 +13,7 @@ import { drawHud, damageLines } from './hud.js';
 import { createParticles } from './particles.js';
 import { createGore } from './gore.js';
 import { drawText, textWidth } from './font.js';
-import { createRadar, SCOPE } from './radar.js';
+import { createRadar, SCOPE, PHOSPHOR } from './radar.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
 import { localToWorld } from '../sim/weapons.js';
@@ -656,14 +656,53 @@ export function createRenderer(canvas, world, assets) {
   // DETAIL x transform.
   const planeX = (wx) => Math.round(toScreenX(wx) * DETAIL);
   const planeY = (wy) => Math.round(toScreenY(wy) * DETAIL);
-  function drawPlane(p) {
+  function drawPlane(p, focus) {
     if (p.state === 'dead') return;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    drawPlaneDetail(p);
+    drawPlaneDetail(p, radarOutline(p, focus));
     ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
   }
 
-  function drawPlaneDetail(p) {
+  // Enemy planes your radar has plotted get a phosphor-green outline: it flares as the beam sweeps
+  // them and fades with the echo, and dims with distance. Low flyers and a dead station give none.
+  const radarCfg = assets.settings.radar; // live: the tuning panel edits this object
+  const outlines = new WeakMap(); // sprite canvas -> its silhouette in phosphor green
+  function radarOutline(p, focus) {
+    if (!radarCfg.outline || !focus || p.team === focus.team) return 0;
+    const glow = radar.enemyGlow(p.id);
+    if (glow <= 0) return 0;
+    const d = Math.hypot(p.x - focus.x, p.y - focus.y);
+    const span = Math.max(1, radarCfg.outlineFar - radarCfg.outlineNear);
+    const fade = 1 - clamp((d - radarCfg.outlineNear) / span, 0, 1);
+    return radarCfg.outlineAlpha * Math.min(1, glow * 1.5) * fade;
+  }
+  function silhouette(img) {
+    let s = outlines.get(img);
+    if (!s) {
+      s = document.createElement('canvas');
+      s.width = img.width;
+      s.height = img.height;
+      const g = s.getContext('2d');
+      g.drawImage(img, 0, 0);
+      g.globalCompositeOperation = 'source-in';
+      g.fillStyle = `rgb(${PHOSPHOR.join(',')})`;
+      g.fillRect(0, 0, s.width, s.height);
+      outlines.set(img, s);
+    }
+    return s;
+  }
+  // The silhouette nudged a pixel each way behind the sprite leaves a one-pixel rim around it.
+  function drawOutlined(img, x, y, alpha) {
+    if (alpha > 0.01) {
+      const s = silhouette(img);
+      ctx.globalAlpha = alpha;
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) ctx.drawImage(s, x + dx, y + dy);
+      ctx.globalAlpha = 1;
+    }
+    ctx.drawImage(img, x, y);
+  }
+
+  function drawPlaneDetail(p, outline) {
     const frames = assets.planeFrames(p);
     const shown = transientFrame(p, frames);
     if (shown && shown.row !== 'roll' && shown.row !== 'rollGear') {
@@ -679,7 +718,7 @@ export function createRenderer(canvas, world, assets) {
       const discs = Array.isArray(prop[0]) ? prop : [prop];
       for (const d of discs) if (d[6] < 0) drawPropDisc(p, cx, cy, d, rot, !right);
       const f = frames.frame(shown.row, shown.index, rot, !right);
-      ctx.drawImage(f.canvas, cx - f.radius, cy - f.radius);
+      drawOutlined(f.canvas, cx - f.radius, cy - f.radius, outline);
       for (const d of discs) if (d[6] >= 0) drawPropDisc(p, cx, cy, d, rot, !right);
       return;
     }
@@ -689,11 +728,11 @@ export function createRenderer(canvas, world, assets) {
     if (shown) {
       // Mid-roll: a frame of the model rolled about its long axis (gear drawn in it), rotated now.
       const f = frames.frame(shown.row, shown.index, view.angle);
-      ctx.drawImage(f.canvas, sx - f.radius, sy - f.radius);
+      drawOutlined(f.canvas, sx - f.radius, sy - f.radius, outline);
     } else {
       const set = assets.planeSprite(p)[p.inverted ? 'inverted' : 'upright'];
       drawGear(p, sx, sy, view.angle);
-      ctx.drawImage(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius);
+      drawOutlined(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius, outline);
       gore.drawPlane(ctx, p, sx, sy, view.angle, PLANE_SCALE);
     }
     drawMuzzleFlash(p, sx, sy, view.angle);
@@ -1034,7 +1073,7 @@ export function createRenderer(canvas, world, assets) {
       gore.draw(ctx, toScreenX, toScreenY, SCALE, (x) => surfaceAt(world, x), bw);
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       drawProjectiles();
-      for (const p of world.planes) drawPlane(p);
+      for (const p of world.planes) drawPlane(p, focus);
       for (const p of world.planes) drawCrew(p);
 
       if (focus && focus.consciousness < 1) {

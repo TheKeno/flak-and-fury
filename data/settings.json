@@ -101,7 +101,11 @@
     "sweepTime": 2.5,
     "afterglow": 3.2,
     "lowGap": 60,
-    "dropout": 0.6
+    "dropout": 0.6,
+    "outline": true,
+    "outlineAlpha": 0.6,
+    "outlineNear": 200,
+    "outlineFar": 900
   },
   "net": {
     "snapshotEvery": 3,

@@ -121,6 +121,9 @@ const RADAR_FIELDS = [
   ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
   ['lowGap', 'Low-level gap', 0, 150, 5, 'Planes flying lower than this above the ground drop off the radar, friend or foe (you too).'],
   ['dropout', 'Damaged: echoes lost', 0, 1, 0.05, 'Share of echoes a radar loses when its station is nearly destroyed (less when lightly damaged). Damage also adds noise, blotches, a stuttering sweep and misplaced echoes.'],
+  ['outlineAlpha', 'Enemy outline', 0, 1, 0.05, 'Strength of the green outline on enemy planes your radar has plotted; 0 hides it.'],
+  ['outlineNear', 'Outline full within', 0, 1500, 10, 'Distance up to which the enemy outline is at full strength.'],
+  ['outlineFar', 'Outline gone at', 50, 2500, 10, 'Distance at which the enemy outline has faded away.'],
 ];
 const NET_FIELDS = [
   ['snapshotEvery', 'Snapshot every (ticks)', 1, 12, 1, "How often the host sends its world to guests, in sim ticks (60 a second): 3 is 20 snapshots a second. Fewer saves bandwidth but makes the guest's view lag more. Host only."],
