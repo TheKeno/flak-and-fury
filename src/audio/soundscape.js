@@ -9,12 +9,15 @@ import { radarHealth } from '../sim/ground.js';
 import { createCrew } from './crew.js';
 import { spatialize } from './spatial.js';
 import * as sfx from './sfx.js';
+import { engineSoundFor } from './sound-data.js';
 
 const NEAR_MISS = 26; // px: rounds passing this close crack past your ears
 const ME = { dist: 0, pan: 0, gain: 1, cutoff: 18000, delay: 0, doppler: 1 };
 
 // cfg: the audio settings (hearRange, bangRange: how far sounds carry), read live for the tuning panel.
-export function createSoundscape(mixer, world, cfg = {}) {
+// sound: data/sound.json; planeDefs: to find a plane's name in it.
+export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
+  const planeIds = new Map(Object.entries(planeDefs).map(([id, def]) => [def, id]));
   const engines = new Map();
   const fires = new Map();
   const whistles = new Map();
@@ -26,7 +29,7 @@ export function createSoundscape(mixer, world, cfg = {}) {
   const snapped = new Set();
   const airflow = createAirflow(mixer);
   const body = createBody(mixer);
-  const voices = buildVoices(mixer.ctx);
+  const voices = buildVoices(mixer.ctx, sound.guns);
   const listener = { x: 0, y: 0, vx: 0, vy: 0 };
   let focusId = null;
   let impactBudget = 0;
@@ -39,7 +42,8 @@ export function createSoundscape(mixer, world, cfg = {}) {
   const engineFor = (p) => {
     let v = engines.get(p.id);
     if (!v) {
-      v = createEngineVoice(mixer, p.def.engine);
+      const { build, count } = engineSoundFor(sound, planeIds.get(p.def), p.def.engine.layout);
+      v = createEngineVoice(mixer, p.def.engine, build, count);
       engines.set(p.id, v);
       if (p.state !== 'dead') v.start();
     }
@@ -140,7 +144,7 @@ export function createSoundscape(mixer, world, cfg = {}) {
     }
     for (const o of near) {
       let t = tanks.get(o.id);
-      if (!t) tanks.set(o.id, (t = createTankEngine(mixer)));
+      if (!t) tanks.set(o.id, (t = createTankEngine(mixer, sound.builds[sound.defaultTankBuild])));
       t.update(spatialize(listener, o.x, world.terrain.heightAt(o.x) + 5, o.moving ? o.dir * o.def.speed : 0, 0, hearing()), o.moving);
     }
   }

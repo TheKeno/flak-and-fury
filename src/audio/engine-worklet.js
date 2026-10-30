@@ -23,33 +23,6 @@ class Resonator {
   }
 }
 
-const VOICES = {
-  inline: {
-    cylSpread: 0.07,
-    res: [
-      [105, 5, 1.0],
-      [420, 7, 0.55],
-      [1500, 4, 0.22],
-    ],
-    noise: 0.55,
-    crackle: 0.35,
-    drive: 2.2,
-    prop: 0.22,
-  },
-  radial: {
-    cylSpread: 0.32,
-    res: [
-      [72, 4, 1.25],
-      [260, 5, 0.6],
-      [900, 3, 0.18],
-    ],
-    noise: 0.4,
-    crackle: 0.1,
-    drive: 2.8,
-    prop: 0.3,
-  },
-};
-
 class PistonEngine extends AudioWorkletProcessor {
   static get parameterDescriptors() {
     return [
@@ -65,25 +38,32 @@ class PistonEngine extends AudioWorkletProcessor {
     super();
     const o = options.processorOptions || {};
     this.cylinders = o.cylinders || 12;
-    this.voice = VOICES[o.layout] || VOICES.inline;
+    this.voice = o.voice;
     this.bladeRatio = (o.gearRatio || 0.5) * (o.propBlades || 3);
     this.cylGain = Array.from({ length: this.cylinders }, () => 1 + (Math.random() * 2 - 1) * this.voice.cylSpread);
-    this.res = this.voice.res.map(([f, q]) => {
-      const r = new Resonator(sampleRate);
-      r.set(f, q);
-      return r;
-    });
+    this.res = this.voice.res.map(() => new Resonator(sampleRate));
+    this.applyVoice();
+    // The Sound Lab changes the voice while it plays.
+    this.port.onmessage = (e) => {
+      this.voice = e.data;
+      this.applyVoice();
+    };
     this.phase = 0; // crankshaft revolutions
     this.lastSlot = -1;
     this.pulse = 0;
     this.noiseEnv = 0;
-    this.pulseDecay = Math.exp(-1 / (0.0011 * sampleRate));
-    this.noiseDecay = Math.exp(-1 / (0.0035 * sampleRate));
     this.propPhase = 0;
     this.wash = 0;
     this.dcIn = 0;
     this.dcOut = 0;
     this.crackle = 0;
+  }
+
+  applyVoice() {
+    const v = this.voice;
+    this.res.forEach((r, k) => r.set(v.res[k][0], v.res[k][1]));
+    this.pulseDecay = Math.exp(-1 / ((v.pulseMs / 1000) * sampleRate));
+    this.noiseDecay = Math.exp(-1 / ((v.noiseMs / 1000) * sampleRate));
   }
 
   process(_inputs, outputs, params) {
@@ -100,7 +80,7 @@ class PistonEngine extends AudioWorkletProcessor {
     const slotsPerRev = this.cylinders / 2; // four-stroke: each cylinder fires every second revolution
     const bladePerSample = revPerSample * this.bladeRatio;
     const strength = 0.35 + 0.65 * load;
-    const washLevel = (0.05 + 0.2 * load) * Math.min(1, rpm / 2500);
+    const washLevel = (v.washBase + v.washLoad * load) * Math.min(1, rpm / 2500);
 
     for (let i = 0; i < out.length; i++) {
       this.phase += revPerSample * (1 + (Math.random() - 0.5) * rough * 0.08);

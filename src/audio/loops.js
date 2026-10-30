@@ -137,22 +137,23 @@ export function createFire(mixer) {
 }
 
 // A tank: a deep, lumpy engine note with the squeal and clatter of its tracks while it moves.
-export function createTankEngine(mixer) {
+export function createTankEngine(mixer, build) {
   const { ctx } = mixer;
+  let synth = build.synth;
   const chain = spatialChain(mixer);
   const engine = ctx.createOscillator();
   engine.type = 'sawtooth';
-  engine.frequency.value = 32;
+  engine.frequency.value = (synth.engineIdle + synth.engineMove) / 2;
   const lumpy = ctx.createOscillator(); // firing pulses make the note uneven
-  lumpy.frequency.value = 9;
+  lumpy.frequency.value = (synth.lumpyIdle + synth.lumpyMove) / 2;
   const lumpyAmt = ctx.createGain();
-  lumpyAmt.gain.value = 0.35;
+  lumpyAmt.gain.value = synth.lumpyAmt;
   const engineGain = ctx.createGain();
-  engineGain.gain.value = 0.7;
+  engineGain.gain.value = synth.engineLevel;
   lumpy.connect(lumpyAmt).connect(engineGain.gain);
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.value = 260;
+  lp.frequency.value = synth.engineLp;
   engine.connect(lp).connect(engineGain).connect(chain.input);
   // Tracks: band-passed noise chopped by a square wave into clanks.
   const src = ctx.createBufferSource();
@@ -160,13 +161,13 @@ export function createTankEngine(mixer) {
   src.loop = true;
   const band = ctx.createBiquadFilter();
   band.type = 'bandpass';
-  band.frequency.value = 1700;
-  band.Q.value = 2.5;
+  band.frequency.value = synth.trackFreq;
+  band.Q.value = synth.trackQ;
   const chop = ctx.createOscillator();
   chop.type = 'square';
-  chop.frequency.value = 7;
+  chop.frequency.value = synth.chop;
   const chopAmt = ctx.createGain();
-  chopAmt.gain.value = 0.5;
+  chopAmt.gain.value = synth.chopAmt;
   const trackGain = ctx.createGain();
   trackGain.gain.value = 0;
   chop.connect(chopAmt).connect(trackGain.gain);
@@ -175,10 +176,21 @@ export function createTankEngine(mixer) {
   src.start(0, Math.random());
   return {
     update(where, moving) {
-      setT(ctx, engine.frequency, moving ? 38 : 27, 0.4);
-      setT(ctx, lumpy.frequency, moving ? 11 : 7, 0.4);
-      setT(ctx, trackGain.gain, moving ? 0.5 : 0, 0.3);
-      chain.place(where, 0.5);
+      setT(ctx, engine.frequency, moving ? synth.engineMove : synth.engineIdle, 0.4);
+      setT(ctx, lumpy.frequency, moving ? synth.lumpyMove : synth.lumpyIdle, 0.4);
+      setT(ctx, trackGain.gain, moving ? synth.trackLevel : 0, 0.3);
+      chain.place(where, synth.level);
+    },
+    // The Sound Lab's sliders: new numbers while it plays.
+    setSynth(next) {
+      synth = next;
+      lumpyAmt.gain.value = synth.lumpyAmt;
+      engineGain.gain.value = synth.engineLevel;
+      lp.frequency.value = synth.engineLp;
+      band.frequency.value = synth.trackFreq;
+      band.Q.value = synth.trackQ;
+      chop.frequency.value = synth.chop;
+      chopAmt.gain.value = synth.chopAmt;
     },
     stop() {
       chain.fade(() => {

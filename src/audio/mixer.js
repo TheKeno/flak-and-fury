@@ -8,18 +8,19 @@
 // "body" is a low-pass that closes as the pilot blacks out.
 // levels: { master, engine, sfx, ambience, music } — a live object (the tuning panel edits it);
 // call mixer.applyLevels() after changing it. master 1.0 = full loudness.
+// space: the reverb, limiter and ducking numbers from data/sound.json; mixer.applySpace() after changing it.
 const FULL_MASTER = 0.9;
 
-export async function createMixer(levels) {
+export async function createMixer(levels, space) {
   const ctx = new AudioContext({ latencyHint: 'interactive' });
   await ctx.audioWorklet.addModule(new URL('./engine-worklet.js', import.meta.url));
 
   const limiter = ctx.createDynamicsCompressor();
-  limiter.threshold.value = -8;
+  limiter.threshold.value = space.limiterThreshold;
   limiter.knee.value = 0;
   limiter.ratio.value = 20;
   limiter.attack.value = 0.002;
-  limiter.release.value = 0.2;
+  limiter.release.value = space.limiterRelease;
   limiter.connect(ctx.destination);
 
   const master = ctx.createGain();
@@ -49,9 +50,9 @@ export async function createMixer(levels) {
   buses.body.connect(master);
 
   const reverb = ctx.createConvolver();
-  reverb.buffer = makeImpulse(ctx, 2.4, 3.2);
+  reverb.buffer = makeImpulse(ctx, space.reverbSeconds, space.reverbDecay);
   const reverbReturn = ctx.createGain();
-  reverbReturn.gain.value = 0.35;
+  reverbReturn.gain.value = space.reverbReturn;
   reverb.connect(reverbReturn).connect(body);
   const reverbSend = ctx.createGain();
   reverbSend.connect(reverb);
@@ -60,6 +61,7 @@ export async function createMixer(levels) {
   const mixer = {
     ctx,
     buses,
+    limiter,
     body,
     reverbSend,
     get now() {
@@ -80,9 +82,15 @@ export async function createMixer(levels) {
         const g = buses[name].gain;
         const base = levels[name];
         g.cancelScheduledValues(at);
-        g.setTargetAtTime(base * (1 - depth), at, 0.01);
-        g.setTargetAtTime(base, at + hold, release / 3);
+        g.setTargetAtTime(base * (1 - Math.min(1, depth * space.duckDepth)), at, 0.01);
+        g.setTargetAtTime(base, at + hold, (release * space.duckRelease) / 3);
       }
+    },
+    applySpace() {
+      limiter.threshold.value = space.limiterThreshold;
+      limiter.release.value = space.limiterRelease;
+      reverbReturn.gain.value = space.reverbReturn;
+      reverb.buffer = makeImpulse(ctx, space.reverbSeconds, space.reverbDecay);
     },
     setMuted(muted) {
       mixer.muted = muted;

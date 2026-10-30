@@ -3,18 +3,7 @@
 //
 // A shot is: a supersonic crack (bright noise), the body thump of the gas (pitch-dropping sine),
 // a gassy tail (low noise) and the mechanical clack of the action.
-const GUNS = {
-  rifle: { dur: 0.09, crack: 0.9, crackT: 0.0035, body: 0.45, bodyF: 190, bodyT: 0.012, tail: 0.3, tailT: 0.025, mech: 0.25, mechF: 3400 },
-  heavy: { dur: 0.16, crack: 1.0, crackT: 0.005, body: 0.9, bodyF: 115, bodyT: 0.024, tail: 0.5, tailT: 0.045, mech: 0.3, mechF: 2500 },
-  cannon20: { dur: 0.32, crack: 1.0, crackT: 0.006, body: 1.25, bodyF: 78, bodyT: 0.055, tail: 0.75, tailT: 0.09, mech: 0.35, mechF: 1800 },
-  cannon30: { dur: 0.5, crack: 0.55, crackT: 0.008, body: 1.7, bodyF: 52, bodyT: 0.11, tail: 0.9, tailT: 0.15, mech: 0.22, mechF: 1200 },
-  // Ground weapons. A bolt-action rifle: a hard crack with a long gassy tail (the reverb adds the echo).
-  infantryRifle: { dur: 0.26, crack: 1.0, crackT: 0.003, body: 0.35, bodyF: 240, bodyT: 0.01, tail: 0.55, tailT: 0.06, mech: 0, mechF: 3000 },
-  // An 88: a deep, slow thump more felt than heard.
-  flakGun: { dur: 0.95, crack: 0.4, crackT: 0.01, body: 1.9, bodyF: 36, bodyT: 0.22, tail: 1.0, tailT: 0.26, mech: 0.12, mechF: 800 },
-  tankGun: { dur: 0.7, crack: 0.75, crackT: 0.007, body: 1.8, bodyF: 47, bodyT: 0.14, tail: 0.9, tailT: 0.18, mech: 0.2, mechF: 900 },
-};
-
+// The recipes live in data/sound.json (guns).
 function render(ctx, dur, fn) {
   const len = Math.ceil(dur * ctx.sampleRate);
   const buf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -120,10 +109,17 @@ function clunk(ctx, freq, decay) {
   });
 }
 
-export function buildVoices(ctx) {
+// Fresh variations of one gun. A voice's level goes with it to every play.
+export function renderGun(ctx, recipe) {
+  const voice = Array.from({ length: 4 }, () => shot(ctx, recipe));
+  voice.level = recipe.level;
+  return voice;
+}
+
+export function buildVoices(ctx, guns) {
   const variations = (make, n = 4) => Array.from({ length: n }, make);
   const voices = {};
-  for (const [name, v] of Object.entries(GUNS)) voices[name] = variations(() => shot(ctx, v));
+  for (const [name, recipe] of Object.entries(guns)) voices[name] = renderGun(ctx, recipe);
   voices.clank = variations(() => clank(ctx));
   voices.thunk = variations(() => thunk(ctx), 3);
   voices.snap = variations(() => snap(ctx), 3);

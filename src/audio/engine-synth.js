@@ -2,19 +2,22 @@
 const STARTER_TIME = 1.1; // starter motor cranking before the engine catches
 const CATCH_TIME = 1.4; // coughing and spluttering up to idle
 
-export function createEngineVoice(mixer, engine) {
+// build: the sound build from data/sound.json; count: engines on the plane, slightly detuned against
+// each other so a twin beats like a twin.
+export function createEngineVoice(mixer, engine, build, count = 1) {
   const { ctx } = mixer;
-  const node = new AudioWorkletNode(ctx, 'piston-engine', {
+  let synth = build.synth;
+  const nodes = Array.from({ length: Math.min(4, count) }, () => new AudioWorkletNode(ctx, 'piston-engine', {
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
     processorOptions: {
       cylinders: engine.cylinders,
-      layout: engine.layout,
+      voice: synth,
       propBlades: engine.propBlades,
       gearRatio: engine.gearRatio,
     },
-  });
+  }));
   const tone = ctx.createBiquadFilter();
   tone.type = 'lowpass';
   tone.Q.value = 0.8;
@@ -25,13 +28,13 @@ export function createEngineVoice(mixer, engine) {
   const panner = ctx.createStereoPanner();
   const out = ctx.createGain();
   out.gain.value = 0;
-  node.connect(tone).connect(presence).connect(panner).connect(out).connect(mixer.buses.engine);
+  for (const node of nodes) node.connect(tone);
+  tone.connect(presence).connect(panner).connect(out).connect(mixer.buses.engine);
   const send = ctx.createGain();
-  send.gain.value = 0.12;
+  send.gain.value = synth.reverb;
   out.connect(send).connect(mixer.reverbSend);
 
-  const params = node.parameters;
-  const p = Object.fromEntries(['rpm', 'load', 'roughness', 'misfire', 'level'].map((n) => [n, params.get(n)]));
+  const params = nodes.map((node) => Object.fromEntries(['rpm', 'load', 'roughness', 'misfire', 'level'].map((n) => [n, node.parameters.get(n)])));
   const set = (param, v, tc = 0.04) => param.setTargetAtTime(v, ctx.currentTime, tc);
   let startAt = -Infinity;
   let running = false;
@@ -57,19 +60,27 @@ export function createEngineVoice(mixer, engine) {
         misfire = Math.max(misfire, 0.65 * (1 - k));
         roughness = Math.max(roughness, 0.7 * (1 - k));
       }
-      set(p.rpm, rpm * doppler);
-      set(p.load, load);
-      set(p.roughness, roughness);
-      set(p.misfire, misfire, 0.01);
-      set(p.level, 0.55);
-      set(tone.frequency, Math.min(cutoff, 900 + load * 3800 + rpm * 0.9));
-      set(presence.gain, -4 + load * 7);
+      params.forEach((p, i) => {
+        set(p.rpm, rpm * doppler * (1 + synth.detune * (i - (params.length - 1) / 2)));
+        set(p.load, load);
+        set(p.roughness, roughness);
+        set(p.misfire, misfire, 0.01);
+        set(p.level, synth.level / Math.sqrt(params.length));
+      });
+      set(tone.frequency, Math.min(cutoff, synth.toneBase + load * synth.toneLoad + rpm * synth.toneRpm));
+      set(presence.gain, synth.presenceBase + load * synth.presenceLoad);
       set(panner.pan, pan);
       set(out.gain, level * gain, running ? 0.05 : 0.02);
     },
+    // The Sound Lab's sliders: new numbers while it plays.
+    setSynth(next) {
+      synth = next;
+      send.gain.value = synth.reverb;
+      for (const node of nodes) node.port.postMessage(synth);
+    },
     dispose() {
       out.disconnect();
-      node.disconnect();
+      for (const node of nodes) node.disconnect();
     },
   };
 }

@@ -1,0 +1,758 @@
+// The Sound Lab (sound-lab.html): audition and tune sounds without flying, on the game's own audio
+// code, and save to data/sound.json. Open with ?mute to start silent.
+import { createMixer } from '../audio/mixer.js';
+import { createEngineVoice } from '../audio/engine-synth.js';
+import { createTankEngine } from '../audio/loops.js';
+import { buildVoices, renderGun as renderGunVoice } from '../audio/gun-voices.js';
+import { spatialize } from '../audio/spatial.js';
+import * as sfx from '../audio/sfx.js';
+
+const json = async (url) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to load ${url}`);
+  return res.json();
+};
+
+const [sound, settings, planes, weapons, ground] = await Promise.all(
+  ['sound', 'settings', 'planes', 'weapons', 'ground'].map((n) => json(`data/${n}.json`)),
+);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+let saved = clone(sound);
+let dirty = false;
+
+// path, label, min, max, step, explanation
+const ENGINE_FIELDS = [
+  ['res.0.0', 'Low stack, Hz', 30, 300, 1, 'The main exhaust resonance: the chest of the engine.'],
+  ['res.0.1', 'Low sharpness', 1, 20, 0.1, 'Higher rings longer and more like a note.'],
+  ['res.0.2', 'Low level', 0, 2, 0.01, ''],
+  ['res.1.0', 'Mid stack, Hz', 100, 1000, 1, 'Sets the growl.'],
+  ['res.1.1', 'Mid sharpness', 1, 20, 0.1, ''],
+  ['res.1.2', 'Mid level', 0, 2, 0.01, ''],
+  ['res.2.0', 'High stack, Hz', 400, 4000, 10, 'Rasp and crackle on top.'],
+  ['res.2.1', 'High sharpness', 1, 20, 0.1, ''],
+  ['res.2.2', 'High level', 0, 1, 0.01, ''],
+  ['cylSpread', 'Cylinder unevenness', 0, 0.6, 0.01, 'Differences between cylinders. Low is a smooth V12, high is a lumpy radial.'],
+  ['noise', 'Exhaust noise', 0, 1.5, 0.01, 'Burst of noise in each firing.'],
+  ['crackle', 'Throttle-off crackle', 0, 1, 0.01, 'Pops when the throttle is closed at speed. Test with Load near 0.'],
+  ['drive', 'Distortion', 0.5, 6, 0.1, 'How hard the sound is pushed into saturation.'],
+  ['pulseMs', 'Pulse length, ms', 0.2, 5, 0.1, 'Length of the click in each firing.'],
+  ['noiseMs', 'Noise length, ms', 0.5, 15, 0.1, 'Length of the noise in each firing.'],
+  ['prop', 'Propeller whomp', 0, 1, 0.01, 'How much the blades chop the sound.'],
+  ['washBase', 'Prop wash at idle', 0, 0.5, 0.01, ''],
+  ['washLoad', 'Prop wash with load', 0, 1, 0.01, ''],
+  ['toneBase', 'Brightness, base Hz', 200, 4000, 10, 'The low-pass filter opens from here.'],
+  ['toneLoad', 'Brightness with load', 0, 10000, 50, ''],
+  ['toneRpm', 'Brightness with rpm', 0, 3, 0.01, ''],
+  ['presenceBase', 'Bite at idle, dB', -12, 12, 0.5, 'Boost or cut around 2.4 kHz.'],
+  ['presenceLoad', 'Bite with load, dB', 0, 15, 0.5, ''],
+  ['level', 'Volume', 0, 1.5, 0.01, ''],
+  ['reverb', 'Reverb send', 0, 0.6, 0.01, ''],
+  ['detune', 'Detune between engines', 0, 0.03, 0.0005, 'Only heard on planes with several engines: the beating of a twin.'],
+];
+const TANK_FIELDS = [
+  ['engineIdle', 'Engine note idle, Hz', 10, 80, 1, ''],
+  ['engineMove', 'Engine note moving, Hz', 10, 100, 1, ''],
+  ['engineLp', 'Engine darkness, Hz', 80, 1200, 10, 'Lower is darker and further inside the hull.'],
+  ['engineLevel', 'Engine level', 0, 1.5, 0.01, ''],
+  ['lumpyIdle', 'Lumpiness idle, Hz', 1, 30, 0.5, 'Rate of the firing pulses.'],
+  ['lumpyMove', 'Lumpiness moving, Hz', 1, 30, 0.5, ''],
+  ['lumpyAmt', 'Lumpiness amount', 0, 1, 0.01, ''],
+  ['trackFreq', 'Track pitch, Hz', 300, 5000, 10, 'The squeal of the tracks.'],
+  ['trackQ', 'Track sharpness', 0.3, 12, 0.1, ''],
+  ['chop', 'Track clank rate, Hz', 1, 25, 0.5, ''],
+  ['chopAmt', 'Track clank depth', 0, 1, 0.01, ''],
+  ['trackLevel', 'Track level', 0, 1.5, 0.01, ''],
+  ['level', 'Overall volume', 0, 1.5, 0.01, ''],
+];
+const GUN_FIELDS = [
+  ['crack', 'Crack level', 0, 2, 0.01, 'The supersonic snap.'],
+  ['crackT', 'Crack length, s', 0.001, 0.03, 0.0005, ''],
+  ['body', 'Body level', 0, 2.5, 0.01, 'The thump of the gas.'],
+  ['bodyF', 'Body pitch, Hz', 20, 400, 1, ''],
+  ['bodyT', 'Body length, s', 0.005, 0.4, 0.001, ''],
+  ['tail', 'Tail level', 0, 2, 0.01, 'The gassy rush after the shot.'],
+  ['tailT', 'Tail length, s', 0.005, 0.5, 0.001, ''],
+  ['mech', 'Action level', 0, 1, 0.01, 'The mechanical clack.'],
+  ['mechF', 'Action pitch, Hz', 300, 6000, 10, ''],
+  ['dur', 'Total length, s', 0.03, 2, 0.01, 'Long enough for the tail, or it is cut off.'],
+  ['level', 'Volume', 0, 2, 0.01, ''],
+];
+const SPACE_FIELDS = [
+  ['reverbReturn', 'Reverb level', 0, 1, 0.01, 'How loud the reverb is overall.'],
+  ['reverbSeconds', 'Reverb length, s', 0.2, 6, 0.1, ''],
+  ['reverbDecay', 'Reverb decay', 0.5, 8, 0.1, 'Higher dies away faster.'],
+  ['duckDepth', 'Ducking depth ×', 0, 2, 0.01, 'How far big bangs push engines and ambience down. 1 = as designed.'],
+  ['duckRelease', 'Ducking release ×', 0.1, 4, 0.01, 'How slowly they come back. 1 = as designed.'],
+  ['limiterThreshold', 'Limiter threshold, dB', -30, 0, 0.5, 'Loud sums get held under this.'],
+  ['limiterRelease', 'Limiter release, s', 0.02, 1, 0.01, ''],
+];
+const LEVEL_FIELDS = [
+  ['master', 'Master', 0, 2, 0.005, 'The game plays at this level too.'],
+  ['engine', 'Engines and wind', 0, 2, 0.005, ''],
+  ['sfx', 'Guns and explosions', 0, 2, 0.01, ''],
+  ['ambience', 'Ambience', 0, 2, 0.01, ''],
+  ['hearRange', 'Hearing range', 150, 2000, 10, 'Engines and most sounds fade out by this distance (a screen is about 480).'],
+  ['bangRange', 'Bang range', 150, 3000, 10, 'The same for explosions, flak and gunfire.'],
+];
+
+// One-shots and impacts: audition only for now, their numbers are still in code. Each plays as the game does.
+const ONE_SHOTS = {
+  explosion: ['Explosion', (w) => sfx.explosion(mixer, w, 1)],
+  flakBurst: ['Flak burst', (w) => sfx.flakBurst(mixer, w)],
+  touchdown: ['Touchdown', (w) => sfx.touchdown(mixer, w, 40)],
+  gearDown: ['Gear motor', (w) => sfx.gearMotor(mixer, w, 1.2, true)],
+  bellyCrunch: ['Belly crunch', (w) => sfx.bellyCrunch(mixer, w, 40)],
+  midair: ['Midair collision', (w) => sfx.midair(mixer, w, 1, false)],
+  helmetCreak: ['Helmet creak', () => sfx.helmetCreak(mixer)],
+  gearHorn: ['Gear-up horn', () => sfx.gearHorn(mixer)],
+  ignite: ['Fire ignites', (w) => sfx.ignite(mixer, w)],
+  rollWhoosh: ['Roll whoosh', (w) => sfx.rollWhoosh(mixer, w)],
+  shrapnel: ['Shrapnel on the airframe', () => sfx.shrapnel(mixer, voices, 5)],
+  collapseMasonry: ['Building collapses', (w) => sfx.collapse(mixer, w, 'masonry', 1)],
+  collapseMetal: ['Metal collapses', (w) => sfx.collapse(mixer, w, 'metal', 1)],
+  collapseWood: ['Wood collapses', (w) => sfx.collapse(mixer, w, 'wood', 1)],
+  collapseCanvas: ['Canvas collapses', (w) => sfx.collapse(mixer, w, 'canvas', 1)],
+  splash: ['Splash', (w) => sfx.splash(mixer, w)],
+  fireOut: ['Fire put out', (w) => sfx.fireOut(mixer, w)],
+  hammering: ['Hammering', (w) => sfx.hammering(mixer, w)],
+  radarPowerDown: ['Radar power-down', () => sfx.radarPowerDown(mixer)],
+  clank: ['Bullet on metal', (w) => sfx.play(mixer, voices.clank, w, { gain: 0.7, reverb: 0.2 })],
+  thunk: ['Being hit', (w) => sfx.play(mixer, voices.thunk, w, { gain: 0.6 })],
+  snap: ['Near miss', (w) => sfx.play(mixer, voices.snap, w, { gain: 0.35, reverb: 0.05 })],
+  thud: ['Bullet in soil', (w) => sfx.play(mixer, voices.thud, w, { gain: 0.5 })],
+  patter: ['Splinter tick', (w) => sfx.play(mixer, voices.patter, w, { gain: 0.4 })],
+  release: ['Bomb release', (w) => sfx.play(mixer, voices.release, w, { gain: 0.7, rate: 0.8 })],
+  click: ['Empty gun click', (w) => sfx.play(mixer, voices.click, w, { gain: 0.5 })],
+};
+// Tracked here so they can be ticked and noted; their audition comes with the recording stage.
+const LOOPS = { wind: 'Wind and dive scream', stall: 'Stall buffet', wheels: 'Wheels on grass', bombWhistle: 'Bomb whistle', scrape: 'Belly scrape', fire: 'Burning fire', radarStatic: 'Radar static', heartbeat: 'Heartbeat and breathing', crew: 'Ground crew at work' };
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => {
+  const e = Object.assign(document.createElement(tag), props);
+  e.append(...kids.filter((k) => k !== null && k !== undefined));
+  return e;
+};
+const getPath = (o, path) => path.split('.').reduce((a, k) => a[k], o);
+const setPath = (o, path, v) => {
+  const keys = path.split('.');
+  const last = keys.pop();
+  keys.reduce((a, k) => a[k], o)[last] = v;
+};
+const statusOf = (id) => (sound.status[id] ??= {});
+const touch = () => {
+  dirty = true;
+  $('save').textContent = 'Save *';
+  $('save').classList.add('on');
+};
+
+let mixer = null;
+let voices = null;
+let scope = null;
+let muted = new URLSearchParams(location.search).has('mute');
+let tab = 'sounds';
+let selected = 'build:inline';
+let vehicleSel = null;
+let filterNotDone = false;
+const vehicleFilter = { nation: '', kind: '', status: '', notDone: false, sort: 'nation', dir: 1 };
+
+// Audio can only start from a click, so everything waits for the first one that needs it.
+async function audio() {
+  if (!mixer) {
+    mixer = await createMixer(settings.audio, sound.space);
+    voices = buildVoices(mixer.ctx, sound.guns);
+    mixer.setMuted(muted);
+    scope = mixer.ctx.createAnalyser();
+    scope.fftSize = 1024;
+    mixer.limiter.connect(scope);
+    drawScope();
+  }
+  if (mixer.ctx.state === 'suspended') await mixer.ctx.resume();
+  return mixer;
+}
+
+function drawScope() {
+  const c = $('scope');
+  const g = c.getContext('2d');
+  const d = new Float32Array(scope.fftSize);
+  const step = () => {
+    scope.getFloatTimeDomainData(d);
+    // The master level is often tiny, so the picture is scaled to it to stay readable.
+    const zoom = 1 / Math.max(0.02, 0.9 * settings.audio.master);
+    g.fillStyle = '#0b0c0d';
+    g.fillRect(0, 0, c.width, c.height);
+    g.strokeStyle = '#a8905c';
+    g.beginPath();
+    for (let i = 0; i < d.length; i += 3) {
+      const x = (i / d.length) * c.width;
+      const y = c.height / 2 - Math.max(-1, Math.min(1, d[i] * zoom)) * (c.height / 2);
+      if (i) g.lineTo(x, y);
+      else g.moveTo(x, y);
+    }
+    g.stroke();
+    requestAnimationFrame(step);
+  };
+  step();
+}
+
+// Listening position, shared by everything played: the game's own distance model.
+const listen = { distance: 0 };
+const where = (x = listen.distance, range = settings.audio.hearRange, vx = 0) =>
+  (x === 0 && vx === 0 ? { dist: 0, pan: 0, gain: 1, cutoff: 18000, delay: 0, doppler: 1 } : spatialize({ x: 0, y: 0, vx: 0, vy: 0 }, x, 0, vx, 0, range));
+
+// Whatever is playing on the open page.
+let live = null;
+function stopLive() {
+  live?.stop();
+  live = null;
+}
+
+function slider(obj, [path, label, min, max, step, tip], onChange, locked) {
+  const out = el('output', { textContent: getPath(obj, path) });
+  const input = el('input', { type: 'range', min, max, step, value: getPath(obj, path), title: tip, disabled: locked });
+  input.oninput = () => {
+    const v = Number(input.value);
+    setPath(obj, path, v);
+    out.textContent = v;
+    onChange?.(false);
+  };
+  input.onchange = () => {
+    touch();
+    onChange?.(true);
+  };
+  return el('label', { className: 'field', title: tip }, el('span', { textContent: label }), input, out);
+}
+
+const testSlider = (state, key, label, min, max, step) => {
+  const out = el('output', { textContent: state[key] });
+  const input = el('input', { type: 'range', min, max, step, value: state[key] });
+  input.oninput = () => {
+    state[key] = Number(input.value);
+    out.textContent = state[key];
+  };
+  return el('label', { className: 'field' }, el('span', { textContent: label }), input, out);
+};
+
+const distanceControl = () => testSlider(listen, 'distance', 'Listen from, distance', 0, 1500, 10);
+
+function button(text, fn, title) {
+  return el('button', { textContent: text, title, onclick: fn });
+}
+
+// Vehicles using a build, for "what does this change".
+function vehiclesOnBuild(buildId) {
+  return sound.vehicles.filter((v) => sound.engines[v.engine]?.build === buildId);
+}
+const engineOf = (v) => {
+  const eng = sound.engines[v.engine] ?? { cylinders: 12 };
+  const data = planes[v.id]?.engine ?? v.estimate ?? {};
+  return { cylinders: eng.cylinders, idleRpm: data.idleRpm ?? 800, cruiseRpm: data.cruiseRpm ?? 2300, maxRpm: data.maxRpm ?? 2800, propBlades: data.propBlades ?? 3, gearRatio: data.gearRatio ?? 0.6 };
+};
+const inGame = (v) => Boolean(planes[v.id] || (ground[v.id] && v.kind === 'tank'));
+
+// The left list: every sound with its tick.
+function soundItems() {
+  const builds = (kind) => Object.entries(sound.builds).filter(([, b]) => b.kind === kind).map(([id, b]) => [`build:${id}`, b.name]);
+  return [
+    ['Aircraft engine builds', builds('plane')],
+    ['Tank builds', builds('tank')],
+    ['Guns', Object.keys(sound.guns).map((n) => [`gun:${n}`, gunTitle(n)])],
+    ['One-shots and impacts', Object.entries(ONE_SHOTS).map(([id, [name]]) => [`sfx:${id}`, name])],
+    ['Loops', Object.entries(LOOPS).map(([id, name]) => [`loop:${id}`, name])],
+  ];
+}
+const GUN_NAMES = { rifle: 'Rifle-calibre MG', heavy: 'Heavy MG', cannon20: '20 mm cannon', cannon30: '30 mm cannon', infantryRifle: 'Infantry rifle', flakGun: 'Flak gun', tankGun: 'Tank gun' };
+const gunTitle = (n) => GUN_NAMES[n] ?? n;
+
+function updateCount() {
+  const all = soundItems().flatMap(([, items]) => items);
+  const done = all.filter(([id]) => sound.status[id]?.done).length;
+  $('count').textContent = `${done} / ${all.length} done`;
+}
+
+function renderList() {
+  const list = $('list');
+  list.replaceChildren();
+  list.style.display = tab === 'sounds' ? '' : 'none';
+  if (tab !== 'sounds') return;
+  const filter = el('input', { type: 'checkbox', checked: filterNotDone, onchange: (e) => { filterNotDone = e.target.checked; renderList(); } });
+  list.append(el('label', {}, filter, ' only not done'));
+  for (const [group, items] of soundItems()) {
+    const shown = items.filter(([id]) => !filterNotDone || !sound.status[id]?.done);
+    if (!shown.length) continue;
+    list.append(el('div', { className: 'group', textContent: group }));
+    for (const [id, name] of shown) {
+      const done = Boolean(sound.status[id]?.done);
+      const tick = el('input', { type: 'checkbox', checked: done, title: 'Finished: locks its sliders' });
+      tick.onclick = (e) => e.stopPropagation();
+      tick.onchange = () => {
+        statusOf(id).done = tick.checked;
+        touch();
+        updateCount();
+        renderList();
+        if (id === selected) renderMain();
+      };
+      list.append(el('div', {
+        className: `row${id === selected ? ' sel' : ''}${done ? ' isdone' : ''}`,
+        onclick: () => {
+          selected = id;
+          renderList();
+          renderMain();
+        },
+      }, tick, el('span', { textContent: name })));
+    }
+  }
+}
+
+// Notes on any page: the facts, and your own line.
+function notesPanel(id, hasReference = true) {
+  const s = statusOf(id);
+  const area = (key, hint) => {
+    const t = el('textarea', { value: s[key] ?? '', placeholder: hint });
+    t.onchange = () => {
+      s[key] = t.value;
+      touch();
+    };
+    return t;
+  };
+  return el('div', { className: 'wide' },
+    hasReference ? el('h3', { textContent: 'Reference' }) : null,
+    hasReference ? area('reference', 'Facts about this sound') : null,
+    el('h3', { textContent: 'Your notes' }),
+    area('note', 'e.g. too thin at distance'));
+}
+
+// Saved values come back while the button is held, and on Reset for good.
+function compareButtons(id, getCurrent, getSaved, write, apply) {
+  let keep = null;
+  const hold = el('button', { textContent: 'Hold: hear saved', title: 'Plays the last saved version while held' });
+  hold.onpointerdown = () => {
+    keep = clone(getCurrent());
+    const s = getSaved();
+    if (s) {
+      write(clone(s));
+      apply();
+    }
+  };
+  const release = () => {
+    if (!keep) return;
+    write(keep);
+    keep = null;
+    apply();
+  };
+  hold.onpointerup = release;
+  hold.onpointerleave = release;
+  return el('div', { className: 'buttons' }, hold,
+    button('Reset to saved', () => {
+      const s = getSaved();
+      if (!s) return;
+      write(clone(s));
+      apply();
+      touch();
+      renderMain();
+    }),
+    button('Copy as text', () => navigator.clipboard?.writeText(JSON.stringify({ [id]: getCurrent() }, null, 2)), 'To paste to Claude or keep somewhere'));
+}
+
+function pageHead(id, title, sub) {
+  const done = Boolean(sound.status[id]?.done);
+  return el('div', {}, el('h2', { textContent: title }),
+    sub ? el('div', { className: 'dim', textContent: sub }) : null,
+    done ? el('div', { className: 'warn', textContent: 'Marked done: untick it in the list to change it.' }) : null);
+}
+
+function renderPlaneBuild(id, buildId) {
+  const build = sound.builds[buildId];
+  const locked = Boolean(sound.status[id]?.done);
+  const using = vehiclesOnBuild(buildId);
+  const state = { vehicle: using.find(inGame)?.id ?? using[0]?.id ?? 'spitfire', rpm: 2300, load: 0.8, roughness: 0.1, misfire: 0 };
+  const box = el('div', {});
+  let voice = null;
+  let flyby = 0;
+  const play = async () => {
+    await audio();
+    stopLive();
+    const v = sound.vehicles.find((x) => x.id === state.vehicle);
+    const spec = v ? engineOf(v) : { cylinders: 12, propBlades: 3, gearRatio: 0.6 };
+    voice = createEngineVoice(mixer, spec, build, v?.count ?? 1);
+    voice.start();
+    playBtn.textContent = 'Stop';
+    let frame = 0;
+    const tick = () => {
+      const t = flyby ? (mixer.now - flyby) / 6 : 0;
+      if (t >= 1) flyby = 0;
+      const w = flyby ? where(-700 + t * 1400, settings.audio.hearRange, 233) : where();
+      voice.update({ ...state, gain: w.gain, pan: w.pan, cutoff: w.cutoff, doppler: w.doppler });
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    live = {
+      stop() {
+        cancelAnimationFrame(frame);
+        voice.dispose();
+        voice = null;
+        playBtn.textContent = 'Play';
+      },
+    };
+  };
+  const playBtn = button('Play', () => (voice ? stopLive() : play()));
+  const select = el('select', { onchange: () => {
+    state.vehicle = select.value;
+    if (voice) play();
+  } }, ...sound.vehicles.filter((v) => v.kind === 'plane').map((v) => el('option', { value: v.id, textContent: `${v.name}${v.count > 1 ? ` × ${v.count}` : ''}`, selected: v.id === state.vehicle })));
+  box.append(
+    pageHead(id, build.name, `Changes ${using.length} vehicles: ${using.map((v) => v.name).join(', ') || 'none'}`),
+    el('h3', { textContent: 'Test' }),
+    el('div', { className: 'buttons' }, playBtn, 'as', select,
+      button('Start-up', () => voice?.start(), 'Starter motor and catching'),
+      button('Failure', () => {
+        state.misfire = 1;
+        state.rpm = 700;
+        setTimeout(() => renderTestValues(), 0);
+      }, 'Sets misfire to full and drops the rpm'),
+      button('Flyby', () => { if (mixer) flyby = mixer.now; }, 'Passes by over 6 seconds with Doppler and distance')),
+  );
+  const tests = el('div', {});
+  const renderTestValues = () => tests.replaceChildren(
+    testSlider(state, 'rpm', 'Rpm', 300, 3200, 10),
+    testSlider(state, 'load', 'Load (throttle)', 0, 1, 0.01),
+    testSlider(state, 'roughness', 'Roughness', 0, 1, 0.01),
+    testSlider(state, 'misfire', 'Misfire', 0, 1, 0.01),
+  );
+  renderTestValues();
+  const apply = () => voice?.setSynth(build.synth);
+  box.append(tests, distanceControl(), el('h3', { textContent: 'Character' }),
+    compareButtons(id, () => build.synth, () => saved.builds[buildId]?.synth, (v) => { build.synth = v; }, apply),
+    ...ENGINE_FIELDS.map((f) => slider(build.synth, f, apply, locked)), notesPanel(id));
+  return box;
+}
+
+function renderTankBuild(id, buildId) {
+  const build = sound.builds[buildId];
+  const locked = Boolean(sound.status[id]?.done);
+  const using = vehiclesOnBuild(buildId);
+  const state = { moving: true };
+  let voice = null;
+  const play = async () => {
+    await audio();
+    stopLive();
+    voice = createTankEngine(mixer, build);
+    playBtn.textContent = 'Stop';
+    let frame = 0;
+    const tick = () => {
+      voice.update(where(), state.moving);
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    live = {
+      stop() {
+        cancelAnimationFrame(frame);
+        voice.stop();
+        voice = null;
+        playBtn.textContent = 'Play';
+      },
+    };
+  };
+  const playBtn = button('Play', () => (voice ? stopLive() : play()));
+  const moving = el('input', { type: 'checkbox', checked: true, onchange: () => { state.moving = moving.checked; } });
+  const isDefault = el('input', { type: 'checkbox', checked: sound.defaultTankBuild === buildId, disabled: sound.defaultTankBuild === buildId, onchange: () => {
+    sound.defaultTankBuild = buildId;
+    touch();
+    renderMain();
+  } });
+  const apply = () => voice?.setSynth(build.synth);
+  return el('div', {},
+    pageHead(id, build.name, `Vehicles: ${using.map((v) => v.name).join(', ') || 'none'}`),
+    el('h3', { textContent: 'Test' }),
+    el('div', { className: 'buttons' }, playBtn, el('label', {}, moving, ' moving')),
+    distanceControl(),
+    el('label', {}, isDefault, ' played by the generic tank in the game today'),
+    el('h3', { textContent: 'Character' }),
+    compareButtons(id, () => build.synth, () => saved.builds[buildId]?.synth, (v) => { build.synth = v; }, apply),
+    ...TANK_FIELDS.map((f) => slider(build.synth, f, apply, locked)), notesPanel(id));
+}
+
+function renderGun(id, name) {
+  const recipe = sound.guns[name];
+  const locked = Boolean(sound.status[id]?.done);
+  const users = Object.entries(weapons).filter(([, w]) => w?.voice === name);
+  const rpmOf = users[0]?.[1].rpm ?? 500;
+  const state = { rpm: rpmOf };
+  let burst = 0;
+  // Same two offset layers as the game's own shot.
+  const fire = () => {
+    const w = where(listen.distance, settings.audio.bangRange);
+    const near = listen.distance === 0;
+    const gain = near ? 0.42 : 0.8;
+    sfx.play(mixer, voices[name], w, { gain, reverb: near ? 0.08 : 0.3 });
+    sfx.play(mixer, voices[name], w, { gain: gain * 0.45, rate: 0.93, offset: 0.007 });
+  };
+  const stopBurst = () => {
+    clearTimeout(burst);
+    burst = 0;
+    live = null;
+    burstBtn.classList.remove('on');
+  };
+  const burstBtn = button('Burst', async () => {
+    await audio();
+    if (burst) return stopBurst();
+    stopLive();
+    live = { stop: stopBurst };
+    burstBtn.classList.add('on');
+    const shot = () => {
+      fire();
+      burst = setTimeout(shot, 60000 / state.rpm);
+    };
+    shot();
+  }, 'Fires until pressed again');
+  const apply = (final) => {
+    if (final && voices) voices[name] = renderGunVoice(mixer.ctx, recipe); // re-rendered when the slider is let go
+  };
+  return el('div', {},
+    pageHead(id, gunTitle(name), users.length ? `Used by: ${users.map(([w]) => w).join(', ')}` : 'Ground weapon'),
+    el('h3', { textContent: 'Test' }),
+    el('div', { className: 'buttons' }, button('Fire', async () => { await audio(); fire(); }), burstBtn),
+    testSlider(state, 'rpm', 'Rounds per minute', 60, 2000, 10),
+    distanceControl(),
+    el('h3', { textContent: 'Character' }),
+    compareButtons(id, () => recipe, () => saved.guns[name], (v) => Object.assign(recipe, v), () => apply(true)),
+    ...GUN_FIELDS.map((f) => slider(recipe, f, apply, locked)), notesPanel(id));
+}
+
+function renderOneShot(id, key) {
+  const [name, fn] = ONE_SHOTS[key];
+  return el('div', {}, pageHead(id, name),
+    el('p', { className: 'dim', textContent: 'Audition only for now: its numbers are still in the code. Recordings can replace or join it in the next stage.' }),
+    el('div', { className: 'buttons' }, button('Play', async () => { await audio(); fn(where(listen.distance, settings.audio.bangRange)); })),
+    distanceControl(), notesPanel(id));
+}
+
+function renderLoop(id, key) {
+  return el('div', {}, pageHead(id, LOOPS[key]),
+    el('p', { className: 'dim', textContent: 'Can be ticked and noted now. Audition and sliders come with the recording stage.' }),
+    notesPanel(id));
+}
+
+// The Vehicles tab: the whole roster, and one vehicle's sound set-up.
+function renderVehicles() {
+  const f = vehicleFilter;
+  const nations = [...new Set(sound.vehicles.map((v) => v.nation))];
+  const pick = (key, options) => el('select', { onchange: (e) => { f[key] = e.target.value; renderMain(); } },
+    ...options.map(([value, text]) => el('option', { value, textContent: text, selected: f[key] === value })));
+  const row = (v) => {
+    const eng = sound.engines[v.engine];
+    const build = sound.builds[eng?.build];
+    return { v, nation: v.nation, name: v.name, engine: eng?.name ?? '?', count: v.count, layout: eng ? `${eng.layout} ${eng.cylinders}` : '', status: inGame(v) ? 'In game' : v.later ? 'Later' : 'Planned', build: build?.name ?? '?', done: sound.status[`build:${eng?.build}`]?.done ? 'Done' : '' };
+  };
+  const rows = sound.vehicles.map(row)
+    .filter((r) => (!f.nation || r.nation === f.nation) && (!f.kind || r.v.kind === f.kind) && (!f.status || r.status === f.status) && (!f.notDone || !r.done))
+    .sort((a, b) => String(a[f.sort]).localeCompare(String(b[f.sort]), undefined, { numeric: true }) * f.dir);
+  const COLS = [['nation', 'Nation'], ['name', 'Vehicle'], ['engine', 'Engine'], ['count', '×'], ['layout', 'Layout'], ['status', 'Status'], ['build', 'Sound build'], ['done', 'Done']];
+  const head = el('tr', {}, ...COLS.map(([key, text]) => el('th', { textContent: text + (f.sort === key ? (f.dir > 0 ? ' ▲' : ' ▼') : ''), onclick: () => {
+    f.dir = f.sort === key ? -f.dir : 1;
+    f.sort = key;
+    renderMain();
+  } })));
+  const body = rows.map((r) => el('tr', { onclick: () => { vehicleSel = r.v.id; renderMain(); } },
+    ...COLS.map(([key]) => (key === 'engine'
+      ? el('td', {}, r.engine, sound.engines[r.v.engine]?.checked ? null : el('span', { className: 'dim', textContent: ' (unchecked)' }))
+      : key === 'status'
+        ? el('td', {}, el('span', { className: `badge${r.status === 'In game' ? ' game' : ''}`, textContent: r.status }))
+        : el('td', { textContent: r[key] })))));
+  const notDone = el('input', { type: 'checkbox', checked: f.notDone, onchange: () => { f.notDone = notDone.checked; renderMain(); } });
+  return el('div', {},
+    vehicleSel ? renderVehicle(vehicleSel) : null,
+    el('h2', { textContent: `Vehicles (${rows.length})` }),
+    el('div', { className: 'buttons' },
+      pick('nation', [['', 'All nations'], ...nations.map((n) => [n, n])]),
+      pick('kind', [['', 'Aircraft and tanks'], ['plane', 'Aircraft'], ['tank', 'Tanks']]),
+      pick('status', [['', 'Any status'], ['In game', 'In game'], ['Planned', 'Planned'], ['Later', 'Later']]),
+      el('label', {}, notDone, ' not done'),
+      button('Add vehicle', addVehicle),
+      button('Add engine', addEngine)),
+    el('table', {}, el('thead', {}, head), el('tbody', {}, ...body)),
+    el('p', { className: 'dim', textContent: 'Engine names and planned rpm are from memory, not checked against references, until ticked on the vehicle.' }));
+}
+
+function addVehicle() {
+  const name = prompt('Name of the new vehicle?');
+  if (!name) return;
+  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  if (sound.vehicles.some((v) => v.id === id)) return alert('That vehicle is already there.');
+  const engine = Object.keys(sound.engines)[0];
+  sound.vehicles.push({ id, name, nation: 'Germany', kind: 'plane', engine, count: 1, estimate: { idleRpm: 800, cruiseRpm: 2300, maxRpm: 2800, propBlades: 3, gearRatio: 0.6 } });
+  vehicleSel = id;
+  touch();
+  renderMain();
+}
+
+function addEngine() {
+  const name = prompt('Name of the new engine?');
+  if (!name) return;
+  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  if (sound.engines[id]) return alert('That engine is already there.');
+  sound.engines[id] = { name, layout: 'inline', cylinders: 12, build: 'inline', checked: false };
+  touch();
+  renderMain();
+}
+
+function renderVehicle(id) {
+  const v = sound.vehicles.find((x) => x.id === id);
+  if (!v) return null;
+  const engId = v.engine;
+  const eng = sound.engines[engId];
+  const change = (fn) => (e) => {
+    fn(e.target);
+    touch();
+    renderMain();
+  };
+  const textField = (label, obj, key, type = 'text') => el('label', { className: 'field' }, el('span', { textContent: label }),
+    el('input', { type, value: obj[key] ?? '', onchange: change((t) => { obj[key] = type === 'number' ? Number(t.value) : t.value; }) }), el('span'));
+  const choose = (label, value, options, fn) => el('label', { className: 'field' }, el('span', { textContent: label }),
+    el('select', { onchange: change((t) => fn(t.value)) }, ...options.map(([k, text]) => el('option', { value: k, textContent: text, selected: k === value }))), el('span'));
+  const builds = Object.entries(sound.builds).filter(([, b]) => b.kind === v.kind).map(([k, b]) => [k, b.name]);
+  const sharing = eng ? sound.vehicles.filter((x) => x.engine === engId).map((x) => x.name).join(', ') : '';
+  return el('div', { className: 'wide' },
+    el('h2', { textContent: v.name }),
+    el('div', { className: 'dim', textContent: `${inGame(v) ? 'In game' : v.later ? 'Later' : 'Planned'} · id ${v.id}` }),
+    el('div', { className: 'buttons' },
+      button('Open sound build', () => { selected = `build:${eng?.build}`; setTab('sounds'); }),
+      button('Close', () => { vehicleSel = null; renderMain(); })),
+    textField('Name', v, 'name'),
+    textField('Nation', v, 'nation'),
+    choose('Kind', v.kind, [['plane', 'Aircraft'], ['tank', 'Tank']], (k) => { v.kind = k; }),
+    choose('Engine', engId, Object.entries(sound.engines).map(([k, e]) => [k, e.name]), (k) => { v.engine = k; }),
+    textField('Engines on it', v, 'count', 'number'),
+    v.estimate && !planes[v.id] ? el('div', {}, el('h3', { textContent: 'Estimated numbers, until it is built' }),
+      textField('Idle rpm', v.estimate, 'idleRpm', 'number'), textField('Cruise rpm', v.estimate, 'cruiseRpm', 'number'), textField('Max rpm', v.estimate, 'maxRpm', 'number'), textField('Propeller blades', v.estimate, 'propBlades', 'number'), textField('Gear ratio', v.estimate, 'gearRatio', 'number')) : null,
+    eng ? el('div', {}, el('h3', { textContent: `Engine: ${eng.name}` }),
+      el('div', { className: 'dim', textContent: `Used by: ${sharing}` }),
+      textField('Engine name', eng, 'name'),
+      choose('Layout', eng.layout, [['inline', 'Inline'], ['radial', 'Radial']], (k) => { eng.layout = k; }),
+      textField('Cylinders', eng, 'cylinders', 'number'),
+      choose('Sound build', eng.build, builds, (k) => { eng.build = k; }),
+      el('label', {}, el('input', { type: 'checkbox', checked: Boolean(eng.checked), onchange: change((t) => { eng.checked = t.checked; }) }), ' engine details checked against a reference'),
+      el('div', { className: 'buttons' }, button('Make own copy', () => makeOwnCopy(engId), 'Gives this engine its own build, starting as an exact copy')),
+      notesPanel(`engine:${engId}`)) : null,
+    el('hr'));
+}
+
+function makeOwnCopy(engId) {
+  const eng = sound.engines[engId];
+  const from = sound.builds[eng.build];
+  let id = `${engId}Build`;
+  for (let n = 2; sound.builds[id]; n++) id = `${engId}Build${n}`;
+  sound.builds[id] = { ...clone(from), name: eng.name };
+  sound.status[`build:${id}`] = { reference: `Split from ${from.name}.` }; // a new sound to work on: not done yet
+  eng.build = id;
+  touch();
+  updateCount();
+  renderMain();
+}
+
+function renderMix() {
+  const applyLevels = () => mixer?.applyLevels();
+  const applySpace = (final) => { if (final) mixer?.applySpace(); };
+  return el('div', {}, el('h2', { textContent: 'Mix' }),
+    el('p', { className: 'dim', textContent: 'Levels are saved to settings.json, shared with the T panel. The game\'s options menu can override volumes per browser.' }),
+    el('h3', { textContent: 'Levels and hearing' }),
+    ...LEVEL_FIELDS.map((f) => slider(settings.audio, f, applyLevels, false)),
+    el('h3', { textContent: 'Reverb, ducking and limiter' }),
+    ...SPACE_FIELDS.map((f) => slider(sound.space, f, applySpace, false)),
+    el('div', { className: 'buttons' }, button('Test: explosion over engine', async () => {
+      await audio();
+      stopLive();
+      const v = createEngineVoice(mixer, { cylinders: 12, propBlades: 3, gearRatio: 0.6 }, sound.builds.inline);
+      v.start();
+      v.update({ rpm: 2300, load: 0.8 });
+      const again = setInterval(() => v.update({ rpm: 2300, load: 0.8 }), 200);
+      setTimeout(() => sfx.explosion(mixer, where(200, settings.audio.bangRange), 1), 3000);
+      const end = setTimeout(() => stopLive(), 8000);
+      live = { stop() { clearInterval(again); clearTimeout(end); v.dispose(); } };
+    }, 'Engine start-up, then a bang, to hear ducking and reverb together'),
+    button('Stop', stopLive)));
+}
+
+function renderGuide() {
+  const p = (t) => el('p', { textContent: t });
+  const h = (t) => el('h3', { textContent: t });
+  return el('div', { className: 'wide' }, el('h2', { textContent: 'Guide' }),
+    h('Working here'),
+    p('Pick a sound, press Play or Fire, and drag. Engines change as you drag; guns are re-rendered when you let go. Press Save to write the files; the game picks them up on its next reload. Saving does not commit to git.'),
+    p('Tick a sound in the list when it is finished: its sliders lock until you untick it. Your notes stay editable and are the way to leave instructions for Claude for later.'),
+    h('Shared builds'),
+    p('A vehicle uses a real engine, and an engine uses a sound build. A build lists everything it changes. To give one engine its own sound, open a vehicle in the Vehicles tab and press Make own copy. The copy starts as an exact copy and is not done, because it is a new sound to work on. Cylinders, rpm and propeller stay with the vehicle, so planes on one build still differ.'),
+    h('Hearing it as in the game'),
+    p('The Listen from slider applies the game\'s distance fade, muffling and delay. The Master level here is the game\'s, so it can be very quiet; turn it up on the Mix tab while working if you need to, and remember it saves too.'),
+    h('Finding an engine clip\'s rpm by ear'),
+    p('Play the synth beside the clip and raise Rpm until the two sound matched. That rpm is the one to enter when clip support arrives.'),
+    h('Recordings: getting ready'),
+    p('Recording layers are the next stage. Prepare clips in your editor now: trim silence, make loops seamless, avoid clips with wind or narration, keep one-shots short because all of them are decoded into memory at load. Write down the source and licence of each file: CC0, your own, or other.'),
+    h('Not here yet'),
+    p('Recordings, your own layers, and tuning of one-shots and loops are not built yet. Neither is the live link to a running game.'));
+}
+
+function renderMain() {
+  stopLive();
+  const main = $('main');
+  main.replaceChildren();
+  main.scrollTop = 0;
+  if (tab === 'vehicles') return main.append(renderVehicles());
+  if (tab === 'mix') return main.append(renderMix());
+  if (tab === 'guide') return main.append(renderGuide());
+  const [type, key] = selected.split(':');
+  if (type === 'build') {
+    if (!sound.builds[key]) selected = 'build:inline';
+    const id = selected.split(':')[1];
+    main.append(sound.builds[id].kind === 'tank' ? renderTankBuild(selected, id) : renderPlaneBuild(selected, id));
+  } else if (type === 'gun') main.append(renderGun(selected, key));
+  else if (type === 'sfx') main.append(renderOneShot(selected, key));
+  else main.append(renderLoop(selected, key));
+}
+
+function setTab(name) {
+  tab = name;
+  document.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
+  renderList();
+  renderMain();
+}
+
+async function saveAll() {
+  const put = async (path, data) => {
+    const res = await fetch(path, { method: 'PUT', body: JSON.stringify(data, null, 2) + '\n' });
+    if (!res.ok) throw new Error(`${path}: ${await res.text()}`);
+  };
+  const button = $('save');
+  try {
+    await put('data/sound.json', sound);
+    // Re-read so a change the T panel saved meanwhile isn't overwritten; only the audio block is ours.
+    const fresh = await json('data/settings.json');
+    fresh.audio = { ...fresh.audio, ...settings.audio };
+    await put('data/settings.json', fresh);
+    saved = clone(sound);
+    dirty = false;
+    button.textContent = 'Saved';
+    button.classList.remove('on');
+  } catch (e) {
+    button.textContent = 'Save failed';
+    alert(`Could not save: ${e.message}\nIs the server running from tools/serve.mjs?`);
+  }
+}
+
+document.querySelectorAll('[data-tab]').forEach((b) => { b.onclick = () => setTab(b.dataset.tab); });
+$('save').onclick = saveAll;
+const showMute = () => {
+  $('mute').textContent = muted ? 'Unmute' : 'Mute';
+  $('mute').classList.toggle('on', muted);
+};
+$('mute').onclick = () => {
+  muted = !muted;
+  mixer?.setMuted(muted);
+  showMute();
+};
+addEventListener('beforeunload', (e) => {
+  if (dirty) e.preventDefault();
+});
+showMute();
+updateCount();
+setTab('sounds');

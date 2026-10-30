@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sound Lab</title>
+    <style>
+      :root {
+        --bg: #101214;
+        --panel: #181b1e;
+        --line: #2c3135;
+        --text: #c4c5bb;
+        --dim: #7f837c;
+        --accent: #a8905c;
+        --done: #6f8560;
+        --warn: #a8603f;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 14px/1.4 'Courier New', monospace; }
+      body { display: flex; flex-direction: column; }
+      button, select, input, textarea { font: inherit; color: var(--text); background: #22262a; border: 1px solid var(--line); border-radius: 2px; padding: 3px 8px; }
+      button { cursor: pointer; }
+      button:hover:not(:disabled) { border-color: var(--accent); }
+      button:disabled, input:disabled { opacity: 0.45; cursor: default; }
+      button.on { background: var(--accent); color: #111; }
+      textarea { width: 100%; min-height: 54px; resize: vertical; }
+      h2 { margin: 0 0 4px; font-size: 18px; }
+      h3 { margin: 18px 0 6px; font-size: 14px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+      header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+      header strong { margin-right: 10px; }
+      #space { flex: 1; }
+      #count { color: var(--dim); }
+      #scope { width: 180px; height: 30px; background: #0b0c0d; border: 1px solid var(--line); }
+      #tabview { flex: 1; min-height: 0; display: flex; }
+      #list { width: 290px; flex: none; overflow: auto; border-right: 1px solid var(--line); padding: 8px; }
+      #main { flex: 1; overflow: auto; padding: 14px 18px; }
+      .group { margin: 10px 0 2px; color: var(--accent); }
+      .row { display: flex; align-items: center; gap: 6px; padding: 2px 4px; cursor: pointer; }
+      .row:hover { background: #20242a; }
+      .row.sel { background: #2a2d2c; }
+      .row.isdone span { color: var(--done); }
+      .field { display: grid; grid-template-columns: 170px minmax(120px, 340px) 70px; gap: 8px; align-items: center; margin: 2px 0; }
+      .field output { color: var(--dim); }
+      .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+      .dim { color: var(--dim); }
+      .warn { color: var(--warn); }
+      .badge { padding: 0 5px; border: 1px solid var(--line); font-size: 12px; white-space: nowrap; }
+      .badge.game { color: var(--done); border-color: var(--done); }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { text-align: left; padding: 3px 8px; border-bottom: 1px solid var(--line); }
+      th { cursor: pointer; color: var(--accent); white-space: nowrap; }
+      tbody tr { cursor: pointer; }
+      tbody tr:hover { background: #20242a; }
+      .wide { max-width: 760px; }
+      @media (max-width: 760px) {
+        #tabview { flex-direction: column; }
+        #list { width: 100%; max-height: 35%; border-right: 0; border-bottom: 1px solid var(--line); }
+        .field { grid-template-columns: 110px 1fr 60px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>SOUND LAB</strong>
+      <button data-tab="sounds">Sounds</button>
+      <button data-tab="vehicles">Vehicles</button>
+      <button data-tab="mix">Mix</button>
+      <button data-tab="guide">Guide</button>
+      <span id="count"></span>
+      <span id="space"></span>
+      <canvas id="scope" width="360" height="60" title="What is going to the speakers"></canvas>
+      <button id="mute">Mute</button>
+      <button id="save">Save</button>
+    </header>
+    <div id="tabview">
+      <div id="list"></div>
+      <div id="main"></div>
+    </div>
+    <script type="module" src="src/ui/sound-lab.js"></script>
+  </body>
+</html>

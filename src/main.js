@@ -479,11 +479,11 @@ async function start() {
   overlay.classList.add('hidden');
   started = true;
   mouse.capture();
-  mixer = await createMixer(content.settings.audio);
+  mixer = await createMixer(content.settings.audio, content.sound.space);
   // Open the game as localhost:8080/?mute to start silent (M toggles sound as usual).
   if (new URLSearchParams(location.search).has('mute')) muted = true;
   applyMute();
-  sound = createSoundscape(mixer, world, content.settings.audio);
+  sound = createSoundscape(mixer, world, content.settings.audio, content.sound, content.planeDefs);
   last = performance.now();
   requestAnimationFrame(frame);
   if (host) keepTicking();

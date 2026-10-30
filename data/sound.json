@@ -1,0 +1,869 @@
+{
+  "_notes": "Written by the Sound Lab (sound-lab.html). Engine names and planned rpm are unchecked until ticked there.",
+  "defaultTankBuild": "tankPetrol",
+  "space": {
+    "reverbReturn": 0.35,
+    "reverbSeconds": 2.4,
+    "reverbDecay": 3.2,
+    "limiterThreshold": -8,
+    "limiterRelease": 0.2,
+    "duckDepth": 1,
+    "duckRelease": 1
+  },
+  "builds": {
+    "inline": {
+      "name": "Inline V12",
+      "kind": "plane",
+      "synth": {
+        "cylSpread": 0.07,
+        "res": [
+          [
+            200,
+            5,
+            1
+          ],
+          [
+            420,
+            7,
+            0.55
+          ],
+          [
+            1500,
+            4,
+            0.22
+          ]
+        ],
+        "noise": 0.55,
+        "crackle": 0.35,
+        "drive": 2.2,
+        "prop": 0.22,
+        "pulseMs": 1.1,
+        "noiseMs": 3.5,
+        "washBase": 0.05,
+        "washLoad": 0.2,
+        "level": 0.55,
+        "toneBase": 900,
+        "toneLoad": 3800,
+        "toneRpm": 0.9,
+        "presenceBase": -4,
+        "presenceLoad": 7,
+        "reverb": 0.12,
+        "detune": 0.004
+      }
+    },
+    "radial": {
+      "name": "Radial",
+      "kind": "plane",
+      "synth": {
+        "cylSpread": 0.32,
+        "res": [
+          [
+            72,
+            4,
+            1.25
+          ],
+          [
+            260,
+            5,
+            0.6
+          ],
+          [
+            900,
+            3,
+            0.18
+          ]
+        ],
+        "noise": 0.4,
+        "crackle": 0.1,
+        "drive": 2.8,
+        "prop": 0.3,
+        "pulseMs": 1.1,
+        "noiseMs": 3.5,
+        "washBase": 0.05,
+        "washLoad": 0.2,
+        "level": 0.55,
+        "toneBase": 900,
+        "toneLoad": 3800,
+        "toneRpm": 0.9,
+        "presenceBase": -4,
+        "presenceLoad": 7,
+        "reverb": 0.12,
+        "detune": 0.004
+      }
+    },
+    "tankPetrol": {
+      "name": "Tank petrol V12",
+      "kind": "tank",
+      "synth": {
+        "engineIdle": 27,
+        "engineMove": 38,
+        "lumpyIdle": 7,
+        "lumpyMove": 11,
+        "lumpyAmt": 0.35,
+        "engineLevel": 0.7,
+        "engineLp": 260,
+        "trackFreq": 1700,
+        "trackQ": 2.5,
+        "chop": 7,
+        "chopAmt": 0.5,
+        "trackLevel": 0.5,
+        "level": 0.5
+      }
+    },
+    "tankDiesel": {
+      "name": "Tank diesel V12",
+      "kind": "tank",
+      "synth": {
+        "engineIdle": 27,
+        "engineMove": 38,
+        "lumpyIdle": 7,
+        "lumpyMove": 11,
+        "lumpyAmt": 0.35,
+        "engineLevel": 0.7,
+        "engineLp": 260,
+        "trackFreq": 1700,
+        "trackQ": 2.5,
+        "chop": 7,
+        "chopAmt": 0.5,
+        "trackLevel": 0.5,
+        "level": 0.5
+      }
+    },
+    "tankRadial": {
+      "name": "Tank radial",
+      "kind": "tank",
+      "synth": {
+        "engineIdle": 27,
+        "engineMove": 38,
+        "lumpyIdle": 7,
+        "lumpyMove": 11,
+        "lumpyAmt": 0.35,
+        "engineLevel": 0.7,
+        "engineLp": 260,
+        "trackFreq": 1700,
+        "trackQ": 2.5,
+        "chop": 7,
+        "chopAmt": 0.5,
+        "trackLevel": 0.5,
+        "level": 0.5
+      }
+    }
+  },
+  "engines": {
+    "db601e": {
+      "name": "Daimler-Benz DB 601E",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "db605a": {
+      "name": "Daimler-Benz DB 605A",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "db605b": {
+      "name": "Daimler-Benz DB 605B",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "db610": {
+      "name": "Daimler-Benz DB 610 (coupled DB 605s)",
+      "layout": "inline",
+      "cylinders": 24,
+      "build": "inline",
+      "checked": false
+    },
+    "jumo211": {
+      "name": "Junkers Jumo 211J",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "merlin61": {
+      "name": "Rolls-Royce Merlin 61/63",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "merlin25": {
+      "name": "Rolls-Royce Merlin 25",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "merlinXX": {
+      "name": "Rolls-Royce Merlin XX",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "merlin22": {
+      "name": "Rolls-Royce Merlin 22/28",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "v1710": {
+      "name": "Allison V-1710",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "m105": {
+      "name": "Klimov M-105",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "am38f": {
+      "name": "Mikulin AM-38F",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "inline",
+      "checked": false
+    },
+    "r2800": {
+      "name": "Pratt & Whitney R-2800",
+      "layout": "radial",
+      "cylinders": 18,
+      "build": "radial",
+      "checked": false
+    },
+    "ash82": {
+      "name": "Shvetsov ASh-82FN",
+      "layout": "radial",
+      "cylinders": 14,
+      "build": "radial",
+      "checked": false
+    },
+    "ha115": {
+      "name": "Nakajima Ha-115",
+      "layout": "radial",
+      "cylinders": 14,
+      "build": "radial",
+      "checked": false
+    },
+    "ha102": {
+      "name": "Mitsubishi Ha-102",
+      "layout": "radial",
+      "cylinders": 14,
+      "build": "radial",
+      "checked": false
+    },
+    "kinsei": {
+      "name": "Mitsubishi Kinsei 54",
+      "layout": "radial",
+      "cylinders": 14,
+      "build": "radial",
+      "checked": false
+    },
+    "kasei": {
+      "name": "Mitsubishi Kasei",
+      "layout": "radial",
+      "cylinders": 14,
+      "build": "radial",
+      "checked": false
+    },
+    "r1820": {
+      "name": "Wright R-1820 Cyclone",
+      "layout": "radial",
+      "cylinders": 9,
+      "build": "radial",
+      "checked": false
+    },
+    "mercury": {
+      "name": "Bristol Mercury XV",
+      "layout": "radial",
+      "cylinders": 9,
+      "build": "radial",
+      "checked": false
+    },
+    "hl120": {
+      "name": "Maybach HL 120",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "tankPetrol",
+      "checked": false
+    },
+    "bedford": {
+      "name": "Bedford Twin-Six",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "tankPetrol",
+      "checked": false
+    },
+    "r975": {
+      "name": "Continental R975",
+      "layout": "radial",
+      "cylinders": 9,
+      "build": "tankRadial",
+      "checked": false
+    },
+    "v2": {
+      "name": "Kharkiv V-2 diesel",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "tankDiesel",
+      "checked": false
+    },
+    "chiha": {
+      "name": "Mitsubishi V12 diesel",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "tankDiesel",
+      "checked": false
+    },
+    "m17": {
+      "name": "Mikulin M-17T",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "tankPetrol",
+      "checked": false
+    },
+    "hl210": {
+      "name": "Maybach HL 210",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "tankPetrol",
+      "checked": false
+    },
+    "v2k": {
+      "name": "V-2K diesel",
+      "layout": "inline",
+      "cylinders": 12,
+      "build": "tankDiesel",
+      "checked": false
+    }
+  },
+  "vehicles": [
+    {
+      "id": "bf109g6",
+      "name": "Bf 109 G-6",
+      "nation": "Germany",
+      "kind": "plane",
+      "engine": "db605a",
+      "count": 1
+    },
+    {
+      "id": "bf109",
+      "name": "Bf 109 F-4",
+      "nation": "Germany",
+      "kind": "plane",
+      "engine": "db601e",
+      "count": 1
+    },
+    {
+      "id": "bf110",
+      "name": "Bf 110 G-2",
+      "nation": "Germany",
+      "kind": "plane",
+      "engine": "db605b",
+      "count": 2
+    },
+    {
+      "id": "ju87d3",
+      "name": "Ju 87 D-3",
+      "nation": "Germany",
+      "kind": "plane",
+      "engine": "jumo211",
+      "count": 1,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2200,
+        "maxRpm": 2600,
+        "propBlades": 3,
+        "gearRatio": 0.645
+      }
+    },
+    {
+      "id": "spitfire",
+      "name": "Spitfire Mk IX",
+      "nation": "UK",
+      "kind": "plane",
+      "engine": "merlin61",
+      "count": 1
+    },
+    {
+      "id": "mosquito",
+      "name": "Mosquito FB.VI",
+      "nation": "UK",
+      "kind": "plane",
+      "engine": "merlin25",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 800,
+        "cruiseRpm": 2650,
+        "maxRpm": 3000,
+        "propBlades": 3,
+        "gearRatio": 0.42
+      }
+    },
+    {
+      "id": "hurricane2d",
+      "name": "Hurricane Mk IID",
+      "nation": "UK",
+      "kind": "plane",
+      "engine": "merlinXX",
+      "count": 1,
+      "estimate": {
+        "idleRpm": 800,
+        "cruiseRpm": 2650,
+        "maxRpm": 3000,
+        "propBlades": 3,
+        "gearRatio": 0.42
+      }
+    },
+    {
+      "id": "p47d",
+      "name": "P-47D Thunderbolt",
+      "nation": "USA",
+      "kind": "plane",
+      "engine": "r2800",
+      "count": 1
+    },
+    {
+      "id": "p38j",
+      "name": "P-38J Lightning",
+      "nation": "USA",
+      "kind": "plane",
+      "engine": "v1710",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2300,
+        "maxRpm": 3000,
+        "propBlades": 3,
+        "gearRatio": 0.5
+      }
+    },
+    {
+      "id": "a36a",
+      "name": "A-36A Apache",
+      "nation": "USA",
+      "kind": "plane",
+      "engine": "v1710",
+      "count": 1,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2300,
+        "maxRpm": 3000,
+        "propBlades": 3,
+        "gearRatio": 0.5
+      }
+    },
+    {
+      "id": "la5fn",
+      "name": "La-5FN",
+      "nation": "USSR",
+      "kind": "plane",
+      "engine": "ash82",
+      "count": 1
+    },
+    {
+      "id": "pe3",
+      "name": "Pe-3",
+      "nation": "USSR",
+      "kind": "plane",
+      "engine": "m105",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2200,
+        "maxRpm": 2700,
+        "propBlades": 3,
+        "gearRatio": 0.67
+      }
+    },
+    {
+      "id": "il2m3",
+      "name": "Il-2M3 Shturmovik",
+      "nation": "USSR",
+      "kind": "plane",
+      "engine": "am38f",
+      "count": 1,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2050,
+        "maxRpm": 2350,
+        "propBlades": 3,
+        "gearRatio": 0.73
+      }
+    },
+    {
+      "id": "ki43",
+      "name": "Ki-43-II Hayabusa",
+      "nation": "Japan",
+      "kind": "plane",
+      "engine": "ha115",
+      "count": 1
+    },
+    {
+      "id": "ki45",
+      "name": "Ki-45 KAI Toryu",
+      "nation": "Japan",
+      "kind": "plane",
+      "engine": "ha102",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2300,
+        "maxRpm": 2700,
+        "propBlades": 3,
+        "gearRatio": 0.7
+      }
+    },
+    {
+      "id": "d3a2",
+      "name": "D3A2 \"Val\"",
+      "nation": "Japan",
+      "kind": "plane",
+      "engine": "kinsei",
+      "count": 1,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2200,
+        "maxRpm": 2600,
+        "propBlades": 3,
+        "gearRatio": 0.7
+      }
+    },
+    {
+      "id": "b239",
+      "name": "Brewster B-239",
+      "nation": "Finland",
+      "kind": "plane",
+      "engine": "r1820",
+      "count": 1
+    },
+    {
+      "id": "blenheim4",
+      "name": "Blenheim Mk IV",
+      "nation": "Finland",
+      "kind": "plane",
+      "engine": "mercury",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 650,
+        "cruiseRpm": 2100,
+        "maxRpm": 2750,
+        "propBlades": 3,
+        "gearRatio": 0.5
+      }
+    },
+    {
+      "id": "ju88a4",
+      "name": "Ju 88 A-4",
+      "nation": "Finland",
+      "kind": "plane",
+      "engine": "jumo211",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2200,
+        "maxRpm": 2600,
+        "propBlades": 3,
+        "gearRatio": 0.645
+      }
+    },
+    {
+      "id": "b17f",
+      "name": "B-17F",
+      "nation": "Heavy bombers",
+      "kind": "plane",
+      "engine": "r1820",
+      "count": 4,
+      "estimate": {
+        "idleRpm": 650,
+        "cruiseRpm": 2100,
+        "maxRpm": 2500,
+        "propBlades": 3,
+        "gearRatio": 0.56
+      }
+    },
+    {
+      "id": "lancaster",
+      "name": "Lancaster B.I/III",
+      "nation": "Heavy bombers",
+      "kind": "plane",
+      "engine": "merlin22",
+      "count": 4,
+      "estimate": {
+        "idleRpm": 800,
+        "cruiseRpm": 2650,
+        "maxRpm": 3000,
+        "propBlades": 3,
+        "gearRatio": 0.42
+      }
+    },
+    {
+      "id": "he177a3",
+      "name": "He 177 A-3",
+      "nation": "Heavy bombers",
+      "kind": "plane",
+      "engine": "db610",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 800,
+        "cruiseRpm": 2300,
+        "maxRpm": 2800,
+        "propBlades": 4,
+        "gearRatio": 0.6
+      }
+    },
+    {
+      "id": "pe8",
+      "name": "Pe-8",
+      "nation": "Heavy bombers",
+      "kind": "plane",
+      "engine": "ash82",
+      "count": 4,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2200,
+        "maxRpm": 2500,
+        "propBlades": 3,
+        "gearRatio": 0.7
+      }
+    },
+    {
+      "id": "g4m1",
+      "name": "G4M1",
+      "nation": "Heavy bombers",
+      "kind": "plane",
+      "engine": "kasei",
+      "count": 2,
+      "estimate": {
+        "idleRpm": 700,
+        "cruiseRpm": 2200,
+        "maxRpm": 2500,
+        "propBlades": 3,
+        "gearRatio": 0.7
+      }
+    },
+    {
+      "id": "panzer4h",
+      "name": "Panzer IV Ausf. H",
+      "nation": "Germany",
+      "kind": "tank",
+      "engine": "hl120",
+      "count": 1
+    },
+    {
+      "id": "churchill4",
+      "name": "Churchill Mk IV",
+      "nation": "UK",
+      "kind": "tank",
+      "engine": "bedford",
+      "count": 1
+    },
+    {
+      "id": "m4a1",
+      "name": "M4A1 Sherman",
+      "nation": "USA",
+      "kind": "tank",
+      "engine": "r975",
+      "count": 1
+    },
+    {
+      "id": "t34",
+      "name": "T-34/76 model 1943",
+      "nation": "USSR",
+      "kind": "tank",
+      "engine": "v2",
+      "count": 1
+    },
+    {
+      "id": "chiha",
+      "name": "Shinhoto Chi-Ha",
+      "nation": "Japan",
+      "kind": "tank",
+      "engine": "chiha",
+      "count": 1
+    },
+    {
+      "id": "bt42",
+      "name": "BT-42",
+      "nation": "Finland",
+      "kind": "tank",
+      "engine": "m17",
+      "count": 1
+    },
+    {
+      "id": "tiger",
+      "name": "Tiger",
+      "nation": "Germany",
+      "kind": "tank",
+      "engine": "hl210",
+      "count": 1,
+      "later": true
+    },
+    {
+      "id": "kv1s",
+      "name": "KV-1S",
+      "nation": "USSR",
+      "kind": "tank",
+      "engine": "v2k",
+      "count": 1,
+      "later": true
+    }
+  ],
+  "guns": {
+    "rifle": {
+      "dur": 0.09,
+      "crack": 0.9,
+      "crackT": 0.0035,
+      "body": 0.45,
+      "bodyF": 190,
+      "bodyT": 0.012,
+      "tail": 0.3,
+      "tailT": 0.025,
+      "mech": 0.25,
+      "mechF": 3400,
+      "level": 1
+    },
+    "heavy": {
+      "dur": 0.16,
+      "crack": 1,
+      "crackT": 0.005,
+      "body": 0.9,
+      "bodyF": 115,
+      "bodyT": 0.024,
+      "tail": 0.5,
+      "tailT": 0.045,
+      "mech": 0.3,
+      "mechF": 2500,
+      "level": 1
+    },
+    "cannon20": {
+      "dur": 0.32,
+      "crack": 1,
+      "crackT": 0.006,
+      "body": 1.25,
+      "bodyF": 78,
+      "bodyT": 0.055,
+      "tail": 0.75,
+      "tailT": 0.09,
+      "mech": 0.35,
+      "mechF": 1800,
+      "level": 1
+    },
+    "cannon30": {
+      "dur": 0.5,
+      "crack": 0.55,
+      "crackT": 0.008,
+      "body": 1.7,
+      "bodyF": 52,
+      "bodyT": 0.11,
+      "tail": 0.9,
+      "tailT": 0.15,
+      "mech": 0.22,
+      "mechF": 1200,
+      "level": 1
+    },
+    "infantryRifle": {
+      "dur": 0.26,
+      "crack": 1,
+      "crackT": 0.003,
+      "body": 0.35,
+      "bodyF": 240,
+      "bodyT": 0.01,
+      "tail": 0.55,
+      "tailT": 0.06,
+      "mech": 0,
+      "mechF": 3000,
+      "level": 1
+    },
+    "flakGun": {
+      "dur": 0.95,
+      "crack": 0.4,
+      "crackT": 0.01,
+      "body": 1.9,
+      "bodyF": 36,
+      "bodyT": 0.22,
+      "tail": 1,
+      "tailT": 0.26,
+      "mech": 0.12,
+      "mechF": 800,
+      "level": 1
+    },
+    "tankGun": {
+      "dur": 0.7,
+      "crack": 0.75,
+      "crackT": 0.007,
+      "body": 1.8,
+      "bodyF": 47,
+      "bodyT": 0.14,
+      "tail": 0.9,
+      "tailT": 0.18,
+      "mech": 0.2,
+      "mechF": 900,
+      "level": 1
+    }
+  },
+  "status": {
+    "build:inline": {
+      "reference": "Starts as the sound of every inline aircraft engine. Cylinders, rpm and propeller still come from each plane, so the synth differs between them."
+    },
+    "build:radial": {
+      "reference": "Starts as the sound of every radial aircraft engine. Clips worth finding first: R-1820 (Brewster, B-17) and ASh-82 (La-5FN, Pe-8).",
+      "done": false
+    },
+    "build:tankPetrol": {
+      "reference": "Panzer IV, Churchill, BT-42 and later the Tiger. All tank builds start with the same synth as the generic tank."
+    },
+    "build:tankDiesel": {
+      "reference": "T-34, Chi-Ha and later the KV-1S."
+    },
+    "build:tankRadial": {
+      "reference": "M4A1 Sherman: an aero radial in a tank."
+    },
+    "engine:db605a": {
+      "reference": "Clips can be shared with the other DB 605, and a DB 601 is close enough to borrow them."
+    },
+    "engine:db605b": {
+      "reference": "Clips can be shared with the other DB 605, and a DB 601 is close enough to borrow them."
+    },
+    "engine:db601e": {
+      "reference": "Close enough to the DB 605 to borrow its clips."
+    },
+    "engine:merlin61": {
+      "reference": "One set of Merlin clips covers the Spitfire, Mosquito, Hurricane and Lancaster."
+    },
+    "engine:merlin25": {
+      "reference": "One set of Merlin clips covers the Spitfire, Mosquito, Hurricane and Lancaster."
+    },
+    "engine:merlinXX": {
+      "reference": "One set of Merlin clips covers the Spitfire, Mosquito, Hurricane and Lancaster."
+    },
+    "engine:merlin22": {
+      "reference": "One set of Merlin clips covers the Spitfire, Mosquito, Hurricane and Lancaster."
+    },
+    "engine:jumo211": {
+      "reference": "Ju 87 and Ju 88 share it."
+    },
+    "engine:r1820": {
+      "reference": "Brewster and B-17 share it."
+    },
+    "engine:ash82": {
+      "reference": "La-5FN and Pe-8 share it."
+    },
+    "gun:cannon20": {},
+    "sfx:explosion": {},
+    "sfx:clank": {},
+    "sfx:collapseMasonry": {},
+    "sfx:shrapnel": {},
+    "sfx:radarPowerDown": {}
+  }
+}

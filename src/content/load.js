@@ -17,12 +17,13 @@ const json = async (url) => {
 };
 
 export async function loadContent(mapName) {
-  const [planeDefs, nations, weapons, settings, groundDefs, project] = await Promise.all([
+  const [planeDefs, nations, weapons, settings, groundDefs, sound, project] = await Promise.all([
     json('data/planes.json'),
     json('data/nations.json'),
     json('data/weapons.json'),
     json('data/settings.json'),
     json('data/ground.json'),
+    json('data/sound.json'),
     json(`maps/${mapName}.ldtk`),
   ]);
   const map = importLdtk(project);
@@ -86,5 +87,5 @@ export async function loadContent(mapName) {
 
   const bombSprite = buildRotations(toCanvas(images.bomb), [7, 3]);
 
-  return { planeDefs, nations, weapons, settings, groundDefs, notes, map, images, planeSprite, planeFrames, bombSprite };
+  return { planeDefs, nations, weapons, settings, groundDefs, sound, notes, map, images, planeSprite, planeFrames, bombSprite };
 }

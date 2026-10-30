@@ -54,6 +54,7 @@ function tone(mixer, dest, at, dur, { from, to, vol = 1, type = 'sine' }) {
 // Plays one of a voice's pre-rendered variations, placed in space.
 export function play(mixer, variations, where, { gain = 1, rate = 1, reverb = 0.15, bus = 'sfx', offset = 0 } = {}) {
   const { ctx } = mixer;
+  gain *= variations.level ?? 1;
   const at = mixer.now + where.delay + offset;
   const src = ctx.createBufferSource();
   src.buffer = variations[Math.floor(Math.random() * variations.length)];
