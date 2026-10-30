@@ -924,8 +924,9 @@ function movePlayMarkers() {
   requestAnimationFrame(movePlayMarkers);
 }
 
-function waveform(file, locked, onChange) {
-  const c = el('canvas', { width: 700, height: 70, style: 'width:100%;max-width:700px;height:70px;background:#0b0c0d;display:block;touch-action:none' });
+// height: 70 in an open slot, a slim strip under a closed one. Any two showing one file stay alike.
+function waveform(file, locked, onChange, height = 70) {
+  const c = el('canvas', { width: 700, height, style: `width:100%;${height === 70 ? 'max-width:700px;' : ''}height:${height}px;background:#0b0c0d;display:block;touch-action:none` });
   const draw = () => {
     const buf = mixer?.recordings.buffers.get(file.path);
     const g = c.getContext('2d');
@@ -939,8 +940,8 @@ function waveform(file, locked, onChange) {
     for (let x = 0; x < c.width; x++) {
       let peak = 0;
       for (let i = x * step, n = 0; n < step && i < d.length; n += Math.ceil(step / 40), i += Math.ceil(step / 40)) peak = Math.max(peak, Math.abs(d[i]));
-      g.moveTo(x + 0.5, 35 - peak * 34);
-      g.lineTo(x + 0.5, 35 + peak * 34);
+      g.moveTo(x + 0.5, height / 2 - (peak * (height - 2)) / 2);
+      g.lineTo(x + 0.5, height / 2 + (peak * (height - 2)) / 2);
     }
     g.stroke();
     g.fillStyle = 'rgba(0,0,0,0.65)';
@@ -957,6 +958,7 @@ function waveform(file, locked, onChange) {
     }
   };
   let grab = null;
+  c.onclick = (e) => e.preventDefault(); // in a slot's row, dragging must not open the slot
   c.onpointerdown = (e) => {
     const buf = mixer?.recordings.buffers.get(file.path);
     if (!buf || locked) return;
@@ -973,7 +975,7 @@ function waveform(file, locked, onChange) {
     else if (grab === 'end') file.end = Math.max(t, file.start + 0.005);
     else file.caught = Math.max(file.start, Math.min(file.end, t));
     if (file.caught != null) file.caught = Math.max(file.start, Math.min(file.end, file.caught));
-    draw();
+    for (const item of playMarkers) if (item.file === file) item.draw();
   };
   c.onpointerup = () => {
     if (!grab) return;
@@ -983,8 +985,8 @@ function waveform(file, locked, onChange) {
   };
   audio().then(() => mixer.recordings.ensure(file.path)).then(draw);
   const marker = el('div', { style: 'position:absolute;top:0;bottom:0;width:2px;background:#d9542b;display:none;pointer-events:none' });
-  playMarkers.add({ marker, file });
-  return el('div', { style: 'position:relative;width:100%;max-width:700px' }, c, marker);
+  playMarkers.add({ marker, file, draw });
+  return el('div', { style: `position:relative;width:100%;${height === 70 ? 'max-width:700px' : ''}` }, c, marker);
 }
 
 function fileRow(file, locked, remove, onChange, extra = []) {
@@ -1337,7 +1339,9 @@ function slotRow({ key, name, help, files, group, level, play, advanced, locked,
       input.onchange = touch;
       return input;
     })() : null,
-    advanced ? button('Advanced', (e) => { e.preventDefault(); advanced(); }) : null);
+    advanced ? button('Advanced', (e) => { e.preventDefault(); advanced(); }) : null,
+    // The timelines stay in sight when the slot is closed.
+    filled ? el('div', { className: 'slim' }, ...files.map((f) => waveform(f, locked, null, 34))) : null);
   const box = el('details', { className: `slot${filled ? '' : ' empty'}` }, summary);
   if (drops.get(key)) {
     box.open = true;

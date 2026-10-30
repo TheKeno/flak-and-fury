@@ -58,6 +58,8 @@
       .slot .sfile { flex: 1; min-width: 140px; color: var(--dim); }
       .slot.empty { border-style: dashed; }
       .slot.over { border-color: var(--accent); }
+      .slot .slim { flex-basis: 100%; display: flex; flex-direction: column; gap: 2px; }
+      .slot[open] .slim { display: none; }
       .slot .sbody { padding: 4px 10px 10px; }
       .indent { margin-left: 16px; }
       .indent2 { margin-left: 32px; color: var(--dim); }
