@@ -42,10 +42,10 @@
     "muteInBackground": true
   },
   "wobble": {
-    "straightAmount": 18,
-    "straightFreq": 0.25,
-    "leanSteps": 2,
-    "flutterSteps": 1
+    "straightAmount": 11,
+    "straightFreq": 0.1,
+    "leanSteps": 1,
+    "flutterSteps": 0.5
   },
   "freeLook": {
     "panSpeed": 320,

@@ -85,7 +85,7 @@ without moving the mouse before the view eases back to looking ahead, when `came
 `camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
 none). `wobble` (drawing only) leans the wings in the air using the roll frames, 22.5 degrees (one step) apart.
 `leanSteps` is how many steps the wings lean at the hardest turn (turn rate against the plane's `turnRate`):
-pulling up shows the belly, pushing down the top, a tap a little. `flutterSteps` is how many steps that lean
+pulling up shows the belly, pushing down the top (decided when the turn starts and held to its end, even through a 180), a tap a little. `flutterSteps` is how many steps that lean
 randomly drifts up and down while turning. In level flight `straightAmount` (biggest tilt in degrees; under
 about 11 shows nothing) and `straightFreq` (tilts per second on average) give the odd single random left or
 right tilt, fading out as a turn gets harder. 0 = off for each.

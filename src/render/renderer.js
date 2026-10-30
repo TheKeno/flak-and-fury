@@ -695,21 +695,23 @@ export function createRenderer(canvas, world, assets) {
     const cfg = assets.settings.wobble;
     let w = wobble.get(p.id);
     if (!w) {
-      w = { seed: p.id * 7919, last: p.angle, pitch: 0, angle: 0, tilt: null, wait: 0, flutter: 0, flutterTo: 0, flutterIn: 0 };
+      w = { seed: p.id * 7919, last: p.angle, pitch: 0, side: 0, angle: 0, tilt: null, wait: 0, flutter: 0, flutterTo: 0, flutterIn: 0 };
       w.wait = -Math.log(1 - wobbleRand(w));
       wobble.set(p.id, w);
     }
     dt = Math.min(dt, 0.1);
-    // Counter-clockwise turn rate on screen, no facing in it: the belly sign below flips with facing
-    // and the plane flips over at the top of a loop, so those cancel and a pull keeps one lean all through.
+    // Counter-clockwise turn rate on screen.
     const turn = Math.atan2(Math.sin(p.angle - w.last), Math.cos(p.angle - w.last));
     w.last = p.angle;
     w.pitch += ((dt > 0 ? turn / dt : 0) - w.pitch) * Math.min(1, dt * 8);
     const hard = Math.min(1, Math.abs(w.pitch) / (p.def.turnRate ?? 1.4));
-    // Right way up (head to the sky), a counter-clockwise pull leans the belly in, which sits at a negative
-    // roll angle; rolled over it is the other way round.
-    const upright = Math.cos(p.angle) >= 0 !== p.inverted;
-    const lean = -Math.sign(w.pitch) * (upright ? 1 : -1) * cfg.leanSteps * hard * STEP;
+    // Which wing shows is decided when a turn starts (pulling up: belly, pushing down: top) and kept until
+    // the turn ends, so a 180 holds one lean even though the plane faces the other way by the end.
+    if (hard < 0.05) w.side = 0;
+    else if (!w.side) w.side = Math.sign(w.pitch) * (Math.cos(p.angle) >= 0 ? 1 : -1);
+    // The belly sits at a negative roll angle on a plane drawn right way round, a positive one once
+    // p.inverted flips at the top of the turn, which keeps the same wing in view.
+    const lean = w.side * (p.inverted ? 1 : -1) * cfg.leanSteps * hard * STEP;
 
     // Flutter: a new random target every second or so, eased towards, scaled by how hard the turn is.
     w.flutterIn -= dt;
