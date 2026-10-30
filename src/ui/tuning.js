@@ -291,9 +291,9 @@ const AUDIO_FIELDS = [
 
 const WOBBLE_FIELDS = [
   ['straightAmount', 'Straight flight: amount', 0, 90, 1, 'How far the wings rock (degrees) in level flight. The roll frames are 22.5 degrees apart, so under about 11 shows nothing. 0 = no wobble.'],
-  ['straightFreq', 'Straight flight: frequency', 0, 3, 0.05, 'Rocks per second in level flight. It comes and goes in bursts.'],
+  ['straightFreq', 'Straight flight: frequency', 0, 3, 0.05, 'Tilts per second on average in level flight (single left or right tilts at random times and sizes).'],
   ['maneuverAmount', 'Turning / climbing / diving: amount', 0, 90, 1, 'How far the wings rock (degrees) while turning, climbing or diving. Blends in with how hard the plane is manoeuvring. 0 = no wobble.'],
-  ['maneuverFreq', 'Turning / climbing / diving: frequency', 0, 3, 0.05, 'Rocks per second while manoeuvring.'],
+  ['maneuverFreq', 'Turning / climbing / diving: frequency', 0, 3, 0.05, 'Tilts per second on average while manoeuvring.'],
 ];
 
 const FREE_FIELDS = [

@@ -42,8 +42,8 @@
     "muteInBackground": true
   },
   "wobble": {
-    "straightAmount": 14,
-    "straightFreq": 0.5,
+    "straightAmount": 18,
+    "straightFreq": 0.25,
     "maneuverAmount": 40,
     "maneuverFreq": 1.2
   },

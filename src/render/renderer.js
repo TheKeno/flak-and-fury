@@ -679,15 +679,22 @@ export function createRenderer(canvas, world, assets) {
     return null;
   }
 
-  // Wing wobble state per plane (drawing only). A burst envelope times a sine gives the "now and then"
-  // rocking; how hard the plane is turning, climbing or diving blends the maneuver values in.
+  // Wing wobble state per plane (drawing only). Not a cycle: single one-sided tilts, left or right, each
+  // easing out and back to level at a random size and moment. Frequency is tilts per second on average;
+  // how hard the plane is turning, climbing or diving blends the maneuver values in.
   const wobble = new Map();
+  const wobbleRand = (w) => {
+    w.seed = (w.seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(w.seed ^ (w.seed >>> 15), 1 | w.seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
   function updateWobble(p, dt) {
     const cfg = assets.settings.wobble;
     let w = wobble.get(p.id);
     if (!w) {
-      const seed = (p.id * 2.399) % (Math.PI * 2);
-      w = { phase: seed, gate: seed * 1.7, m: 0, last: p.angle, angle: 0 };
+      w = { seed: p.id * 7919, m: 0, last: p.angle, angle: 0, tilt: null, wait: 0 };
+      w.wait = -Math.log(1 - wobbleRand(w));
       wobble.set(p.id, w);
     }
     dt = Math.min(dt, 0.1);
@@ -699,11 +706,20 @@ export function createRenderer(canvas, world, assets) {
     const m = w.m;
     const amount = cfg.straightAmount + (cfg.maneuverAmount - cfg.straightAmount) * m;
     const freq = cfg.straightFreq + (cfg.maneuverFreq - cfg.straightFreq) * m;
-    w.phase += dt * freq * Math.PI * 2;
-    w.gate += dt * 0.35 * Math.PI * 2;
-    const burst = Math.max(0, Math.sin(w.gate)) * Math.max(0, Math.sin(w.gate * 0.37 + 1));
-    const gate = burst + (1 - burst) * m;
-    w.angle = amount > 0 && freq > 0 ? ((amount * Math.PI) / 180) * gate * Math.sin(w.phase) : 0;
+    if (!w.tilt) {
+      // The wait is counted in expected tilts, so a changing frequency takes effect at once.
+      w.wait -= dt * freq;
+      if (w.wait <= 0) {
+        w.tilt = { t: 0, dir: wobbleRand(w) < 0.5 ? -1 : 1, size: 0.5 + 0.5 * wobbleRand(w), dur: 0.6 + 0.8 * wobbleRand(w) };
+        w.wait = -Math.log(1 - wobbleRand(w));
+      }
+    }
+    w.angle = 0;
+    if (w.tilt) {
+      w.tilt.t += dt / w.tilt.dur;
+      if (w.tilt.t >= 1) w.tilt = null;
+      else w.angle = ((amount * Math.PI) / 180) * w.tilt.dir * w.tilt.size * Math.sin(Math.PI * w.tilt.t);
+    }
   }
 
   // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.
