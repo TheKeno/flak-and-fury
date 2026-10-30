@@ -85,6 +85,61 @@ export function createRecordings(mixer, sound) {
     return loop;
   }
 
+  // A loop that follows its file's trim: moved markers are heard from the next time round.
+  function liveSource(file, xfadeOf, dest) {
+    let src = null;
+    let g = null;
+    let key = '';
+    let pos = 0;
+    let last = ctx.currentTime;
+    let rate = 1;
+    const keyNow = () => `${file.start}|${file.end}|${xfadeOf()}`;
+    const open = (offset, at) => {
+      key = keyNow();
+      const buffer = seamless(file, xfadeOf());
+      const s = ctx.createBufferSource();
+      s.buffer = buffer;
+      s.loop = true;
+      s.playbackRate.value = rate;
+      const fade = ctx.createGain();
+      fade.gain.setValueAtTime(0, at);
+      fade.gain.linearRampToValueAtTime(1, at + 0.015);
+      s.connect(fade).connect(dest);
+      s.start(at, offset);
+      src = s;
+      g = fade;
+      pos = offset;
+    };
+    open(Math.random() * seamless(file, xfadeOf()).duration, ctx.currentTime);
+    return {
+      // Called every frame. r: how fast it plays now.
+      setRate(r, tc = 0.04) {
+        const now = ctx.currentTime;
+        const length = src.buffer.duration;
+        pos += (now - last) * rate;
+        last = now;
+        rate = r;
+        src.playbackRate.setTargetAtTime(r, now, tc);
+        if (pos >= length) pos %= length;
+        const left = (length - pos) / Math.max(0.05, r);
+        if (left > 0.12 || keyNow() === key) return;
+        // A very short crossfade covers the join, since the two are cut from different places.
+        const oldSrc = src;
+        const oldG = g;
+        const at = now + left;
+        oldG.gain.setValueAtTime(1, at);
+        oldG.gain.linearRampToValueAtTime(0, at + 0.015);
+        oldSrc.stop(at + 0.03);
+        open(0, at);
+        pos = -left * r;
+      },
+      stop() {
+        src.stop();
+        g.disconnect();
+      },
+    };
+  }
+
   // Filters and distortion of a group, ending in dest. Returns where to connect the source.
   function tweaks(group, dest) {
     const hp = ctx.createBiquadFilter();
@@ -145,18 +200,13 @@ export function createRecordings(mixer, sound) {
   // One looping group that follows a value: a recorded fire, a wing rattle.
   function createLoop(group, chainMixer = mixer) {
     const file = group.files.find((f) => buffers.has(f.path));
-    const buffer = file && seamless(file, group.xfade);
-    if (!buffer) return null;
+    if (!file) return null;
     const chain = spatialChain(chainMixer, group.reverb);
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    src.loop = true;
-    src.connect(tweaks(group, chain.input));
-    src.start(0, Math.random() * buffer.duration);
+    const src = liveSource(file, () => group.xfade, tweaks(group, chain.input));
     return {
       update(where, value = 1, { gain = 1, pitch = 0 } = {}) {
         const m = mapRange(value, group);
-        setT(src.playbackRate, 2 ** ((group.pitch + pitch) / 12) * m.pitch * (where.doppler ?? 1), ctx);
+        src.setRate(2 ** ((group.pitch + pitch) / 12) * m.pitch * (where.doppler ?? 1));
         chain.place(where, group.gain * gain * m.gain);
       },
       stop() {
@@ -175,14 +225,7 @@ export function createRecordings(mixer, sound) {
       const g = ctx.createGain();
       g.gain.value = 0;
       g.connect(dest);
-      const srcs = Array.from({ length: engines }, () => {
-        const s = ctx.createBufferSource();
-        s.buffer = seamless(clip, clip.xfade ?? 0.05);
-        s.loop = true;
-        s.connect(g);
-        s.start(0, Math.random() * s.buffer.duration);
-        return s;
-      });
+      const srcs = Array.from({ length: engines }, () => liveSource(clip, () => clip.xfade ?? 0.05, g));
       return { clip, g, srcs };
     });
     return {
@@ -198,7 +241,7 @@ export function createRecordings(mixer, sound) {
         voices.forEach((v, i) => {
           const mix = i === hi ? Math.sqrt(t) : i === lo ? Math.sqrt(1 - t) : 0;
           setT(v.g.gain, mix * (v.clip.gain ?? 1) * level, ctx, 0.06);
-          v.srcs.forEach((s, n) => setT(s.playbackRate, (rpm / v.clip.rpm) * doppler * (1 + detune * (n - (engines - 1) / 2)), ctx));
+          v.srcs.forEach((s, n) => s.setRate((rpm / v.clip.rpm) * doppler * (1 + detune * (n - (engines - 1) / 2))));
         });
       },
       stop() {
@@ -217,12 +260,7 @@ export function createRecordings(mixer, sound) {
       const g = ctx.createGain();
       g.gain.value = 0;
       g.connect(dest);
-      const s = ctx.createBufferSource();
-      s.buffer = seamless(clip, clip.xfade ?? 0.05);
-      s.loop = true;
-      s.connect(g);
-      s.start(0, Math.random() * s.buffer.duration);
-      return { clip, g, s };
+      return { clip, g, s: liveSource(clip, () => clip.xfade ?? 0.05, g) };
     });
     if (!voices.length) return null;
     return {
@@ -230,6 +268,7 @@ export function createRecordings(mixer, sound) {
         for (const v of voices) {
           const on = v.clip.role === 'idle' ? !moving : moving;
           setT(v.g.gain, on ? (v.clip.gain ?? 1) * (rec.clipLevel ?? 1) : 0, ctx, 0.3);
+          v.s.setRate(1);
         }
       },
       stop() {

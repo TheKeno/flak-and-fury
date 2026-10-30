@@ -1273,6 +1273,28 @@ function playToggle(play) {
   return b;
 }
 
+// Plays a looping slot round and round. Its trim and level are followed as they change.
+function loopPlay(file, levelOf, xfadeOf) {
+  const group = { ...newGroup(), pitchVar: 0, gainVar: 0, files: [file], gain: 1, gainLow: 1, gainHigh: 1, pitchLow: 1, pitchHigh: 1, get xfade() { return xfadeOf(); } };
+  const loop = mixer.recordings.createLoop(group);
+  if (!loop) return null;
+  let frame = 0;
+  const tick = () => {
+    loop.update(where(), 1, { gain: levelOf() });
+    frame = requestAnimationFrame(tick);
+  };
+  tick();
+  const handle = {
+    onended: null,
+    stop() {
+      cancelAnimationFrame(frame);
+      loop.stop();
+      handle.onended?.();
+    },
+  };
+  return handle;
+}
+
 function stopSlot() {
   if (!slotPlaying) return;
   const { b, src } = slotPlaying;
@@ -1362,7 +1384,7 @@ function engineSlots(buildId, specs, locked) {
       files: clip ? [clip] : [],
       sub: clip ? `${clip.rpm} rpm` : null,
       level: clip ? { obj: clip, key: 'gain' } : null,
-      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), gain: clip.gain ?? 1, pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
+      play: clip ? () => loopPlay(clip, () => clip.gain ?? 1, () => clip.xfade ?? 0.05) : null,
       advanced: () => { selected = id; setTab('sounds'); },
       onFiles: ([f]) => {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
@@ -1393,7 +1415,7 @@ function tankSlots(buildId, locked) {
     return slotRow({
       key, name, locked, help, files: clip ? [clip] : [],
       level: clip ? { obj: clip, key: 'gain' } : null,
-      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), gain: clip.gain ?? 1, pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
+      play: clip ? () => loopPlay(clip, () => clip.gain ?? 1, () => clip.xfade ?? 0.05) : null,
       advanced: () => { selected = id; setTab('sounds'); },
       onFiles: ([f]) => {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
@@ -1424,7 +1446,7 @@ function layerSlot(key, layer, help, locked, vehicleId) {
   return slotRow({
     key, name: layer?.name ?? AIRFRAME_SLOTS[key]?.[0], locked, help, files,
     level: layer && files.length ? { obj: layer.group, key: 'gain' } : null,
-    play: files.length ? () => mixer?.recordings.playGroup({ ...layer.group, pitchVar: 0 }, where()) : null,
+    play: files.length ? () => (layer.type === 'continuous' ? loopPlay(files[0], () => layer.group.gain, () => layer.group.xfade) : mixer.recordings.playGroup({ ...layer.group, pitchVar: 0 }, where())) : null,
     advanced: layer ? () => { selected = `layer:${Object.keys(sound.layers).find((k) => sound.layers[k] === layer)}`; setTab('sounds'); } : null,
     onFiles: (added) => {
       const target = layer ?? airframeLayer(key);
