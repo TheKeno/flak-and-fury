@@ -118,7 +118,9 @@ later.
     scaling, historical markings (on by default for now), gore, and an online callsign. Kept in the
     browser, written over the data files' values. Esc pauses single player (P is gone); online it
     opens the menu while the V autopilot flies the plane. Losing the mouse (the browser's own Esc,
-    leaving fullscreen, alt-tab) opens it too.
+    leaving fullscreen, alt-tab) opens it too. The game's fullscreen (F11 or the option) claims Esc
+    with the Keyboard Lock API in Chrome and Edge, so a tap opens the menu and only a held Esc leaves
+    fullscreen.
   - **HUD pass:** smaller, smooth text drawn at the screen's full resolution instead of the blocky
     3×5 pixel font, muted read-outs, unit labels, and on-screen hints that name the keys as bound.
 

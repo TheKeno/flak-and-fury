@@ -20,6 +20,7 @@ export const ACTIONS = [
   ['menu', 'Pause / menu', ['Escape', null]],
   ['help', 'Show / hide help', ['KeyH', null]],
   ['mute', 'Mute', ['KeyM', null]],
+  ['fullscreen', 'Fullscreen', ['F11', null]],
   ['freeLook', 'Free look (debug)', ['KeyV', null]],
   ['tuning', 'Tuning panel (debug)', ['KeyT', null]],
 ];

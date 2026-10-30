@@ -7,7 +7,7 @@ import { createRenderer, MAX_ZOOM } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
 import { createTuningPanel } from './ui/tuning.js';
-import { createOptions, cleanName } from './ui/options.js';
+import { createOptions, cleanName, toggleFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText as sinkUnits } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
 import { NO_COMMAND } from './sim/plane.js';
@@ -186,6 +186,11 @@ keyboard.onPress((code, e) => {
   if (e?.target instanceof HTMLInputElement) return;
   const acts = keyboard.actionsOf(code);
   if (acts.includes('menu')) return menuKey();
+  // The game's own fullscreen (not the browser's F11), so it can keep Esc for the menu.
+  if (acts.includes('fullscreen')) {
+    e?.preventDefault?.();
+    return toggleFullscreen();
+  }
   if (menuOpen) return;
   for (const act of acts) {
     if (guest && HOST_ONLY.has(act)) {

@@ -321,7 +321,7 @@ export function createOptions({ settings, bindings, parent, onChange }) {
       b.textContent = document.fullscreenElement ? 'ON' : 'OFF';
       b.classList.toggle('on', Boolean(document.fullscreenElement));
     });
-    return [row('Fullscreen', b, 'Esc also leaves fullscreen: the browser takes that press.')];
+    return [row('Fullscreen', b, 'Hold Esc to leave fullscreen; a tap opens the menu (Chrome and Edge; elsewhere a tap leaves it).')];
   }
 
   function show(id) {
@@ -398,7 +398,16 @@ export function createOptions({ settings, bindings, parent, onChange }) {
   }
 }
 
+// Fullscreen through the game (not the browser's own F11) can claim Esc with the Keyboard Lock API
+// (Chrome, Edge): a tap then reaches the game and opens the menu, and only holding Esc leaves
+// fullscreen. Elsewhere Esc still leaves fullscreen, and the menu opens as fullscreen ends.
 export function toggleFullscreen() {
-  if (document.fullscreenElement) document.exitFullscreen?.();
-  else document.documentElement.requestFullscreen?.().catch(() => {});
+  if (document.fullscreenElement) {
+    navigator.keyboard?.unlock?.();
+    document.exitFullscreen?.();
+    return;
+  }
+  document.documentElement.requestFullscreen?.()
+    .then(() => navigator.keyboard?.lock?.(['Escape']))
+    .catch(() => {});
 }
