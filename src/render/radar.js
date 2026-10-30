@@ -163,10 +163,12 @@ export function createRadar(world, cfg) {
     get sweeps() {
       return sweeps;
     },
-    // How brightly an enemy plane's echo glows on your scope, 0 when it isn't plotted.
+    // Strength of an enemy plane's on-screen outline: 1 as the beam sweeps it, fading to 0 over
+    // cfg.outlineTime seconds (its own timer, not the phosphor's afterglow). 0 when not plotted.
     enemyGlow(id) {
       const plot = plots.get(id);
-      return plot && !plot.friendly && health > 0 ? Math.max(0, plot.glow) : 0;
+      if (!plot || plot.friendly || health <= 0) return 0;
+      return Math.max(0, 1 - plot.age / Math.max(0.1, cfg.outlineTime));
     },
     // Is this plane currently below the enemy's radar?
     belowRadar: (p) => p.state === 'air' && p.y - world.terrain.heightAt(p.x) < cfg.lowGap,
@@ -212,11 +214,13 @@ export function createRadar(world, cfg) {
         if (Math.random() < d * cfg.dropout) continue;
         const ex = p.x + (Math.random() - 0.5) * d * 160;
         const ey = p.y + (Math.random() - 0.5) * d * 70;
-        plots.set(p.id, { x: ex, y: ey, glow: 1, friendly, mine: p === focus, seed: Math.random() * 10 });
+        plots.set(p.id, { x: ex, y: ey, glow: 1, age: 0, friendly, mine: p === focus, seed: Math.random() * 10 });
       }
+      // A plot stays until both its phosphor glow and the on-screen outline have faded.
       for (const [id, plot] of plots) {
         plot.glow -= dt / Math.max(0.2, cfg.afterglow);
-        if (plot.glow <= 0) plots.delete(id);
+        plot.age += dt;
+        if (plot.glow <= 0 && plot.age >= (cfg.outlineTime ?? 0)) plots.delete(id);
       }
     },
 
@@ -229,6 +233,7 @@ export function createRadar(world, cfg) {
 
       // Echoes: soft blobs that flare when swept and fade on the phosphor. Friendlies pulse (IFF).
       for (const plot of plots.values()) {
+        if (plot.glow <= 0) continue; // kept only for the outline
         const pulse = plot.friendly ? 0.55 + 0.45 * Math.sin(t * 2 * Math.PI * 2 + plot.seed) : 1;
         const a = Math.max(0, plot.glow) ** 1.3 * pulse * bright;
         const x = toX(plot.x) + (Math.random() - 0.5) * RES * 0.4;

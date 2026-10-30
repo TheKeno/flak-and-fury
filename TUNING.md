@@ -119,7 +119,8 @@ points are under Ground targets.
 
 Enemy planes your scope has plotted get a phosphor-green outline on screen, flaring as the beam
 sweeps them and fading with the echo (so no outline for low flyers or with the station lost):
-`outline` (true / false), `outlineAlpha` (strength, 0 hides it; try 0.4 – 0.8), `outlineNear` and
+`outline` (true / false), `outlineAlpha` (strength, 0 hides it; try 0.4 – 0.8), `outlineTime`
+(seconds it shows after each sweep, fading out; longer than `sweepTime` keeps it on; try 1 – 5), `outlineNear` and
 `outlineFar` (full strength up to the first distance, gone at the second; try 200 / 900).
 
 `net`: online play (tuning panel → Online). `snapshotEvery`: how often the host sends its world to

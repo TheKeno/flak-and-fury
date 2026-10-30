@@ -122,6 +122,7 @@ const RADAR_FIELDS = [
   ['lowGap', 'Low-level gap', 0, 150, 5, 'Planes flying lower than this above the ground drop off the radar, friend or foe (you too).'],
   ['dropout', 'Damaged: echoes lost', 0, 1, 0.05, 'Share of echoes a radar loses when its station is nearly destroyed (less when lightly damaged). Damage also adds noise, blotches, a stuttering sweep and misplaced echoes.'],
   ['outlineAlpha', 'Enemy outline', 0, 1, 0.05, 'Strength of the green outline on enemy planes your radar has plotted; 0 hides it.'],
+  ['outlineTime', 'Outline time', 0.1, 15, 0.1, 'Seconds the enemy outline shows after the radar beam sweeps the plane, fading out over that time. Longer than the sweep time keeps it on as long as the radar sees them.'],
   ['outlineNear', 'Outline full within', 0, 1500, 10, 'Distance up to which the enemy outline is at full strength.'],
   ['outlineFar', 'Outline gone at', 50, 2500, 10, 'Distance at which the enemy outline has faded away.'],
 ];

@@ -674,7 +674,7 @@ export function createRenderer(canvas, world, assets) {
     const d = Math.hypot(p.x - focus.x, p.y - focus.y);
     const span = Math.max(1, radarCfg.outlineFar - radarCfg.outlineNear);
     const fade = 1 - clamp((d - radarCfg.outlineNear) / span, 0, 1);
-    return radarCfg.outlineAlpha * Math.min(1, glow * 1.5) * fade;
+    return radarCfg.outlineAlpha * glow * fade;
   }
   function silhouette(img) {
     let s = outlines.get(img);
