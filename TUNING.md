@@ -83,7 +83,11 @@ about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns a
 `camera.lookSensitivity` is the mouse travel (pixels) for a full look; `camera.lookReturn` the seconds
 without moving the mouse before the view eases back to looking ahead, when `camera.lookReturnOn` is true.
 `camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
-none). `audio.muteInBackground` silences the game while its tab is hidden. `display.smooth` scales the
+none). `wobble` (drawing only) rocks the wings in the air using the roll frames, which are 22.5 degrees
+apart, so an amount under about 11 shows nothing: `straightAmount` / `straightFreq` (degrees, rocks per
+second) for level flight, where it comes in bursts, and `maneuverAmount` / `maneuverFreq` for turning,
+climbing and diving, blended in by how hard the plane is manoeuvring. Amount 0 = no wobble.
+`audio.muteInBackground` silences the game while its tab is hidden. `display.smooth` scales the
 scenery up smoothly instead of sharp pixels.
 
 Dogfight camera, also in `camera`: `fightOn` turns it on or off (also in the options menu). An enemy plane

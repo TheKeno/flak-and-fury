@@ -289,6 +289,13 @@ const AUDIO_FIELDS = [
   ['bangRange', 'Bangs and MGs carry', 150, 3000, 10, 'Explosions, flak, tank guns and machine-gun fire are heard out to this distance.'],
 ];
 
+const WOBBLE_FIELDS = [
+  ['straightAmount', 'Straight flight: amount', 0, 90, 1, 'How far the wings rock (degrees) in level flight. The roll frames are 22.5 degrees apart, so under about 11 shows nothing. 0 = no wobble.'],
+  ['straightFreq', 'Straight flight: frequency', 0, 3, 0.05, 'Rocks per second in level flight. It comes and goes in bursts.'],
+  ['maneuverAmount', 'Turning / climbing / diving: amount', 0, 90, 1, 'How far the wings rock (degrees) while turning, climbing or diving. Blends in with how hard the plane is manoeuvring. 0 = no wobble.'],
+  ['maneuverFreq', 'Turning / climbing / diving: frequency', 0, 3, 0.05, 'Rocks per second while manoeuvring.'],
+];
+
 const FREE_FIELDS = [
   ['panSpeed', 'Camera speed', 50, 1000, 10, 'How fast the arrows move the free-look camera (Shift: three times as fast).'],
   ['zoom', 'Starting zoom-out', 1, 1.8, 0.05, 'How wide the view is when free look starts. The mouse wheel changes it.'],
@@ -486,6 +493,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   );
 
   const cameraSection = section('Camera', true, ...CAMERA_FIELDS.map((f) => add(slider(settings.camera, f))));
+  const wobbleSection = section('Wing wobble', false, ...WOBBLE_FIELDS.map((f) => add(slider(settings.wobble, f))));
   const freeSection = section('Free look (V)', false, ...FREE_FIELDS.map((f) => add(slider(settings.freeLook, f))));
   const propBox = el('input', { type: 'checkbox', onchange: () => (settings.collisions.propStrikes = propBox.checked) });
   propBox.checked = settings.collisions.propStrikes;
@@ -694,6 +702,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     servicingSection,
     runwaySection,
     cameraSection,
+    wobbleSection,
     freeSection,
     goreSection,
     markingsSection,

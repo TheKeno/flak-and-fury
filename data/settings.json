@@ -41,6 +41,12 @@
     "bangRange": 1000,
     "muteInBackground": true
   },
+  "wobble": {
+    "straightAmount": 14,
+    "straightFreq": 0.5,
+    "maneuverAmount": 40,
+    "maneuverFreq": 1.2
+  },
   "freeLook": {
     "panSpeed": 320,
     "mousePan": 0.6,

@@ -667,7 +667,43 @@ export function createRenderer(canvas, world, assets) {
       const row = p.gear > 0.5 ? 'rollGear' : 'roll';
       return { row, index: Math.round((p.rollAngle / (Math.PI * 2)) * rows[row].count) % rows[row].count };
     }
+    // Wing wobble: the roll frames a step either side of level. Level itself is the plain sprite.
+    const w = wobble.get(p.id);
+    if (w && p.state === 'air' && w.angle !== 0) {
+      const row = p.gear > 0.5 ? 'rollGear' : 'roll';
+      const n = rows[row].count;
+      const rest = p.inverted ? Math.PI : 0;
+      const index = (((Math.round(((rest + w.angle) / (Math.PI * 2)) * n)) % n) + n) % n;
+      if (index !== Math.round((rest / (Math.PI * 2)) * n) % n) return { row, index };
+    }
     return null;
+  }
+
+  // Wing wobble state per plane (drawing only). A burst envelope times a sine gives the "now and then"
+  // rocking; how hard the plane is turning, climbing or diving blends the maneuver values in.
+  const wobble = new Map();
+  function updateWobble(p, dt) {
+    const cfg = assets.settings.wobble;
+    let w = wobble.get(p.id);
+    if (!w) {
+      const seed = (p.id * 2.399) % (Math.PI * 2);
+      w = { phase: seed, gate: seed * 1.7, m: 0, last: p.angle, angle: 0 };
+      wobble.set(p.id, w);
+    }
+    dt = Math.min(dt, 0.1);
+    let turn = Math.atan2(Math.sin(p.angle - w.last), Math.cos(p.angle - w.last));
+    w.last = p.angle;
+    turn = dt > 0 ? Math.abs(turn) / dt : 0;
+    const target = Math.min(1, Math.max(Math.abs(Math.sin(p.angle)) * 2, turn / 2));
+    w.m += (target - w.m) * Math.min(1, dt * 3);
+    const m = w.m;
+    const amount = cfg.straightAmount + (cfg.maneuverAmount - cfg.straightAmount) * m;
+    const freq = cfg.straightFreq + (cfg.maneuverFreq - cfg.straightFreq) * m;
+    w.phase += dt * freq * Math.PI * 2;
+    w.gate += dt * 0.35 * Math.PI * 2;
+    const burst = Math.max(0, Math.sin(w.gate)) * Math.max(0, Math.sin(w.gate * 0.37 + 1));
+    const gate = burst + (1 - burst) * m;
+    w.angle = amount > 0 && freq > 0 ? ((amount * Math.PI) / 180) * gate * Math.sin(w.phase) : 0;
   }
 
   // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.
@@ -1220,6 +1256,7 @@ export function createRenderer(canvas, world, assets) {
       ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
       ctx.imageSmoothingEnabled = false;
       updateCamera(focus, dt, look, free);
+      for (const p of world.planes) updateWobble(p, dt);
       for (const p of world.planes) emitEffects(p, dt);
       emitGroundEffects(dt);
       particles.update(dt, world.terrain);
