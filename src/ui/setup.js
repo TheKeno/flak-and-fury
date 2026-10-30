@@ -18,10 +18,42 @@ const select = (options, value, onchange, disabled = false) => {
   return s;
 };
 
+// Browsers can refuse the clipboard API (outside https, or by policy); the old way often still works.
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const box = el('textarea', { style: 'position:fixed;opacity:0' });
+    box.value = text;
+    document.body.append(box);
+    box.select();
+    const done = document.execCommand('copy');
+    box.remove();
+    return done;
+  }
+}
+
 // planes: [[id, name]...]; levels: [[id, name]...]. on: { planes(n), skill(team, id), botPlane(team, id),
 // side(team), plane(id), start(), back() }.
 export function createSetup({ parent, planes, levels, on }) {
-  const code = el('div', { class: 'setup-code hidden' });
+  // Click the room code to copy just its letters, ready to paste to friends.
+  let roomCode = null;
+  let copied = false;
+  const showCode = () => (code.textContent = roomCode ? `ROOM CODE  ${roomCode}${copied ? '  COPIED' : ''}` : '');
+  const code = el('div', {
+    class: 'setup-code hidden',
+    title: 'Click to copy',
+    onclick: async () => {
+      if (!(await copyText(roomCode))) return say('COULD NOT COPY THE CODE: PLEASE TYPE IT OUT', true);
+      copied = true;
+      showCode();
+      setTimeout(() => {
+        copied = false;
+        showCode();
+      }, 1500);
+    },
+  });
   const table = el('div', { class: 'setup-table' });
   const status = el('p', { class: 'status' });
   const startBtn = el('button', { class: 'go', onclick: () => on.start() });
@@ -40,7 +72,8 @@ export function createSetup({ parent, planes, levels, on }) {
   // players: [{ id, name, plane, me }] }], myPlane, start: label, canStart, canSwitch }
   function draw(state) {
     code.classList.toggle('hidden', !state.code);
-    code.textContent = state.code ? `ROOM CODE  ${state.code}` : '';
+    roomCode = state.code;
+    showCode();
     const head = el('div', { class: 'setup-row head' }, el('span'), ...state.sides.map((s) => el('span', {}, s.label)));
     const rows = [head];
     const cells = (label, make) => el('div', { class: 'setup-row' }, el('span', { class: 'label' }, label), ...state.sides.map(make));
