@@ -12,6 +12,7 @@ import { NO_COMMAND } from './sim/plane.js';
 import { clamp } from './sim/math.js';
 import { hostGame, joinGame, cleanCode } from './net/session.js';
 import { createGuestView } from './net/guest.js';
+import { takePoses, writePoses } from './render/interpolate.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
@@ -310,6 +311,10 @@ let lastSweeps = 0;
 let lastFacing = 1;
 let last = performance.now();
 let acc = 0;
+// Where things were before and after the last tick, for drawing between them (a guest's view does
+// its own blending, between snapshots).
+let before = null;
+let after = null;
 // Runs the world's ticks due by now (on a guest: gathers the commands and shows the host's world).
 // Returns the frame's dt.
 function advance(now) {
@@ -317,16 +322,21 @@ function advance(now) {
   last = now;
   acc += dt * (free.on ? SPEEDS[free.speed] : 1);
   if (paused) acc = 0;
+  let stepped = false;
   while (acc >= DT) {
     const cmd = free.on ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : withMouse(keyboard.read());
     if (guest) guest.commands.push(cmd);
     else {
+      // The frame is drawn between the last two ticks: note where things were before the last one.
+      if (acc < 2 * DT) before = takePoses(world);
       stepWorld(world, { p1: cmd, ...host?.commands() });
       handleEvents();
       host?.afterTick();
+      stepped = true;
     }
     acc -= DT;
   }
+  if (stepped) after = takePoses(world);
   if (guest) {
     // One message a frame carries this frame's ticks of commands.
     guest.net.sendCommands(guest.commands);
@@ -341,6 +351,10 @@ function advance(now) {
 
 function frame(now) {
   const dt = advance(now);
+  // Screens faster than the sim's 60 ticks a second draw most frames between two ticks: show things
+  // part-way between them, then put the true values back before the sim runs again.
+  const blend = !guest && before && after;
+  if (blend) writePoses(world, before, after, paused ? 1 : acc / DT);
   mouse.panMode = free.on;
   mouse.update(dt);
   // The sticky mouse look is relative to where the plane points: turn around and it turns with you
@@ -360,6 +374,7 @@ function frame(now) {
     sound?.radarTick();
   }
   sound?.update(free.on ? null : player, renderer.centre(), dt);
+  if (blend) writePoses(world, after);
   requestAnimationFrame(frame);
 }
 

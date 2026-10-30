@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, setBots, stepWorld } from '../src/sim/world.js';
-import { encodeWorld, encodeEvent, diff, applyPatch, staticRefs, takePoses, writePoses, STATIC } from '../src/net/snapshot.js';
+import { encodeWorld, encodeEvent, diff, applyPatch, staticRefs, STATIC } from '../src/net/snapshot.js';
+import { takePoses, writePoses } from '../src/render/interpolate.js';
 import { createGuestView } from '../src/net/guest.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));

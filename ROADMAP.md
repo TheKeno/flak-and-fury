@@ -107,6 +107,10 @@ later.
     are replayed tick by tick for sound and effects. Generic snapshots (`src/net/snapshot.js`): new sim
     state goes online by itself, and `tests/net.test.mjs` checks a busy world arrives whole. A host's
     hidden tab keeps the world running. Pause, free look and tuning are host only.
+  - Smooth drawing on fast screens (120/144 Hz): every frame draws things part-way between the last
+    two sim ticks (a guest: between the last two snapshots), so terrain and ground no longer stutter
+    against the plane. One layer for both (`src/render/interpolate.js`); only what's drawn is blended,
+    the sim stays exact (`tests/interpolate.test.mjs`).
 
 ## Milestones ahead
 

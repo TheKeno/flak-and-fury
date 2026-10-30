@@ -3,7 +3,8 @@
 // glide towards, and planes, bullets and turrets move smoothly between the two. Events (shots, hits,
 // crashes) are released tick by tick on the same clock, so sounds and effects line up with what's
 // on screen.
-import { applyPatch, staticRefs, takePoses, writePoses, decodeEvent } from './snapshot.js';
+import { applyPatch, staticRefs, decodeEvent } from './snapshot.js';
+import { takePoses, writePoses } from '../render/interpolate.js';
 import { TICK_RATE } from '../sim/world.js';
 
 // Further behind than this (a stall, the host fast-forwarding) and the clock jumps instead of catching up.

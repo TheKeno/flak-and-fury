@@ -17,11 +17,6 @@ export const STATIC = ['planeDefs', 'weapons', 'groundDefs', 'rules', 'servicing
 // Not sent: the shared data, the host's own bookkeeping and bot memory, and events (sent separately,
 // tick by tick). Paths are world keys joined by dots; list elements don't add to the path.
 const SKIP = new Set([...STATIC, 'rng', 'nextId', 'events', 'collisionGrace', 'botRadar', 'botSkyline', 'planes.bot']);
-// Values worth smoothing between snapshots on a guest's screen; the angles go the short way round.
-const POSE = ['x', 'y', 'angle', 'rollAngle', 'aim'];
-const ANGLES = new Set(['angle', 'rollAngle', 'aim']);
-// A jump further than this between two snapshots is a teleport (a respawn), not movement.
-const TELEPORT = 300;
 
 // Every object in the shared data, both ways: object -> '@path' and '@path' -> object.
 export function staticRefs(world) {
@@ -196,37 +191,3 @@ export function applyPatch(cur, p, refs = null) {
   return cur;
 }
 
-// The pose of everything in the world's top-level lists (planes, ground, bullets, shells...): id ->
-// [x, y, angle, rollAngle, aim], undefined where a thing doesn't have one.
-export function takePoses(tree) {
-  const poses = new Map();
-  for (const k in tree) {
-    const list = tree[k];
-    if (!Array.isArray(list)) continue;
-    for (const e of list) if (isObj(e) && typeof e.id === 'number') poses.set(e.id, POSE.map((f) => (typeof e[f] === 'number' ? e[f] : undefined)));
-  }
-  return poses;
-}
-
-const TAU = Math.PI * 2;
-const lerpAngle = (a, b, t) => a + ((((b - a) % TAU) + TAU + Math.PI) % TAU - Math.PI) * t;
-
-// Writes poses into the live world's lists: from, or between from and to (t: 0..1).
-export function writePoses(world, from, to = null, t = 0) {
-  for (const k in world) {
-    const list = world[k];
-    if (!Array.isArray(list)) continue;
-    for (const e of list) {
-      const a = isObj(e) && from.get(e.id);
-      if (!a) continue;
-      const b = to?.get(e.id);
-      const jump = b && Math.abs((b[0] ?? 0) - (a[0] ?? 0)) + Math.abs((b[1] ?? 0) - (a[1] ?? 0)) > TELEPORT;
-      for (let i = 0; i < POSE.length; i++) {
-        if (a[i] === undefined) continue;
-        const end = b && !jump ? b[i] : undefined;
-        if (end === undefined) e[POSE[i]] = a[i];
-        else e[POSE[i]] = ANGLES.has(POSE[i]) ? lerpAngle(a[i], end, t) : a[i] + (end - a[i]) * t;
-      }
-    }
-  }
-}
