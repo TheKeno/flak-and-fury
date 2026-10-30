@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { engineSoundFor, mapRange, DRIVERS } from '../src/audio/sound-data.js';
+import { engineSoundFor, mapRange, DRIVERS, syncInPlace } from '../src/audio/sound-data.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../${f}`, import.meta.url)));
 const sound = load('data/sound.json');
@@ -59,6 +59,16 @@ test('the values layers follow read from a plane and a tank', () => {
 test('every recording and layer in the data names its file', () => {
   for (const r of Object.values(sound.recordings)) for (const g of r.groups ?? []) for (const f of g.files) assert.ok(f.path);
   for (const l of Object.values(sound.layers)) for (const f of l.group.files) assert.ok(f.path);
+});
+
+test('a live change keeps the objects running voices hold', () => {
+  const synth = { level: 1, res: [[1, 2, 3]], gone: true };
+  const data = { builds: { a: { synth } }, old: 1 };
+  syncInPlace(data, { builds: { a: { synth: { level: 2, res: [[4, 5, 6]] } }, b: { synth: { level: 3 } } } });
+  assert.equal(data.builds.a.synth, synth);
+  assert.deepEqual(synth, { level: 2, res: [[4, 5, 6]] });
+  assert.equal(data.builds.b.synth.level, 3);
+  assert.equal('old' in data, false);
 });
 
 test('an unlisted plane falls back on its layout', () => {

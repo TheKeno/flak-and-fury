@@ -3,14 +3,14 @@
 import { createEngineVoice } from './engine-synth.js';
 import { createAirflow } from './airflow.js';
 import { createBody } from './body.js';
-import { buildVoices } from './gun-voices.js';
+import { buildVoices, renderGun } from './gun-voices.js';
 import { createBombWhistle, createFire, createScrape, createTankEngine, createRadarStatic } from './loops.js';
 import { radarHealth } from '../sim/ground.js';
 import { createCrew } from './crew.js';
 import { spatialize } from './spatial.js';
 import * as rawSfx from './sfx.js';
 import { withRecordings, planeValues, tankValues } from './recordings.js';
-import { engineSoundFor } from './sound-data.js';
+import { engineSoundFor, syncInPlace } from './sound-data.js';
 
 const sfx = withRecordings(rawSfx);
 const NEAR_MISS = 26; // px: rounds passing this close crack past your ears
@@ -232,8 +232,43 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     if (snapped.size > 400) snapped.clear();
   }
 
+  // What only needs redoing when a slider is let go, not on every step of its travel.
+  const heavy = () => ({ guns: JSON.stringify(sound.guns), layers: JSON.stringify(sound.layers), clips: JSON.stringify(Object.values(sound.recordings).map((r) => r.clips)), space: JSON.stringify(sound.space) });
+  let lastHeavy = heavy();
+
   return {
     listener,
+    // The Sound Lab in another window changed something. final: a slider was let go or a file added.
+    async liveUpdate(next, final) {
+      syncInPlace(sound, next);
+      mixer.recordings?.refreshScopes();
+      for (const [id, v] of engines) {
+        const p = world.planes.find((x) => x.id === id);
+        if (p) v.setSynth(engineSoundFor(sound, planeIds.get(p.def), p.def.engine.layout).build.synth);
+      }
+      for (const t of tanks.values()) t.setSynth(sound.builds[sound.defaultTankBuild].synth);
+      if (!final) return;
+      await mixer.recordings?.load();
+      const now = heavy();
+      if (now.guns !== lastHeavy.guns) {
+        for (const [name, recipe] of Object.entries(sound.guns)) voices[name] = renderGun(mixer.ctx, recipe, name);
+      }
+      if (now.space !== lastHeavy.space) mixer.applySpace();
+      if (now.clips !== lastHeavy.clips) {
+        for (const v of engines.values()) v.refreshClips();
+        for (const t of tanks.values()) t.refreshClips();
+      }
+      if (now.layers !== lastHeavy.layers) {
+        // Rebuilt on the next frame with the new attachments and filters.
+        for (const host of layerHosts.values()) host.stop();
+        layerHosts.clear();
+        for (const t of tanks.values()) {
+          t.layers?.stop();
+          t.layers = mixer.recordings?.createLayerHost([`build:${sound.defaultTankBuild}`, 'all:tank']);
+        }
+      }
+      lastHeavy = now;
+    },
     // Mouse look: smoothed head direction, and a creak when you start craning round.
     setLook(x, active) {
       lookX = x;

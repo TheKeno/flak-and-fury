@@ -319,6 +319,10 @@ export function createRecordings(mixer, sound) {
     createLayerHost,
     scoped,
     synthLevel,
+    // A live change from the Sound Lab reaches the synth levels of loops already playing.
+    refreshScopes() {
+      for (const [id, scope] of scopes) scope.level.gain.value = synthLevel(id);
+    },
     rec: (id) => sound.recordings?.[id],
   };
 }

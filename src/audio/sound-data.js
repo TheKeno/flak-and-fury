@@ -33,3 +33,17 @@ export const DRIVERS = {
     { key: 'speed', label: 'Speed', min: 0, max: 10, read: (o) => (o.moving ? o.def.speed : 0) },
   ],
 };
+
+// Makes target equal to source without replacing its objects: running voices hold on to parts of
+// the sound data, and this way they see the Sound Lab's changes.
+export function syncInPlace(target, source) {
+  if (Array.isArray(target)) target.length = source.length;
+  else for (const k of Object.keys(target)) if (!(k in source)) delete target[k];
+  for (const k of Object.keys(source)) {
+    const from = source[k];
+    const to = target[k];
+    const same = Array.isArray(from) ? Array.isArray(to) : from && typeof from === 'object' && to && typeof to === 'object' && !Array.isArray(to);
+    if (same) syncInPlace(to, from);
+    else target[k] = from;
+  }
+}

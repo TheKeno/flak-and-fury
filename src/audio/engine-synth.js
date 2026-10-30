@@ -33,7 +33,7 @@ export function createEngineVoice(mixer, engine, build, count = 1, recId = null)
   for (const node of nodes) node.connect(synthLevel);
   synthLevel.connect(tone);
   tone.connect(presence).connect(panner).connect(out).connect(mixer.buses.engine);
-  const clips = mixer.recordings?.createClips(recId, count, build.synth.detune, panner);
+  let clips = mixer.recordings?.createClips(recId, count, build.synth.detune, panner);
   const send = ctx.createGain();
   send.gain.value = synth.reverb;
   out.connect(send).connect(mixer.reverbSend);
@@ -77,6 +77,11 @@ export function createEngineVoice(mixer, engine, build, count = 1, recId = null)
       clips?.update({ rpm, load, misfire, doppler });
       set(panner.pan, pan);
       set(out.gain, level * gain, running ? 0.05 : 0.02);
+    },
+    // The Sound Lab added or changed recorded clips.
+    refreshClips() {
+      clips?.stop();
+      clips = mixer.recordings?.createClips(recId, count, synth.detune, panner);
     },
     // The Sound Lab's sliders: new numbers while it plays.
     setSynth(next) {

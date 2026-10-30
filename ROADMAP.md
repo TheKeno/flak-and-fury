@@ -178,7 +178,7 @@ later.
     cast onto smoke. Then the night raid: sweeping searchlights that catch and cone you (flak gets
     accurate), exhaust glow (throttle down to hide), tracers give you away, shootable searchlights,
     pathfinder flares, night-fighter radar (Lichtenstein) and Schräge Musik.
-14. **Sound pass:** Tool: the Sound Lab (`sound-lab.html`). Stage 1 done (sound list with done ticks and notes, engines, tanks, guns, mix, vehicle list, shared builds, twin engines detuned). Stage 2 done (recordings on guns, one-shots and loops, engine and tank clips, own layers in a shared library driven by game values). Next stages: live link to a running game, then sliders for synthesized one-shots and loops. the synthesized sounds so far are placeholders. Rework them properly: reshape the
+14. **Sound pass:** Tool: the Sound Lab (`sound-lab.html`). Stage 1 done (sound list with done ticks and notes, engines, tanks, guns, mix, vehicle list, shared builds, twin engines detuned). Stage 2 done (recordings on guns, one-shots and loops, engine and tank clips, own layers in a shared library driven by game values). Stage 3 done (live link to a running game, engine under auditions). Next stage: sliders for synthesized one-shots and loops. the synthesized sounds so far are placeholders. Rework them properly: reshape the
     generated sounds, mix them with recordings (CC0 samples, licences checked, downloads approved
     first), and add effects (per-environment reverb, filtering, distortion, compression). Also ambience
     per map, the Jericho siren and night-raid sirens. Hold off on fine-tuning sounds until then.

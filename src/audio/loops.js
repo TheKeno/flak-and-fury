@@ -144,7 +144,7 @@ export function createTankEngine(mixer, build, recId) {
   // The synth and any recorded clips share the placing; the synth has its own level.
   const synthLevel = ctx.createGain();
   synthLevel.connect(chain.input);
-  const clips = mixer.recordings?.createTankClips(recId, chain.input);
+  let clips = mixer.recordings?.createTankClips(recId, chain.input);
   const engine = ctx.createOscillator();
   engine.type = 'sawtooth';
   engine.frequency.value = (synth.engineIdle + synth.engineMove) / 2;
@@ -186,6 +186,11 @@ export function createTankEngine(mixer, build, recId) {
       synthLevel.gain.value = mixer.recordings?.synthLevel(recId) ?? 1;
       clips?.update(moving);
       chain.place(where, synth.level);
+    },
+    // The Sound Lab added or changed recorded clips.
+    refreshClips() {
+      clips?.stop();
+      clips = mixer.recordings?.createTankClips(recId, chain.input);
     },
     // The Sound Lab's sliders: new numbers while it plays.
     setSynth(next) {

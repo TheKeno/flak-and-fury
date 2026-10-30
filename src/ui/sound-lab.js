@@ -152,7 +152,38 @@ const setPath = (o, path, v) => {
   keys.reduce((a, k) => a[k], o)[last] = v;
 };
 const statusOf = (id) => (sound.status[id] ??= {});
+
+// Changes go to a running game in another window as they happen. The game keeps them until it
+// reloads, so Save stays what makes them last. Only volumes that changed are sent, so the player's
+// own options in that browser aren't overwritten.
+const channel = new BroadcastChannel('flak-sound-lab');
+let sentAudio = clone(settings.audio);
+let sendTimer = 0;
+let sendFinal = false;
+function broadcast(final) {
+  sendFinal ||= final;
+  if (sendTimer) return;
+  sendTimer = setTimeout(() => {
+    const audio = Object.fromEntries(Object.entries(settings.audio).filter(([k, v]) => sentAudio[k] !== v));
+    sentAudio = clone(settings.audio);
+    channel.postMessage({ type: 'sound', sound, audio, final: sendFinal });
+    sendTimer = 0;
+    sendFinal = false;
+  }, 50);
+}
+let lastHere = -Infinity;
+channel.onmessage = ({ data }) => {
+  if (data.type === 'here') lastHere = performance.now();
+};
+setInterval(() => {
+  channel.postMessage({ type: 'ping' });
+  const linked = performance.now() - lastHere < 4000;
+  $('link').textContent = linked ? 'Game linked' : 'No game linked';
+  $('link').style.color = linked ? 'var(--done)' : '';
+}, 1500);
+
 const touch = () => {
+  broadcast(true);
   dirty = true;
   $('save').textContent = 'Save *';
   $('save').classList.add('on');
@@ -229,6 +260,7 @@ function slider(obj, [path, label, min, max, step, tip], onChange, locked) {
     setPath(obj, path, v);
     out.textContent = v;
     onChange?.(false);
+    if (obj !== listen) broadcast(false);
   };
   input.onchange = () => {
     touch();
@@ -350,6 +382,7 @@ function compareButtons(id, getCurrent, getSaved, write, apply) {
     if (s) {
       write(clone(s));
       apply();
+      broadcast(true);
     }
   };
   const release = () => {
@@ -357,6 +390,7 @@ function compareButtons(id, getCurrent, getSaved, write, apply) {
     write(keep);
     keep = null;
     apply();
+    broadcast(true);
   };
   hold.onpointerup = release;
   hold.onpointerleave = release;
@@ -730,6 +764,7 @@ function renderGuide() {
     h('Shared builds'),
     p('A vehicle uses a real engine, and an engine uses a sound build. A build lists everything it changes. To give one engine its own sound, open a vehicle in the Vehicles tab and press Make own copy. The copy starts as an exact copy and is not done, because it is a new sound to work on. Cylinders, rpm and propeller stay with the vehicle, so planes on one build still differ.'),
     h('Hearing it as in the game'),
+    p('For the running game: put the game and the Lab in separate windows side by side, because a hidden tab stops drawing and is muted. The header says Game linked when it is listening. Changes reach it as you drag; guns, reverb, clips and layers update when you let go or add a file. The game keeps them until it reloads, so press Save to keep them. The Under menu plays a running engine beneath whatever you audition, to hear whether a sound survives in the mix.'),
     p('The Listen from slider applies the game\'s distance fade, muffling and delay. The Master level here is the game\'s, so it can be very quiet; turn it up on the Mix tab while working if you need to, and remember it saves too.'),
     h('Finding an engine clip\'s rpm by ear'),
     p('Play the synth beside the clip and raise Rpm until the two sound matched. That rpm is the one to enter when clip support arrives.'),
@@ -741,7 +776,7 @@ function renderGuide() {
     h('Your layers'),
     p('New layer makes your own sound. Continuous layers loop and follow a game value, from Value low to Value high; triggered layers play a one-shot when a value passes the threshold, with a cooldown and a chance. Attach a layer to a whole build, one vehicle, or everything of a kind, with its own volume, pitch and threshold there. Cockpit only is heard just from inside that plane. Make own copy splits a layer off for one vehicle.'),
     h('Not here yet'),
-    p('The live link to a running game, and sliders for the synthesized one-shots and loops. Use Synth level and recordings on those for now. Curves are straight lines between low and high, not drawn. New kinds of game value need Claude.'));
+    p('Sliders for the synthesized one-shots and loops. Use Synth level and recordings on those for now. Curves are straight lines between low and high, not drawn. New kinds of game value need Claude.'));
 }
 
 function renderMain() {
@@ -1173,3 +1208,28 @@ addEventListener('beforeunload', (e) => {
 showMute();
 updateCount();
 setTab('sounds');
+
+// The running engine under auditions. It has its own life: changing page leaves it on.
+let bed = null;
+function fillBedMenu() {
+  const select = $('bed');
+  select.replaceChildren(el('option', { value: '', textContent: 'Nothing' }),
+    ...Object.entries(sound.builds).filter(([, b]) => b.kind === 'plane').map(([k, b]) => el('option', { value: k, textContent: b.name })));
+}
+fillBedMenu();
+$('bed').onfocus = () => {
+  const keep = $('bed').value;
+  fillBedMenu();
+  $('bed').value = keep;
+};
+$('bed').onchange = async () => {
+  bed?.stop();
+  bed = null;
+  const build = sound.builds[$('bed').value];
+  if (!build) return;
+  await audio();
+  const voice = createEngineVoice(mixer, { cylinders: 12, propBlades: 3, gearRatio: 0.6 }, build, 1, `build:${$('bed').value}`);
+  voice.start();
+  const beat = setInterval(() => voice.update({ rpm: 2300, load: 0.8 }), 100);
+  bed = { stop() { clearInterval(beat); voice.dispose(); } };
+};

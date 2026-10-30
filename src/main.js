@@ -487,6 +487,14 @@ async function start() {
   if (new URLSearchParams(location.search).has('mute')) muted = true;
   applyMute();
   sound = createSoundscape(mixer, world, content.settings.audio, content.sound, content.planeDefs);
+  // The Sound Lab in another window of this browser tunes the running game (until a reload).
+  const lab = new BroadcastChannel('flak-sound-lab');
+  lab.onmessage = ({ data }) => {
+    if (data.type === 'ping') return lab.postMessage({ type: 'here' });
+    Object.assign(content.settings.audio, data.audio);
+    mixer.applyLevels();
+    sound.liveUpdate(data.sound, data.final);
+  };
   last = performance.now();
   requestAnimationFrame(frame);
   if (host) keepTicking();
