@@ -93,6 +93,8 @@ export function createRecordings(mixer, sound) {
     let pos = 0;
     let last = ctx.currentTime;
     let rate = 1;
+    let seam = xfadeOf();
+    let hearSeamAt = Infinity;
     const keyNow = () => `${file.start}|${file.end}|${xfadeOf()}`;
     const open = (offset, at) => {
       key = keyNow();
@@ -121,16 +123,29 @@ export function createRecordings(mixer, sound) {
         rate = r;
         src.playbackRate.setTargetAtTime(r, now, tc);
         if (pos >= length) pos %= length;
+        // A very short crossfade covers the join, since the two are cut from different places.
+        const swap = (at, offset) => {
+          const oldSrc = src;
+          const oldG = g;
+          oldG.gain.setValueAtTime(1, at);
+          oldG.gain.linearRampToValueAtTime(0, at + 0.015);
+          oldSrc.stop(at + 0.03);
+          open(offset, at);
+        };
+        // The seam slider jumps to just before the seam, or nothing would be heard until the
+        // loop came round. It waits for a pause in the dragging.
+        if (xfadeOf() !== seam) {
+          seam = xfadeOf();
+          hearSeamAt = now + 0.15;
+        }
+        if (now >= hearSeamAt) {
+          hearSeamAt = Infinity;
+          swap(now, Math.max(0, seamless(file, seam).duration - 1.2 * r));
+          return;
+        }
         const left = (length - pos) / Math.max(0.05, r);
         if (left > 0.12 || keyNow() === key) return;
-        // A very short crossfade covers the join, since the two are cut from different places.
-        const oldSrc = src;
-        const oldG = g;
-        const at = now + left;
-        oldG.gain.setValueAtTime(1, at);
-        oldG.gain.linearRampToValueAtTime(0, at + 0.015);
-        oldSrc.stop(at + 0.03);
-        open(0, at);
+        swap(now + left, 0);
         pos = -left * r;
       },
       stop() {

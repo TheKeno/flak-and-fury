@@ -992,7 +992,7 @@ const GROUP_FIELDS = [
   ['reverb', 'Reverb', 0, 1, 0.01, ''],
 ];
 const LOOP_FIELDS = [
-  ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Fades the end of the loop into its start to hide the seam. Applies when played again.'],
+  ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Fades the end of the loop into its start to hide the seam. While it plays, moving this jumps to just before the seam so you hear it.'],
   ['gainLow', 'Volume at low value', 0, 2, 0.01, ''],
   ['gainHigh', 'Volume at high value', 0, 2, 0.01, ''],
   ['pitchLow', 'Pitch × at low value', 0.25, 3, 0.01, ''],
@@ -1070,7 +1070,7 @@ function clipPanel(id, kind) {
       extra.push(role);
     }
     box.append(fileRow(clip, locked, () => { rec.clips.splice(i, 1); touch(); updateCount(); renderMain(); }, () => {}, extra));
-    box.append(slider(clip, ['gain', 'This clip level', 0, 3, 0.01, ''], null, locked), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. Applies when played again.'], null, locked));
+    box.append(slider(clip, ['gain', 'This clip level', 0, 3, 0.01, ''], null, locked), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. While it plays, moving this jumps to just before the seam so you hear it.'], null, locked));
   });
   if (!locked) {
     box.append(dropBox('Drop clips here, or click.', (added) => {
@@ -1390,7 +1390,7 @@ function engineSlots(buildId, specs, locked) {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
         rec.clips.push({ ...f, slot: key, gain: 1, xfade: 0.05, rpm: spec[rpmKey] ?? 2300 });
       },
-      body: clip ? [el('label', {}, 'Recorded at rpm ', rpm), fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam.'], null, locked)] : [],
+      body: clip ? [el('label', {}, 'Recorded at rpm ', rpm), fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. While it plays, moving this jumps to just before the seam so you hear it.'], null, locked)] : [],
     });
   };
   rec.startup ??= { files: [], gain: 1, fade: 0.6 };
@@ -1421,7 +1421,7 @@ function tankSlots(buildId, locked) {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
         rec.clips.push({ ...f, role: key, gain: 1, xfade: 0.05 });
       },
-      body: clip ? [fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam.'], null, locked)] : [],
+      body: clip ? [fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. While it plays, moving this jumps to just before the seam so you hear it.'], null, locked)] : [],
     });
   })];
 }
