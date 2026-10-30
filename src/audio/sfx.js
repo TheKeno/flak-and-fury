@@ -53,10 +53,10 @@ function tone(mixer, dest, at, dur, { from, to, vol = 1, type = 'sine' }) {
 
 // Plays one of a voice's pre-rendered variations, placed in space.
 // echo: a second layer of the same shot, which doesn't set off the recordings again.
-export function play(mixer, variations, where, { gain = 1, rate = 1, reverb = 0.15, bus = 'sfx', offset = 0, echo = false } = {}) {
+export function play(mixer, variations, where, { gain = 1, rate = 1, reverb = 0.15, bus = 'sfx', offset = 0, echo = false, recordedRate = rate } = {}) {
   const { ctx } = mixer;
   if (mixer.recordings && variations.soundId) {
-    if (!echo) mixer.recordings.trigger(variations.soundId, where, { gain, rate, offset, bus });
+    if (!echo) mixer.recordings.trigger(variations.soundId, where, { gain, rate: recordedRate, offset, bus });
     mixer = mixer.recordings.scoped(variations.soundId);
   }
   gain *= variations.level ?? 1;

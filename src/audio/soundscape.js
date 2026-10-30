@@ -334,8 +334,9 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           break;
         case 'gearLocked':
           // Up: one solid clunk into the wing. Down: the lock pins snapping home.
-          sfx.play(mixer, voices.thunk, where, { gain: mine ? 0.45 : 0.6, rate: 0.85 });
-          if (e.down) sfx.play(mixer, voices.clank, where, { gain: 0.25, rate: 0.7, offset: 0.06 });
+          // A recording here plays at the pitch it was tuned at; the lowering is for the synth.
+          sfx.play(mixer, e.down ? voices.gearLockDown : voices.gearLockUp, where, { gain: mine ? 0.45 : 0.6, rate: 0.85, recordedRate: 1 });
+          if (e.down) sfx.play(mixer, voices.gearPins, where, { gain: 0.25, rate: 0.7, offset: 0.06, echo: true });
           break;
         case 'engineStart':
           engines.get(e.plane)?.start();

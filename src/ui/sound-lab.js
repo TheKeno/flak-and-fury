@@ -106,6 +106,11 @@ const ONE_SHOTS = {
   flakBurst: ['Flak burst', (w) => sfx.flakBurst(mixer, w)],
   touchdown: ['Touchdown', (w) => sfx.touchdown(mixer, w, 40)],
   gearDown: ['Gear motor', (w) => sfx.gearMotor(mixer, w, 1.2, true)],
+  gearLockUp: ['Gear lock, up', (w) => sfx.play(mixer, voices.gearLockUp, w, { gain: 0.45, rate: 0.85, recordedRate: 1 })],
+  gearLockDown: ['Gear lock, down', (w) => {
+    sfx.play(mixer, voices.gearLockDown, w, { gain: 0.45, rate: 0.85, recordedRate: 1 });
+    sfx.play(mixer, voices.gearPins, w, { gain: 0.25, rate: 0.7, offset: 0.06, echo: true });
+  }],
   bellyCrunch: ['Belly crunch', (w) => sfx.bellyCrunch(mixer, w, 40)],
   midair: ['Midair collision', (w) => sfx.midair(mixer, w, 1, false)],
   helmetCreak: ['Helmet creak', () => sfx.helmetCreak(mixer)],
@@ -152,6 +157,8 @@ const USED = {
   'sfx:flakBurst': 'A flak shell bursting in the air.',
   'sfx:touchdown': 'Wheels touching down, louder on a hard landing.',
   'sfx:gearDown': 'The gear moving up or down, as it travels.',
+  'sfx:gearLockUp': 'The gear finishing going up: one solid clunk into the wing.',
+  'sfx:gearLockDown': 'The gear finishing coming down: the clunk and the lock pins snapping home.',
   'sfx:bellyCrunch': 'A belly landing, or a hard landing that drives the nose down.',
   'sfx:midair': 'Two planes colliding and both surviving, including a ramming. A fatal one is Explosion.',
   'sfx:helmetCreak': 'Your own plane: when you start looking around with the mouse.',
@@ -167,8 +174,8 @@ const USED = {
   'sfx:fireOut': 'A plane fire being put out.',
   'sfx:hammering': 'Engineers finishing a bridge.',
   'sfx:radarPowerDown': 'Your side\'s radar failing completely.',
-  'sfx:clank': 'Shared by several sounds: bullets hitting a plane, the gear locking down, bullets on flak guns, MG nests and radar, and the ground crew\'s tools. Played at different pitches.',
-  'sfx:thunk': 'Shared by several sounds: being hit, the gear locking, the crew finishing servicing, and a plane being shot down.',
+  'sfx:clank': 'Shared by several sounds: bullets hitting a plane, bullets on flak guns, MG nests and radar, and the ground crew\'s tools. Played at different pitches.',
+  'sfx:thunk': 'Shared by several sounds: being hit, the crew finishing servicing, and a plane being shot down.',
   'sfx:snap': 'Your own plane: a round passing close by.',
   'sfx:thud': 'Bullets hitting the soil and most ground targets.',
   'sfx:patter': 'Flak splinters on other planes. Your own plane also uses it, inside Shrapnel.',
@@ -1598,7 +1605,9 @@ function otherSlots(vehicles, locked) {
   return [el('h3', { textContent: 'Guns: shared by calibre' }),
     ...gunVoices(vehicles).map(([name, used]) => groupSlot(`gun:${name}`, `gun${name}`, gunTitle(name), '3-4 single shots, each with the crack and a short tail, and trimmed tight to the start. No bursts: the game fires each round itself.', locked, used.join(', '))),
     el('h3', { textContent: 'Landing: shared with all aircraft' }),
-    groupSlot('sfx:touchdown', 'touchdown', 'Touchdown', '2-3 short thumps of wheels hitting the ground, under 1 s, with no engine in them.', locked)];
+    groupSlot('sfx:touchdown', 'touchdown', 'Touchdown', '2-3 short thumps of wheels hitting the ground, under 1 s, with no engine in them.', locked),
+    groupSlot('sfx:gearLockUp', 'gearLockUp', 'Gear lock, up', '2-3 short metal clunks, under 1 s, with no motor sound in them. Plays as the gear finishes going up.', locked),
+    groupSlot('sfx:gearLockDown', 'gearLockDown', 'Gear lock, down', '2-3 short clunks with a snap of lock pins, under 1 s, with no motor sound in them. Plays as the gear finishes coming down.', locked)];
 }
 
 // Slots added by hand on this engine or plane.

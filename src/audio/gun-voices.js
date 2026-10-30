@@ -128,6 +128,11 @@ export function buildVoices(ctx, guns) {
   voices.patter = variations(() => patter(ctx), 6);
   voices.release = variations(() => clunk(ctx, 140, 0.03), 2);
   voices.click = variations(() => clunk(ctx, 2200, 0.004), 2);
-  for (const name of ['clank', 'thunk', 'snap', 'thud', 'patter', 'release', 'click']) voices[name].soundId = `sfx:${name}`;
+  // The gear's locks start from the same synth as being hit, but are sounds of their own.
+  voices.gearLockUp = [...voices.thunk];
+  voices.gearLockDown = [...voices.thunk];
+  voices.gearPins = [...voices.clank];
+  voices.gearPins.soundId = 'sfx:gearLockDown';
+  for (const name of ['clank', 'thunk', 'snap', 'thud', 'patter', 'release', 'click', 'gearLockUp', 'gearLockDown']) voices[name].soundId = `sfx:${name}`;
   return voices;
 }
