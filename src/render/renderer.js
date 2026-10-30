@@ -700,15 +700,16 @@ export function createRenderer(canvas, world, assets) {
       wobble.set(p.id, w);
     }
     dt = Math.min(dt, 0.1);
-    // Nose-up turn rate: the heading's change, with the sign flipped when flying left.
+    // Counter-clockwise turn rate on screen, no facing in it: the belly sign below flips with facing
+    // and the plane flips over at the top of a loop, so those cancel and a pull keeps one lean all through.
     const turn = Math.atan2(Math.sin(p.angle - w.last), Math.cos(p.angle - w.last));
     w.last = p.angle;
-    const noseUp = dt > 0 ? (turn / dt) * (Math.cos(p.angle) >= 0 ? 1 : -1) : 0;
-    w.pitch += (noseUp - w.pitch) * Math.min(1, dt * 8);
+    w.pitch += ((dt > 0 ? turn / dt : 0) - w.pitch) * Math.min(1, dt * 8);
     const hard = Math.min(1, Math.abs(w.pitch) / (p.def.turnRate ?? 1.4));
-    // The belly shows at a positive roll angle once flipped over (flying left), a negative one otherwise.
-    const belly = p.inverted ? 1 : -1;
-    const lean = Math.sign(w.pitch) * belly * cfg.leanSteps * hard * STEP;
+    // Right way up (head to the sky), a counter-clockwise pull leans the belly in, which sits at a negative
+    // roll angle; rolled over it is the other way round.
+    const upright = Math.cos(p.angle) >= 0 !== p.inverted;
+    const lean = -Math.sign(w.pitch) * (upright ? 1 : -1) * cfg.leanSteps * hard * STEP;
 
     // Flutter: a new random target every second or so, eased towards, scaled by how hard the turn is.
     w.flutterIn -= dt;
