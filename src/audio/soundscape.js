@@ -329,6 +329,13 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           sfx.gearMotor(mixer, where, Math.max(0.2, travel), e.down);
           break;
         }
+        // The propeller. Soldiers and pilots in the air come as runDown; crew say how they died.
+        case 'runDown':
+          sfx.play(mixer, voices.propStrike, where, { gain: mine ? 0.9 : 0.7, reverb: 0.1, recordedRate: 1 });
+          break;
+        case 'crewKilled':
+          if (e.cause === 'runDown') sfx.play(mixer, voices.propStrike, where, { gain: mine ? 0.9 : 0.7, reverb: 0.1, recordedRate: 1 });
+          break;
         case 'bellyLanding':
           sfx.bellyCrunch(mixer, where, e.speed);
           break;

@@ -99,6 +99,21 @@ function patter(ctx) {
   });
 }
 
+// A man caught by the propeller: a dull blow, chopped by the blades as it dies away.
+function propStrike(ctx) {
+  return render(ctx, 0.3, (d, sr) => {
+    let lp = 0;
+    const blades = 34 + Math.random() * 12;
+    for (let i = 0; i < d.length; i++) {
+      const t = i / sr;
+      lp += ((Math.random() * 2 - 1) - lp) * 0.09;
+      const chop = 0.45 + 0.55 * Math.sign(Math.sin(2 * Math.PI * blades * t));
+      const body = Math.sin(2 * Math.PI * (130 - t * 160) * t) * Math.exp(-t / 0.045);
+      d[i] = Math.tanh((body + lp * 3.5 * chop * Math.exp(-t / 0.09)) * 1.8);
+    }
+  });
+}
+
 // Mechanical clunk: bomb shackles releasing, or an empty gun's dry click.
 function clunk(ctx, freq, decay) {
   return render(ctx, decay * 5, (d, sr) => {
@@ -126,6 +141,7 @@ export function buildVoices(ctx, guns) {
   voices.snap = variations(() => snap(ctx), 3);
   voices.thud = variations(() => thud(ctx), 3);
   voices.patter = variations(() => patter(ctx), 6);
+  voices.propStrike = variations(() => propStrike(ctx));
   voices.release = variations(() => clunk(ctx, 140, 0.03), 2);
   voices.click = variations(() => clunk(ctx, 2200, 0.004), 2);
   // The gear's locks start from the same synth as being hit, but are sounds of their own.
@@ -133,6 +149,6 @@ export function buildVoices(ctx, guns) {
   voices.gearLockDown = [...voices.thunk];
   voices.gearPins = [...voices.clank];
   voices.gearPins.soundId = 'sfx:gearLockDown';
-  for (const name of ['clank', 'thunk', 'snap', 'thud', 'patter', 'release', 'click', 'gearLockUp', 'gearLockDown']) voices[name].soundId = `sfx:${name}`;
+  for (const name of ['clank', 'thunk', 'snap', 'thud', 'patter', 'release', 'click', 'gearLockUp', 'gearLockDown', 'propStrike']) voices[name].soundId = `sfx:${name}`;
   return voices;
 }
