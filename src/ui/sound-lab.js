@@ -578,9 +578,34 @@ function renderGun(id, name) {
 
 function renderOneShot(id, key) {
   const [name, fn] = ONE_SHOTS[key];
+  let timer = 0;
+  // Synthesized sounds don't say when they end, so the button goes back after a time that covers them.
+  const longest = () => Math.max(4, ...(sound.recordings[id]?.groups ?? []).flatMap((g) => g.files).map((f) => (f.end ?? 0) - (f.start ?? 0)));
+  const playBtn = button('Play', async () => {
+    if (timer) return stopLive();
+    await audio();
+    stopLive();
+    fn(where(listen.distance, settings.audio.bangRange));
+    playBtn.textContent = 'Stop';
+    const done = () => {
+      clearTimeout(timer);
+      timer = 0;
+      playBtn.textContent = 'Play';
+      if (live?.mine === done) live = null;
+    };
+    timer = setTimeout(done, longest() * 1000);
+    live = {
+      mine: done,
+      stop() {
+        done();
+        mixer.recordings.stopSound(id);
+        if (key === 'shrapnel') mixer.recordings.stopSound('sfx:patter');
+      },
+    };
+  }, 'Click again to stop');
   return el('div', {}, pageHead(id, name),
     el('p', { className: 'dim', textContent: 'The synthesized numbers are still in the code. Use its Synth level and recordings below.' }),
-    el('div', { className: 'buttons' }, button('Play', async () => { await audio(); fn(where(listen.distance, settings.audio.bangRange)); })),
+    el('div', { className: 'buttons' }, playBtn),
     distanceControl(), recordingPanel(id), notesPanel(id));
 }
 
@@ -1024,10 +1049,7 @@ const LOOP_FIELDS = [
 function groupPanel(group, id, locked, opts = {}) {
   const box = el('div', {});
   const redo = () => renderMain();
-  const trial = group.files.length && !opts.loop ? button('Play this group', async () => {
-    await audio();
-    mixer.recordings.playGroup(group, where(listen.distance, settings.audio.bangRange));
-  }) : null;
+  const trial = group.files.length && !opts.loop ? playToggle(() => mixer.recordings.playGroup(group, where(listen.distance, settings.audio.bangRange)), 'Play this group', 'Stop') : null;
   const reverse = el('input', { type: 'checkbox', checked: group.reverse, disabled: locked, onchange: () => { group.reverse = reverse.checked; touch(); } });
   box.append(
     ...group.files.map((f, i) => fileRow(f, locked, () => { group.files.splice(i, 1); touch(); updateCount(); redo(); })),
@@ -1276,8 +1298,8 @@ function checkDrop(key, buf) {
 }
 
 // Plays a slot alone; a second click stops it.
-function playToggle(play) {
-  const b = button('▶', async (e) => {
+function playToggle(play, onText = '▶', offText = '■') {
+  const b = button(onText, async (e) => {
     e.preventDefault();
     const mine = slotPlaying?.b === b;
     stopSlot();
@@ -1286,9 +1308,10 @@ function playToggle(play) {
     const src = play();
     if (!src) return;
     slotPlaying = { b, src };
-    b.textContent = '■';
+    b.textContent = offText;
+    b.playText = onText;
     src.onended = () => {
-      b.textContent = '▶';
+      b.textContent = onText;
       if (slotPlaying?.src === src) slotPlaying = null;
     };
   }, 'Play it alone. Click again to stop.');
@@ -1321,7 +1344,7 @@ function stopSlot() {
   if (!slotPlaying) return;
   const { b, src } = slotPlaying;
   slotPlaying = null;
-  b.textContent = '▶';
+  b.textContent = b.playText;
   src.stop();
 }
 

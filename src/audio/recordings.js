@@ -31,6 +31,7 @@ export function createRecordings(mixer, sound) {
   const buffers = new Map();
   const derived = new Map(); // reversed and seamless versions
   const scopes = new Map();
+  const playing = new Map(); // recordings of one-shots under way, by sound
   const heads = new Map(); // where each file is being heard, for the Sound Lab's play marker
   // A one-shot's position is worked out when asked for, from when it started.
   const headFrom = (file, begin, at, speed, length, backwards) => heads.set(file, { begin, at, speed, length, backwards });
@@ -350,14 +351,31 @@ export function createRecordings(mixer, sound) {
     };
     for (const [name, bus] of Object.entries(mixer.buses)) view.buses[name] = through(bus);
     view.reverbSend = through(mixer.reverbSend);
-    scopes.set(id, { view, level: { gain: { set value(v) { for (const g of gains) g.gain.value = v; } } } });
+    scopes.set(id, { view, gains, level: { gain: { set value(v) { for (const g of gains) g.gain.value = v; } } } });
     return view;
+  }
+
+  // Cuts a sound off mid-way, for the Sound Lab's stop buttons: its recordings stop, and everything
+  // synthesized is unhooked with its way out, so the next play gets a fresh one.
+  function stopSound(id) {
+    for (const src of playing.get(id) ?? []) src.stop();
+    playing.delete(id);
+    const scope = scopes.get(id);
+    if (!scope) return;
+    for (const g of scope.gains) g.disconnect();
+    scopes.delete(id);
   }
 
   const synthLevel = (id) => sound.recordings?.[id]?.synth ?? 1;
 
   function trigger(id, where, opts) {
-    for (const g of sound.recordings?.[id]?.groups ?? []) playGroup(g, where, opts);
+    for (const g of sound.recordings?.[id]?.groups ?? []) {
+      const src = playGroup(g, where, opts);
+      if (!src) continue;
+      if (!playing.has(id)) playing.set(id, new Set());
+      playing.get(id).add(src);
+      src.addEventListener('ended', () => playing.get(id)?.delete(src));
+    }
   }
 
   // The owner's own layers on one vehicle. keys: what it can be attached through ('plane:bf110', ...).
@@ -414,6 +432,7 @@ export function createRecordings(mixer, sound) {
     },
     load: () => Promise.all([...pathsIn(sound)].map(ensure)),
     trigger,
+    stopSound,
     playGroup,
     createLoop,
     createClips,
