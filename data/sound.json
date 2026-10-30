@@ -814,7 +814,8 @@
   },
   "status": {
     "build:inline": {
-      "reference": "Starts as the sound of every inline aircraft engine. Cylinders, rpm and propeller still come from each plane, so the synth differs between them."
+      "reference": "Starts as the sound of every inline aircraft engine. Cylinders, rpm and propeller still come from each plane, so the synth differs between them.",
+      "done": false
     },
     "build:radial": {
       "reference": "Starts as the sound of every radial aircraft engine. Clips worth finding first: R-1820 (Brewster, B-17) and ASh-82 (La-5FN, Pe-8).",
@@ -868,6 +869,283 @@
     "loop:fire": {},
     "layer:wingcreak0": {}
   },
-  "recordings": {},
-  "layers": {}
+  "recordings": {
+    "build:inline": {
+      "synth": 0,
+      "clips": [
+        {
+          "path": "assets/audio/idle.wav",
+          "size": 1130074,
+          "start": 0,
+          "end": 8.536541666666666,
+          "licence": "own",
+          "source": "",
+          "slot": "idle",
+          "gain": 2.82,
+          "xfade": 0.05,
+          "rpm": 800
+        },
+        {
+          "path": "assets/audio/cruise.wav",
+          "size": 675448,
+          "start": 0.8077758679980324,
+          "end": 3.6983796873274306,
+          "licence": "own",
+          "source": "",
+          "slot": "cruise",
+          "gain": 1.19,
+          "xfade": 1,
+          "rpm": 2300
+        },
+        {
+          "path": "assets/audio/full2-2.wav",
+          "size": 1768920,
+          "start": 4.147065477446147,
+          "end": 10.601874952071054,
+          "licence": "own",
+          "source": "",
+          "slot": "full",
+          "gain": 1.69,
+          "xfade": 0.33,
+          "rpm": 2600
+        }
+      ],
+      "startup": {
+        "files": [
+          {
+            "path": "assets/audio/startup-2.wav",
+            "size": 370714,
+            "start": 0,
+            "end": 2.796854166666667,
+            "licence": "",
+            "source": "",
+            "caught": 2.0310488997713727
+          }
+        ],
+        "gain": 2.46,
+        "fade": 0.6
+      },
+      "synthWas": 1,
+      "clipLevel": 1,
+      "loadLow": 0.6
+    },
+    "gun:heavy": {
+      "synth": 1,
+      "groups": []
+    },
+    "gun:cannon20": {
+      "synth": 1,
+      "groups": []
+    },
+    "gun:rifle": {
+      "synth": 1,
+      "groups": []
+    },
+    "sfx:touchdown": {
+      "synth": 1,
+      "groups": []
+    },
+    "build:tankPetrol": {
+      "synth": 0,
+      "clips": [],
+      "synthWas": 1
+    }
+  },
+  "layers": {
+    "slot_airflow": {
+      "name": "Airflow",
+      "type": "continuous",
+      "kind": "plane",
+      "hearing": "cockpit",
+      "driver": "speed",
+      "threshold": 1.5,
+      "cooldown": 3,
+      "chance": 0.4,
+      "group": {
+        "files": [
+          {
+            "path": "assets/audio/air.wav",
+            "size": 1417356,
+            "start": 0,
+            "end": 10.708,
+            "licence": "",
+            "source": ""
+          }
+        ],
+        "gain": 2.25,
+        "pitch": 0,
+        "fadeIn": 0,
+        "fadeOut": 0,
+        "reverse": false,
+        "lowpass": 20000,
+        "highpass": 20,
+        "drive": 0,
+        "pitchVar": 0.03,
+        "gainVar": 0.1,
+        "reverb": 0.15,
+        "delay": 0,
+        "xfade": 0.05,
+        "mapFrom": 30,
+        "mapTo": 160,
+        "gainLow": 0,
+        "gainHigh": 1,
+        "pitchLow": 0.8,
+        "pitchHigh": 1.3
+      },
+      "attach": {
+        "all:plane": {
+          "gain": 1,
+          "pitch": 0
+        }
+      }
+    },
+    "slot_creak": {
+      "name": "Creak",
+      "type": "triggered",
+      "kind": "plane",
+      "hearing": "cockpit",
+      "driver": "turn",
+      "threshold": 1.5,
+      "cooldown": 3,
+      "chance": 0.4,
+      "group": {
+        "files": [
+          {
+            "path": "assets/audio/creak1.wav",
+            "size": 165514,
+            "start": 0,
+            "end": 1.2458333333333333,
+            "licence": "",
+            "source": ""
+          },
+          {
+            "path": "assets/audio/creak2.wav",
+            "size": 177754,
+            "start": 0,
+            "end": 1.3383541666666667,
+            "licence": "",
+            "source": ""
+          },
+          {
+            "path": "assets/audio/creak3.wav",
+            "size": 229836,
+            "start": 0,
+            "end": 1.7320208333333333,
+            "licence": "",
+            "source": ""
+          }
+        ],
+        "gain": 0.34,
+        "pitch": 0,
+        "fadeIn": 0,
+        "fadeOut": 0,
+        "reverse": false,
+        "lowpass": 20000,
+        "highpass": 20,
+        "drive": 0,
+        "pitchVar": 0.03,
+        "gainVar": 0.1,
+        "reverb": 0.15,
+        "delay": 0,
+        "xfade": 0.05,
+        "mapFrom": 0,
+        "mapTo": 1,
+        "gainLow": 1,
+        "gainHigh": 1,
+        "pitchLow": 1,
+        "pitchHigh": 1
+      },
+      "attach": {
+        "all:plane": {
+          "gain": 1,
+          "pitch": 0
+        }
+      }
+    },
+    "slot_rattle": {
+      "name": "Rattle",
+      "type": "continuous",
+      "kind": "plane",
+      "hearing": "cockpit",
+      "driver": "speed",
+      "threshold": 1.5,
+      "cooldown": 3,
+      "chance": 0.4,
+      "group": {
+        "files": [],
+        "gain": 0.09,
+        "pitch": 0,
+        "fadeIn": 0,
+        "fadeOut": 0,
+        "reverse": false,
+        "lowpass": 20000,
+        "highpass": 20,
+        "drive": 0,
+        "pitchVar": 0.03,
+        "gainVar": 0.1,
+        "reverb": 0.15,
+        "delay": 0,
+        "xfade": 0.05,
+        "mapFrom": 80,
+        "mapTo": 170,
+        "gainLow": 0,
+        "gainHigh": 1,
+        "pitchLow": 1,
+        "pitchHigh": 1.1
+      },
+      "attach": {
+        "all:plane": {
+          "gain": 1,
+          "pitch": 0
+        }
+      }
+    },
+    "slot_damage": {
+      "name": "Damage",
+      "type": "continuous",
+      "kind": "plane",
+      "hearing": "cockpit",
+      "driver": "damage",
+      "threshold": 1.5,
+      "cooldown": 3,
+      "chance": 0.4,
+      "group": {
+        "files": [
+          {
+            "path": "assets/audio/metal-rattling-sound-effects-sfx-sound-effects-2.mp3",
+            "size": 431155,
+            "start": 4.822516508789062,
+            "end": 10.625136187918526,
+            "licence": "",
+            "source": ""
+          }
+        ],
+        "gain": 0.18,
+        "pitch": 0,
+        "fadeIn": 0,
+        "fadeOut": 0,
+        "reverse": false,
+        "lowpass": 20000,
+        "highpass": 20,
+        "drive": 0,
+        "pitchVar": 0.03,
+        "gainVar": 0.1,
+        "reverb": 0.15,
+        "delay": 0,
+        "xfade": 0.05,
+        "mapFrom": 0.1,
+        "mapTo": 0.8,
+        "gainLow": 0,
+        "gainHigh": 1,
+        "pitchLow": 1,
+        "pitchHigh": 1
+      },
+      "attach": {
+        "all:plane": {
+          "gain": 1,
+          "pitch": 0
+        }
+      }
+    }
+  }
 }

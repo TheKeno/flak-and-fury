@@ -32,7 +32,7 @@
     "fightLowAlt": 120
   },
   "audio": {
-    "master": 0.03,
+    "master": 1,
     "engine": 0.13,
     "sfx": 1,
     "ambience": 0.5,
