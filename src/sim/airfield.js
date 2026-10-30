@@ -2,13 +2,13 @@
 // come out to repair, then refuel, then rearm, in that order. Opening the throttle sends them away;
 // work already done is kept. A dry engine is started again once the tank is full.
 import { clamp } from './math.js';
-import { hangarHealth } from './ground.js';
+import { hangarHealth, hangarX } from './ground.js';
 import { allGuns } from './weapons.js';
 
 const FULL_TANK = 0.99;
 const TOP_UP_BELOW = 0.9; // once serviced, an idling engine only brings the crew back below this
 
-export const DEFAULT_SERVICING = { crewDelay: 1.2, repairPerSec: 25, refuelTime: 5, rearmTime: 3, recoveryTime: 20 };
+export const DEFAULT_SERVICING = { crewDelay: 1.2, crewWalkSpeed: 50, repairPerSec: 25, refuelTime: 5, rearmTime: 3, recoveryTime: 20 };
 
 export const ownAirfieldAt = (world, p) =>
   world.map.airfields.find((a) => a.team === p.team && p.x >= a.x && p.x <= a.x + a.width);
@@ -50,7 +50,10 @@ export function updateServicing(p, world, dt) {
     return;
   }
   if (!p.service) {
-    p.service = { wait: cfg.crewDelay, phase: null, rearmT: 0 };
+    // The crew always walk from the hangar, so a plane that stops far down the strip waits longer.
+    const fromX = hangarX(world, ownAirfieldAt(world, p));
+    const walk = Math.abs(p.x - fromX) / (cfg.crewWalkSpeed ?? DEFAULT_SERVICING.crewWalkSpeed);
+    p.service = { wait: cfg.crewDelay + walk, phase: null, rearmT: 0, fromX, walk };
     world.events.push({ type: 'crewOut', plane: p.id, x: p.x, y: p.y });
   }
   const s = p.service;

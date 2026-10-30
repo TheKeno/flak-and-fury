@@ -33,6 +33,7 @@
   },
   "servicing": {
     "crewDelay": 1.2,
+    "crewWalkSpeed": 50,
     "repairPerSec": 25,
     "refuelTime": 5,
     "rearmTime": 3,

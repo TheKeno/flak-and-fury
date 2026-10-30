@@ -66,7 +66,8 @@ const CAMERA_FIELDS = [
   ['zoomSpeed', 'Speed zoom: smoothness', 0.2, 5, 0.1, 'How quickly the zoom follows your speed. Lower = slower, smoother.'],
 ];
 const SERVICING_FIELDS = [
-  ['crewDelay', 'Crew walk-out time', 0, 5, 0.1, 'Seconds after you stop before the ground crew start work.'],
+  ['crewDelay', 'Crew reaction time', 0, 5, 0.1, 'Seconds after you stop before the ground crew set off from the hangar.'],
+  ['crewWalkSpeed', 'Crew walking speed', 10, 150, 1, 'World units per second the crew walk from the hangar to your plane. Stop far down the strip and they take longer.'],
   ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
   ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
   ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],

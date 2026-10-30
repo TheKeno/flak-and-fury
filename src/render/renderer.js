@@ -785,21 +785,24 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // Ground crew: two mechanics walk out from the hangar side and work at the nose and the wing.
+  // Ground crew: two mechanics walk out from the hangar and work at the nose and the wing. They stand
+  // by the hangar for the reaction time, then walk the whole way, so a far-off plane waits longer.
   const CREW = [
-    { at: 9, from: -34, overalls: '#3c4a5c', bob: 0 },
-    { at: -3, from: -46, overalls: '#5a5446', bob: 7 },
+    { at: 9, lag: 0, overalls: '#3c4a5c', bob: 0 },
+    { at: -3, lag: 12, overalls: '#5a5446', bob: 7 },
   ];
   function drawCrew(p) {
     const s = p.service;
     if (!s || s.phase === 'done' || p.state !== 'ground') return;
     const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
-    const walk = s.wait > 0 ? 1 - s.wait / world.servicing.crewDelay : 1;
+    const walk = s.wait > 0 && s.walk > 0 ? 1 - Math.min(s.wait, s.walk) / s.walk : 1;
     for (const c of CREW) {
-      const wx = p.x + dir * (c.at + (c.from - c.at) * (1 - walk));
+      const job = p.x + dir * c.at;
+      const back = Math.sign(s.fromX - job) || 1; // the hangar side of the job
+      const wx = job + (s.fromX - job + back * c.lag) * (1 - walk);
       const gx = Math.round(toScreenX(wx));
       const gy = Math.round(toScreenY(world.terrain.heightAt(wx)));
-      const walking = walk < 1;
+      const walking = walk < 1 && s.wait <= s.walk; // standing at the hangar during the reaction time
       const step = Math.floor((frame + c.bob) / 6) % 2;
       const working = !walking && Math.floor((frame + c.bob) / 10) % 2; // arm moving at the job
       // legs
