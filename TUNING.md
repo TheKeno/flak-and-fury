@@ -83,10 +83,12 @@ about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns a
 `camera.lookSensitivity` is the mouse travel (pixels) for a full look; `camera.lookReturn` the seconds
 without moving the mouse before the view eases back to looking ahead, when `camera.lookReturnOn` is true.
 `camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
-none). `wobble` (drawing only) rocks the wings in the air using the roll frames, which are 22.5 degrees
-apart, so an amount under about 11 shows nothing: `straightAmount` / `straightFreq` (biggest tilt in degrees, tilts per
-second on average) for level flight, where each wobble is a single random left or right tilt, and `maneuverAmount` / `maneuverFreq` for turning,
-climbing and diving, blended in by how hard the plane is manoeuvring. Amount 0 = no wobble.
+none). `wobble` (drawing only) leans the wings in the air using the roll frames, 22.5 degrees (one step) apart.
+`leanSteps` is how many steps the wings lean at the hardest turn (turn rate against the plane's `turnRate`):
+pulling up shows the belly, pushing down the top, a tap a little. `flutterSteps` is how many steps that lean
+randomly drifts up and down while turning. In level flight `straightAmount` (biggest tilt in degrees; under
+about 11 shows nothing) and `straightFreq` (tilts per second on average) give the odd single random left or
+right tilt, fading out as a turn gets harder. 0 = off for each.
 `audio.muteInBackground` silences the game while its tab is hidden. `display.smooth` scales the
 scenery up smoothly instead of sharp pixels.
 

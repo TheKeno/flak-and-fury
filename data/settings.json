@@ -44,8 +44,8 @@
   "wobble": {
     "straightAmount": 18,
     "straightFreq": 0.25,
-    "maneuverAmount": 40,
-    "maneuverFreq": 1.2
+    "leanSteps": 2,
+    "flutterSteps": 1
   },
   "freeLook": {
     "panSpeed": 320,

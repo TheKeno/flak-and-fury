@@ -679,9 +679,10 @@ export function createRenderer(canvas, world, assets) {
     return null;
   }
 
-  // Wing wobble state per plane (drawing only). Not a cycle: single one-sided tilts, left or right, each
-  // easing out and back to level at a random size and moment. Frequency is tilts per second on average;
-  // how hard the plane is turning, climbing or diving blends the maneuver values in.
+  // Wing lean and wobble per plane (drawing only), as an offset in roll angle from level that picks a roll
+  // frame. Pulling up leans the belly into view, pushing down the top, by the turn rate (a tap is a small
+  // lean, a held pull a big one) with a random flutter of steps on top. Level flight only gets the odd
+  // single left or right tilt at a random moment, which gives way to the lean as the turn gets harder.
   const wobble = new Map();
   const wobbleRand = (w) => {
     w.seed = (w.seed + 0x6d2b79f5) | 0;
@@ -689,37 +690,51 @@ export function createRenderer(canvas, world, assets) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  const STEP = (Math.PI * 2) / 16; // the roll sheet's frame spacing
   function updateWobble(p, dt) {
     const cfg = assets.settings.wobble;
     let w = wobble.get(p.id);
     if (!w) {
-      w = { seed: p.id * 7919, m: 0, last: p.angle, angle: 0, tilt: null, wait: 0 };
+      w = { seed: p.id * 7919, last: p.angle, pitch: 0, angle: 0, tilt: null, wait: 0, flutter: 0, flutterTo: 0, flutterIn: 0 };
       w.wait = -Math.log(1 - wobbleRand(w));
       wobble.set(p.id, w);
     }
     dt = Math.min(dt, 0.1);
-    let turn = Math.atan2(Math.sin(p.angle - w.last), Math.cos(p.angle - w.last));
+    // Nose-up turn rate: the heading's change, with the sign flipped when flying left.
+    const turn = Math.atan2(Math.sin(p.angle - w.last), Math.cos(p.angle - w.last));
     w.last = p.angle;
-    turn = dt > 0 ? Math.abs(turn) / dt : 0;
-    const target = Math.min(1, Math.max(Math.abs(Math.sin(p.angle)) * 2, turn / 2));
-    w.m += (target - w.m) * Math.min(1, dt * 3);
-    const m = w.m;
-    const amount = cfg.straightAmount + (cfg.maneuverAmount - cfg.straightAmount) * m;
-    const freq = cfg.straightFreq + (cfg.maneuverFreq - cfg.straightFreq) * m;
+    const noseUp = dt > 0 ? (turn / dt) * (Math.cos(p.angle) >= 0 ? 1 : -1) : 0;
+    w.pitch += (noseUp - w.pitch) * Math.min(1, dt * 8);
+    const hard = Math.min(1, Math.abs(w.pitch) / (p.def.turnRate ?? 1.4));
+    // The belly shows at a positive roll angle once flipped over (flying left), a negative one otherwise.
+    const belly = p.inverted ? 1 : -1;
+    const lean = Math.sign(w.pitch) * belly * cfg.leanSteps * hard * STEP;
+
+    // Flutter: a new random target every second or so, eased towards, scaled by how hard the turn is.
+    w.flutterIn -= dt;
+    if (w.flutterIn <= 0) {
+      w.flutterIn = 0.5 + wobbleRand(w);
+      w.flutterTo = (wobbleRand(w) * 2 - 1) * cfg.flutterSteps;
+    }
+    w.flutter += (w.flutterTo - w.flutter) * Math.min(1, dt * 6);
+    const flutter = w.flutter * hard * STEP;
+
+    // Level-flight tilts. The wait is counted in expected tilts, so a changing frequency takes effect at once.
+    const amount = cfg.straightAmount * (1 - hard);
     if (!w.tilt) {
-      // The wait is counted in expected tilts, so a changing frequency takes effect at once.
-      w.wait -= dt * freq;
+      w.wait -= dt * cfg.straightFreq;
       if (w.wait <= 0) {
         w.tilt = { t: 0, dir: wobbleRand(w) < 0.5 ? -1 : 1, size: 0.5 + 0.5 * wobbleRand(w), dur: 0.6 + 0.8 * wobbleRand(w) };
         w.wait = -Math.log(1 - wobbleRand(w));
       }
     }
-    w.angle = 0;
+    let tilt = 0;
     if (w.tilt) {
       w.tilt.t += dt / w.tilt.dur;
       if (w.tilt.t >= 1) w.tilt = null;
-      else w.angle = ((amount * Math.PI) / 180) * w.tilt.dir * w.tilt.size * Math.sin(Math.PI * w.tilt.t);
+      else tilt = ((amount * Math.PI) / 180) * w.tilt.dir * w.tilt.size * Math.sin(Math.PI * w.tilt.t);
     }
+    w.angle = lean + flutter + tilt;
   }
 
   // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.

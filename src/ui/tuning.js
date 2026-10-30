@@ -290,10 +290,10 @@ const AUDIO_FIELDS = [
 ];
 
 const WOBBLE_FIELDS = [
-  ['straightAmount', 'Straight flight: amount', 0, 90, 1, 'How far the wings rock (degrees) in level flight. The roll frames are 22.5 degrees apart, so under about 11 shows nothing. 0 = no wobble.'],
-  ['straightFreq', 'Straight flight: frequency', 0, 3, 0.05, 'Tilts per second on average in level flight (single left or right tilts at random times and sizes).'],
-  ['maneuverAmount', 'Turning / climbing / diving: amount', 0, 90, 1, 'How far the wings rock (degrees) while turning, climbing or diving. Blends in with how hard the plane is manoeuvring. 0 = no wobble.'],
-  ['maneuverFreq', 'Turning / climbing / diving: frequency', 0, 3, 0.05, 'Tilts per second on average while manoeuvring.'],
+  ['straightAmount', 'Level flight: tilt amount', 0, 90, 1, 'How far the wings rock (degrees) in level flight. The roll frames are 22.5 degrees apart, so under about 11 shows nothing. 0 = no wobble.'],
+  ['straightFreq', 'Level flight: tilt frequency', 0, 3, 0.05, 'Tilts per second on average in level flight (single left or right tilts at random times and sizes).'],
+  ['leanSteps', 'Turn lean', 0, 4, 0.1, 'Animation steps (22.5 degrees each) the wings lean at the hardest turn. Pulling up shows the belly, pushing down shows the top; a tap leans a little. 0 = no lean.'],
+  ['flutterSteps', 'Turn flutter', 0, 2, 0.1, 'How many steps the lean randomly drifts up and down while turning (more the harder the turn). 0 = steady.'],
 ];
 
 const FREE_FIELDS = [
