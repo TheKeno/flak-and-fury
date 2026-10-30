@@ -5,7 +5,12 @@ import { createEngineVoice } from '../audio/engine-synth.js';
 import { createTankEngine } from '../audio/loops.js';
 import { buildVoices, renderGun as renderGunVoice } from '../audio/gun-voices.js';
 import { spatialize } from '../audio/spatial.js';
-import * as sfx from '../audio/sfx.js';
+import * as rawSfx from '../audio/sfx.js';
+import { createFire, createBombWhistle, createScrape, createRadarStatic } from '../audio/loops.js';
+import { createRecordings, newGroup, withRecordings } from '../audio/recordings.js';
+import { DRIVERS } from '../audio/sound-data.js';
+
+const sfx = withRecordings(rawSfx);
 
 const json = async (url) => {
   const res = await fetch(url);
@@ -125,7 +130,14 @@ const ONE_SHOTS = {
   click: ['Empty gun click', (w) => sfx.play(mixer, voices.click, w, { gain: 0.5 })],
 };
 // Tracked here so they can be ticked and noted; their audition comes with the recording stage.
-const LOOPS = { wind: 'Wind and dive scream', stall: 'Stall buffet', wheels: 'Wheels on grass', bombWhistle: 'Bomb whistle', scrape: 'Belly scrape', fire: 'Burning fire', radarStatic: 'Radar static', heartbeat: 'Heartbeat and breathing', crew: 'Ground crew at work' };
+const LOOPS = { wind: 'Wind, dive scream, stall, wheels', bombWhistle: 'Bomb whistle', scrape: 'Belly scrape', fire: 'Burning fire', radarStatic: 'Radar static', heartbeat: 'Heartbeat and breathing', crew: 'Ground crew at work' };
+// Loops that can be auditioned here, with the value the game drives them by.
+const LOOP_TEST = {
+  fire: ['Intensity', 0, 1, 0.7, (m) => createFire(m)],
+  bombWhistle: ['Fall speed', 0, 300, 150, (m) => createBombWhistle(m)],
+  scrape: ['Speed', 0, 100, 40, (m) => createScrape(m)],
+  radarStatic: ['Level', 0, 1, 0.5, (m) => createRadarStatic(m)],
+};
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => {
@@ -160,6 +172,8 @@ const vehicleFilter = { nation: '', kind: '', status: '', notDone: false, sort: 
 async function audio() {
   if (!mixer) {
     mixer = await createMixer(settings.audio, sound.space);
+    mixer.recordings = createRecordings(mixer, sound);
+    await mixer.recordings.load();
     voices = buildVoices(mixer.ctx, sound.guns);
     mixer.setMuted(muted);
     scope = mixer.ctx.createAnalyser();
@@ -259,6 +273,7 @@ function soundItems() {
     ['Guns', Object.keys(sound.guns).map((n) => [`gun:${n}`, gunTitle(n)])],
     ['One-shots and impacts', Object.entries(ONE_SHOTS).map(([id, [name]]) => [`sfx:${id}`, name])],
     ['Loops', Object.entries(LOOPS).map(([id, name]) => [`loop:${id}`, name])],
+    ['Your layers', Object.entries(sound.layers).map(([id, l]) => [`layer:${id}`, l.name])],
   ];
 }
 const GUN_NAMES = { rifle: 'Rifle-calibre MG', heavy: 'Heavy MG', cannon20: '20 mm cannon', cannon30: '30 mm cannon', infantryRifle: 'Infantry rifle', flakGun: 'Flak gun', tankGun: 'Tank gun' };
@@ -267,7 +282,9 @@ const gunTitle = (n) => GUN_NAMES[n] ?? n;
 function updateCount() {
   const all = soundItems().flatMap(([, items]) => items);
   const done = all.filter(([id]) => sound.status[id]?.done).length;
-  $('count').textContent = `${done} / ${all.length} done`;
+  const files = allFiles();
+  const mb = files.reduce((a, f) => a + (f.size ?? 0), 0) / 1e6;
+  $('count').textContent = `${done} / ${all.length} done · ${files.length} recordings, ${mb.toFixed(1)} MB`;
 }
 
 function renderList() {
@@ -276,7 +293,7 @@ function renderList() {
   list.style.display = tab === 'sounds' ? '' : 'none';
   if (tab !== 'sounds') return;
   const filter = el('input', { type: 'checkbox', checked: filterNotDone, onchange: (e) => { filterNotDone = e.target.checked; renderList(); } });
-  list.append(el('label', {}, filter, ' only not done'));
+  list.append(el('label', {}, filter, ' only not done'), el('div', { className: 'buttons' }, button('New layer', addLayer, 'Your own sound, attached to vehicles: wing creak, tracks, rattles')));
   for (const [group, items] of soundItems()) {
     const shown = items.filter(([id]) => !filterNotDone || !sound.status[id]?.done);
     if (!shown.length) continue;
@@ -292,6 +309,7 @@ function renderList() {
         renderList();
         if (id === selected) renderMain();
       };
+      const flagged = licenceFlag(id);
       list.append(el('div', {
         className: `row${id === selected ? ' sel' : ''}${done ? ' isdone' : ''}`,
         onclick: () => {
@@ -299,7 +317,7 @@ function renderList() {
           renderList();
           renderMain();
         },
-      }, tick, el('span', { textContent: name })));
+      }, tick, el('span', { textContent: name }), flagged ? el('b', { className: 'warn', title: flagged, textContent: ' !' }) : null));
     }
   }
 }
@@ -423,7 +441,7 @@ function renderPlaneBuild(id, buildId) {
   const apply = () => voice?.setSynth(build.synth);
   box.append(tests, distanceControl(), el('h3', { textContent: 'Character' }),
     compareButtons(id, () => build.synth, () => saved.builds[buildId]?.synth, (v) => { build.synth = v; }, apply),
-    ...ENGINE_FIELDS.map((f) => slider(build.synth, f, apply, locked)), notesPanel(id));
+    clipPanel(id, 'plane'), ...ENGINE_FIELDS.map((f) => slider(build.synth, f, apply, locked)), notesPanel(id));
   return box;
 }
 
@@ -469,7 +487,7 @@ function renderTankBuild(id, buildId) {
     el('label', {}, isDefault, ' played by the generic tank in the game today'),
     el('h3', { textContent: 'Character' }),
     compareButtons(id, () => build.synth, () => saved.builds[buildId]?.synth, (v) => { build.synth = v; }, apply),
-    ...TANK_FIELDS.map((f) => slider(build.synth, f, apply, locked)), notesPanel(id));
+    clipPanel(id, 'tank'), ...TANK_FIELDS.map((f) => slider(build.synth, f, apply, locked)), notesPanel(id));
 }
 
 function renderGun(id, name) {
@@ -506,7 +524,7 @@ function renderGun(id, name) {
     shot();
   }, 'Fires until pressed again');
   const apply = (final) => {
-    if (final && voices) voices[name] = renderGunVoice(mixer.ctx, recipe); // re-rendered when the slider is let go
+    if (final && voices) voices[name] = renderGunVoice(mixer.ctx, recipe, name); // re-rendered when the slider is let go
   };
   return el('div', {},
     pageHead(id, gunTitle(name), users.length ? `Used by: ${users.map(([w]) => w).join(', ')}` : 'Ground weapon'),
@@ -516,21 +534,48 @@ function renderGun(id, name) {
     distanceControl(),
     el('h3', { textContent: 'Character' }),
     compareButtons(id, () => recipe, () => saved.guns[name], (v) => Object.assign(recipe, v), () => apply(true)),
-    ...GUN_FIELDS.map((f) => slider(recipe, f, apply, locked)), notesPanel(id));
+    recordingPanel(id), ...GUN_FIELDS.map((f) => slider(recipe, f, apply, locked)), notesPanel(id));
 }
 
 function renderOneShot(id, key) {
   const [name, fn] = ONE_SHOTS[key];
   return el('div', {}, pageHead(id, name),
-    el('p', { className: 'dim', textContent: 'Audition only for now: its numbers are still in the code. Recordings can replace or join it in the next stage.' }),
+    el('p', { className: 'dim', textContent: 'The synthesized numbers are still in the code. Use its Synth level and recordings below.' }),
     el('div', { className: 'buttons' }, button('Play', async () => { await audio(); fn(where(listen.distance, settings.audio.bangRange)); })),
-    distanceControl(), notesPanel(id));
+    distanceControl(), recordingPanel(id), notesPanel(id));
 }
 
 function renderLoop(id, key) {
+  const test = LOOP_TEST[key];
+  const state = { value: test?.[3] ?? 1 };
+  let voice = null;
+  const stop = () => {
+    voice?.stop();
+    voice = null;
+  };
+  const playBtn = test ? button('Play', async () => {
+    if (voice) return stopLive();
+    await audio();
+    stopLive();
+    const parts = [test[4](mixer.recordings.scoped(id)), ...(mixer.recordings.rec(id)?.groups ?? []).map((g) => mixer.recordings.createLoop(g)).filter(Boolean)];
+    const [synthVoice, ...recorded] = parts;
+    voice = { stop() { synthVoice.stop(); recorded.forEach((r) => r.stop()); } };
+    let frame = 0;
+    const tick = () => {
+      const w = where();
+      if (key === 'radarStatic') synthVoice.update(state.value);
+      else synthVoice.update(w, state.value);
+      recorded.forEach((r) => r.update(w, state.value));
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    playBtn.textContent = 'Stop';
+    live = { stop() { cancelAnimationFrame(frame); stop(); playBtn.textContent = 'Play'; } };
+  }) : null;
   return el('div', {}, pageHead(id, LOOPS[key]),
-    el('p', { className: 'dim', textContent: 'Can be ticked and noted now. Audition and sliders come with the recording stage.' }),
-    notesPanel(id));
+    test ? el('div', {}, el('div', { className: 'buttons' }, playBtn), testSlider(state, 'value', test[0], test[1], test[2], (test[2] - test[1]) / 100), distanceControl())
+      : el('p', { className: 'dim', textContent: 'No audition here yet: listen to it in the game. Its Synth level works; to add a recording, make a layer and attach it to the planes.' }),
+    recordingPanel(id, test ? { loop: true, driver: test[0] } : { synthOnly: true }), notesPanel(id));
 }
 
 // The Vehicles tab: the whole roster, and one vehicle's sound set-up.
@@ -634,6 +679,8 @@ function renderVehicle(id) {
       el('label', {}, el('input', { type: 'checkbox', checked: Boolean(eng.checked), onchange: change((t) => { eng.checked = t.checked; }) }), ' engine details checked against a reference'),
       el('div', { className: 'buttons' }, button('Make own copy', () => makeOwnCopy(engId), 'Gives this engine its own build, starting as an exact copy')),
       notesPanel(`engine:${engId}`)) : null,
+    el('h3', { textContent: 'Your layers on it' }),
+    el('div', {}, ...layerList(v)),
     el('hr'));
 }
 
@@ -687,9 +734,14 @@ function renderGuide() {
     h('Finding an engine clip\'s rpm by ear'),
     p('Play the synth beside the clip and raise Rpm until the two sound matched. That rpm is the one to enter when clip support arrives.'),
     h('Recordings: getting ready'),
-    p('Recording layers are the next stage. Prepare clips in your editor now: trim silence, make loops seamless, avoid clips with wind or narration, keep one-shots short because all of them are decoded into memory at load. Write down the source and licence of each file: CC0, your own, or other.'),
+    p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/ and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
+    p('Fill in licence and source for each file. A red ! in the list means one is missing or marked other, so it can be reviewed before release.'),
+    h('Recorded engines'),
+    p('On a build, add up to three clips, usually idle, cruise and full, and enter the rpm of each. The game pitches them to the engine and crossfades between the two nearest. Synth level and Clip level blend them with the synth. Misfires dip the recording too. Clips with very different rpm from the engine sound stretched. Tanks take a standing clip, a moving clip and a tracks clip instead.'),
+    h('Your layers'),
+    p('New layer makes your own sound. Continuous layers loop and follow a game value, from Value low to Value high; triggered layers play a one-shot when a value passes the threshold, with a cooldown and a chance. Attach a layer to a whole build, one vehicle, or everything of a kind, with its own volume, pitch and threshold there. Cockpit only is heard just from inside that plane. Make own copy splits a layer off for one vehicle.'),
     h('Not here yet'),
-    p('Recordings, your own layers, and tuning of one-shots and loops are not built yet. Neither is the live link to a running game.'));
+    p('The live link to a running game, and sliders for the synthesized one-shots and loops. Use Synth level and recordings on those for now. Curves are straight lines between low and high, not drawn. New kinds of game value need Claude.'));
 }
 
 function renderMain() {
@@ -707,6 +759,7 @@ function renderMain() {
     main.append(sound.builds[id].kind === 'tank' ? renderTankBuild(selected, id) : renderPlaneBuild(selected, id));
   } else if (type === 'gun') main.append(renderGun(selected, key));
   else if (type === 'sfx') main.append(renderOneShot(selected, key));
+  else if (type === 'layer') main.append(sound.layers[key] ? renderLayer(selected, key) : el('p', { textContent: 'That layer is gone.' }));
   else main.append(renderLoop(selected, key));
 }
 
@@ -737,6 +790,370 @@ async function saveAll() {
     button.textContent = 'Save failed';
     alert(`Could not save: ${e.message}\nIs the server running from tools/serve.mjs?`);
   }
+}
+
+
+// --- Recordings ---
+const LICENCES = [['', 'Licence?'], ['cc0', 'CC0'], ['own', 'My own recording'], ['other', 'Other']];
+
+function allFiles() {
+  const files = [];
+  for (const r of Object.values(sound.recordings)) {
+    r.groups?.forEach((g) => files.push(...g.files));
+    if (r.clips) files.push(...r.clips);
+  }
+  for (const l of Object.values(sound.layers)) files.push(...l.group.files);
+  return files;
+}
+
+function filesOf(id) {
+  if (id.startsWith('layer:')) return sound.layers[id.slice(6)]?.group.files ?? [];
+  const r = sound.recordings[id];
+  return [...(r?.groups ?? []).flatMap((g) => g.files), ...(r?.clips ?? [])];
+}
+
+function licenceFlag(id) {
+  const files = filesOf(id);
+  if (files.some((f) => !f.licence)) return 'A recording has no licence';
+  if (files.some((f) => f.licence === 'other')) return 'A recording has a non-CC0 licence: review it before release';
+  return '';
+}
+
+const recOf = (id) => (sound.recordings[id] ??= { synth: 1 });
+
+// Sends files to the server and returns what the data needs to know about them.
+async function upload(fileList) {
+  await audio();
+  const added = [];
+  for (const file of fileList) {
+    const res = await fetch(`recording/${encodeURIComponent(file.name)}`, { method: 'PUT', body: file });
+    if (!res.ok) {
+      alert(`${file.name}: ${await res.text()}\nThe server may be an old copy: restart it with node tools/serve.mjs 8080.`);
+      continue;
+    }
+    const { path, size } = await res.json();
+    const buf = await mixer.recordings.ensure(path);
+    if (!buf) {
+      alert(`${file.name} could not be decoded.`);
+      continue;
+    }
+    if (size > 5e6) alert(`${file.name} is ${(size / 1e6).toFixed(1)} MB. That is large to load and to keep in git; consider trimming it.`);
+    added.push({ path, size, start: 0, end: buf.duration, licence: '', source: '' });
+  }
+  return added;
+}
+
+// A box that takes dropped files or a click.
+function dropBox(text, onFiles) {
+  const input = el('input', { type: 'file', multiple: true, accept: '.wav,.mp3,.ogg,.flac', style: 'display:none' });
+  input.onchange = async () => onFiles(await upload([...input.files]));
+  const box = el('div', { className: 'dim', textContent: text, style: 'border:1px dashed var(--line);padding:10px;margin:6px 0;cursor:pointer' }, input);
+  box.onclick = (e) => { if (e.target !== input) input.click(); };
+  box.ondragover = (e) => { e.preventDefault(); box.style.borderColor = 'var(--accent)'; };
+  box.ondragleave = () => { box.style.borderColor = ''; };
+  box.ondrop = async (e) => {
+    e.preventDefault();
+    box.style.borderColor = '';
+    onFiles(await upload([...e.dataTransfer.files]));
+  };
+  return box;
+}
+
+// The waveform: drag the two markers to trim.
+function waveform(file, locked, onChange) {
+  const c = el('canvas', { width: 700, height: 70, style: 'width:100%;max-width:700px;height:70px;background:#0b0c0d;display:block;touch-action:none' });
+  const draw = () => {
+    const buf = mixer?.recordings.buffers.get(file.path);
+    const g = c.getContext('2d');
+    g.fillStyle = '#0b0c0d';
+    g.fillRect(0, 0, c.width, c.height);
+    if (!buf) return;
+    const d = buf.getChannelData(0);
+    const step = Math.max(1, Math.floor(d.length / c.width));
+    g.strokeStyle = '#7f837c';
+    g.beginPath();
+    for (let x = 0; x < c.width; x++) {
+      let peak = 0;
+      for (let i = x * step, n = 0; n < step && i < d.length; n += Math.ceil(step / 40), i += Math.ceil(step / 40)) peak = Math.max(peak, Math.abs(d[i]));
+      g.moveTo(x + 0.5, 35 - peak * 34);
+      g.lineTo(x + 0.5, 35 + peak * 34);
+    }
+    g.stroke();
+    g.fillStyle = 'rgba(0,0,0,0.65)';
+    const a = (file.start / buf.duration) * c.width;
+    const b = (file.end / buf.duration) * c.width;
+    g.fillRect(0, 0, a, c.height);
+    g.fillRect(b, 0, c.width - b, c.height);
+    g.fillStyle = '#a8905c';
+    g.fillRect(a - 1, 0, 2, c.height);
+    g.fillRect(b - 1, 0, 2, c.height);
+  };
+  let grab = null;
+  c.onpointerdown = (e) => {
+    const buf = mixer?.recordings.buffers.get(file.path);
+    if (!buf || locked) return;
+    const t = (e.offsetX / c.clientWidth) * buf.duration;
+    grab = Math.abs(t - file.start) < Math.abs(t - file.end) ? 'start' : 'end';
+    c.setPointerCapture(e.pointerId);
+  };
+  c.onpointermove = (e) => {
+    if (!grab) return;
+    const buf = mixer.recordings.buffers.get(file.path);
+    const t = Math.max(0, Math.min(buf.duration, (e.offsetX / c.clientWidth) * buf.duration));
+    if (grab === 'start') file.start = Math.min(t, file.end - 0.005);
+    else file.end = Math.max(t, file.start + 0.005);
+    draw();
+  };
+  c.onpointerup = () => {
+    if (!grab) return;
+    grab = null;
+    touch();
+    onChange?.();
+  };
+  audio().then(() => mixer.recordings.ensure(file.path)).then(draw);
+  return c;
+}
+
+function fileRow(file, locked, remove, onChange, extra = []) {
+  const licence = el('select', { disabled: locked, onchange: () => { file.licence = licence.value; touch(); updateCount(); renderList(); } },
+    ...LICENCES.map(([k, t]) => el('option', { value: k, textContent: t, selected: file.licence === k })));
+  const source = el('input', { placeholder: 'Source: site, author, link', value: file.source ?? '', disabled: locked, onchange: () => { file.source = source.value; touch(); } });
+  return el('div', { style: 'margin:8px 0;padding:6px;border:1px solid var(--line)' },
+    el('div', { textContent: `${file.path.split('/').pop()}  (${((file.size ?? 0) / 1e6).toFixed(2)} MB)` }),
+    waveform(file, locked, onChange),
+    el('div', { className: 'buttons' }, licence, source, ...extra, locked ? null : button('Remove', remove)));
+}
+
+const GROUP_FIELDS = [
+  ['gain', 'Volume', 0, 3, 0.01, ''],
+  ['pitch', 'Pitch, semitones', -24, 24, 0.1, ''],
+  ['delay', 'Delay, s', 0, 1, 0.005, 'Against the other layers: a recorded boom after a synthesized crack.'],
+  ['fadeIn', 'Fade in, s', 0, 2, 0.005, ''],
+  ['fadeOut', 'Fade out, s', 0, 3, 0.005, ''],
+  ['lowpass', 'Low-pass, Hz', 100, 20000, 10, 'Cuts highs above this.'],
+  ['highpass', 'High-pass, Hz', 20, 4000, 5, 'Cuts lows below this.'],
+  ['drive', 'Distortion', 0, 1, 0.01, ''],
+  ['pitchVar', 'Random pitch', 0, 0.3, 0.005, 'Change on each play, so repeats do not sound the same.'],
+  ['gainVar', 'Random volume', 0, 0.5, 0.01, ''],
+  ['reverb', 'Reverb', 0, 1, 0.01, ''],
+];
+const LOOP_FIELDS = [
+  ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Fades the end of the loop into its start to hide the seam. Applies when played again.'],
+  ['gainLow', 'Volume at low value', 0, 2, 0.01, ''],
+  ['gainHigh', 'Volume at high value', 0, 2, 0.01, ''],
+  ['pitchLow', 'Pitch × at low value', 0.25, 3, 0.01, ''],
+  ['pitchHigh', 'Pitch × at high value', 0.25, 3, 0.01, ''],
+];
+
+function groupPanel(group, id, locked, opts = {}) {
+  const box = el('div', {});
+  const redo = () => renderMain();
+  const trial = group.files.length && !opts.loop ? button('Play this group', async () => {
+    await audio();
+    mixer.recordings.playGroup(group, where(listen.distance, settings.audio.bangRange));
+  }) : null;
+  const reverse = el('input', { type: 'checkbox', checked: group.reverse, disabled: locked, onchange: () => { group.reverse = reverse.checked; touch(); } });
+  box.append(
+    ...group.files.map((f, i) => fileRow(f, locked, () => { group.files.splice(i, 1); touch(); updateCount(); redo(); })),
+    locked ? null : dropBox('Drop recordings here, or click. Several files are random variations.', (added) => {
+      group.files.push(...added);
+      if (added.length) touch();
+      updateCount();
+      renderList();
+      redo();
+    }),
+    el('div', { className: 'buttons' }, trial, opts.loop ? null : el('label', {}, reverse, ' reverse')),
+    ...GROUP_FIELDS.map((f) => slider(group, f, null, locked)),
+    ...(opts.loop ? LOOP_FIELDS.map((f) => slider(group, f, null, locked)) : []),
+    opts.loop ? slider(group, ['mapFrom', `Value low (${opts.driver ?? 'value'})`, opts.min ?? 0, opts.max ?? 1, ((opts.max ?? 1) - (opts.min ?? 0)) / 100, ''], null, locked) : null,
+    opts.loop ? slider(group, ['mapTo', `Value high (${opts.driver ?? 'value'})`, opts.min ?? 0, opts.max ?? 1, ((opts.max ?? 1) - (opts.min ?? 0)) / 100, ''], null, locked) : null,
+  );
+  return box;
+}
+
+function synthLevelSlider(id, locked) {
+  const rec = recOf(id);
+  return slider(rec, ['synth', 'Synth level', 0, 2, 0.01, 'The synthesized sound beside its recordings. 0 leaves only the recordings.'], () => mixer?.recordings.scoped(id), locked);
+}
+
+function recordingPanel(id, opts = {}) {
+  const locked = Boolean(sound.status[id]?.done);
+  const rec = recOf(id);
+  rec.groups ??= [];
+  const box = el('div', {}, el('h3', { textContent: 'Recordings' }), synthLevelSlider(id, locked));
+  if (opts.synthOnly) return box;
+  rec.groups.forEach((g, i) => box.append(
+    el('h3', { textContent: `Group ${i + 1}` }),
+    locked ? null : el('div', { className: 'buttons' }, button('Remove group', () => { rec.groups.splice(i, 1); touch(); updateCount(); renderList(); renderMain(); })),
+    groupPanel(g, id, locked, opts),
+  ));
+  if (!locked) box.append(el('div', { className: 'buttons' }, button(rec.groups.length ? 'Add another group' : 'Add recordings', () => { rec.groups.push(newGroup()); touch(); renderMain(); }, 'A group plays together with the other groups')));
+  return box;
+}
+
+// Engine and tank clips.
+function clipPanel(id, kind) {
+  const locked = Boolean(sound.status[id]?.done);
+  const rec = recOf(id);
+  rec.clips ??= [];
+  rec.clipLevel ??= 1;
+  const box = el('div', {}, el('h3', { textContent: 'Recorded clips' }),
+    el('p', { className: 'dim', textContent: kind === 'plane' ? 'Up to three loops, each at the rpm it was recorded. Press Play again after adding one.' : 'A standing engine, a moving engine and tracks. Press Play again after adding one.' }),
+    synthLevelSlider(id, locked),
+    slider(rec, ['clipLevel', 'Clip level', 0, 3, 0.01, 'The recordings as a whole.'], null, locked));
+  if (kind === 'plane') {
+    rec.loadLow ??= 0.6;
+    box.append(slider(rec, ['loadLow', 'Clips at closed throttle', 0, 1, 0.01, 'Same rpm, throttle off: how loud the clips stay.'], null, locked));
+  }
+  rec.clips.forEach((clip, i) => {
+    const extra = [];
+    if (kind === 'plane') {
+      const rpm = el('input', { type: 'number', min: 100, max: 6000, value: clip.rpm ?? 2300, disabled: locked, title: 'The rpm it was recorded at', style: 'width:90px', onchange: () => { clip.rpm = Number(rpm.value); touch(); } });
+      extra.push(el('label', {}, 'rpm ', rpm));
+    } else {
+      const role = el('select', { disabled: locked, onchange: () => { clip.role = role.value; touch(); } },
+        ...[['idle', 'Engine standing'], ['move', 'Engine moving'], ['tracks', 'Tracks']].map(([k, t]) => el('option', { value: k, textContent: t, selected: clip.role === k })));
+      extra.push(role);
+    }
+    box.append(fileRow(clip, locked, () => { rec.clips.splice(i, 1); touch(); updateCount(); renderMain(); }, () => {}, extra));
+    box.append(slider(clip, ['gain', 'This clip level', 0, 3, 0.01, ''], null, locked), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. Applies when played again.'], null, locked));
+  });
+  if (!locked) {
+    box.append(dropBox('Drop clips here, or click.', (added) => {
+      for (const f of added) rec.clips.push({ ...f, gain: 1, xfade: 0.05, ...(kind === 'plane' ? { rpm: 2300 } : { role: 'idle' }) });
+      if (added.length) touch();
+      updateCount();
+      renderList();
+      renderMain();
+    }));
+  }
+  return box;
+}
+
+// --- Your layers ---
+function addLayer() {
+  const name = prompt('Name of the new layer? (wing creak, tracks...)');
+  if (!name) return;
+  const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '')}${Object.keys(sound.layers).length}`;
+  sound.layers[id] = { name, type: 'triggered', kind: 'plane', hearing: 'cockpit', driver: 'turn', threshold: 2, cooldown: 3, chance: 0.5, group: newGroup(), attach: {} };
+  selected = `layer:${id}`;
+  touch();
+  updateCount();
+  renderList();
+  renderMain();
+}
+
+function targets(kind) {
+  const label = kind === 'plane' ? 'All aircraft' : 'All tanks';
+  return [
+    [`all:${kind}`, label],
+    ...Object.entries(sound.builds).filter(([, b]) => b.kind === kind).map(([k, b]) => [`build:${k}`, `Build: ${b.name}`]),
+    ...sound.vehicles.filter((v) => v.kind === kind).map((v) => [`${kind}:${v.id}`, v.name]),
+  ];
+}
+
+function renderLayer(id, key) {
+  const layer = sound.layers[key];
+  const locked = Boolean(sound.status[id]?.done);
+  const change = (fn) => (e) => { fn(e.target.value); touch(); renderMain(); };
+  const pick = (label, value, options, fn) => el('label', { className: 'field' }, el('span', { textContent: label }),
+    el('select', { disabled: locked, onchange: change(fn) }, ...options.map(([k, t]) => el('option', { value: k, textContent: t, selected: k === value }))), el('span'));
+  const drivers = DRIVERS[layer.kind];
+  const driver = drivers.find((d) => d.key === layer.driver) ?? drivers[0];
+  const state = { value: (driver.min + driver.max) / 2 };
+  let frame = 0;
+  let host = null;
+  const testBtn = button('Test', async () => {
+    if (host) return stopLive();
+    await audio();
+    stopLive();
+    const testKey = '@test';
+    layer.attach[testKey] = { gain: 1, pitch: 0 };
+    host = mixer.recordings.createLayerHost([testKey]);
+    delete layer.attach[testKey];
+    const tick = () => {
+      host.update({ [driver.key]: state.value }, where(), layer.hearing === 'cockpit' || listen.distance === 0);
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    testBtn.textContent = 'Stop';
+    live = { stop() { cancelAnimationFrame(frame); host.stop(); host = null; testBtn.textContent = 'Test'; } };
+  }, 'Runs the layer as the game would, from the value below');
+  const used = Object.keys(layer.attach);
+  const attachRows = targets(layer.kind).map(([k, text]) => {
+    const a = layer.attach[k];
+    const tick = el('input', { type: 'checkbox', checked: Boolean(a), onchange: () => {
+      if (tick.checked) layer.attach[k] = { gain: 1, pitch: 0 };
+      else delete layer.attach[k];
+      touch();
+      renderMain();
+    } });
+    return el('div', {}, el('label', {}, tick, ` ${text}`),
+      a ? el('div', { style: 'margin-left:24px' },
+        slider(a, ['gain', 'Volume here', 0, 3, 0.01, ''], null, false),
+        slider(a, ['pitch', 'Pitch here, semitones', -24, 24, 0.1, ''], null, false),
+        layer.type === 'triggered' ? slider(Object.assign(a, { threshold: a.threshold ?? layer.threshold }), ['threshold', 'Threshold here', driver.min, driver.max, (driver.max - driver.min) / 100, ''], null, false) : null) : null);
+  });
+  return el('div', {},
+    pageHead(id, layer.name, used.length ? `Used by: ${used.map((k) => targets(layer.kind).find(([t]) => t === k)?.[1] ?? k).join(', ')}` : 'Not attached to anything yet'),
+    el('div', { className: 'buttons' },
+      button('Rename', () => { const n = prompt('New name?', layer.name); if (n) { layer.name = n; touch(); renderList(); renderMain(); } }),
+      button('Make own copy', () => {
+        const copy = clone(layer);
+        const newId = `${key}copy${Object.keys(sound.layers).length}`;
+        copy.name = `${layer.name} copy`;
+        copy.attach = {};
+        sound.layers[newId] = copy;
+        selected = `layer:${newId}`;
+        touch();
+        updateCount();
+        renderList();
+        renderMain();
+      }, 'A separate layer with the same files and settings, attached to nothing'),
+      button('Delete', () => {
+        if (!confirm(`Delete the layer ${layer.name}? Its files stay in assets/audio/.`)) return;
+        delete sound.layers[key];
+        delete sound.status[id];
+        selected = 'build:inline';
+        touch();
+        updateCount();
+        renderList();
+        renderMain();
+      })),
+    pick('For', layer.kind, [['plane', 'Aircraft'], ['tank', 'Tanks']], (v) => { layer.kind = v; layer.driver = DRIVERS[v][0].key; layer.attach = {}; }),
+    pick('Type', layer.type, [['triggered', 'Triggered one-shot'], ['continuous', 'Continuous loop']], (v) => { layer.type = v; }),
+    pick('Follows', driver.key, drivers.map((d) => [d.key, d.label]), (v) => { layer.driver = v; }),
+    pick('Heard', layer.hearing, [['cockpit', 'Cockpit only'], ['world', 'By everyone nearby']], (v) => { layer.hearing = v; }),
+    layer.type === 'triggered' ? el('div', {},
+      slider(layer, ['threshold', 'Threshold', driver.min, driver.max, (driver.max - driver.min) / 100, 'Can play when the value is at or above this.'], null, locked),
+      slider(layer, ['cooldown', 'Cooldown, s', 0, 30, 0.1, 'Shortest time between plays.'], null, locked),
+      slider(layer, ['chance', 'Chance', 0, 1, 0.01, 'Chance it plays each time the cooldown has passed.'], null, locked)) : null,
+    el('h3', { textContent: 'Test' }),
+    el('div', { className: 'buttons' }, testBtn),
+    testSlider(state, 'value', driver.label, driver.min, driver.max, (driver.max - driver.min) / 100),
+    distanceControl(),
+    el('h3', { textContent: 'Sound' }),
+    groupPanel(layer.group, id, locked, { loop: layer.type === 'continuous', driver: driver.label, min: driver.min, max: driver.max }),
+    el('h3', { textContent: 'Attach to' }),
+    ...attachRows,
+    notesPanel(id));
+}
+
+// For a vehicle's page: the layers reaching it, with a direct way to attach another.
+function layerList(v) {
+  const eng = sound.engines[v.engine];
+  const keys = [`${v.kind}:${v.id}`, `build:${eng?.build}`, `all:${v.kind}`];
+  const rows = Object.entries(sound.layers).filter(([, l]) => l.kind === v.kind).map(([id, l]) => {
+    const through = keys.find((k) => l.attach[k]);
+    const tick = el('input', { type: 'checkbox', checked: Boolean(through), onchange: () => {
+      if (tick.checked) l.attach[keys[0]] = { gain: 1, pitch: 0 };
+      else for (const k of keys) delete l.attach[k];
+      touch();
+      renderMain();
+    } });
+    return el('div', {}, el('label', {}, tick, ` ${l.name}`), through && through !== keys[0] ? el('span', { className: 'dim', textContent: ` (through ${through})` }) : null, ' ', button('Open', () => { selected = `layer:${id}`; setTab('sounds'); }));
+  });
+  return rows.length ? rows : [el('div', { className: 'dim', textContent: 'No layers yet: New layer on the Sounds tab.' })];
 }
 
 document.querySelectorAll('[data-tab]').forEach((b) => { b.onclick = () => setTab(b.dataset.tab); });

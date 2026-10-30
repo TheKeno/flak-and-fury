@@ -4,7 +4,8 @@ const CATCH_TIME = 1.4; // coughing and spluttering up to idle
 
 // build: the sound build from data/sound.json; count: engines on the plane, slightly detuned against
 // each other so a twin beats like a twin.
-export function createEngineVoice(mixer, engine, build, count = 1) {
+// recId: where its recorded clips are in the sound data.
+export function createEngineVoice(mixer, engine, build, count = 1, recId = null) {
   const { ctx } = mixer;
   let synth = build.synth;
   const nodes = Array.from({ length: Math.min(4, count) }, () => new AudioWorkletNode(ctx, 'piston-engine', {
@@ -28,8 +29,11 @@ export function createEngineVoice(mixer, engine, build, count = 1) {
   const panner = ctx.createStereoPanner();
   const out = ctx.createGain();
   out.gain.value = 0;
-  for (const node of nodes) node.connect(tone);
+  const synthLevel = ctx.createGain();
+  for (const node of nodes) node.connect(synthLevel);
+  synthLevel.connect(tone);
   tone.connect(presence).connect(panner).connect(out).connect(mixer.buses.engine);
+  const clips = mixer.recordings?.createClips(recId, count, build.synth.detune, panner);
   const send = ctx.createGain();
   send.gain.value = synth.reverb;
   out.connect(send).connect(mixer.reverbSend);
@@ -69,6 +73,8 @@ export function createEngineVoice(mixer, engine, build, count = 1) {
       });
       set(tone.frequency, Math.min(cutoff, synth.toneBase + load * synth.toneLoad + rpm * synth.toneRpm));
       set(presence.gain, synth.presenceBase + load * synth.presenceLoad);
+      synthLevel.gain.value = mixer.recordings?.synthLevel(recId) ?? 1;
+      clips?.update({ rpm, load, misfire, doppler });
       set(panner.pan, pan);
       set(out.gain, level * gain, running ? 0.05 : 0.02);
     },
@@ -79,6 +85,7 @@ export function createEngineVoice(mixer, engine, build, count = 1) {
       for (const node of nodes) node.port.postMessage(synth);
     },
     dispose() {
+      clips?.stop();
       out.disconnect();
       for (const node of nodes) node.disconnect();
     },

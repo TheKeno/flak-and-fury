@@ -110,16 +110,17 @@ function clunk(ctx, freq, decay) {
 }
 
 // Fresh variations of one gun. A voice's level goes with it to every play.
-export function renderGun(ctx, recipe) {
+export function renderGun(ctx, recipe, name) {
   const voice = Array.from({ length: 4 }, () => shot(ctx, recipe));
   voice.level = recipe.level;
+  voice.soundId = `gun:${name}`;
   return voice;
 }
 
 export function buildVoices(ctx, guns) {
   const variations = (make, n = 4) => Array.from({ length: n }, make);
   const voices = {};
-  for (const [name, recipe] of Object.entries(guns)) voices[name] = renderGun(ctx, recipe);
+  for (const [name, recipe] of Object.entries(guns)) voices[name] = renderGun(ctx, recipe, name);
   voices.clank = variations(() => clank(ctx));
   voices.thunk = variations(() => thunk(ctx), 3);
   voices.snap = variations(() => snap(ctx), 3);
@@ -127,5 +128,6 @@ export function buildVoices(ctx, guns) {
   voices.patter = variations(() => patter(ctx), 6);
   voices.release = variations(() => clunk(ctx, 140, 0.03), 2);
   voices.click = variations(() => clunk(ctx, 2200, 0.004), 2);
+  for (const name of ['clank', 'thunk', 'snap', 'thud', 'patter', 'release', 'click']) voices[name].soundId = `sfx:${name}`;
   return voices;
 }

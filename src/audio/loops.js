@@ -3,7 +3,7 @@
 
 const setT = (ctx, param, v, tc = 0.04) => param.setTargetAtTime(v, ctx.currentTime, tc);
 
-function spatialChain(mixer) {
+export function spatialChain(mixer, reverb = 0.25) {
   const { ctx } = mixer;
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
@@ -12,7 +12,7 @@ function spatialChain(mixer) {
   g.gain.value = 0;
   lp.connect(pan).connect(g).connect(mixer.buses.sfx);
   const send = ctx.createGain();
-  send.gain.value = 0.25;
+  send.gain.value = reverb;
   g.connect(send).connect(mixer.reverbSend);
   return {
     input: lp,
@@ -137,10 +137,14 @@ export function createFire(mixer) {
 }
 
 // A tank: a deep, lumpy engine note with the squeal and clatter of its tracks while it moves.
-export function createTankEngine(mixer, build) {
+export function createTankEngine(mixer, build, recId) {
   const { ctx } = mixer;
   let synth = build.synth;
   const chain = spatialChain(mixer);
+  // The synth and any recorded clips share the placing; the synth has its own level.
+  const synthLevel = ctx.createGain();
+  synthLevel.connect(chain.input);
+  const clips = mixer.recordings?.createTankClips(recId, chain.input);
   const engine = ctx.createOscillator();
   engine.type = 'sawtooth';
   engine.frequency.value = (synth.engineIdle + synth.engineMove) / 2;
@@ -154,7 +158,7 @@ export function createTankEngine(mixer, build) {
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
   lp.frequency.value = synth.engineLp;
-  engine.connect(lp).connect(engineGain).connect(chain.input);
+  engine.connect(lp).connect(engineGain).connect(synthLevel);
   // Tracks: band-passed noise chopped by a square wave into clanks.
   const src = ctx.createBufferSource();
   src.buffer = mixer.noise;
@@ -171,7 +175,7 @@ export function createTankEngine(mixer, build) {
   const trackGain = ctx.createGain();
   trackGain.gain.value = 0;
   chop.connect(chopAmt).connect(trackGain.gain);
-  src.connect(band).connect(trackGain).connect(chain.input);
+  src.connect(band).connect(trackGain).connect(synthLevel);
   for (const n of [engine, lumpy, chop]) n.start();
   src.start(0, Math.random());
   return {
@@ -179,6 +183,8 @@ export function createTankEngine(mixer, build) {
       setT(ctx, engine.frequency, moving ? synth.engineMove : synth.engineIdle, 0.4);
       setT(ctx, lumpy.frequency, moving ? synth.lumpyMove : synth.lumpyIdle, 0.4);
       setT(ctx, trackGain.gain, moving ? synth.trackLevel : 0, 0.3);
+      synthLevel.gain.value = mixer.recordings?.synthLevel(recId) ?? 1;
+      clips?.update(moving);
       chain.place(where, synth.level);
     },
     // The Sound Lab's sliders: new numbers while it plays.
@@ -194,6 +200,7 @@ export function createTankEngine(mixer, build) {
     },
     stop() {
       chain.fade(() => {
+        clips?.stop();
         for (const n of [engine, lumpy, chop, src]) n.stop();
       });
     },

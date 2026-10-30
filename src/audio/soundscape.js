@@ -8,9 +8,11 @@ import { createBombWhistle, createFire, createScrape, createTankEngine, createRa
 import { radarHealth } from '../sim/ground.js';
 import { createCrew } from './crew.js';
 import { spatialize } from './spatial.js';
-import * as sfx from './sfx.js';
+import * as rawSfx from './sfx.js';
+import { withRecordings, planeValues, tankValues } from './recordings.js';
 import { engineSoundFor } from './sound-data.js';
 
+const sfx = withRecordings(rawSfx);
 const NEAR_MISS = 26; // px: rounds passing this close crack past your ears
 const ME = { dist: 0, pan: 0, gain: 1, cutoff: 18000, delay: 0, doppler: 1 };
 
@@ -27,8 +29,11 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   let lookX = 0; // head turned: -1 looking left .. 1 looking right
   let looking = false;
   const snapped = new Set();
-  const airflow = createAirflow(mixer);
-  const body = createBody(mixer);
+  const scope = (id) => mixer.recordings?.scoped(id) ?? mixer;
+  const airflow = createAirflow(scope('loop:wind'));
+  const body = createBody(scope('loop:heartbeat'));
+  const layerHosts = new Map();
+  const lastAngle = new Map();
   const voices = buildVoices(mixer.ctx, sound.guns);
   const listener = { x: 0, y: 0, vx: 0, vy: 0 };
   let focusId = null;
@@ -39,11 +44,28 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   let radarWasUp = true;
   const MATERIAL = { building: 'masonry', depot: 'masonry', hangar: 'metal', radar: 'metal', tower: 'wood', bridge: 'wood', tent: 'canvas' };
 
+  // A synthesized loop with its recording beside it. fixed: for one that isn't placed in the world.
+  const withLoop = (id, voice, fixed) => {
+    const groups = mixer.recordings?.rec(`loop:${id}`)?.groups ?? [];
+    const recorded = groups.map((g) => mixer.recordings.createLoop(g)).filter(Boolean);
+    if (!recorded.length) return voice;
+    return {
+      update(a, b) {
+        voice.update(a, b);
+        for (const r of recorded) (fixed ? r.update(fixed, a) : r.update(a, b));
+      },
+      stop() {
+        voice.stop();
+        for (const r of recorded) r.stop();
+      },
+    };
+  };
+
   const engineFor = (p) => {
     let v = engines.get(p.id);
     if (!v) {
-      const { build, count } = engineSoundFor(sound, planeIds.get(p.def), p.def.engine.layout);
-      v = createEngineVoice(mixer, p.def.engine, build, count);
+      const { build, buildId, count } = engineSoundFor(sound, planeIds.get(p.def), p.def.engine.layout);
+      v = createEngineVoice(mixer, p.def.engine, build, count, `build:${buildId}`);
       engines.set(p.id, v);
       if (p.state !== 'dead') v.start();
     }
@@ -56,7 +78,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   const whereAt = (x, y, range = hearing()) => spatialize(listener, x, y, 0, 0, range);
   const BANGS = new Set(['crash', 'shot', 'hit', 'flakFire', 'flakBurst', 'tankFire', 'tankShellBurst', 'groundDestroyed', 'explosion', 'bombExplode', 'groundShot']);
 
-  function updateEngines() {
+  function updateEngines(dt) {
     for (const p of world.planes) {
       const v = engineFor(p);
       const where = whereOf(p);
@@ -74,13 +96,32 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         cutoff: where.cutoff,
         doppler: where.doppler,
       });
+      updatePlaneLayers(p, where, dt);
     }
     // A plane taken out of the game (fewer bots set in the tuning panel) takes its engine with it.
     for (const [id, v] of engines) {
       if (world.planes.some((p) => p.id === id)) continue;
       v.dispose();
       engines.delete(id);
+      layerHosts.get(id)?.stop();
+      layerHosts.delete(id);
+      lastAngle.delete(id);
     }
+  }
+
+  // The owner's own layers (wing creak and the like), attached in the Sound Lab.
+  function updatePlaneLayers(p, where, dt) {
+    if (!mixer.recordings) return;
+    let host = layerHosts.get(p.id);
+    if (!host) {
+      const { buildId } = engineSoundFor(sound, planeIds.get(p.def), p.def.engine.layout);
+      host = mixer.recordings.createLayerHost([`plane:${planeIds.get(p.def)}`, `build:${buildId}`, 'all:plane']);
+      layerHosts.set(p.id, host);
+    }
+    const last = lastAngle.get(p.id) ?? p.angle;
+    lastAngle.set(p.id, p.angle);
+    const delta = Math.atan2(Math.sin(p.angle - last), Math.cos(p.angle - last));
+    host.update(planeValues(p, world, Math.abs(delta) / Math.max(dt, 0.001)), where, p.id === focusId);
   }
 
   // Ground crew sounds, placed beside the plane.
@@ -89,7 +130,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       const job = p.service && p.service.wait <= 0 ? p.service.phase : null;
       let c = crews.get(p.id);
       if (job && job !== 'done') {
-        if (!c) crews.set(p.id, (c = createCrew(mixer, voices)));
+        if (!c) crews.set(p.id, (c = createCrew(scope('loop:crew'), voices)));
         const where = whereOf(p);
         c.update(job, where === ME ? { ...ME, pan: 0.3 * (Math.cos(p.angle) >= 0 ? 1 : -1), gain: 0.8 } : where);
       } else if (c) {
@@ -104,7 +145,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     for (const p of world.planes) {
       const sliding = p.state === 'ground' && p.belly && p.speed > 1;
       let s = scrapes.get(p.id);
-      if (sliding && !s) scrapes.set(p.id, (s = createScrape(mixer)));
+      if (sliding && !s) scrapes.set(p.id, (s = withLoop('scrape', createScrape(scope('loop:scrape')))));
       if (!sliding && s) {
         s.stop();
         scrapes.delete(p.id);
@@ -121,7 +162,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     for (const p of world.planes) {
       const burning = p.burning && p.state !== 'dead';
       let f = fires.get(p.id);
-      if (burning && !f) fires.set(p.id, (f = createFire(mixer)));
+      if (burning && !f) fires.set(p.id, (f = withLoop('fire', createFire(scope('loop:fire')))));
       if (!burning && f) {
         f.stop();
         fires.delete(p.id);
@@ -139,13 +180,20 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     for (const [id, t] of tanks) {
       if (!near.some((o) => o.id === id)) {
         t.stop();
+        t.layers?.stop();
         tanks.delete(id);
       }
     }
     for (const o of near) {
       let t = tanks.get(o.id);
-      if (!t) tanks.set(o.id, (t = createTankEngine(mixer, sound.builds[sound.defaultTankBuild])));
-      t.update(spatialize(listener, o.x, world.terrain.heightAt(o.x) + 5, o.moving ? o.dir * o.def.speed : 0, 0, hearing()), o.moving);
+      if (!t) {
+        t = createTankEngine(mixer, sound.builds[sound.defaultTankBuild], `build:${sound.defaultTankBuild}`);
+        t.layers = mixer.recordings?.createLayerHost([`build:${sound.defaultTankBuild}`, 'all:tank']);
+        tanks.set(o.id, t);
+      }
+      const where = spatialize(listener, o.x, world.terrain.heightAt(o.x) + 5, o.moving ? o.dir * o.def.speed : 0, 0, hearing());
+      t.update(where, o.moving);
+      t.layers?.update(tankValues(o, world), where, false);
     }
   }
 
@@ -154,7 +202,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     const health = focus ? radarHealth(world, focus.team) : 1;
     if (radarWasUp && health <= 0) sfx.radarPowerDown(mixer);
     radarWasUp = health > 0;
-    if (health < 1 && !radarStatic) radarStatic = createRadarStatic(mixer);
+    if (health < 1 && !radarStatic) radarStatic = withLoop('radarStatic', createRadarStatic(scope('loop:radarStatic')), ME);
     if (health >= 1 && radarStatic) {
       radarStatic.stop();
       radarStatic = null;
@@ -165,7 +213,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   function updateWhistles() {
     for (const b of world.bombsInFlight) {
       let w = whistles.get(b.id);
-      if (!w) whistles.set(b.id, (w = createBombWhistle(mixer)));
+      if (!w) whistles.set(b.id, (w = withLoop('bombWhistle', createBombWhistle(scope('loop:bombWhistle')))));
       w.update(spatialize(listener, b.x, b.y, b.vx, b.vy, hearing()), Math.max(0, -b.vy));
     }
   }
@@ -206,7 +254,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       updateTanks();
       updateRadar(focus);
 
-      updateEngines();
+      updateEngines(dt);
       updateFires();
       updateCrews();
       updateBellies(focus);
@@ -271,7 +319,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           // Two slightly offset layers make a battery of guns sound like several weapons.
           const gain = mine ? 0.42 : 0.8;
           sfx.play(mixer, voices[e.voice] ?? voices.rifle, where, { gain, reverb: mine ? 0.08 : 0.3 });
-          sfx.play(mixer, voices[e.voice] ?? voices.rifle, where, { gain: gain * 0.45, rate: 0.93, offset: 0.007 });
+          sfx.play(mixer, voices[e.voice] ?? voices.rifle, where, { gain: gain * 0.45, rate: 0.93, offset: 0.007, echo: true });
           break;
         }
         case 'empty':

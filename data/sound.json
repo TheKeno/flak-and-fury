@@ -864,6 +864,10 @@
     "sfx:clank": {},
     "sfx:collapseMasonry": {},
     "sfx:shrapnel": {},
-    "sfx:radarPowerDown": {}
-  }
+    "sfx:radarPowerDown": {},
+    "loop:fire": {},
+    "layer:wingcreak0": {}
+  },
+  "recordings": {},
+  "layers": {}
 }

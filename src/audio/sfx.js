@@ -1,7 +1,7 @@
 // One-shot sound effects. Synthesized for now; recorded CC0 layers get mixed in here later.
 // Every effect takes a `where` from spatialize() so distance, pan and travel delay are applied.
 
-function out(mixer, where, at, reverbAmount = 0.3) {
+export function out(mixer, where, at, reverbAmount = 0.3) {
   const { ctx } = mixer;
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
@@ -52,8 +52,13 @@ function tone(mixer, dest, at, dur, { from, to, vol = 1, type = 'sine' }) {
 }
 
 // Plays one of a voice's pre-rendered variations, placed in space.
-export function play(mixer, variations, where, { gain = 1, rate = 1, reverb = 0.15, bus = 'sfx', offset = 0 } = {}) {
+// echo: a second layer of the same shot, which doesn't set off the recordings again.
+export function play(mixer, variations, where, { gain = 1, rate = 1, reverb = 0.15, bus = 'sfx', offset = 0, echo = false } = {}) {
   const { ctx } = mixer;
+  if (mixer.recordings && variations.soundId) {
+    if (!echo) mixer.recordings.trigger(variations.soundId, where, { gain, rate, offset, bus });
+    mixer = mixer.recordings.scoped(variations.soundId);
+  }
   gain *= variations.level ?? 1;
   const at = mixer.now + where.delay + offset;
   const src = ctx.createBufferSource();

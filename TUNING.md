@@ -86,7 +86,7 @@ without moving the mouse before the view eases back to looking ahead, when `came
 none). `audio.muteInBackground` silences the game while its tab is hidden. `display.smooth` scales the
 scenery up smoothly instead of sharp pixels.
 
-**Sound: `data/sound.json`.** Easiest through the Sound Lab, `http://localhost:8080/sound-lab.html`: it has a Guide tab and explains each slider on hover. `vehicles` lists every aircraft and tank, planned ones too, each pointing at an entry in `engines`, which points at an entry in `builds`. `builds` hold the synth numbers, `guns` the gun recipes, `space` the reverb, ducking and limiter, `status` the done ticks and notes. Bus levels and hearing ranges stay in `settings.json` → `audio`, and the Lab saves those too.
+**Sound: `data/sound.json`.** Easiest through the Sound Lab, `http://localhost:8080/sound-lab.html`: it has a Guide tab and explains each slider on hover. `vehicles` lists every aircraft and tank, planned ones too, each pointing at an entry in `engines`, which points at an entry in `builds`. `builds` hold the synth numbers, `guns` the gun recipes, `space` the reverb, ducking and limiter, `status` the done ticks and notes, `recordings` each sound's synth level, files and engine clips, `layers` your own attached sounds. Bus levels and hearing ranges stay in `settings.json` → `audio`, and the Lab saves those too.
 
 **Player options.** The options menu (`src/ui/options.js`, title screen or Esc) changes many of these
 values for one player: they are kept in that browser and written over the values loaded from this file,

@@ -6,6 +6,7 @@ import { createMouse } from './input/mouse.js';
 import { createRenderer, MAX_ZOOM } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
+import { createRecordings } from './audio/recordings.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText as sinkUnits } from './render/hud.js';
@@ -480,6 +481,8 @@ async function start() {
   started = true;
   mouse.capture();
   mixer = await createMixer(content.settings.audio, content.sound.space);
+  mixer.recordings = createRecordings(mixer, content.sound);
+  await mixer.recordings.load();
   // Open the game as localhost:8080/?mute to start silent (M toggles sound as usual).
   if (new URLSearchParams(location.search).has('mute')) muted = true;
   applyMute();
