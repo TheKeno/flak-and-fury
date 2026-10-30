@@ -12,7 +12,7 @@ import { frameIndex, paintSprite } from './sprites.js';
 import { drawHud, damageLines } from './hud.js';
 import { createParticles } from './particles.js';
 import { createGore } from './gore.js';
-import { drawText, textWidth } from './font.js';
+import { drawText, textWidth, lineHeight, setTextSize } from './font.js';
 import { createRadar, SCOPE, PHOSPHOR } from './radar.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
@@ -115,8 +115,8 @@ export function createRenderer(canvas, world, assets) {
   const buffer = makeCanvas(Math.ceil(W * MAX_ZOOM * SCALE * DETAIL), Math.ceil(H * MAX_ZOOM * SCALE * DETAIL));
   const ctx = buffer.getContext('2d');
   ctx.imageSmoothingEnabled = false;
-  const hudLayer = makeCanvas(W, H);
-  const hud = hudLayer.getContext('2d');
+  // The HUD is drawn straight onto the screen at its full resolution, laid out in 480x270 units.
+  const hud = out;
 
   // Visible world area (world units) and its size in buffer pixels; both grow with zoom.
   let vw = W;
@@ -824,8 +824,9 @@ export function createRenderer(canvas, world, assets) {
   let lastFlight = null;
   const hudCfg = assets.settings.hud;
 
-  // Reflector gunsight: a plain ring and pip a fixed range down the firing line (no lead, like a
-  // 1943 Revi). It follows the fuselage, tail-down tilt included, not the camera.
+  // Reflector gunsight: a ring and pip a fixed range down the firing line (no lead, like a 1943
+  // Revi). It follows the fuselage, tail-down tilt included, not the camera. hud.crosshairStyle picks
+  // ring (ring and pip), circle, cross or dot.
   function drawSight(p) {
     if (!hudCfg.crosshair || hudCfg.crosshairAlpha <= 0 || !p.guns.length) return;
     if (p.state === 'dead' || p.dying || p.waiting) return;
@@ -833,18 +834,32 @@ export function createRenderer(canvas, world, assets) {
     const a = attitude(p).angle;
     const wx = mx + Math.cos(a) * hudCfg.crosshairRange;
     const wy = my + Math.sin(a) * hudCfg.crosshairRange;
-    const x = Math.round(((wx - cam.x) * SCALE / bw) * W);
-    const y = Math.round(((bh - (wy - cam.y) * SCALE) / bh) * H);
+    const x = ((wx - cam.x) * SCALE / bw) * W;
+    const y = ((bh - (wy - cam.y) * SCALE) / bh) * H;
     if (x < 0 || y < 0 || x >= W || y >= H) return;
+    const r = hudCfg.crosshairSize;
+    const style = hudCfg.crosshairStyle ?? 'ring';
     hud.save();
     hud.globalAlpha = hudCfg.crosshairAlpha;
-    hud.strokeStyle = '#c8d8b0';
-    hud.fillStyle = '#c8d8b0';
-    hud.lineWidth = 1;
+    hud.strokeStyle = hud.fillStyle = hudCfg.crosshairColour ?? '#c8d8b0';
+    hud.lineWidth = 0.75;
     hud.beginPath();
-    hud.arc(x, y,hudCfg.crosshairSize, 0, Math.PI * 2);
+    if (style === 'ring' || style === 'circle') hud.arc(x, y, r, 0, Math.PI * 2);
+    if (style === 'cross') {
+      // Four ticks with a gap in the middle, so the target stays visible.
+      const gap = r * 0.35;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        hud.moveTo(x + dx * gap, y + dy * gap);
+        hud.lineTo(x + dx * r, y + dy * r);
+      }
+    }
     hud.stroke();
-    hud.fillRect(x - 1, y - 1, 2, 2);
+    if (style === 'ring' || style === 'dot') {
+      const d = style === 'dot' ? Math.max(1, r * 0.35) : 1;
+      hud.beginPath();
+      hud.arc(x, y, d, 0, Math.PI * 2);
+      hud.fill();
+    }
     hud.restore();
   }
 
@@ -905,11 +920,12 @@ export function createRenderer(canvas, world, assets) {
     const now = performance.now();
     for (let i = messages.length - 1; i >= 0; i--) if (messages[i].until < now) messages.splice(i, 1);
     // Centred under the radar scope and the plane's warnings.
+    const base = hud.globalAlpha;
     messages.slice(-4).forEach((m, i) => {
-      hud.globalAlpha = Math.min(1, (m.until - now) / 600);
-      drawText(hud, m.text, Math.round((W - textWidth(m.text)) / 2), 86 + i * 8, m.colour);
-      hud.globalAlpha = 1;
+      hud.globalAlpha = base * Math.min(1, (m.until - now) / 600);
+      drawText(hud, m.text, (W - textWidth(m.text)) / 2, 86 + i * (lineHeight() + 1), m.colour);
     });
+    hud.globalAlpha = base;
   }
 
   function emitEffects(p, dt) {
@@ -964,7 +980,7 @@ export function createRenderer(canvas, world, assets) {
       return { x: cam.x + vw / 2, y: cam.y + vh / 2 };
     },
     shake(amount) {
-      shake = Math.max(shake, amount);
+      shake = Math.max(shake, amount * (camCfg.shake ?? 1));
     },
     // Freeze the damage report of a plane that has just been lost, headed by what brought it down.
     recordLastFlight(plane, cause) {
@@ -1079,35 +1095,6 @@ export function createRenderer(canvas, world, assets) {
         ctx.fillStyle = `rgba(16,0,0,${((1 - focus.consciousness) * 0.88).toFixed(3)})`;
         ctx.fillRect(0, 0, bw, bh);
       }
-      hud.clearRect(0, 0, W, H);
-      let shownFlight = null;
-      if (lastFlight) {
-        const left = lastFlight.until === null ? Infinity : lastFlight.until - performance.now();
-        if (left <= 0) lastFlight = null;
-        else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
-      }
-      if (focus) gore.drawSpatters(hud, focus.id);
-      drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
-      if (focus && !free) drawSight(focus);
-      drawMessages();
-      const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
-      if (free) {
-        banner('FREE LOOK  MOUSE OR ARROWS MOVE (SHIFT FAST)  WHEEL ZOOM  V BACK', 122, '#f0e8c0');
-        banner(`1 FRONT  2 BRIDGE  3 YOUR PLANE   W/S SPEED: ${free.speed}X`, 130, free.speed > 1 ? '#ffd870' : '#f0e8c0');
-      }
-      if (paused) banner('PAUSED - P TO RESUME', 142, '#f0f0e0');
-      // Under the scope: the state of your own radar, then whether you're under the enemy's.
-      const labels = [];
-      if (radar.health <= 0) {
-        if (Math.floor(performance.now() / 500) % 2) labels.push(['NO SIGNAL - RADAR STATION LOST', '#ff7050']);
-        else labels.push(['', '']);
-      } else if (radar.health < 1) labels.push(['RADAR DAMAGED', '#e8b060']);
-      if (focus && radar.belowRadar(focus)) labels.push(['BELOW RADAR', '#8fe8a0']);
-      labels.forEach(([label, colour], i) => {
-        if (label) drawText(hud, label, SCOPE.x + Math.round((SCOPE.w - textWidth(label)) / 2), SCOPE.y + SCOPE.h + 2 + i * 7, colour);
-      });
-      radar.update(dt, focus);
-
       const k = canvas.width / bw;
       const ox = shake > 0.2 ? (Math.random() - 0.5) * 2 * shake * k : 0;
       const oy = shake > 0.2 ? (Math.random() - 0.5) * 2 * shake * k : 0;
@@ -1117,13 +1104,48 @@ export function createRenderer(canvas, world, assets) {
         out.fillRect(0, 0, canvas.width, canvas.height);
       }
       // On a screen smaller than the buffer, shrink it smoothly: nearest-neighbour would drop pixel
-      // rows unevenly and make the scenery shimmer.
-      out.imageSmoothingEnabled = canvas.width < bw * DETAIL;
+      // rows unevenly and make the scenery shimmer. display.smooth softens the scale-up too.
+      out.imageSmoothingEnabled = Boolean(assets.settings.display?.smooth) || canvas.width < bw * DETAIL;
       out.drawImage(buffer, 0, 0, bw * DETAIL, bh * DETAIL, ox, oy, canvas.width, canvas.height);
       out.imageSmoothingEnabled = false;
-      out.drawImage(hudLayer, 0, 0, canvas.width, canvas.height);
-      // The radar scope is scaled up smoothly for a soft phosphor glow.
+
+      // The HUD on top, in 480x270 units at the screen's full resolution.
       const hk = canvas.width / W;
+      setTextSize(hudCfg.textSize);
+      hud.setTransform(hk, 0, 0, hk, 0, 0);
+      let shownFlight = null;
+      if (lastFlight) {
+        const left = lastFlight.until === null ? Infinity : lastFlight.until - performance.now();
+        if (left <= 0) lastFlight = null;
+        else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
+      }
+      if (focus) gore.drawSpatters(hud, focus.id);
+      if (focus && !free) drawSight(focus);
+      hud.globalAlpha = hudCfg.opacity ?? 1;
+      drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free), units: hudCfg.units });
+      drawMessages();
+      const L = lineHeight();
+      const banner = (text, y, colour) => drawText(hud, text, (W - textWidth(text)) / 2, y, colour);
+      if (free) {
+        banner('FREE LOOK  MOUSE OR ARROWS MOVE (SHIFT FAST)  WHEEL ZOOM  V BACK', 122, '#f0e8c0');
+        banner(`1 FRONT  2 BRIDGE  3 YOUR PLANE   W/S SPEED: ${free.speed}X`, 122 + L + 1, free.speed > 1 ? '#ffd870' : '#f0e8c0');
+      }
+      if (paused) banner('PAUSED', 142, '#f0f0e0');
+      // Under the scope: the state of your own radar, then whether you're under the enemy's.
+      const labels = [];
+      if (radar.health <= 0) {
+        if (Math.floor(performance.now() / 500) % 2) labels.push(['NO SIGNAL - RADAR STATION LOST', '#ff7050']);
+        else labels.push(['', '']);
+      } else if (radar.health < 1) labels.push(['RADAR DAMAGED', '#e8b060']);
+      if (focus && radar.belowRadar(focus)) labels.push(['BELOW RADAR', '#8fe8a0']);
+      labels.forEach(([label, colour], i) => {
+        if (label) drawText(hud, label, SCOPE.x + (SCOPE.w - textWidth(label)) / 2, SCOPE.y + SCOPE.h + 2 + i * L, colour);
+      });
+      hud.globalAlpha = 1;
+      hud.setTransform(1, 0, 0, 1, 0, 0);
+      radar.update(dt, focus);
+
+      // The radar scope is scaled up smoothly for a soft phosphor glow.
       out.imageSmoothingEnabled = true;
       out.drawImage(radar.draw(performance.now() / 1000), SCOPE.x * hk, SCOPE.y * hk, SCOPE.w * hk, SCOPE.h * hk);
       out.imageSmoothingEnabled = false;

@@ -26,10 +26,14 @@ Then open <http://localhost:8080> and pick Single player. Headphones recommended
 One player picks **Host online game** and reads out the 4-letter room code; the other picks **Join
 online game** and types it in. The host chooses whether the friend flies with or against them; the
 friend flies the plane picked in their own tuning panel and takes a bot's place. It runs browser to
-browser (WebRTC), so both just open the game page; no server needed. Pause, free look and the tuning
-panel are the host's.
+browser (WebRTC), so both just open the game page; no server needed. Free look and the tuning panel are
+the host's. Esc online opens the menu without pausing: an autopilot flies your plane until you resume.
 
 ## Controls
+
+These are the defaults; **Options** (title screen, or Esc in game) rebinds every action to two keys or
+mouse buttons each, and holds the mouse, sound, gunsight, HUD, view and content settings. They are kept
+in the browser.
 
 | Key | Action |
 |---|---|
@@ -39,10 +43,10 @@ panel are the host's.
 | Space or left mouse | Guns |
 | E or right mouse | Bombs |
 | G | Landing gear (overrides the automatic gear) |
-| Mouse | Look around (sticky: stays put, eases back ahead after 10 s without moving). Click the game to capture the mouse, Esc frees it |
+| Mouse | Look around (sticky: stays put, eases back ahead after 10 s without moving). Click the game to capture the mouse |
 | Arrow keys | Look around while held |
+| Esc | Menu: pause (single player), options, quit |
 | V | Free look: mouse or arrows move the camera, wheel zooms, 1/2/3 jump, W/S fast forward; an autopilot flies your plane |
-| P | Pause |
 | T | Tuning panel |
 | M | Mute |
 | H | Hide help |

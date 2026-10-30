@@ -29,7 +29,7 @@
         image-rendering: pixelated;
         image-rendering: crisp-edges;
       }
-      #start {
+      .screen {
         position: absolute;
         inset: 0;
         display: flex;
@@ -42,34 +42,34 @@
         text-align: center;
         user-select: none;
       }
-      #start h1 {
+      .screen h1 {
         margin: 0;
         font-size: clamp(2rem, 6vw, 4.5rem);
         letter-spacing: 0.12em;
         color: #e8c860;
         text-shadow: 4px 4px 0 #3a2a10;
       }
-      #start p {
+      .screen p {
         margin: 0;
         font-size: clamp(0.8rem, 1.6vw, 1.1rem);
         opacity: 0.85;
       }
       /* The title menu: single player, host or join an online game. */
-      #start .menu {
+      .screen .menu {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 0.6rem;
         margin-top: 0.8rem;
       }
-      #start .menu.hidden {
+      .screen .menu.hidden {
         display: none;
       }
-      #start .row {
+      .screen .row {
         display: flex;
         gap: 0.6rem;
       }
-      #start button {
+      .screen button {
         min-width: 16rem;
         padding: 0.55rem 1.2rem;
         background: #1c201a;
@@ -79,44 +79,44 @@
         letter-spacing: 0.1em;
         cursor: pointer;
       }
-      #start .row button {
+      .screen .row button {
         min-width: 0;
       }
-      #start button:hover:not(:disabled) {
+      .screen button:hover:not(:disabled) {
         background: #2a2e22;
         border-color: #8a7a48;
         color: #f2ead2;
       }
-      #start button:disabled {
+      .screen button:disabled {
         opacity: 0.4;
         cursor: default;
       }
-      #start button.go {
+      .screen button.go {
         border-color: #e8c860;
         color: #e8c860;
       }
-      #start button.go:not(:disabled) {
+      .screen button.go:not(:disabled) {
         animation: pulse 1.4s ease-in-out infinite;
       }
-      #start button.toggle.on {
+      .screen button.toggle.on {
         background: #3a3420;
         border-color: #8a7a48;
         color: #f2ead2;
       }
-      #start button.back {
+      .screen button.back {
         min-width: 0;
         border-color: transparent;
         background: none;
         opacity: 0.7;
       }
-      #start .code {
+      .screen .code {
         font: bold clamp(2rem, 5vw, 3.2rem) 'Courier New', monospace;
         letter-spacing: 0.4em;
         padding-left: 0.4em; /* balances the letter spacing after the last letter */
         color: #e8c860;
         text-shadow: 3px 3px 0 #3a2a10;
       }
-      #start input.code {
+      .screen input.code {
         width: 6.5em;
         background: #14171a;
         border: 2px solid #4a4a36;
@@ -124,24 +124,130 @@
         text-transform: uppercase;
         outline: none;
       }
-      #start input.code:focus {
+      .screen input.code:focus {
         border-color: #8a7a48;
       }
-      #start .status {
+      .screen .status {
         min-height: 1.3em;
         max-width: 34rem;
         color: #c8c0a0;
       }
-      #start .status.bad {
+      .screen .status.bad {
         color: #e08870;
       }
-      #start .fine {
+      .screen .fine {
         margin-top: 0.4rem;
         font-size: clamp(0.7rem, 1.2vw, 0.85rem);
         opacity: 0.55;
       }
-      #start.hidden {
+      .screen.hidden {
         display: none;
+      }
+      .screen h2 {
+        margin: 0;
+        font-size: clamp(1.2rem, 3vw, 2rem);
+        letter-spacing: 0.2em;
+        color: #c8aa58;
+        text-shadow: 3px 3px 0 #2a2010;
+      }
+      /* In-game pause and the options menu: darker, the game dim behind. */
+      #pause,
+      #options {
+        background: rgba(8, 10, 12, 0.82);
+        z-index: 5;
+      }
+      #options {
+        justify-content: flex-start;
+        padding: clamp(0.6rem, 3vh, 2rem) 1rem;
+        box-sizing: border-box;
+        gap: 0.7rem;
+      }
+      #options button {
+        min-width: 0;
+        padding: 0.35rem 0.7rem;
+        font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+      }
+      #options .opt-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.3rem;
+      }
+      #options .opt-tabs button.on {
+        background: #3a3420;
+        border-color: #8a7a48;
+        color: #f2ead2;
+      }
+      #options .opt-body {
+        width: min(44rem, 100%);
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        text-align: left;
+        font-size: clamp(0.7rem, 1.3vw, 0.9rem);
+        color: #c8c0a0;
+        scrollbar-color: #4a4a36 #14171a;
+      }
+      #options .opt-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.35rem 0.4rem;
+        border-bottom: 1px solid #23261e;
+      }
+      #options .opt-row.off {
+        opacity: 0.4;
+      }
+      #options .choices {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.25rem;
+      }
+      #options .slider {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      #options .slider input {
+        width: clamp(8rem, 18vw, 14rem);
+        accent-color: #a08a4a;
+      }
+      #options .slider .value {
+        min-width: 3.5em;
+        text-align: right;
+        color: #d8d0b0;
+      }
+      #options .keys {
+        display: grid;
+        grid-template-columns: 1fr 9rem 9rem;
+        align-items: center;
+        gap: 0.25rem 0.5rem;
+        padding: 0 0.4rem;
+      }
+      #options .keys button.key.empty {
+        opacity: 0.45;
+      }
+      #options .keys button.key.on {
+        border-color: #e8c860;
+        color: #e8c860;
+        animation: pulse 1s ease-in-out infinite;
+      }
+      #options input.name {
+        width: 12em;
+        padding: 0.3rem 0.5rem;
+        background: #14171a;
+        border: 2px solid #4a4a36;
+        color: #e8c860;
+        font: bold 1rem 'Courier New', monospace;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        outline: none;
+      }
+      #options .fine {
+        text-align: center;
+        margin: 0.2rem 0 0.6rem;
       }
       #tuning {
         position: fixed;
@@ -254,14 +360,15 @@
   <body>
     <div id="wrap">
       <canvas id="screen"></canvas>
-      <div id="start">
+      <div id="start" class="screen">
         <h1>FLAK &amp; FURY</h1>
-        <p>A/D: rotate &nbsp;·&nbsp; W/S: throttle &nbsp;·&nbsp; Left Shift: roll &nbsp;·&nbsp; Space: guns &nbsp;·&nbsp; E: bombs &nbsp;·&nbsp; G: gear &nbsp;·&nbsp; Arrows or right mouse: look</p>
+        <p id="controls-line"></p>
         <p>Use headphones for the full sound.</p>
         <div id="menu" class="menu">
           <button id="solo" class="go">SINGLE PLAYER</button>
           <button id="host">HOST ONLINE GAME</button>
           <button id="join">JOIN ONLINE GAME</button>
+          <button id="title-options">OPTIONS</button>
         </div>
         <div id="host-menu" class="menu hidden">
           <p>ROOM CODE - GIVE IT TO YOUR FRIEND</p>
@@ -282,6 +389,16 @@
           <button class="back">BACK</button>
         </div>
         <p class="fine">YOU FLY THE <span id="plane-name"></span> - PICK ANOTHER IN THE TUNING PANEL (T)</p>
+      </div>
+      <!-- In-game menu: single player pauses; online an autopilot flies the plane meanwhile. -->
+      <div id="pause" class="screen hidden">
+        <h2 id="pause-title">PAUSED</h2>
+        <p id="pause-note"></p>
+        <div class="menu">
+          <button id="resume" class="go">RESUME</button>
+          <button id="pause-options">OPTIONS</button>
+          <button id="quit">QUIT TO TITLE</button>
+        </div>
       </div>
     </div>
     <script type="module" src="src/main.js"></script>

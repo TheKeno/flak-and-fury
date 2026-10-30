@@ -14,7 +14,10 @@
     "lookSpeed": 4.5,
     "lookZoom": 0.12,
     "lookSensitivity": 200,
-    "lookReturn": 10
+    "lookReturn": 10,
+    "mouseLook": true,
+    "lookReturnOn": true,
+    "shake": 1
   },
   "audio": {
     "master": 0.03,
@@ -23,7 +26,8 @@
     "ambience": 0.5,
     "music": 0.4,
     "hearRange": 500,
-    "bangRange": 1000
+    "bangRange": 1000,
+    "muteInBackground": true
   },
   "freeLook": {
     "panSpeed": 320,
@@ -212,7 +216,13 @@
     "crosshair": true,
     "crosshairRange": 120,
     "crosshairSize": 3,
-    "crosshairAlpha": 0.35
+    "crosshairAlpha": 0.35,
+    "crosshairStyle": "ring",
+    "crosshairColour": "#c8d8b0",
+    "textSize": 1,
+    "opacity": 0.85,
+    "units": "metric",
+    "showHelp": true
   },
   "rules": {
     "friendlyFire": false,
@@ -225,6 +235,9 @@
     "enemySkill": "normal"
   },
   "markings": {
-    "historicalSwastika": false
+    "historicalSwastika": true
+  },
+  "display": {
+    "smooth": false
   }
 }

@@ -106,11 +106,21 @@ later.
     shown 0.1 s in the past so everything glides smoothly between them; events (shots, hits, crashes)
     are replayed tick by tick for sound and effects. Generic snapshots (`src/net/snapshot.js`): new sim
     state goes online by itself, and `tests/net.test.mjs` checks a busy world arrives whole. A host's
-    hidden tab keeps the world running. Pause, free look and tuning are host only.
+    hidden tab keeps the world running. Free look and tuning are host only.
   - Smooth drawing on fast screens (120/144 Hz): every frame draws things part-way between the last
     two sim ticks (a guest: between the last two snapshots), so terrain and ground no longer stutter
     against the plane. One layer for both (`src/render/interpolate.js`); only what's drawn is blended,
     the sim stays exact (`tests/interpolate.test.mjs`).
+  - **Options menu** (`src/ui/options.js`), from the title screen and Esc in game: two keys or mouse
+    buttons per action (a taken key swaps), mouse look on/off, sensitivity and look return, volumes,
+    mute in the background, gunsight style/size/opacity/colour/range, HUD text size, opacity, units,
+    help at start, radar outline, screen shake, camera lead, speed zoom, fullscreen, sharp or smooth
+    scaling, historical markings (on by default for now), gore, and an online callsign. Kept in the
+    browser, written over the data files' values. Esc pauses single player (P is gone); online it
+    opens the menu while the V autopilot flies the plane. Losing the mouse (the browser's own Esc,
+    leaving fullscreen, alt-tab) opens it too.
+  - **HUD pass:** smaller, smooth text drawn at the screen's full resolution instead of the blocky
+    3×5 pixel font, muted read-outs, unit labels, and on-screen hints that name the keys as bound.
 
 ## Milestones ahead
 

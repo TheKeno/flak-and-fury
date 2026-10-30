@@ -1,37 +1,45 @@
-// 3x5 pixel font. Each glyph is 15 bits, row by row, top to bottom.
-const GLYPHS = {
-  A: '010101111101101', B: '110101110101110', C: '011100100100011', D: '110101101101110',
-  E: '111100110100111', F: '111100110100100', G: '011100101101011', H: '101101111101101',
-  I: '111010010010111', J: '001001001101010', K: '101101110101101', L: '100100100100111',
-  M: '101111111101101', N: '110101101101101', O: '010101101101010', P: '110101110100100',
-  Q: '010101101110011', R: '110101110101101', S: '011100010001110', T: '111010010010010',
-  U: '101101101101111', V: '101101101101010', W: '101101111111101', X: '101101010101101',
-  Y: '101101010010010', Z: '111001010100111',
-  0: '111101101101111', 1: '010110010010111', 2: '110001010100111', 3: '110001010001110',
-  4: '101101111001001', 5: '111100110001110', 6: '011100111101111', 7: '111001010010010',
-  8: '111101111101111', 9: '111101111001110',
-  ' ': '000000000000000', '.': '000000000000010', ':': '000010000010000', '-': '000000111000000',
-  '/': '001001010100100', '%': '101001010100101', '!': '010010010000010', '?': '110001010000010',
-  '(': '010100100100010', ')': '010001001001010', '+': '000010111010000', ',': '000000000010100',
-  "'": '010010000000000', '>': '100010001010100', '<': '001010100010001', '=': '000111000111000',
-};
+// HUD text: a plain monospace font drawn at the display's full resolution (the HUD is laid out in
+// 480x270 units and scaled up), so it stays small and crisp instead of blocky. setTextSize() scales
+// it (settings.hud.textSize); lineHeight() is the spacing between stacked lines at that size.
+const FAMILY = "Consolas, 'Lucida Console', 'DejaVu Sans Mono', monospace";
+const BASE = 4.6; // font size in HUD units at text size 1
+const LINE = 5.6;
 
-export const CHAR_W = 4; // glyph + 1px spacing
-export const CHAR_H = 6;
+let scale = 1;
+let font = `600 ${BASE}px ${FAMILY}`;
+const measure = document.createElement('canvas').getContext('2d');
+const widths = new Map();
 
-export const textWidth = (str) => str.length * CHAR_W - 1;
+export function setTextSize(s) {
+  s = Math.max(0.5, Math.min(2, s || 1));
+  if (s === scale) return;
+  scale = s;
+  font = `600 ${BASE * s}px ${FAMILY}`;
+  widths.clear();
+}
+export const lineHeight = () => LINE * scale;
 
-export function drawText(ctx, str, x, y, color, shadow = 'rgba(0,0,0,0.6)') {
+export function textWidth(str) {
   str = String(str).toUpperCase();
-  const pass = (ox, oy, fill) => {
-    ctx.fillStyle = fill;
-    for (let i = 0; i < str.length; i++) {
-      const g = GLYPHS[str[i]] ?? GLYPHS['?'];
-      for (let b = 0; b < 15; b++) {
-        if (g[b] === '1') ctx.fillRect(x + ox + i * CHAR_W + (b % 3), y + oy + Math.floor(b / 3), 1, 1);
-      }
-    }
-  };
-  if (shadow) pass(1, 1, shadow);
-  pass(0, 0, color);
+  let w = widths.get(str);
+  if (w === undefined) {
+    if (widths.size > 400) widths.clear(); // numbers change every frame
+    measure.font = font;
+    w = measure.measureText(str).width;
+    widths.set(str, w);
+  }
+  return w;
+}
+
+export function drawText(ctx, str, x, y, color, shadow = 'rgba(0,0,0,0.55)') {
+  str = String(str).toUpperCase();
+  ctx.font = font;
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+  if (shadow) {
+    ctx.fillStyle = shadow;
+    ctx.fillText(str, x + 0.45, y + 0.45);
+  }
+  ctx.fillStyle = color;
+  ctx.fillText(str, x, y);
 }

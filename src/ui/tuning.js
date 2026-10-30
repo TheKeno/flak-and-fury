@@ -64,6 +64,7 @@ const CAMERA_FIELDS = [
   ['zoomStartSpeed', 'Speed zoom: starts at', 0, 250, 5, 'Speed (px/s) where the view begins to widen. Level top speed is about 150.'],
   ['zoomFullSpeed', 'Speed zoom: full at', 0, 300, 5, 'Speed (px/s) where the view is fully zoomed out. Dives reach about 200.'],
   ['zoomSpeed', 'Speed zoom: smoothness', 0.2, 5, 0.1, 'How quickly the zoom follows your speed. Lower = slower, smoother.'],
+  ['shake', 'Screen shake', 0, 2, 0.05, 'Multiplier on every screen shake (bumps, hard landings, collisions). 0 = none.'],
 ];
 const CREW_FIELDS = [
   ['crewDelay', 'Crew reaction time', 0, 5, 0.1, 'Seconds after you stop before the ground crew set off from the hangar.'],
@@ -253,6 +254,8 @@ const HUD_FIELDS = [
   ['crosshairRange', 'Gunsight range', 40, 300, 5, 'World units ahead of the muzzle where the sight ring sits (fixed, no lead).'],
   ['crosshairSize', 'Gunsight size', 2, 20, 1, 'Ring radius in HUD pixels.'],
   ['crosshairAlpha', 'Gunsight strength', 0, 1, 0.05, 'Opacity of the sight; 0 hides it.'],
+  ['textSize', 'Text size', 0.5, 2, 0.05, 'Scale of all HUD text (1 = normal).'],
+  ['opacity', 'HUD opacity', 0.2, 1, 0.05, 'Opacity of the read-outs, messages and warnings (not the gunsight).'],
 ];
 const AUDIO_FIELDS = [
   ['master', 'Master volume', 0, 1, 0.01, '1.0 = full loudness.'],
@@ -509,14 +512,14 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     el('label', { class: 'row select', title: 'Off: nothing. Low: blood, stains and bodies. Full: also limbs, thrown bodies and blood on the plane.' }, el('span', {}, 'Gore'), goreSelect),
     ...GORE_FIELDS.map((f) => add(slider(settings.gore, f))),
   );
-  // Historical markings: the German fin swastika is optional (off by default). The plane sprites are
+  // Historical markings: the German fin swastika is optional (on by default for now). The plane sprites are
   // cached per setting, so they repaint at once.
   const swastikaBox = el('input', { type: 'checkbox', onchange: () => (settings.markings.historicalSwastika = swastikaBox.checked) });
   swastikaBox.checked = settings.markings.historicalSwastika;
   const markingsSection = section(
     'Markings',
     false,
-    el('label', { class: 'row check', title: 'Show the swastika on German fins, as painted in 1943. Off: the fin is left plain.' }, el('span', {}, 'Historical swastika (German fins)'), swastikaBox),
+    el('label', { class: 'row check', title: 'Show the swastika on German fins, as painted in 1943. Off: the fin is left plain.' }, el('span', {}, 'Historical markings (German fins)'), swastikaBox),
   );
   const servicingSection = section(
     'Ground crew',
@@ -594,6 +597,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.hud, saved.settings.hud);
     Object.assign(settings.gore, saved.settings.gore);
     Object.assign(settings.markings, saved.settings.markings);
+    Object.assign(settings.display, saved.settings.display);
     goreSelect.value = settings.gore.mode;
     Object.assign(world.rules, saved.settings.rules);
     botSelect.value = world.rules.bots;

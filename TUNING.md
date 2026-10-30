@@ -81,7 +81,15 @@ lost). `camera` and `audio` hold the camera and volume settings.
 about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns and machine-gun fire.
 
 `camera.lookSensitivity` is the mouse travel (pixels) for a full look; `camera.lookReturn` the seconds
-without moving the mouse before the view eases back to looking ahead.
+without moving the mouse before the view eases back to looking ahead, when `camera.lookReturnOn` is true.
+`camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
+none). `audio.muteInBackground` silences the game while its tab is hidden. `display.smooth` scales the
+scenery up smoothly instead of sharp pixels.
+
+**Player options.** The options menu (`src/ui/options.js`, title screen or Esc) changes many of these
+values for one player: they are kept in that browser and written over the values loaded from this file,
+which stay the defaults. Options in % (volumes, sensitivity) and the camera lead and speed zoom presets
+scale the file's value. Saving from the tuning panel saves what is live, player options included.
 
 `freeLook` (V, the debug view for the ground war): `panSpeed` moves the camera with the arrows,
 `mousePan` (world units per pixel) with the mouse, `zoom` is how wide the view starts, `autopilotHeight` is how high above the ground the autopilot flies
@@ -322,6 +330,18 @@ computing. Hidden in free look, while dead, dying or waiting, and for planes wit
 | `crosshairRange` | World units ahead of the muzzle where the ring sits. | 80 – 200 |
 | `crosshairSize` | Ring radius in HUD pixels. | 2 – 12 |
 | `crosshairAlpha` | Opacity; 0 hides it. | 0.2 – 0.6 |
+| `crosshairStyle` | `ring` (ring and pip), `circle`, `cross` or `dot`. | ring |
+| `crosshairColour` | Colour of the sight. | #c8d8b0 |
+
+The rest of `hud` is the read-outs:
+
+| Field | What it does | Try |
+|---|---|---|
+| `textSize` | Scale of all HUD text (1 = normal). | 0.85 – 1.45 |
+| `opacity` | Opacity of the read-outs, messages and warnings (not the gunsight). | 0.6 – 1 |
+| `units` | `metric` (km/h, m), `imperial` (mph, ft) or `nautical` (knots, ft). | metric |
+| `showHelp` | Show the key help at start (H toggles it). | true |
+| `lastFlightTime` | Seconds the LAST FLIGHT report stays after you respawn. | 5 – 12 |
 
 ## Markings: `data/settings.json` → `markings`
 
@@ -330,7 +350,7 @@ optional, in the tuning panel's Markings section:
 
 | Field | What it does | Try |
 |---|---|---|
-| `historicalSwastika` | Show the swastika on German fins (Bf 109 and later German planes). Off by default: the fin stays plain. The sprites are drawn with two key colours there (see `src/render/sprites.js`), painted black and white when on, the fin colour when off. | false |
+| `historicalSwastika` | Show the swastika on German fins (Bf 109 and later German planes); "Historical markings" in the options. On by default for now (to be decided when the game is finished). The sprites are drawn with two key colours there (see `src/render/sprites.js`), painted black and white when on, the fin colour when off. | true |
 
 ## Paint and uniforms: `data/nations.json`
 

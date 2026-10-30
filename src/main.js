@@ -7,6 +7,8 @@ import { createRenderer, MAX_ZOOM } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
 import { createTuningPanel } from './ui/tuning.js';
+import { createOptions, cleanName } from './ui/options.js';
+import { setKeyNames, speedText, sinkText as sinkUnits } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
 import { NO_COMMAND } from './sim/plane.js';
 import { clamp } from './sim/math.js';
@@ -61,8 +63,9 @@ placeBots();
 const renderer = createRenderer(canvas, world, content);
 const keyboard = createKeyboard();
 const mouse = createMouse(canvas, content.settings.camera);
+setKeyNames(keyboard.keyName);
 
-let showHelp = true;
+let showHelp = content.settings.hud.showHelp ?? true;
 let paused = false;
 const tuning = createTuningPanel({
   content,
@@ -77,6 +80,20 @@ function setPaused(p) {
   paused = p;
   tuning.showPaused(p);
 }
+// The player's own options (src/ui/options.js), kept in this browser and written over the loaded settings.
+const options = createOptions({
+  settings: content.settings,
+  bindings: keyboard.bindings,
+  parent: document.getElementById('wrap'),
+  onChange(id) {
+    if (id.startsWith('audio.') || ['master', 'engine', 'sfx', 'ambience', 'music'].includes(id)) mixer?.applyLevels();
+    if (id === 'audio.muteInBackground') applyMute();
+    if (id === 'bindings') showControls();
+    if (id === 'name' && !online()) player.callsign = options.name || null;
+  },
+});
+// Your callsign, shown to the other side online.
+if (options.name) player.callsign = options.name;
 
 // Free look (V), our debug view for the ground war: the arrows move the camera anywhere, the wheel
 // zooms, 1/2/3 jump to the front, the bridge and your plane, W/S step the fast forward. Meanwhile an
@@ -153,35 +170,99 @@ let mixer = null;
 let host = null;
 let guest = null;
 
-// A guest only sees the host's world: pausing, free look's fast forward and the tuning panel all
-// change the world itself, so they stay with the host.
-const HOST_ONLY = new Set(['KeyT', 'KeyP', 'KeyV']);
+// A guest only sees the host's world: free look's fast forward and the tuning panel change the world
+// itself, so they stay with the host.
+const HOST_ONLY = new Set(['tuning', 'freeLook']);
 
-addEventListener('keydown', (e) => {
-  // Typing a room code isn't flying.
-  if (e.target instanceof HTMLInputElement) return;
-  if (guest && HOST_ONLY.has(e.code)) {
-    if (!e.repeat) renderer.message('ONLY THE HOST CAN DO THAT', '#f0e8c0');
-    return;
+// Mute (M), and with audio.muteInBackground also while the tab is hidden.
+function applyMute() {
+  mixer?.setMuted(muted || (document.hidden && content.settings.audio.muteInBackground !== false));
+}
+
+// Keys and mouse buttons as bound in the options. Free look's own keys (1/2/3, W/S speed) stay fixed:
+// it's a debug view.
+keyboard.onPress((code, e) => {
+  // Typing a room code or a callsign isn't flying.
+  if (e?.target instanceof HTMLInputElement) return;
+  const acts = keyboard.actionsOf(code);
+  if (acts.includes('menu')) return menuKey();
+  if (menuOpen) return;
+  for (const act of acts) {
+    if (guest && HOST_ONLY.has(act)) {
+      renderer.message('ONLY THE HOST CAN DO THAT', '#f0e8c0');
+      continue;
+    }
+    if (act === 'help') showHelp = !showHelp;
+    // The panel needs the cursor back.
+    if (act === 'tuning' && tuning.toggle()) mouse.release();
+    if (act === 'mute') {
+      muted = !muted;
+      applyMute();
+    }
+    if (act === 'freeLook') setFreeLook(!free.on);
   }
-  if (e.code === 'KeyH') showHelp = !showHelp;
-  // The panel needs the cursor back.
-  if (e.code === 'KeyT' && tuning.toggle()) mouse.release();
-  if (e.code === 'KeyM' && mixer) mixer.setMuted((muted = !muted));
-  if (e.code === 'KeyP') setPaused(!paused);
-  if (e.code === 'KeyV') setFreeLook(!free.on);
-  if (free.on && !e.repeat) {
-    if (e.code === 'Digit1') jumpTo('front');
-    if (e.code === 'Digit2') jumpTo('bridge');
-    if (e.code === 'Digit3') jumpTo('plane');
-    if (e.code === 'KeyW') free.speed = Math.min(SPEEDS.length - 1, free.speed + 1);
-    if (e.code === 'KeyS') free.speed = Math.max(0, free.speed - 1);
+  if (free.on) {
+    if (code === 'Digit1') jumpTo('front');
+    if (code === 'Digit2') jumpTo('bridge');
+    if (code === 'Digit3') jumpTo('plane');
+    if (code === 'KeyW') free.speed = Math.min(SPEEDS.length - 1, free.speed + 1);
+    if (code === 'KeyS') free.speed = Math.max(0, free.speed - 1);
   }
 });
 
-// The same display scales as the HUD.
-const kmh = (v) => Math.round(v * 3.6 * 0.4 * 3.2);
-const sinkText = (v) => `${Math.round(v * 0.4)} M/S`;
+// The in-game menu (Esc). Single player pauses; online the world goes on for the others, so the V
+// autopilot flies your plane until you're back. The browser itself takes Esc to free the mouse (and
+// to leave fullscreen) without always passing the key on, so losing the mouse opens the menu too.
+let started = false;
+let menuOpen = false;
+let menuAt = 0;
+const online = () => Boolean(host || guest);
+const pauseScreen = document.getElementById('pause');
+function openMenu() {
+  if (!started || menuOpen) return;
+  menuOpen = true;
+  menuAt = performance.now();
+  free.autopilot = {};
+  if (!online()) setPaused(true);
+  document.getElementById('pause-title').textContent = online() ? 'AUTOPILOT ENGAGED' : 'PAUSED';
+  document.getElementById('pause-note').textContent = online() ? 'THE GAME GOES ON: YOUR PLANE FLIES LEVEL UNTIL YOU RESUME.' : '';
+  document.getElementById('quit').textContent = host ? 'END ONLINE GAME' : guest ? 'LEAVE GAME' : 'QUIT TO TITLE';
+  pauseScreen.classList.remove('hidden');
+  mouse.release();
+}
+function closeMenu() {
+  if (!menuOpen) return;
+  options.close();
+  pauseScreen.classList.add('hidden');
+  menuOpen = false;
+  if (!online()) setPaused(false);
+  mouse.capture();
+  // After the player's own Esc the browser won't hand the mouse back without a click.
+  setTimeout(() => !mouse.locked() && !menuOpen && renderer.message('CLICK THE GAME TO GRAB THE MOUSE', '#f0e8c0'), 150);
+}
+function menuKey() {
+  if (!started) {
+    if (options.isOpen) options.back();
+    return;
+  }
+  if (!menuOpen) return openMenu();
+  // The same press that freed the mouse (and opened the menu) mustn't close it again.
+  if (performance.now() - menuAt < 300) return;
+  if (options.isOpen) options.back();
+  else closeMenu();
+}
+mouse.onLockLost = openMenu;
+document.addEventListener('fullscreenchange', () => !document.fullscreenElement && openMenu());
+document.getElementById('resume').addEventListener('click', closeMenu);
+document.getElementById('quit').addEventListener('click', () => location.reload());
+document.getElementById('pause-options').addEventListener('click', () => {
+  pauseScreen.classList.add('hidden');
+  options.open(() => pauseScreen.classList.remove('hidden'));
+});
+
+// The same display scales and units as the HUD.
+const kmh = (v) => speedText(v, content.settings.hud.units);
+const sinkText = (v) => sinkUnits(v, content.settings.hud.units);
 const deg = (a) => Math.round((a * 180) / Math.PI);
 const CAUSES = {
   guns: (by) => (by ? `SHOT DOWN BY ${by}` : 'SHOT DOWN'),
@@ -210,7 +291,8 @@ const CAUSES = {
 function causeText(e) {
   if (e.by === e.plane && e.cause === 'bomb') return 'BLEW YOURSELF UP WITH YOUR OWN BOMB';
   const killer = world.planes.find((pl) => pl.id === e.by);
-  const name = killer ? `${killer.def.name.toUpperCase()} (${content.nations[killer.nation]?.name.toUpperCase() ?? ''})` : null;
+  const plane = killer ? `${killer.def.name.toUpperCase()} (${content.nations[killer.nation]?.name.toUpperCase() ?? ''})` : null;
+  const name = killer?.callsign ? `${killer.callsign} IN A ${plane}` : plane;
   return (CAUSES[e.cause] ?? CAUSES.ground)(name, e);
 }
 
@@ -301,13 +383,6 @@ function handleEvents() {
   }
 }
 
-// Left mouse fires the guns, right mouse drops bombs, alongside Space and E.
-function withMouse(cmd) {
-  cmd.fire ||= mouse.fire;
-  cmd.bomb ||= mouse.bomb;
-  return cmd;
-}
-
 let lastSweeps = 0;
 let lastFacing = 1;
 let last = performance.now();
@@ -325,7 +400,8 @@ function advance(now) {
   if (paused) acc = 0;
   let stepped = false;
   while (acc >= DT) {
-    const cmd = free.on ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : withMouse(keyboard.read());
+    const auto = free.on || (menuOpen && online());
+    const cmd = auto ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : keyboard.read();
     if (guest) guest.commands.push(cmd);
     else {
       // The frame is drawn between the last two ticks: note where things were before the last one.
@@ -382,10 +458,12 @@ function frame(now) {
 // Browsers only allow audio (and grabbing the mouse) after a click, so the game starts on one.
 async function start() {
   overlay.classList.add('hidden');
+  started = true;
   mouse.capture();
   mixer = await createMixer(content.settings.audio);
   // Open the game as localhost:8080/?mute to start silent (M toggles sound as usual).
-  if (new URLSearchParams(location.search).has('mute')) mixer.setMuted((muted = true));
+  if (new URLSearchParams(location.search).has('mute')) muted = true;
+  applyMute();
   sound = createSoundscape(mixer, world, content.settings.audio);
   last = performance.now();
   requestAnimationFrame(frame);
@@ -404,6 +482,7 @@ function keepTicking() {
 // everything first.
 document.addEventListener('visibilitychange', () => {
   if (guest && document.hidden) guest.net.sendCommands([NO_COMMAND]);
+  applyMute();
 });
 
 // The title menu: single player, or host or join an online game (src/net/session.js).
@@ -420,6 +499,25 @@ function status(id, text, bad = false) {
 // Back closes any connection by starting the page afresh.
 for (const b of overlay.querySelectorAll('.back')) b.addEventListener('click', () => location.reload());
 $('solo').addEventListener('click', start);
+$('title-options').addEventListener('click', () => {
+  overlay.classList.add('hidden');
+  options.open(() => overlay.classList.remove('hidden'));
+});
+// The keys line on the title screen, as bound.
+function showControls() {
+  const k = keyboard.keyName;
+  $('controls-line').textContent = [
+    `${k('turnCcw')}/${k('turnCw')}: rotate`,
+    `${k('throttleUp')}/${k('throttleDown')}: throttle`,
+    `${k('roll')}: roll`,
+    `${k('fire')}: guns`,
+    `${k('bomb')}: bombs`,
+    `${k('gear')}: gear`,
+    'mouse: look',
+    `${k('menu')}: menu`,
+  ].join('  ·  ');
+}
+showControls();
 
 // Hosting: your friend joins with the room code, on your side or against you, taking a bot's place.
 let friendSide = 'same';
@@ -445,12 +543,13 @@ $('host').addEventListener('click', async () => {
       onJoin(g, hello) {
         const defId = content.planeDefs[hello.plane]?.name ? hello.plane : choice.plane;
         const p = addPlane(world, { defId, team: sideOf(), nation: nationOf(defId), controller: g.controller });
+        if (cleanName(hello.name)) p.callsign = cleanName(hello.name);
         g.planeId = p.id;
         placeBots();
         // The side is settled once someone has joined.
         $('side-same').disabled = $('side-enemy').disabled = true;
         hostStatus();
-        renderer.message(`A FRIEND JOINED: ${planeName(defId)}, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
+        renderer.message(`${p.callsign ?? 'A FRIEND'} JOINED: ${planeName(defId)}, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
         return { planeId: p.id };
       },
       onLeave(g) {
@@ -488,7 +587,7 @@ $('join-go').addEventListener('click', async () => {
   status('join-status', 'CONNECTING...');
   const view = createGuestView(world, content.settings.net);
   try {
-    const net = await joinGame($('join-code').value, { plane: choice.plane }, {
+    const net = await joinGame($('join-code').value, { plane: choice.plane, name: options.name }, {
       onMessage(m) {
         if (m?.t === 'welcome') {
           guest.planeId = m.planeId;
@@ -505,8 +604,12 @@ $('join-go').addEventListener('click', async () => {
         renderer.render(player, 0, { showHelp });
       },
       onClose() {
+        started = false;
+        menuOpen = false;
+        pauseScreen.classList.add('hidden');
+        options.close();
         overlay.classList.remove('hidden');
-        document.exitPointerLock?.();
+        mouse.release();
         showMenu('join-menu');
         $('join-go').disabled = true;
         status('join-status', 'LOST THE CONNECTION TO THE HOST.', true);
