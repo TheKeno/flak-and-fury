@@ -8,7 +8,10 @@ import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { surfaceAt } from './sim/ground.js';
+import { NO_COMMAND } from './sim/plane.js';
 import { clamp } from './sim/math.js';
+import { hostGame, joinGame, cleanCode } from './net/session.js';
+import { createGuestView } from './net/guest.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
@@ -40,14 +43,18 @@ const params = new URLSearchParams(location.search);
 const planeId = (key, fallback) => (content.planeDefs[params.get(key)] ? params.get(key) : fallback);
 const choice = { plane: planeId('plane', 'bf109g6'), enemy: planeId('enemy', 'spitfire') };
 const nationOf = (defId) => content.planeDefs[defId].nation;
-const player = addPlane(world, { defId: choice.plane, team: 0, nation: nationOf(choice.plane), controller: 'p1' });
+// On a guest, your plane is the one the host gave you (it changes when the first snapshot arrives).
+let player = addPlane(world, { defId: choice.plane, team: 0, nation: nationOf(choice.plane), controller: 'p1' });
 // Bots: your wingmen and the enemy, as many and as good as the rules say (Testing in the tuning panel).
+// Online players take bots' places on their side.
 const SIDES = [
   { team: 0, nation: nationOf(choice.plane), defId: choice.plane, count: 'wingmen', skill: 'wingmanSkill' },
   { team: 1, nation: nationOf(choice.enemy), defId: choice.enemy, count: 'enemies', skill: 'enemySkill' },
 ];
+const isOnline = (p) => p.seats.some((s) => s.controller.startsWith('net'));
+const guestsOn = (team) => world.planes.filter((p) => p.team === team && isOnline(p)).length;
 const placeBots = () => {
-  for (const s of SIDES) setBots(world, { ...s, count: world.rules[s.count], skill: world.rules[s.skill] });
+  for (const s of SIDES) setBots(world, { ...s, count: Math.max(0, world.rules[s.count] - guestsOn(s.team)), skill: world.rules[s.skill] });
 };
 placeBots();
 const renderer = createRenderer(canvas, world, content);
@@ -140,8 +147,22 @@ canvas.addEventListener('mousedown', () => document.activeElement?.blur());
 let muted = false;
 let sound = null;
 let mixer = null;
+// Online play: host is set while hosting (src/net/session.js); guest while in someone else's game,
+// with view (src/net/guest.js) showing the host's world and commands waiting to be sent.
+let host = null;
+let guest = null;
+
+// A guest only sees the host's world: pausing, free look's fast forward and the tuning panel all
+// change the world itself, so they stay with the host.
+const HOST_ONLY = new Set(['KeyT', 'KeyP', 'KeyV']);
 
 addEventListener('keydown', (e) => {
+  // Typing a room code isn't flying.
+  if (e.target instanceof HTMLInputElement) return;
+  if (guest && HOST_ONLY.has(e.code)) {
+    if (!e.repeat) renderer.message('ONLY THE HOST CAN DO THAT', '#f0e8c0');
+    return;
+  }
   if (e.code === 'KeyH') showHelp = !showHelp;
   // The panel needs the cursor back.
   if (e.code === 'KeyT' && tuning.toggle()) mouse.release();
@@ -289,17 +310,37 @@ let lastSweeps = 0;
 let lastFacing = 1;
 let last = performance.now();
 let acc = 0;
-function frame(now) {
+// Runs the world's ticks due by now (on a guest: gathers the commands and shows the host's world).
+// Returns the frame's dt.
+function advance(now) {
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
   acc += dt * (free.on ? SPEEDS[free.speed] : 1);
   if (paused) acc = 0;
   while (acc >= DT) {
     const cmd = free.on ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : withMouse(keyboard.read());
-    stepWorld(world, { p1: cmd });
-    handleEvents();
+    if (guest) guest.commands.push(cmd);
+    else {
+      stepWorld(world, { p1: cmd, ...host?.commands() });
+      handleEvents();
+      host?.afterTick();
+    }
     acc -= DT;
   }
+  if (guest) {
+    // One message a frame carries this frame's ticks of commands.
+    guest.net.sendCommands(guest.commands);
+    guest.commands = [];
+    world.events = guest.view.update(dt);
+    // Your plane is whichever the host gave you; find it again if it was replaced.
+    if (!world.planes.includes(player)) player = world.planes.find((p) => p.id === guest.planeId) ?? player;
+    handleEvents();
+  }
+  return dt;
+}
+
+function frame(now) {
+  const dt = advance(now);
   mouse.panMode = free.on;
   mouse.update(dt);
   // The sticky mouse look is relative to where the plane points: turn around and it turns with you
@@ -322,8 +363,8 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-// Browsers only allow audio after a click, so the game waits for one.
-overlay.addEventListener('click', async () => {
+// Browsers only allow audio (and grabbing the mouse) after a click, so the game starts on one.
+async function start() {
   overlay.classList.add('hidden');
   mouse.capture();
   mixer = await createMixer(content.settings.audio);
@@ -332,7 +373,137 @@ overlay.addEventListener('click', async () => {
   sound = createSoundscape(mixer, world, content.settings.audio);
   last = performance.now();
   requestAnimationFrame(frame);
+  if (host) keepTicking();
+}
+
+// Browsers stop animation frames in a hidden tab. A host's world must go on for their guests, so a
+// worker's steady timer (not slowed like the page's own timers) keeps it ticking while hidden;
+// nothing is drawn.
+function keepTicking() {
+  const code = 'setInterval(() => postMessage(0), 1000 / 60);';
+  const worker = new Worker(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })));
+  worker.onmessage = () => document.hidden && advance(performance.now());
+}
+// A guest's hidden tab sends nothing more, and the host keeps the last command held: let go of
+// everything first.
+document.addEventListener('visibilitychange', () => {
+  if (guest && document.hidden) guest.net.sendCommands([NO_COMMAND]);
+});
+
+// The title menu: single player, or host or join an online game (src/net/session.js).
+const $ = (id) => document.getElementById(id);
+const planeName = (defId) => content.planeDefs[defId].name.toUpperCase();
+$('plane-name').textContent = planeName(choice.plane);
+function showMenu(id) {
+  for (const m of overlay.querySelectorAll('.menu')) m.classList.toggle('hidden', m.id !== id);
+}
+function status(id, text, bad = false) {
+  $(id).textContent = text;
+  $(id).classList.toggle('bad', bad);
+}
+// Back closes any connection by starting the page afresh.
+for (const b of overlay.querySelectorAll('.back')) b.addEventListener('click', () => location.reload());
+$('solo').addEventListener('click', start);
+
+// Hosting: your friend joins with the room code, on your side or against you, taking a bot's place.
+let friendSide = 'same';
+const sideOf = () => (friendSide === 'same' ? player.team : 1 - player.team);
+function setSide(side) {
+  friendSide = side;
+  $('side-same').classList.toggle('on', side === 'same');
+  $('side-enemy').classList.toggle('on', side === 'enemy');
+}
+$('side-same').addEventListener('click', () => setSide('same'));
+$('side-enemy').addEventListener('click', () => setSide('enemy'));
+function hostStatus() {
+  const friends = world.planes.filter(isOnline);
+  if (!friends.length) return status('host-status', 'WAITING FOR A FRIEND. START WHEN YOU LIKE: THEY CAN JOIN ANY TIME.');
+  const p = friends[0];
+  status('host-status', `FRIEND JOINED IN A ${p.def.name.toUpperCase()}, ${p.team === player.team ? 'ON YOUR SIDE' : 'AGAINST YOU'}.`);
+}
+$('host').addEventListener('click', async () => {
+  showMenu('host-menu');
+  status('host-status', 'OPENING A ROOM...');
+  try {
+    host = await hostGame(world, content.settings.net, {
+      onJoin(g, hello) {
+        const defId = content.planeDefs[hello.plane]?.name ? hello.plane : choice.plane;
+        const p = addPlane(world, { defId, team: sideOf(), nation: nationOf(defId), controller: g.controller });
+        g.planeId = p.id;
+        placeBots();
+        // The side is settled once someone has joined.
+        $('side-same').disabled = $('side-enemy').disabled = true;
+        hostStatus();
+        renderer.message(`A FRIEND JOINED: ${planeName(defId)}, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
+        return { planeId: p.id };
+      },
+      onLeave(g) {
+        const i = world.planes.findIndex((p) => p.id === g.planeId);
+        if (i >= 0) world.planes.splice(i, 1);
+        placeBots();
+        hostStatus();
+        renderer.message('YOUR FRIEND HAS LEFT THE GAME', '#ffb070');
+      },
+    });
+    $('room-code').textContent = host.code;
+    $('host-start').disabled = false;
+    hostStatus();
+  } catch (err) {
+    status('host-status', `COULD NOT OPEN A ROOM: ${(err.type ?? err.message ?? err).toString().toUpperCase()}`, true);
+  }
+});
+$('host-start').addEventListener('click', start);
+
+// Joining: the host's world replaces ours once the first snapshot arrives.
+$('join').addEventListener('click', () => {
+  showMenu('join-menu');
+  $('join-code').focus();
+});
+$('join-code').addEventListener('input', () => {
+  $('join-code').value = cleanCode($('join-code').value);
+  $('join-go').disabled = $('join-code').value.length < 4;
+});
+$('join-code').addEventListener('keydown', (e) => e.key === 'Enter' && !$('join-go').disabled && $('join-go').click());
+const JOIN_ERRORS = { 'peer-unavailable': 'NO GAME WITH THAT CODE', network: 'NO CONNECTION TO THE BROKER' };
+$('join-go').addEventListener('click', async () => {
+  // Connected and the world has arrived: this click starts the engine.
+  if (guest?.view.ready) return start();
+  $('join-go').disabled = $('join-code').disabled = true;
+  status('join-status', 'CONNECTING...');
+  const view = createGuestView(world, content.settings.net);
+  try {
+    const net = await joinGame($('join-code').value, { plane: choice.plane }, {
+      onMessage(m) {
+        if (m?.t === 'welcome') {
+          guest.planeId = m.planeId;
+          status('join-status', 'CONNECTED. WAITING FOR THE HOST TO START...');
+        }
+        if (m?.t !== 'snap') return;
+        const first = !view.ready;
+        view.receive(m);
+        if (!first) return;
+        player = world.planes.find((p) => p.id === guest.planeId) ?? player;
+        status('join-status', 'CONNECTED. CLICK TO FLY.');
+        $('join-go').textContent = 'START ENGINE';
+        $('join-go').disabled = false;
+        renderer.render(player, 0, { showHelp });
+      },
+      onClose() {
+        overlay.classList.remove('hidden');
+        document.exitPointerLock?.();
+        showMenu('join-menu');
+        $('join-go').disabled = true;
+        status('join-status', 'LOST THE CONNECTION TO THE HOST.', true);
+      },
+    });
+    guest = { net, view, commands: [], planeId: null };
+    // Your own planes go: from now on the world is the host's.
+    world.planes.length = 0;
+  } catch (err) {
+    $('join-go').disabled = $('join-code').disabled = false;
+    status('join-status', `COULD NOT JOIN: ${JOIN_ERRORS[err.type] ?? (err.type ?? err.message ?? err).toString().toUpperCase()}`, true);
+  }
 });
 
 renderer.render(player, 0, { showHelp });
-window.__game = { world, player, renderer, get mixer() { return mixer; } };
+window.__game = { world, renderer, get player() { return player; }, get mixer() { return mixer; }, get host() { return host; }, get guest() { return guest; } };

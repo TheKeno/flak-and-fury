@@ -103,6 +103,10 @@
     "lowGap": 60,
     "dropout": 0.6
   },
+  "net": {
+    "snapshotEvery": 3,
+    "delay": 0.1
+  },
   "landing": {
     "cleanAngle": 0.35,
     "hardSpeed": 1.15,

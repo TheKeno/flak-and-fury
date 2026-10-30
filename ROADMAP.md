@@ -98,6 +98,15 @@ later.
     wingtip digs in and it's wrecked.
   - Live tuning panel with Save to files; synthesized sound for engines, guns, crew, body, gear,
     collisions.
+  - **Online play, first version** (milestone 7): title menu with Single player, Host and Join. The
+    host gets a 4-letter room code and picks whether the friend flies with or against them; the friend
+    joins any time, in their own plane, taking a bot's place (the bot comes back when they leave).
+    Peer-to-peer over WebRTC (PeerJS; its public broker only introduces the browsers). The host runs
+    the world; the guest sends a command per tick and gets ~20 snapshots a second, only what changed,
+    shown 0.1 s in the past so everything glides smoothly between them; events (shots, hits, crashes)
+    are replayed tick by tick for sound and effects. Generic snapshots (`src/net/snapshot.js`): new sim
+    state goes online by itself, and `tests/net.test.mjs` checks a busy world arrives whole. A host's
+    hidden tab keeps the world running. Pause, free look and tuning are host only.
 
 ## Milestones ahead
 
@@ -126,6 +135,10 @@ later.
    own: share a room code to join (a relay/TURN fallback for strict networks later). First version: 2
    players, on opposite sides or the same team, bots fill the other slots (e.g. 1p + 1b vs 1p + 1b);
    then up to 4, and gunner seats when the crewed bombers come. Build everything after this net-aware.
+   **First version done** (see Done). Still to come: prediction for the guest's own plane (it reacts
+   one round trip late), a TURN relay for strict networks, up to 4 players with a lobby list, the
+   guest's death/last-flight screen checked over a real connection, plane choice in the lobby (the
+   hangar), the host seeing the guest's ping.
 8. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
    camo, nose, markings, squadron number), saved locally.
 9. **Match setup and music:** menu, rules, scoring (win conditions include **grounding the enemy**:

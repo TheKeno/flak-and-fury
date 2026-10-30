@@ -117,6 +117,12 @@ the sweep stutters and echoes drift or vanish (`dropout` = share of echoes lost 
 destroyed); when it's destroyed the scope goes dark for the rest of the match. The station's hit
 points are under Ground targets.
 
+`net`: online play (tuning panel → Online). `snapshotEvery`: how often the host sends its world to
+guests, in sim ticks (60 a second; 3 = 20 snapshots a second). `delay`: how many seconds in the past
+a guest sees the host's world, so things glide smoothly between snapshots (raise it if planes stutter
+on a bumpy connection, lower it if the lag bothers you). Each side uses its own copy: the host's
+`snapshotEvery`, the guest's `delay`.
+
 `collisions`: how deadly mid-air collisions are. Head-on above `headOnSpeed` closing speed, or any
 angle above `fatalSpeed`, kills both planes. Below that, `hardSpeed` separates a graze from a hard
 hit. Damage is split between the planes: `driveWeight` puts more on whoever drove into the other,

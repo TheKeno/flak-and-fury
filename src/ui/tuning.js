@@ -122,6 +122,10 @@ const RADAR_FIELDS = [
   ['lowGap', 'Low-level gap', 0, 150, 5, 'Planes flying lower than this above the ground drop off the radar, friend or foe (you too).'],
   ['dropout', 'Damaged: echoes lost', 0, 1, 0.05, 'Share of echoes a radar loses when its station is nearly destroyed (less when lightly damaged). Damage also adds noise, blotches, a stuttering sweep and misplaced echoes.'],
 ];
+const NET_FIELDS = [
+  ['snapshotEvery', 'Snapshot every (ticks)', 1, 12, 1, "How often the host sends its world to guests, in sim ticks (60 a second): 3 is 20 snapshots a second. Fewer saves bandwidth but makes the guest's view lag more. Host only."],
+  ['delay', 'Guest view delay (s)', 0, 0.5, 0.01, "How far in the past a guest sees the host's world, so planes glide smoothly between snapshots. Too low and they stutter on a bumpy connection; too high and everything lags. Guest only."],
+];
 const GROUND_FIELDS = [
   ['hp', 'Hit points', 1, 400, 1, 'Damage it takes to destroy (infantry: per soldier). Applies when targets are restored.'],
   ['points', 'Points', 0, 50, 1, 'Score for destroying it (infantry: per soldier).'],
@@ -456,6 +460,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   const zoneSection = section('Landscape zones', false, ...ZONE_FIELDS.map((f) => add(slider(settings.zones, f))));
   const padSection = section('Structure pads', false, ...PAD_FIELDS.map((f) => add(slider(settings.pads, f))));
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
+  const netSection = section('Online', false, ...NET_FIELDS.map((f) => add(slider(settings.net, f))));
   const botSection = section(
     'Bots',
     false,
@@ -555,6 +560,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.landing, saved.settings.landing);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
+    Object.assign(settings.net, saved.settings.net);
     for (const [k, v] of Object.entries(saved.settings.bots)) {
       if (k === 'levels') for (const l of Object.keys(v)) Object.assign(settings.bots.levels[l], v[l]);
       else settings.bots[k] = v;
@@ -628,6 +634,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     collisionSection,
     fireSection,
     radarSection,
+    netSection,
     botSection,
     groundSection,
     waveSection,

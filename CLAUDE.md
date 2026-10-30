@@ -39,6 +39,12 @@ yourself instead.
 - `src/sim/` — the simulation: pure, deterministic (use `world.rng`, never `Math.random`), no DOM or
   audio. One command per controller per tick (`p1`, `bot:<skill>`). Events in `world.events` drive
   sound and effects.
+- `src/net/` — online play: the host runs the world, guests send commands and get snapshots. Snapshots
+  are generic, so **new sim state goes online by itself if it follows the rules** at the top of
+  `src/net/snapshot.js`: plain data only (no Maps/Sets/class instances a guest needs), an `id` from
+  `world.nextId` on anything kept in a list, no object shared between two places except references
+  to the data files, host-only bookkeeping added to `SKIP`. `tests/net.test.mjs` catches mistakes.
+  The guest never steps the sim: its screen, HUD and sound read the patched world and the events.
 - `src/render/` — scenery, ground sprites and effects at `SCALE` = 2 pixels per world unit, planes at
   `PLANE_SCALE` = 4 (the buffer has `DETAIL` = 2× finer pixels; all else draws through a ×2 transform). World units are what all
   gameplay numbers use. HUD on its own 480×270 layer. Radar is a soft CRT canvas.

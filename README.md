@@ -19,7 +19,15 @@ With [Node.js](https://nodejs.org) installed:
 node tools/serve.mjs 8080
 ```
 
-Then open <http://localhost:8080> and click to start the engine. Headphones recommended.
+Then open <http://localhost:8080> and pick Single player. Headphones recommended.
+
+## Playing online
+
+One player picks **Host online game** and reads out the 4-letter room code; the other picks **Join
+online game** and types it in. The host chooses whether the friend flies with or against them; the
+friend flies the plane picked in their own tuning panel and takes a bot's place. It runs browser to
+browser (WebRTC), so both just open the game page; no server needed. Pause, free look and the tuning
+panel are the host's.
 
 ## Controls
 
@@ -46,6 +54,7 @@ Then open <http://localhost:8080> and click to start the engine. Headphones reco
 | `src/sim/` | The simulation: flight model, weapons, damage, bots. Pure logic, no graphics or sound, deterministic (ready for online play). |
 | `src/render/` | Pixel-art renderer, sprites, particles, HUD. |
 | `src/audio/` | Web Audio: engine synthesizer, gun voices, spatial sound, mixer. |
+| `src/net/` | Online play: snapshots of the world, the guest's smoothed view, PeerJS connections. |
 | `src/ui/` | Tuning panel. |
 | `data/` | Planes, weapons, nations, camera and sound settings (JSON). |
 | `maps/` | Maps. |

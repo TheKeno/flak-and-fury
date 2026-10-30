@@ -39,7 +39,6 @@
         gap: 1rem;
         color: #f2ead2;
         background: rgba(12, 15, 18, 0.72);
-        cursor: pointer;
         text-align: center;
         user-select: none;
       }
@@ -55,12 +54,91 @@
         font-size: clamp(0.8rem, 1.6vw, 1.1rem);
         opacity: 0.85;
       }
-      #start .click {
-        margin-top: 1rem;
-        padding: 0.6rem 1.4rem;
-        border: 2px solid #e8c860;
+      /* The title menu: single player, host or join an online game. */
+      #start .menu {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+        margin-top: 0.8rem;
+      }
+      #start .menu.hidden {
+        display: none;
+      }
+      #start .row {
+        display: flex;
+        gap: 0.6rem;
+      }
+      #start button {
+        min-width: 16rem;
+        padding: 0.55rem 1.2rem;
+        background: #1c201a;
+        border: 2px solid #4a4a36;
+        color: #d8d0b0;
+        font: bold clamp(0.8rem, 1.5vw, 1rem) 'Courier New', monospace;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+      }
+      #start .row button {
+        min-width: 0;
+      }
+      #start button:hover:not(:disabled) {
+        background: #2a2e22;
+        border-color: #8a7a48;
+        color: #f2ead2;
+      }
+      #start button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      #start button.go {
+        border-color: #e8c860;
         color: #e8c860;
+      }
+      #start button.go:not(:disabled) {
         animation: pulse 1.4s ease-in-out infinite;
+      }
+      #start button.toggle.on {
+        background: #3a3420;
+        border-color: #8a7a48;
+        color: #f2ead2;
+      }
+      #start button.back {
+        min-width: 0;
+        border-color: transparent;
+        background: none;
+        opacity: 0.7;
+      }
+      #start .code {
+        font: bold clamp(2rem, 5vw, 3.2rem) 'Courier New', monospace;
+        letter-spacing: 0.4em;
+        padding-left: 0.4em; /* balances the letter spacing after the last letter */
+        color: #e8c860;
+        text-shadow: 3px 3px 0 #3a2a10;
+      }
+      #start input.code {
+        width: 6.5em;
+        background: #14171a;
+        border: 2px solid #4a4a36;
+        text-align: center;
+        text-transform: uppercase;
+        outline: none;
+      }
+      #start input.code:focus {
+        border-color: #8a7a48;
+      }
+      #start .status {
+        min-height: 1.3em;
+        max-width: 34rem;
+        color: #c8c0a0;
+      }
+      #start .status.bad {
+        color: #e08870;
+      }
+      #start .fine {
+        margin-top: 0.4rem;
+        font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+        opacity: 0.55;
       }
       #start.hidden {
         display: none;
@@ -180,7 +258,30 @@
         <h1>FLAK &amp; FURY</h1>
         <p>A/D: rotate &nbsp;·&nbsp; W/S: throttle &nbsp;·&nbsp; Left Shift: roll &nbsp;·&nbsp; Space: guns &nbsp;·&nbsp; E: bombs &nbsp;·&nbsp; G: gear &nbsp;·&nbsp; Arrows or right mouse: look</p>
         <p>Use headphones for the full sound.</p>
-        <div class="click">CLICK TO START ENGINE</div>
+        <div id="menu" class="menu">
+          <button id="solo" class="go">SINGLE PLAYER</button>
+          <button id="host">HOST ONLINE GAME</button>
+          <button id="join">JOIN ONLINE GAME</button>
+        </div>
+        <div id="host-menu" class="menu hidden">
+          <p>ROOM CODE - GIVE IT TO YOUR FRIEND</p>
+          <div id="room-code" class="code">····</div>
+          <div class="row">
+            <button id="side-same" class="toggle on">FRIEND ON MY SIDE</button>
+            <button id="side-enemy" class="toggle">FRIEND AGAINST ME</button>
+          </div>
+          <p id="host-status" class="status"></p>
+          <button id="host-start" class="go" disabled>START ENGINE</button>
+          <button class="back">BACK</button>
+        </div>
+        <div id="join-menu" class="menu hidden">
+          <p>ROOM CODE</p>
+          <input id="join-code" class="code" maxlength="4" autocomplete="off" spellcheck="false" />
+          <p id="join-status" class="status"></p>
+          <button id="join-go" class="go" disabled>JOIN</button>
+          <button class="back">BACK</button>
+        </div>
+        <p class="fine">YOU FLY THE <span id="plane-name"></span> - PICK ANOTHER IN THE TUNING PANEL (T)</p>
       </div>
     </div>
     <script type="module" src="src/main.js"></script>
