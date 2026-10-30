@@ -196,6 +196,7 @@ let muted = new URLSearchParams(location.search).has('mute');
 let tab = 'design';
 let design = { type: 'build', id: 'inline' };
 const drops = new Map(); // what the last drop on a slot should warn about
+let slotPlaying = null; // the one slot heard on its own, stopped by a second click
 let selected = 'build:inline';
 let vehicleSel = null;
 let filterNotDone = false;
@@ -789,6 +790,7 @@ function renderGuide() {
 
 function renderMain() {
   stopLive();
+  stopSlot();
   const main = $('main');
   main.replaceChildren();
   main.scrollTop = 0;
@@ -1251,6 +1253,34 @@ function checkDrop(key, buf) {
   return notes.join(' ');
 }
 
+// Plays a slot alone; a second click stops it.
+function playToggle(play) {
+  const b = button('▶', async (e) => {
+    e.preventDefault();
+    const mine = slotPlaying?.b === b;
+    stopSlot();
+    if (mine) return;
+    await audio();
+    const src = play();
+    if (!src) return;
+    slotPlaying = { b, src };
+    b.textContent = '■';
+    src.onended = () => {
+      b.textContent = '▶';
+      if (slotPlaying?.src === src) slotPlaying = null;
+    };
+  }, 'Play it alone. Click again to stop.');
+  return b;
+}
+
+function stopSlot() {
+  if (!slotPlaying) return;
+  const { b, src } = slotPlaying;
+  slotPlaying = null;
+  b.textContent = '▶';
+  src.stop();
+}
+
 function slotRow({ key, name, help, files, group, level, play, advanced, locked, onFiles, body, sub, shared }) {
   const filled = files.length > 0;
   const tick = el('input', { type: 'checkbox', checked: filled, disabled: true });
@@ -1258,7 +1288,7 @@ function slotRow({ key, name, help, files, group, level, play, advanced, locked,
     tick, el('span', { className: 'sname', textContent: name }),
     el('span', { className: 'sfile', textContent: filled ? files.map((f) => f.path.split('/').pop()).join(', ') : help.split(/[.:]/)[0] }),
     sub ? el('span', { className: 'dim', textContent: sub }) : null,
-    filled && play ? button('▶', (e) => { e.preventDefault(); play(); }, 'Play it alone') : null,
+    filled && play ? playToggle(play) : null,
     level ? (() => {
       const input = el('input', { type: 'range', min: 0, max: 3, step: 0.01, value: level.obj[level.key] ?? 1, title: 'Level', disabled: locked, style: 'width:90px' });
       input.onclick = (e) => e.stopPropagation();
@@ -1428,7 +1458,7 @@ function gunVoices(vehicles) {
   return [...voiceNames].map((n) => [n, [...(weaponsBy.get(n) ?? [])]]);
 }
 
-function groupSlot(id, key, name, help, locked, playIt, sub) {
+function groupSlot(id, key, name, help, locked, sub) {
   const rec = recOf(id);
   rec.groups ??= [];
   const group = rec.groups[0];
@@ -1436,7 +1466,7 @@ function groupSlot(id, key, name, help, locked, playIt, sub) {
   return slotRow({
     key, name, help, locked, files, sub,
     level: group && files.length ? { obj: group, key: 'gain' } : null,
-    play: files.length ? playIt : null,
+    play: files.length ? () => mixer.recordings.playGroup({ ...group, pitchVar: 0 }, where(listen.distance, settings.audio.bangRange)) : null,
     advanced: () => { selected = id; setTab('sounds'); },
     onFiles: (added) => {
       if (!rec.groups[0]) rec.groups[0] = newGroup();
@@ -1447,14 +1477,10 @@ function groupSlot(id, key, name, help, locked, playIt, sub) {
 }
 
 function otherSlots(vehicles, locked) {
-  const fire = (name) => () => {
-    const near = listen.distance === 0;
-    sfx.play(mixer, voices[name], where(listen.distance, settings.audio.bangRange), { gain: near ? 0.42 : 0.8, reverb: near ? 0.08 : 0.3 });
-  };
   return [el('h3', { textContent: 'Guns: shared by calibre' }),
-    ...gunVoices(vehicles).map(([name, used]) => groupSlot(`gun:${name}`, `gun${name}`, gunTitle(name), '3-4 single shots, each with the crack and a short tail, and trimmed tight to the start. No bursts: the game fires each round itself.', locked, fire(name), used.join(', '))),
+    ...gunVoices(vehicles).map(([name, used]) => groupSlot(`gun:${name}`, `gun${name}`, gunTitle(name), '3-4 single shots, each with the crack and a short tail, and trimmed tight to the start. No bursts: the game fires each round itself.', locked, used.join(', '))),
     el('h3', { textContent: 'Landing: shared with all aircraft' }),
-    groupSlot('sfx:touchdown', 'touchdown', 'Touchdown', '2-3 short thumps of wheels hitting the ground, under 1 s, with no engine in them.', locked, () => sfx.touchdown(mixer, where(), 40))];
+    groupSlot('sfx:touchdown', 'touchdown', 'Touchdown', '2-3 short thumps of wheels hitting the ground, under 1 s, with no engine in them.', locked)];
 }
 
 // Slots added by hand on this engine or plane.

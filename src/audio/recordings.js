@@ -139,6 +139,7 @@ export function createRecordings(mixer, sound) {
         })();
     src.connect(env).connect(tweaks(group, dest));
     src.start(at, start, length);
+    return src;
   }
 
   // One looping group that follows a value: a recorded fire, a wing rattle.
