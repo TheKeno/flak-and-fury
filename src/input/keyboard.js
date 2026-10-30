@@ -12,7 +12,7 @@ export const ACTIONS = [
   ['fire', 'Guns', ['Space', 'Mouse0']],
   ['bomb', 'Bombs', ['KeyE', 'Mouse2']],
   ['gear', 'Landing gear', ['KeyG', null]],
-  ['abandon', 'Abandon the plane', ['KeyB', null]],
+  ['abandon', 'Bail out', ['KeyB', null]],
   ['lookUp', 'Look up', ['ArrowUp', null]],
   ['lookDown', 'Look down', ['ArrowDown', null]],
   ['lookLeft', 'Look left', ['ArrowLeft', null]],

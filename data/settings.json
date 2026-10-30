@@ -131,6 +131,17 @@
     "outlineNear": 200,
     "outlineFar": 900
   },
+  "bailout": {
+    "respawnDelay": 3,
+    "switchWait": 5,
+    "wreckBurn": 10,
+    "gravity": 90,
+    "openTime": 1,
+    "sink": 16,
+    "tornSink": 70,
+    "drag": 1.2,
+    "safeLanding": 30
+  },
   "net": {
     "snapshotEvery": 3,
     "delay": 0.1
@@ -234,7 +245,9 @@
     "textSize": 1,
     "opacity": 0.85,
     "units": "metric",
-    "showHelp": true
+    "showHelp": true,
+    "showNames": true,
+    "showOwnName": false
   },
   "rules": {
     "friendlyFire": false,

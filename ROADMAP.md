@@ -107,6 +107,16 @@ later.
     are replayed tick by tick for sound and effects. Generic snapshots (`src/net/snapshot.js`): new sim
     state goes online by itself, and `tests/net.test.mjs` checks a busy world arrives whole. A host's
     hidden tab keeps the world running. Free look and tuning are host only.
+  - Setup screen for single player and online: a table of the two sides, with planes per side (1 or 2,
+    humans and bots together), bot skill and plane per side set by the host, and each player's side and
+    plane. Up to 4 players, 2 a side; players replace bots, and bots move when a player switches. Also
+    from the Esc menu mid-game, with a 5 s wait between changes.
+  - Bailing out (B, anywhere, no second chance) and deserting (changing side in flight): the plane burns
+    on empty and the pilot goes over the side, under a parachute (a deserter holds a white flag), to
+    march as a soldier for his side. He can be shot, in mid-air with extra gore, and his canopy torn. The
+    view stays with him; after 3 s fire gets a new plane.
+  - Pilot names on the title screen and in Options, drawn like paint along other players' planes (upside
+    down when they are), khaki for your side and dull red for the enemy; bots have none. Switch in Options.
   - Smooth drawing on fast screens (120/144 Hz): every frame draws things part-way between the last
     two sim ticks (a guest: between the last two snapshots), so terrain and ground no longer stutter
     against the plane. One layer for both (`src/render/interpolate.js`); only what's drawn is blended,
@@ -153,9 +163,10 @@ later.
    players, on opposite sides or the same team, bots fill the other slots (e.g. 1p + 1b vs 1p + 1b);
    then up to 4, and gunner seats when the crewed bombers come. Build everything after this net-aware.
    **First version done** (see Done). Still to come: prediction for the guest's own plane (it reacts
-   one round trip late), a TURN relay for strict networks, up to 4 players with a lobby list, the
-   guest's death/last-flight screen checked over a real connection, plane choice in the lobby (the
-   hangar), the host seeing the guest's ping.
+   one round trip late), a TURN relay for strict networks, more than 2 planes per side as an option
+   (the rules allow it: MAX_PER_SIDE in src/sim/seats.js), 3 and 4 players tried over real connections,
+   the host seeing guests' ping. Mid-game plane changes move to the hangar when that's built; B stays as
+   the way out of a plane in flight.
 8. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
    camo, nose, markings, squadron number), saved locally.
 9. **Match setup and music:** menu, rules, scoring (win conditions include **grounding the enemy**:

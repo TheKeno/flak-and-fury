@@ -147,6 +147,12 @@ sweeps them and fading with the echo (so no outline for low flyers or with the s
 (seconds it shows after each sweep, fading out; longer than `sweepTime` keeps it on; try 1 – 5), `outlineNear` and
 `outlineFar` (full strength up to the first distance, gone at the second; try 200 / 900).
 
+`bailout` (tuning panel → Bailing out): `respawnDelay` (seconds you watch your pilot before fire gets
+a new plane), `switchWait` (seconds between changes of side or plane), `wreckBurn` (seconds an abandoned
+plane burns on the ground before it blows), `openTime` (free fall before the canopy opens), `sink` and
+`tornSink` (coming down under a good and a shot canopy), `safeLanding` (faster than this kills him),
+`gravity` and `drag` (his fall, and how fast he loses the plane's speed).
+
 `net`: online play (tuning panel → Online). `snapshotEvery`: how often the host sends its world to
 guests, in sim ticks (60 a second; 3 = 20 snapshots a second). `delay`: how many seconds in the past
 a guest sees the host's world, so things glide smoothly between snapshots (raise it if planes stutter
@@ -351,6 +357,8 @@ The rest of `hud` is the read-outs:
 | `opacity` | Opacity of the read-outs, messages and warnings (not the gunsight). | 0.6 – 1 |
 | `units` | `metric` (km/h, m), `imperial` (mph, ft) or `nautical` (knots, ft). | metric |
 | `showHelp` | Show the key help at start (H toggles it). | true |
+| `showNames` | Other players' names along their planes. | true |
+| `showOwnName` | Your own name too. | false |
 | `lastFlightTime` | Seconds the LAST FLIGHT report stays after you respawn. | 5 – 12 |
 
 ## Markings: `data/settings.json` → `markings`

@@ -24,8 +24,8 @@ Then open <http://localhost:8080> and pick Single player. Headphones recommended
 ## Playing online
 
 One player picks **Host online game** and reads out the 4-letter room code; the other picks **Join
-online game** and types it in. The host chooses whether the friend flies with or against them; the
-friend flies the plane picked in their own tuning panel and takes a bot's place. It runs browser to
+online game** and types it in. The setup screen shows both sides: the host sets the planes per side
+and the bots, and each player picks their own side and plane. Up to 4 players, 2 a side, taking bots' places. It runs browser to
 browser (WebRTC), so both just open the game page; no server needed. Free look and the tuning panel are
 the host's. Esc online opens the menu without pausing: an autopilot flies your plane until you resume.
 
@@ -43,6 +43,7 @@ in the browser.
 | Space or left mouse | Guns |
 | E or right mouse | Bombs |
 | G | Landing gear (overrides the automatic gear) |
+| B | Bail out, at once, anywhere. After 3 s, fire gets you a new plane |
 | Mouse | Look around (sticky: stays put, eases back ahead after 3 s without moving). Click the game to capture the mouse |
 | Arrow keys | Look around while held |
 | Esc | Menu: pause (single player), options, quit |

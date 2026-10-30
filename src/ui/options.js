@@ -48,6 +48,8 @@ function optionList(settings, defaults) {
     ['hud', 'hud.opacity', 'HUD opacity', 'slider', { min: 0.3, max: 1, step: 0.05, fmt: pct, help: 'Read-outs, messages and warnings. The gunsight has its own.' }],
     ['hud', 'hud.units', 'Units', 'choice', { choices: [['metric', 'KM/H, M'], ['imperial', 'MPH, FT'], ['nautical', 'KNOTS, FT']] }],
     ['hud', 'hud.showHelp', 'Show the key help at start', 'toggle', {}],
+    ['hud', 'hud.showNames', 'Pilot names on planes', 'toggle', { help: "Other players' names along their planes." }],
+    ['hud', 'hud.showOwnName', 'Your own name too', 'toggle', { needs: 'hud.showNames' }],
     ['hud', 'radar.outline', 'Radar outline on enemy planes', 'toggle', { help: 'Planes your radar has plotted flare green as the beam sweeps them.' }],
     ['hud', 'radar.outlineAlpha', 'Radar outline strength', 'slider', { min: 0.1, max: 1, step: 0.05, fmt: pct, needs: 'radar.outline' }],
 
@@ -83,7 +85,6 @@ const TABS = [
   ['hud', 'HUD'],
   ['view', 'VIEW'],
   ['content', 'CONTENT'],
-  ['online', 'ONLINE'],
 ];
 
 function el(tag, attrs = {}, ...children) {
@@ -113,6 +114,7 @@ export function createOptions({ settings, bindings, parent, onChange }) {
   const saved = readStore();
   const values = { ...(saved.values ?? {}) };
   let name = cleanName(saved.name);
+  let nameBox = null;
 
   const valueOf = (o) => (o.id in values ? values[o.id] : o.initial);
   function store() {
@@ -153,6 +155,7 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     'div',
     { id: 'options', class: 'screen hidden' },
     el('h2', {}, 'OPTIONS'),
+    nameRow(),
     tabBar,
     body,
     status,
@@ -303,17 +306,17 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     return [el('p', { class: 'fine' }, 'CLICK A SLOT, THEN PRESS A KEY OR MOUSE BUTTON. EACH ACTION HAS TWO.'), grid];
   }
 
-  function onlinePage() {
-    const box = el('input', { class: 'name', maxlength: 12, autocomplete: 'off', spellcheck: 'false', placeholder: 'NO NAME' });
-    box.addEventListener('input', () => {
-      const clean = cleanName(box.value);
-      if (box.value.toUpperCase() !== clean) box.value = clean;
-      name = clean;
-      store();
-      onChange?.('name');
-    });
-    refreshers.push(() => (box.value = name));
-    return [row('Callsign', box, 'Shown to the other side online, e.g. SHOT DOWN BY <CALLSIGN>.'), el('p', { class: 'fine' }, 'TAKES EFFECT IN THE NEXT ONLINE GAME YOU JOIN OR HOST.')];
+  // Your pilot name: above the tabs, always in view, the same name as the title screen's box.
+  function nameRow() {
+    nameBox = el('input', { class: 'name', maxlength: 12, autocomplete: 'off', spellcheck: 'false', placeholder: 'NO NAME' });
+    nameBox.value = name;
+    nameBox.addEventListener('input', () => setName(nameBox.value));
+    return el('div', { class: 'opt-row', title: 'Shown along your plane to other players, and in SHOT DOWN BY messages.' }, el('span', {}, 'Pilot name'), nameBox);
+  }
+  function setName(text) {
+    name = cleanName(text);
+    store();
+    onChange?.('name');
   }
 
   function viewExtras() {
@@ -333,7 +336,6 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     refreshers = [];
     body.replaceChildren();
     if (id === 'controls') body.append(...controlsPage());
-    else if (id === 'online') body.append(...onlinePage());
     else {
       if (id === 'view') body.append(...viewExtras());
       body.append(...options.filter((o) => o.tab === id).map(optionRow));
@@ -345,8 +347,7 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     if (tab === 'controls') {
       Object.assign(bindings, defaultBindings());
       onChange?.('bindings');
-    } else if (tab === 'online') name = '';
-    else {
+    } else {
       for (const o of options) {
         if (o.tab !== tab) continue;
         delete values[o.id];
@@ -377,11 +378,16 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     get name() {
       return name;
     },
+    setName(text) {
+      setName(text);
+      nameBox.value = name;
+    },
     get isOpen() {
       return !screen.classList.contains('hidden');
     },
     // Opens the menu; Back (or Esc) calls onBack.
     open(onBack) {
+      nameBox.value = name;
       backBtn.onclick = () => {
         close();
         onBack?.();

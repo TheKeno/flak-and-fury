@@ -151,6 +151,17 @@ const NET_FIELDS = [
   ['snapshotEvery', 'Snapshot every (ticks)', 1, 12, 1, "How often the host sends its world to guests, in sim ticks (60 a second): 3 is 20 snapshots a second. Fewer saves bandwidth but makes the guest's view lag more. Host only."],
   ['delay', 'Guest view delay (s)', 0, 0.5, 0.01, "How far in the past a guest sees the host's world, so planes glide smoothly between snapshots. Too low and they stutter on a bumpy connection; too high and everything lags. Guest only."],
 ];
+const BAILOUT_FIELDS = [
+  ['respawnDelay', 'Watch your pilot (s)', 0, 15, 0.5, 'Seconds the view stays with your pilot before fire gets you a new plane.'],
+  ['switchWait', 'Wait between switches (s)', 0, 60, 1, 'Seconds between changes of side or plane mid-game.'],
+  ['wreckBurn', 'Wreck burns on ground (s)', 1, 60, 1, 'How long an abandoned plane burns on the ground before it blows.'],
+  ['openTime', 'Canopy opens after (s)', 0.2, 5, 0.1, 'Seconds of free fall before the parachute opens. Bail out low enough and it never does.'],
+  ['sink', 'Sink under canopy', 4, 50, 1, 'How fast he comes down under a good canopy.'],
+  ['tornSink', 'Sink, torn canopy', 10, 150, 5, 'How fast he comes down once the canopy is shot.'],
+  ['safeLanding', 'Safe landing speed', 5, 100, 1, 'Hitting the ground faster than this kills him.'],
+  ['gravity', 'Gravity', 20, 200, 5, 'His free fall.'],
+  ['drag', 'Air drag', 0.2, 5, 0.1, "How fast he loses the plane's speed."],
+];
 const GROUND_FIELDS = [
   ['hp', 'Hit points', 1, 400, 1, 'Damage it takes to destroy (infantry: per soldier). Applies when targets are restored.'],
   ['points', 'Points', 0, 50, 1, 'Score for destroying it (infantry: per soldier).'],
@@ -490,6 +501,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   const zoneSection = section('Landscape zones', false, ...ZONE_FIELDS.map((f) => add(slider(settings.zones, f))));
   const padSection = section('Structure pads', false, ...PAD_FIELDS.map((f) => add(slider(settings.pads, f))));
   const radarSection = section('Radar', false, ...RADAR_FIELDS.map((f) => add(slider(settings.radar, f))));
+  const bailoutSection = section('Bailing out', false, ...BAILOUT_FIELDS.map((f) => add(slider(settings.bailout, f))));
   const netSection = section('Online', false, ...NET_FIELDS.map((f) => add(slider(settings.net, f))));
   const botSection = section(
     'Bots',
@@ -596,6 +608,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.net, saved.settings.net);
+    Object.assign(settings.bailout, saved.settings.bailout);
     for (const [k, v] of Object.entries(saved.settings.bots)) {
       if (k === 'levels') for (const l of Object.keys(v)) Object.assign(settings.bots.levels[l], v[l]);
       else settings.bots[k] = v;
@@ -671,6 +684,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     fireSection,
     radarSection,
     netSection,
+    bailoutSection,
     botSection,
     groundSection,
     waveSection,

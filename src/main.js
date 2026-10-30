@@ -8,10 +8,13 @@ import { createMixer } from './audio/mixer.js';
 import { createSoundscape } from './audio/soundscape.js';
 import { createRecordings } from './audio/recordings.js';
 import { createTuningPanel } from './ui/tuning.js';
+import { createSetup } from './ui/setup.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText as sinkUnits } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
 import { NO_COMMAND } from './sim/plane.js';
+import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
+import { releasePilot } from './sim/bailout.js';
 import { clamp } from './sim/math.js';
 import { hostGame, joinGame, cleanCode } from './net/session.js';
 import { createGuestView } from './net/guest.js';
@@ -37,6 +40,7 @@ const world = createWorld({
   decor: content.settings.decor,
   bots: content.settings.bots,
   radar: content.settings.radar,
+  bailout: content.settings.bailout,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.
@@ -49,17 +53,15 @@ const choice = { plane: planeId('plane', 'bf109g6'), enemy: planeId('enemy', 'sp
 const nationOf = (defId) => content.planeDefs[defId].nation;
 // On a guest, your plane is the one the host gave you (it changes when the first snapshot arrives).
 let player = addPlane(world, { defId: choice.plane, team: 0, nation: nationOf(choice.plane), controller: 'p1' });
-// Bots: your wingmen and the enemy, as many and as good as the rules say (Testing in the tuning panel).
-// Online players take bots' places on their side.
+// The two sides: what their bots fly and how good they are, and how many planes each should have
+// (the rules' wingmen and enemies; the setup screen sets them, the tuning panel can go past it for tests).
+// Players take bots' places (src/sim/seats.js).
 const SIDES = [
-  { team: 0, nation: nationOf(choice.plane), defId: choice.plane, count: 'wingmen', skill: 'wingmanSkill' },
-  { team: 1, nation: nationOf(choice.enemy), defId: choice.enemy, count: 'enemies', skill: 'enemySkill' },
+  { team: 0, nation: nationOf(choice.plane), defId: choice.plane, planes: () => world.rules.wingmen + 1, skillKey: 'wingmanSkill' },
+  { team: 1, nation: nationOf(choice.enemy), defId: choice.enemy, planes: () => world.rules.enemies, skillKey: 'enemySkill' },
 ];
-const isOnline = (p) => p.seats.some((s) => s.controller.startsWith('net'));
-const guestsOn = (team) => world.planes.filter((p) => p.team === team && isOnline(p)).length;
-const placeBots = () => {
-  for (const s of SIDES) setBots(world, { ...s, count: Math.max(0, world.rules[s.count] - guestsOn(s.team)), skill: world.rules[s.skill] });
-};
+const TEAMS = SIDES.map((s) => s.team);
+const placeBots = () => fillSides(world, SIDES.map((s) => ({ ...s, planes: s.planes(), skill: world.rules[s.skillKey] })));
 placeBots();
 const renderer = createRenderer(canvas, world, content);
 const keyboard = createKeyboard();
@@ -90,7 +92,11 @@ const options = createOptions({
     if (id.startsWith('audio.') || ['master', 'engine', 'sfx', 'ambience', 'music'].includes(id)) mixer?.applyLevels();
     if (id === 'audio.muteInBackground') applyMute();
     if (id === 'bindings') showControls();
-    if (id === 'name' && !online()) player.callsign = options.name || null;
+    if (id === 'name' && !guest) {
+      player.callsign = options.name || null;
+      $('pilot-name').value = options.name;
+      drawSetup();
+    }
   },
 });
 // Your callsign, shown to the other side online.
@@ -242,6 +248,7 @@ function openMenu() {
 function closeMenu() {
   if (!menuOpen) return;
   options.close();
+  setup.hide();
   pauseScreen.classList.add('hidden');
   menuOpen = false;
   if (!online()) setPaused(false);
@@ -265,6 +272,11 @@ function menuKey() {
     if (options.isOpen) options.back();
     return;
   }
+  if (setup.isOpen && menuOpen) {
+    setup.hide();
+    pauseScreen.classList.remove('hidden');
+    return;
+  }
   if (!menuOpen) return openMenu();
   // The same press that freed the mouse (and opened the menu) mustn't close it again.
   if (performance.now() - menuAt < 300) return;
@@ -274,6 +286,10 @@ function menuKey() {
 mouse.onLockLost = () => performance.now() - fullscreenAt > 800 && openMenu();
 document.addEventListener('fullscreenchange', () => !document.fullscreenElement && openMenu());
 document.getElementById('resume').addEventListener('click', closeMenu);
+document.getElementById('pause-sides').addEventListener('click', () => {
+  pauseScreen.classList.add('hidden');
+  openSetup();
+});
 document.getElementById('quit').addEventListener('click', () => location.reload());
 document.getElementById('pause-options').addEventListener('click', () => {
   pauseScreen.classList.add('hidden');
@@ -324,6 +340,11 @@ function handleEvents() {
     sound?.onEvent(e);
     if (e.plane === player.id && e.type === 'crash') renderer.recordLastFlight(player, causeText(e));
     if (e.plane === player.id && e.type === 'abandoned') renderer.recordLastFlight(player, 'ABANDONED THE PLANE');
+    if (e.plane === player.id && e.type === 'bailedOut') renderer.recordLastFlight(player, e.deserter ? 'DESERTED TO THE OTHER SIDE' : 'BAILED OUT');
+    if (e.plane === player.id && e.type === 'pilotKilled') renderer.message(e.cause === 'fall' ? 'YOU HIT THE GROUND TOO HARD' : 'THEY SHOT YOU IN YOUR PARACHUTE', '#ff8070');
+    if (e.plane === player.id && e.type === 'chuteTorn') renderer.message('YOUR CANOPY IS TORN!', '#ff8070');
+    if (e.plane === player.id && e.type === 'pilotLanded') renderer.message(e.team === player.team ? 'DOWN SAFE: YOU MARCH WITH THE TROOPS' : 'DOWN SAFE', '#a8e090');
+    if (e.type === 'bailedOut' && e.deserter && e.plane !== player.id) renderer.message('A PILOT HAS DESERTED: WHITE FLAG IN THE AIR', '#f0e8c0');
     if (e.plane === player.id && e.type === 'spawn') renderer.startLastFlightTimer();
     if (e.plane === player.id) {
       if (e.type === 'fuelLow') renderer.message('LOW FUEL - HEAD HOME', '#ffb070');
@@ -478,6 +499,7 @@ function frame(now) {
 // Browsers only allow audio (and grabbing the mouse) after a click, so the game starts on one.
 async function start() {
   overlay.classList.add('hidden');
+  setup.hide();
   started = true;
   mouse.capture();
   mixer = await createMixer(content.settings.audio, content.sound.space);
@@ -518,7 +540,6 @@ document.addEventListener('visibilitychange', () => {
 // The title menu: single player, or host or join an online game (src/net/session.js).
 const $ = (id) => document.getElementById(id);
 const planeName = (defId) => content.planeDefs[defId].name.toUpperCase();
-$('plane-name').textContent = planeName(choice.plane);
 function showMenu(id) {
   for (const m of overlay.querySelectorAll('.menu')) m.classList.toggle('hidden', m.id !== id);
 }
@@ -528,7 +549,9 @@ function status(id, text, bad = false) {
 }
 // Back closes any connection by starting the page afresh.
 for (const b of overlay.querySelectorAll('.back')) b.addEventListener('click', () => location.reload());
-$('solo').addEventListener('click', start);
+$('solo').addEventListener('click', openSetup);
+$('pilot-name').value = options.name;
+$('pilot-name').addEventListener('input', () => options.setName($('pilot-name').value));
 $('title-options').addEventListener('click', () => {
   overlay.classList.add('hidden');
   options.open(() => overlay.classList.remove('hidden'));
@@ -549,55 +572,141 @@ function showControls() {
 }
 showControls();
 
-// Hosting: your friend joins with the room code, on your side or against you, taking a bot's place.
-let friendSide = 'same';
-const sideOf = () => (friendSide === 'same' ? player.team : 1 - player.team);
-function setSide(side) {
-  friendSide = side;
-  $('side-same').classList.toggle('on', side === 'same');
-  $('side-enemy').classList.toggle('on', side === 'enemy');
+// The setup screen. Single player and the host change the world directly; a guest's picks go to the
+// host, who sends the table back.
+const setup = createSetup({
+  parent: document.getElementById('wrap'),
+  planes: Object.keys(content.planeDefs).filter((id) => content.planeDefs[id].name).map((id) => [id, content.planeDefs[id].name]),
+  levels: [['easy', 'EASY'], ['normal', 'NORMAL'], ['ace', 'ACE']],
+  on: {
+    planes(n) {
+      world.rules.wingmen = n - 1;
+      world.rules.enemies = n;
+      sidesChanged();
+    },
+    skill(team, id) {
+      world.rules[SIDES[team].skillKey] = id;
+      sidesChanged();
+    },
+    botPlane(team, id) {
+      Object.assign(SIDES[team], { defId: id, nation: nationOf(id) });
+      sidesChanged();
+    },
+    side: (team) => askSeat({ team }),
+    plane: (defId) => askSeat({ defId }),
+    start() {
+      if (menuOpen) closeMenu();
+      else start();
+    },
+    back() {
+      if (menuOpen) {
+        setup.hide();
+        pauseScreen.classList.remove('hidden');
+      } else location.reload();
+    },
+  },
+});
+// The table as everyone sees it (`me` is worked out by whoever draws it).
+function sidesTable() {
+  return {
+    planes: Math.max(1, Math.min(2, world.rules.enemies)),
+    sides: SIDES.map((s) => ({
+      team: s.team,
+      label: s.team === 0 ? 'SIDE A' : 'SIDE B',
+      skill: world.rules[s.skillKey],
+      botPlane: s.defId,
+      bots: world.planes.filter((p) => p.team === s.team && p.seats[0].controller.startsWith('bot')).length,
+      players: playersOn(world, s.team).map((p) => ({ id: p.id, name: p.callsign ?? 'PILOT', plane: p.def.name, defId: Object.keys(content.planeDefs).find((k) => content.planeDefs[k] === p.def) })),
+    })),
+  };
 }
-$('side-same').addEventListener('click', () => setSide('same'));
-$('side-enemy').addEventListener('click', () => setSide('enemy'));
-function hostStatus() {
-  const friends = world.planes.filter(isOnline);
-  if (!friends.length) return status('host-status', 'WAITING FOR A FRIEND. START WHEN YOU LIKE: THEY CAN JOIN ANY TIME.');
-  const p = friends[0];
-  status('host-status', `FRIEND JOINED IN A ${p.def.name.toUpperCase()}, ${p.team === player.team ? 'ON YOUR SIDE' : 'AGAINST YOU'}.`);
+let lastTable = null; // a guest's copy of the host's
+function drawSetup() {
+  const table = guest ? lastTable : sidesTable();
+  if (!table) return;
+  const myId = guest ? guest.planeId : player.id;
+  const mine = table.sides.flatMap((s) => s.players).find((p) => p.id === myId);
+  const ready = guest ? guest.view.ready || started : true;
+  setup.draw({
+    ...table,
+    sides: table.sides.map((s) => ({ ...s, players: s.players.map((p) => ({ ...p, me: p.id === myId })) })),
+    code: host?.code ?? null,
+    canEdit: !guest,
+    myPlane: mine?.defId ?? choice.plane,
+    canSwitch: true,
+    start: started ? 'RESUME' : 'START ENGINE',
+    canStart: ready,
+  });
 }
+function openSetup() {
+  drawSetup();
+  setup.say(guest && !guest.view.ready ? 'WAITING FOR THE HOST TO START...' : '');
+  setup.show();
+}
+// Bots follow, and everyone's table with them.
+function sidesChanged() {
+  if (!guest) placeBots();
+  drawSetup();
+  host?.broadcast({ t: 'table', table: sidesTable() });
+}
+const SEAT_ERRORS = { full: 'THAT SIDE ALREADY HAS TWO PILOTS', wait: 'WAIT A MOMENT BEFORE SWITCHING AGAIN' };
+function seatDone(reason) {
+  if (reason) return setup.say(SEAT_ERRORS[reason] ?? reason, true);
+  setup.say('');
+  // Mid-game the change is on screen at once: back to the game to watch it.
+  if (menuOpen) closeMenu();
+}
+function askSeat(req) {
+  if (guest) return guest.net.send({ t: 'seat', team: req.team, defId: req.defId });
+  const reason = changeSeat(world, player, req, DT);
+  sidesChanged();
+  seatDone(reason);
+}
+
+// Hosting: friends join with the room code, each on the side with fewer pilots, and can change it.
 $('host').addEventListener('click', async () => {
-  showMenu('host-menu');
-  status('host-status', 'OPENING A ROOM...');
+  openSetup();
+  setup.say('OPENING A ROOM...');
   try {
     host = await hostGame(world, content.settings.net, {
       onJoin(g, hello) {
+        const team = freeSide(world, TEAMS);
+        if (team === null) return null;
         const defId = content.planeDefs[hello.plane]?.name ? hello.plane : choice.plane;
-        const p = addPlane(world, { defId, team: sideOf(), nation: nationOf(defId), controller: g.controller });
+        const p = addPlane(world, { defId, team, nation: nationOf(defId), controller: g.controller });
         if (cleanName(hello.name)) p.callsign = cleanName(hello.name);
         g.planeId = p.id;
+        renderer.message(`${p.callsign ?? 'A FRIEND'} JOINED, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
+        // Sent once they've had their welcome.
+        setTimeout(sidesChanged);
         placeBots();
-        // The side is settled once someone has joined.
-        $('side-same').disabled = $('side-enemy').disabled = true;
-        hostStatus();
-        renderer.message(`${p.callsign ?? 'A FRIEND'} JOINED: ${planeName(defId)}, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
-        return { planeId: p.id };
+        drawSetup();
+        return { planeId: p.id, table: sidesTable() };
       },
       onLeave(g) {
-        const i = world.planes.findIndex((p) => p.id === g.planeId);
-        if (i >= 0) world.planes.splice(i, 1);
-        placeBots();
-        hostStatus();
-        renderer.message('YOUR FRIEND HAS LEFT THE GAME', '#ffb070');
+        const p = world.planes.find((o) => o.id === g.planeId);
+        if (p) {
+          releasePilot(world, p);
+          world.planes.splice(world.planes.indexOf(p), 1);
+        }
+        renderer.message(`${p?.callsign ?? 'A FRIEND'} HAS LEFT THE GAME`, '#ffb070');
+        sidesChanged();
+      },
+      onMessage(g, m) {
+        if (m?.t !== 'seat') return;
+        const p = world.planes.find((o) => o.id === g.planeId);
+        if (!p) return;
+        const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name ? m.defId : null }, DT);
+        g.conn.send({ t: 'seat', reason });
+        sidesChanged();
       },
     });
-    $('room-code').textContent = host.code;
-    $('host-start').disabled = false;
-    hostStatus();
+    setup.say(`WAITING FOR FRIENDS: UP TO ${MAX_PLAYERS} PILOTS. START WHEN YOU LIKE, THEY CAN JOIN ANY TIME.`);
+    drawSetup();
   } catch (err) {
-    status('host-status', `COULD NOT OPEN A ROOM: ${(err.type ?? err.message ?? err).toString().toUpperCase()}`, true);
+    setup.say(`COULD NOT OPEN A ROOM: ${(err.type ?? err.message ?? err).toString().toUpperCase()}`, true);
   }
 });
-$('host-start').addEventListener('click', start);
 
 // Joining: the host's world replaces ours once the first snapshot arrives.
 $('join').addEventListener('click', () => {
@@ -611,26 +720,33 @@ $('join-code').addEventListener('input', () => {
 $('join-code').addEventListener('keydown', (e) => e.key === 'Enter' && !$('join-go').disabled && $('join-go').click());
 const JOIN_ERRORS = { 'peer-unavailable': 'NO GAME WITH THAT CODE', network: 'NO CONNECTION TO THE BROKER' };
 $('join-go').addEventListener('click', async () => {
-  // Connected and the world has arrived: this click starts the engine.
-  if (guest?.view.ready) return start();
   $('join-go').disabled = $('join-code').disabled = true;
   status('join-status', 'CONNECTING...');
   const view = createGuestView(world, content.settings.net);
   try {
     const net = await joinGame($('join-code').value, { plane: choice.plane, name: options.name }, {
       onMessage(m) {
+        if (m?.t === 'full') {
+          status('join-status', 'THAT ROOM IS FULL.', true);
+          return;
+        }
         if (m?.t === 'welcome') {
           guest.planeId = m.planeId;
-          status('join-status', 'CONNECTED. WAITING FOR THE HOST TO START...');
+          lastTable = m.table;
+          openSetup();
         }
+        if (m?.t === 'table') {
+          lastTable = m.table;
+          drawSetup();
+        }
+        if (m?.t === 'seat') seatDone(m.reason);
         if (m?.t !== 'snap') return;
         const first = !view.ready;
         view.receive(m);
         if (!first) return;
         player = world.planes.find((p) => p.id === guest.planeId) ?? player;
-        status('join-status', 'CONNECTED. CLICK TO FLY.');
-        $('join-go').textContent = 'START ENGINE';
-        $('join-go').disabled = false;
+        setup.say('');
+        drawSetup();
         renderer.render(player, 0, { showHelp });
       },
       onClose() {
@@ -638,6 +754,7 @@ $('join-go').addEventListener('click', async () => {
         menuOpen = false;
         pauseScreen.classList.add('hidden');
         options.close();
+        setup.hide();
         overlay.classList.remove('hidden');
         mouse.release();
         showMenu('join-menu');

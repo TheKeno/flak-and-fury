@@ -14,6 +14,7 @@ import { DEFAULT_FIRE } from './fire.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
 import { stepRunways, DEFAULT_RUNWAY } from './runway.js';
 import { DEFAULT_DECOR } from './decor.js';
+import { DEFAULT_BAILOUT, bailOut, stepBailedPilot, stepGroundWreck, stepParachutes } from './bailout.js';
 
 export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
@@ -58,6 +59,7 @@ export function createWorld({
   decor = { ...DEFAULT_DECOR },
   bots = structuredClone(DEFAULT_BOTS),
   radar = { ...DEFAULT_RADAR },
+  bailout = { ...DEFAULT_BAILOUT },
 }) {
   const world = {
     tick: 0,
@@ -75,12 +77,14 @@ export function createWorld({
     decor,
     bots,
     radar,
+    bailout,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(map.seed ^ 0x5eed),
     planes: [],
     bullets: [],
     bombsInFlight: [],
     shells: [], // flak shells in flight
+    parachutes: [], // pilots coming down (src/sim/bailout.js)
     crew: [], // ground crew on foot (src/sim/airfield.js)
     crewDown: {}, // team -> seconds until a killed crew is replaced
     events: [], // things that happened this tick, for sound and effects
@@ -101,6 +105,7 @@ export function addPlane(world, { defId, team, nation, controller }) {
     nation,
     seats: [{ role: 'pilot', controller }],
   });
+  p.fresh = true; // not flown yet: can still change side or plane for free (src/sim/seats.js)
   world.planes.push(p);
   spawnAtAirfield(p, world);
   return p;
@@ -126,15 +131,30 @@ export function stepWorld(world, commands) {
       if (world.rules.bots === 'off') cmd = NO_COMMAND;
       else cmd = botCommand(world, p, ctl.split(':')[1]);
       if (world.rules.bots === 'passive') cmd = { ...cmd, fire: false, bomb: false };
+    } else if (!p.wreck) {
+      if (p.fresh && (cmd?.throttle > 0 || cmd?.fire || cmd?.bomb)) p.fresh = false;
+      if (p.bailout) {
+        stepBailedPilot(world, p, cmd, DT);
+        continue;
+      }
+      // Players can go over the side anywhere, any time, by accident too.
+      if (cmd?.abandon && p.state !== 'dead') {
+        bailOut(world, p);
+        continue;
+      }
     }
-    stepPlane(p, cmd ?? NO_COMMAND, world, DT);
+    if (p.wreck && p.state === 'ground') stepGroundWreck(world, p, DT);
+    else stepPlane(p, cmd ?? NO_COMMAND, world, DT);
   }
+  // Wrecks are gone once they've hit the ground.
+  for (let i = world.planes.length - 1; i >= 0; i--) if (world.planes[i].wreck && world.planes[i].state === 'dead') world.planes.splice(i, 1);
   stepCrew(world, DT);
   stepArmy(world, DT);
   stepDefences(world, DT);
   stepBullets(world, DT);
   stepShells(world, DT);
   stepBombs(world, DT);
+  stepParachutes(world, DT);
   stepRunways(world, DT);
   collide(world);
   planesHitStructures(world, crash);

@@ -16,7 +16,7 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const G = 140; // gravity for drops and pieces, world units/s²
 const MAX = { drops: 500, stains: 500, bodies: 160, chunks: 120, planeSplats: 14 };
 
-export function createGore(world, cfg, particles, { uniformOf, overallsOf = () => undefined }) {
+export function createGore(world, cfg, particles, { uniformOf, overallsOf = () => undefined, teamUniform = () => undefined }) {
   const drops = [];
   const stains = [];
   const bodies = [];
@@ -112,6 +112,23 @@ export function createGore(world, cfg, particles, { uniformOf, overallsOf = () =
     if (blast) mist(e.x, y, 3, 1.3);
   }
 
+  // A pilot killed on the way down, in mid-air: worse than on the ground, and it all rains down.
+  function pilotKill(e) {
+    const uniform = teamUniform(e.team);
+    const dir = e.dir || 1;
+    if (e.cause === 'fall') return kill({ ...e, cause: 'blast', force: cfg.mistForce }, uniform);
+    spray(e.x, e.y, dir, Math.ceil(70 * cfg.blood), 110);
+    spray(e.x, e.y, -dir, Math.ceil(30 * cfg.blood), 70);
+    mist(e.x, e.y, 16, 2);
+    if (!full()) {
+      pushBody(e.x, dir, { pool: 8 }).uniform = uniform;
+      return;
+    }
+    for (const k of ['arm', 'arm', 'leg', 'leg', 'head', 'torso']) piece(k, e.x, e.y, dir * rand(-30, 110), rand(-20, 110), { uniform });
+    piece('helmet', e.x, e.y + 3, dir * rand(20, 70), rand(90, 170), { vrot: rand(18, 30) * dir });
+    for (let i = 0; i < 4; i++) stain(e.x + dir * rand(0, 30) + rand(-12, 12), rand(3, 8));
+  }
+
   function addPlaneBlood(planeId, noseX) {
     const list = planeBlood.get(planeId) ?? [];
     planeBlood.set(planeId, list);
@@ -131,6 +148,7 @@ export function createGore(world, cfg, particles, { uniformOf, overallsOf = () =
       if (!on()) return;
       if (e.type === 'groundHit' && (e.kind === 'infantry' || e.kind === 'engineers')) bloodHit(e);
       else if (e.type === 'soldierKilled') kill(e);
+      else if (e.type === 'pilotKilled') pilotKill(e);
       else if (e.type === 'runDown') addPlaneBlood(e.plane, world.planes.find((p) => p.id === e.plane)?.def.noseOffset?.[0] ?? 8);
       else if (e.type === 'crewKilled') {
         // A mechanic caught by the propeller of a rolling plane.

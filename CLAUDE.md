@@ -50,6 +50,8 @@ yourself instead.
   writes the blended values before rendering and puts the true ones back after sound, so code run
   from the tick loop always sees true values. A new value that moves every tick and judders on a fast
   screen goes in `POSE` there.
+- `src/sim/seats.js` holds who flies where (players replace bots; `MAX_PER_SIDE`, `MAX_PLAYERS`) and
+  `src/sim/bailout.js` leaving a plane (wreck, parachute, soldier). `src/ui/setup.js` only draws the table.
 - `src/render/` — scenery, ground sprites and effects at `SCALE` = 2 pixels per world unit, planes at
   `PLANE_SCALE` = 4 (the buffer has `DETAIL` = 2× finer pixels; all else draws through a ×2 transform). World units are what all
   gameplay numbers use. HUD on its own 480×270 layer. Radar is a soft CRT canvas.

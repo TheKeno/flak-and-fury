@@ -67,12 +67,13 @@ test('stranded in a field: wait, and the plane is brought home damaged but not l
   assert.ok(p.hp < p.def.hp, 'damage kept');
 });
 
-test('B abandons a stopped plane in a field: a fresh one at home, counted as lost', () => {
+test('B abandons a stopped plane in a field: he climbs out, then fire gets a fresh one at home', () => {
   const { world, p } = makeWorld();
   strand(world, p);
   steps(world, 2, { ...IDLE, abandon: true });
-  assert.equal(p.deaths, 1);
+  assert.ok(p.bailout, 'waiting on the pilot');
   steps(world, 60 * 4);
+  steps(world, 2, { ...IDLE, fire: true });
   assert.equal(p.state, 'ground');
   assert.equal(p.hp, p.def.hp, 'fresh plane');
   assert.equal(p.belly, false);

@@ -13,7 +13,7 @@
 // tests/net.test.mjs checks a busy world survives the trip.
 
 // Loaded from the same files on both sides: never sent, references into them travel as '@path'.
-export const STATIC = ['planeDefs', 'weapons', 'groundDefs', 'rules', 'servicing', 'collisions', 'fire', 'waves', 'runway', 'landing', 'decor', 'bots', 'radar', 'map'];
+export const STATIC = ['planeDefs', 'weapons', 'groundDefs', 'rules', 'servicing', 'collisions', 'fire', 'waves', 'runway', 'landing', 'decor', 'bots', 'radar', 'bailout', 'map'];
 // Not sent: the shared data, the host's own bookkeeping and bot memory, and events (sent separately,
 // tick by tick). Paths are world keys joined by dots; list elements don't add to the path.
 const SKIP = new Set([...STATIC, 'rng', 'nextId', 'events', 'collisionGrace', 'botRadar', 'botSkyline', 'planes.bot']);

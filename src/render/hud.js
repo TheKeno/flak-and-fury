@@ -104,7 +104,12 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   // In free look the camera is elsewhere: your plane's calls and bars would only cover the view.
   const centre = (str, line, colour) => !freeLook && drawText(ctx, str, (W - textWidth(str)) / 2, 58 + line * L, colour);
   if (plane.waiting) waitingMessage(world, plane, centre);
-  else if (plane.state === 'dead') centre('CRASHED - BACK TO THE HANGAR', 0, '#ff9070');
+  else if (plane.bailout) {
+    const b = plane.bailout;
+    const alive = b.chute != null || world.ground.some((o) => o.id === b.soldier && o.alive);
+    centre(alive ? (b.chute != null ? 'YOU BAILED OUT' : 'YOU ARE A FOOT SOLDIER NOW') : 'YOUR PILOT IS DEAD', 0, alive ? '#f0e8c0' : '#ff9070');
+    if ((world.tick - b.since) / 60 >= world.bailout.respawnDelay) centre(`${keyOf('fire')}: A NEW PLANE`, 1, blink ? '#e8c860' : '#f0e8c0');
+  } else if (plane.state === 'dead') centre('CRASHED - BACK TO THE HANGAR', 0, '#ff9070');
   else if (plane.dying) centre('GOING DOWN!', 0, blink ? '#ff6050' : '#ffb0a0');
   else if (plane.burning && plane.state === 'air') centre('ON FIRE - LAND NOW!', 0, blink ? '#ff6050' : '#ffc0a0');
   else if (plane.burning && plane.speed >= 2) centre('ON FIRE - STOP THE PLANE!', 0, blink ? '#ff6050' : '#ffc0a0');
@@ -135,7 +140,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
       `${keyOf('roll')}  ROLL / TURN ON GROUND`,
       `${keyOf('fire')}  GUNS`,
       `${keyOf('bomb')}  BOMBS`,
-      `${keyOf('gear')} GEAR   ${keyOf('abandon')} ABANDON (IN A FIELD)`,
+      `${keyOf('gear')} GEAR   ${keyOf('abandon')} BAIL OUT`,
       `MOUSE / ${arrows === 'UP/DOWN/LEFT/RIGHT' ? 'ARROWS' : arrows}  LOOK`,
       `${keyOf('menu')} MENU   ${keyOf('mute')} MUTE   ${keyOf('help')} HIDE HELP`,
       `${keyOf('freeLook')} FREE LOOK   ${keyOf('tuning')} TUNING`,

@@ -38,7 +38,7 @@ function pickTarget(world, obj, x, y, def = obj.def) {
   let best = null;
   let bestD = def.range;
   for (const p of world.planes) {
-    if (p.team === obj.team || p.state === 'dead' || p.dying) continue;
+    if (p.team === obj.team || p.state === 'dead' || p.dying || p.wreck) continue;
     const height = p.y - world.terrain.heightAt(p.x);
     if (def.minAltitude && height < def.minAltitude) continue;
     if (def.mgAltitude && height > def.mgAltitude) continue;

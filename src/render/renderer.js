@@ -223,7 +223,7 @@ export function createRenderer(canvas, world, assets) {
       cam.y = free.y - vh / 2;
       cam.back = { x: cam.x, y: cam.y, k: 1 }; // where to glide back from once free look ends
     } else if (!focus) return;
-    if (!free && focus.state !== 'dead') {
+    if (!free && (focus.state !== 'dead' || focus.bailout)) {
       updateLook(focus, dt, look);
       updateFight(focus, dt);
       updateZoom(focus, dt);
@@ -231,7 +231,8 @@ export function createRenderer(canvas, world, assets) {
       // so a stalling plane that's sinking nose-up still shows the ground it's falling towards.
       const speed = Math.hypot(focus.vx, focus.vy);
       const climb = speed > 20 ? focus.vy / speed : Math.sin(focus.angle);
-      const targetX = Math.cos(focus.angle) * vw * camCfg.leadX;
+      // A pilot hanging under his parachute isn't going anywhere: keep him in the middle.
+      const targetX = focus.bailout ? 0 : Math.cos(focus.angle) * vw * camCfg.leadX;
       const targetY = climb * vh * camCfg.leadY;
       const k = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeed) : 1;
       const ky = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeedY) : 1;
@@ -354,6 +355,7 @@ export function createRenderer(canvas, world, assets) {
   const gore = createGore(world, assets.settings.gore, particles, {
     uniformOf: (id) => assets.nations[nationOf(world.ground.find((o) => o.id === id)?.team)]?.uniform,
     overallsOf: (slot) => CREW_LOOK[slot]?.overalls,
+    teamUniform: (team) => assets.nations[nationOf(team)]?.uniform,
   });
   const CREW_LOOK = [
     { overalls: '#3c4a5c', bob: 0 },
@@ -425,7 +427,9 @@ export function createRenderer(canvas, world, assets) {
     ctx.fillRect(x + 1, y - 8, 4 - wave, 1 + wave);
   }
 
+  let lastFocus = null;
   function drawSquad(obj, sx, frameNo) {
+    if (obj.callsign && obj.alive && nameShown(obj.callsign, obj.owner, lastFocus)) drawManName(obj.callsign, obj.team, Math.round(toScreenX(obj.x)), Math.round(toScreenY(surfaceAt(world, obj.x))) + 2, lastFocus);
     const uniform = assets.nations[nationOf(obj.team)]?.uniform ?? '#6a6e5e';
     const engineers = obj.type === 'engineers';
     obj.soldiers.forEach((s, i) => {
@@ -692,7 +696,116 @@ export function createRenderer(canvas, world, assets) {
     if (p.state === 'dead') return;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     drawPlaneDetail(p, radarOutline(p, focus));
+    drawPlaneName(p, focus);
     ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
+  }
+
+  // Pilot names (bots have none). A plane's is like paint: it tilts with the plane, reads normally when
+  // the pilot is upright whichever way he flies, turns upside down with him and squashes through a roll.
+  const NAME_FONT = "600 11px Consolas, 'Lucida Console', 'DejaVu Sans Mono', monospace";
+  const NAME_GAP = 25; // below the plane's centre, in the plane's own frame
+  const nameShown = (name, owner, focus) => name && assets.settings.hud.showNames !== false && (owner !== focus?.id || assets.settings.hud.showOwnName);
+  const nameColour = (team, focus) => (team === focus?.team ? '#d8cfa0' : '#b86050');
+  function drawPlaneName(p, focus) {
+    if (!nameShown(p.callsign, p.id, focus)) return;
+    const view = groundAttitude(p);
+    const roll = Math.cos(p.rollAngle ?? 0);
+    const upright = Math.cos(view.angle) >= 0 === roll >= 0;
+    ctx.save();
+    ctx.translate(planeX(view.x), planeY(view.y));
+    ctx.rotate(-(Math.cos(view.angle) >= 0 ? view.angle : view.angle - Math.PI));
+    if (!upright) ctx.rotate(Math.PI);
+    ctx.scale(1, Math.max(0.05, Math.abs(roll)));
+    ctx.font = NAME_FONT;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillText(p.callsign, 0.7, NAME_GAP + 0.7);
+    ctx.fillStyle = nameColour(p.team, focus);
+    ctx.fillText(p.callsign, 0, NAME_GAP);
+    ctx.restore();
+  }
+  // A man's name hangs level under his feet.
+  function drawManName(name, team, x, y, focus) {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.font = NAME_FONT;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillText(name, x * DETAIL + 0.7, (y + 7) * DETAIL + 0.7);
+    ctx.fillStyle = nameColour(team, focus);
+    ctx.fillText(name, x * DETAIL, (y + 7) * DETAIL);
+    ctx.restore();
+  }
+
+  // A pilot coming down: tumbling at first, then swinging under a dull canopy. A deserter holds a white
+  // flag; a canopy that's been shot trails in rags.
+  function drawCanopy(cx, cy, torn) {
+    for (let k = -13; k <= 13; k++) {
+      if (torn && (k + 40) % 5 < 2) continue;
+      const h = Math.round(9 * Math.sqrt(1 - (k * k) / 196));
+      ctx.fillStyle = k % 7 === 0 ? '#5e5c4e' : k < 0 ? '#86826e' : '#74705e';
+      ctx.fillRect(cx + k, cy - h, 1, h + (torn ? (k + 40) % 3 : 1));
+    }
+  }
+  function drawParachute(c, focus) {
+    const gx = Math.round(toScreenX(c.x));
+    const gy = Math.round(toScreenY(c.y));
+    if (gx < -40 || gx > bw + 40) return;
+    const uniform = assets.nations[nationOf(c.team)]?.uniform ?? '#6a6e5e';
+    const swing = c.open ? Math.round(Math.sin((frame + c.id * 17) / 22) * 2) : 0;
+    if (c.open) {
+      const cx = gx - swing;
+      const cy = gy - 26;
+      ctx.fillStyle = 'rgba(30,28,24,0.55)';
+      for (let i = 0; i <= 18; i++) {
+        const t = i / 18;
+        ctx.fillRect(Math.round(gx + (cx - 12 - gx) * t), Math.round(gy - 8 + (cy + 1 - gy + 8) * t), 1, 1);
+        ctx.fillRect(Math.round(gx + (cx + 12 - gx) * t), Math.round(gy - 8 + (cy + 1 - gy + 8) * t), 1, 1);
+      }
+      drawCanopy(cx, cy, c.torn);
+    } else {
+      // The pack streaming out above him.
+      ctx.fillStyle = '#86826e';
+      for (let k = 0; k < 8; k++) ctx.fillRect(gx + (k % 2), gy - 10 - k * 2, 2, 2);
+    }
+    // Legs dangling, body, head, helmet.
+    ctx.fillStyle = '#2a2622';
+    ctx.fillRect(gx - 1, gy - 2, 1, 4);
+    ctx.fillRect(gx + 1, gy - 2, 1, 4);
+    ctx.fillStyle = uniform;
+    ctx.fillRect(gx - 1, gy - 8, 3, 6);
+    ctx.fillStyle = '#d6a77e';
+    ctx.fillRect(gx - 1, gy - 10, 2, 2);
+    ctx.fillStyle = '#3a3e34';
+    ctx.fillRect(gx - 2, gy - 11, 4, 1);
+    if (c.flag) {
+      const d = c.dir;
+      ctx.fillStyle = '#4a3624';
+      for (let k = 0; k < 9; k++) ctx.fillRect(gx + d * 2, gy - 5 - k, 1, 1);
+      const wave = Math.floor(frame / 8) % 2;
+      ctx.fillStyle = '#c8c4b4';
+      ctx.fillRect(gx + d * 3 - (d < 0 ? 5 : 0), gy - 14, 6, 4);
+      ctx.fillStyle = '#a4a090';
+      ctx.fillRect(gx + d * 3 + (d < 0 ? -5 : 5) * wave, gy - 11, 1, 2);
+    }
+    if (nameShown(c.callsign, c.owner, focus)) drawManName(c.callsign, c.team, gx, gy, focus);
+  }
+  // A dead man's canopy, collapsing and sinking away.
+  const fallenCanopies = [];
+  function drawFallenCanopies(dt) {
+    for (let i = fallenCanopies.length - 1; i >= 0; i--) {
+      const f = fallenCanopies[i];
+      f.age += dt;
+      f.x += f.vx * dt;
+      f.y -= 14 * dt;
+      if (f.age > 6 || f.y < world.terrain.heightAt(f.x)) {
+        fallenCanopies.splice(i, 1);
+        continue;
+      }
+      drawCanopy(Math.round(toScreenX(f.x)), Math.round(toScreenY(f.y)), true);
+    }
   }
 
   // Enemy planes your radar has plotted get a phosphor-green outline: it flares as the beam sweeps
@@ -1083,6 +1196,8 @@ export function createRenderer(canvas, world, assets) {
         particles.sparks(e.x, e.y - 2, 14);
         particles.dirtSpray(e.x, e.y - 2, 0.4);
       }
+      if (e.type === 'pilotKilled' && e.open) fallenCanopies.push({ x: e.x, y: e.y + 13, vx: e.dir * 8, age: 0 });
+      if (e.type === 'chuteTorn') for (let i = 0; i < 4; i++) particles.spawn('dust', e.x, e.y, (Math.random() - 0.5) * 20, Math.random() * 10, 0.5, 0.7);
       if (e.type === 'runDown') for (let i = 0; i < 5; i++) particles.spawn('dust', e.x, e.y, (Math.random() - 0.5) * 30, 6 + Math.random() * 12, 0.5, 0.7);
       if (e.type === 'bump') particles.sparks(e.x, e.y, 5);
       if (e.type === 'hedgeHit') for (let i = 0; i < 10; i++) particles.spawn('dust', e.x + (Math.random() - 0.5) * 20, e.y, (Math.random() - 0.5) * 40, 10 + Math.random() * 20, 0.6, 0.8);
@@ -1100,6 +1215,7 @@ export function createRenderer(canvas, world, assets) {
     },
     render(focus, dt, { showHelp, look, free, paused }) {
       frame++;
+      lastFocus = focus;
       fitDisplay();
       ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
       ctx.imageSmoothingEnabled = false;
@@ -1117,6 +1233,8 @@ export function createRenderer(canvas, world, assets) {
       drawProjectiles();
       for (const p of world.planes) drawPlane(p, focus);
       for (const c of world.crew ?? []) drawCrew(c);
+      for (const c of world.parachutes ?? []) drawParachute(c, focus);
+      drawFallenCanopies(dt);
 
       if (focus && focus.consciousness < 1) {
         ctx.fillStyle = `rgba(16,0,0,${((1 - focus.consciousness) * 0.88).toFixed(3)})`;

@@ -47,8 +47,9 @@ function openPeer(Peer, id) {
 }
 
 // Hosts a game. onJoin(guest, hello) adds the guest's plane and returns what to tell them
-// ({ planeId }); onLeave(guest) removes it. cfg: the net settings (snapshotEvery), read live.
-export async function hostGame(world, cfg, { onJoin, onLeave }) {
+// ({ planeId }), or null if the room is full; onLeave(guest) removes it; onMessage(guest, m) gets
+// anything else they send. cfg: the net settings (snapshotEvery), read live.
+export async function hostGame(world, cfg, { onJoin, onLeave, onMessage }) {
   const Peer = await loadPeerJs();
   let peer;
   let code;
@@ -70,13 +71,16 @@ export async function hostGame(world, cfg, { onJoin, onLeave }) {
     let guest = null;
     conn.on('data', (m) => {
       if (m?.t === 'hello' && !guest) {
-        guest = { conn, controller: `net${nextGuest++}`, queue: [], last: NO_COMMAND, base: {}, name: m.name };
+        const g = { conn, controller: `net${nextGuest++}`, queue: [], last: NO_COMMAND, base: {}, name: m.name };
+        const welcome = onJoin(g, m);
+        if (!welcome) return conn.send({ t: 'full' });
+        guest = g;
         guests.add(guest);
-        conn.send({ t: 'welcome', ...onJoin(guest, m) });
+        conn.send({ t: 'welcome', ...welcome });
       } else if (m?.t === 'cmd' && guest && Array.isArray(m.c)) {
         guest.queue.push(...m.c);
         if (guest.queue.length > MAX_QUEUE) guest.queue.splice(0, guest.queue.length - KEEP_QUEUE);
-      }
+      } else if (guest) onMessage?.(guest, m);
     });
     // Either end gone or broken: drop the guest and close, so the guest hears about it too.
     const leave = () => {
@@ -120,6 +124,10 @@ export async function hostGame(world, cfg, { onJoin, onLeave }) {
       }
       pending = [];
     },
+    // To every guest, now (the setup screen's table).
+    broadcast(m) {
+      for (const g of guests) if (g.conn.open) g.conn.send(m);
+    },
     close: () => peer.destroy(),
   };
 }
@@ -156,6 +164,7 @@ export async function joinGame(code, hello, { onMessage, onClose }) {
   peer.on('error', close);
   return {
     sendCommands: (c) => conn.open && c.length && conn.send({ t: 'cmd', c }),
+    send: (m) => conn.open && conn.send(m),
     close: () => peer.destroy(),
   };
 }

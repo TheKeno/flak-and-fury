@@ -190,7 +190,7 @@ export function shootDown(world, p, byId, cause = 'guns') {
   if (p.state === 'ground') p.state = 'air';
   world.events.push({ type: 'shotDown', plane: p.id, by: byId ?? null, x: p.x, y: p.y });
   const killer = world.planes.find((k) => k.id === byId);
-  if (killer && killer.team !== p.team) killer.kills++;
+  if (killer && killer.team !== p.team && !p.wreck) killer.kills++;
 }
 
 export function updateDamage(p, world, dt) {
