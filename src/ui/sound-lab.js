@@ -1332,7 +1332,7 @@ function engineSlots(buildId, specs, locked) {
       files: clip ? [clip] : [],
       sub: clip ? `${clip.rpm} rpm` : null,
       level: clip ? { obj: clip, key: 'gain' } : null,
-      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
+      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), gain: clip.gain ?? 1, pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
       advanced: () => { selected = id; setTab('sounds'); },
       onFiles: ([f]) => {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
@@ -1346,7 +1346,7 @@ function engineSlots(buildId, specs, locked) {
   const startRow = slotRow({
     key: 'startup', name: 'Start-up', locked, help: STARTUP_HELP, files: st.files,
     level: st.files.length ? { obj: st, key: 'gain' } : null,
-    play: st.files.length ? () => mixer?.recordings.playGroup({ ...newGroup(), pitchVar: 0, gainVar: 0, files: st.files }, where()) : null,
+    play: st.files.length ? () => mixer?.recordings.playGroup({ ...newGroup(), gain: st.gain ?? 1, pitchVar: 0, gainVar: 0, files: st.files }, where()) : null,
     onFiles: (added) => { for (const f of added) st.files.push({ ...f, caught: f.end * 0.8 }); },
     body: [...st.files.map((f, i) => fileRow(f, locked, () => { st.files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
       slider(st, ['fade', 'Fade into the engine, s', 0.05, 3, 0.05, 'How long the clip and the running engine cross after Caught.'], null, locked)],
@@ -1363,7 +1363,7 @@ function tankSlots(buildId, locked) {
     return slotRow({
       key, name, locked, help, files: clip ? [clip] : [],
       level: clip ? { obj: clip, key: 'gain' } : null,
-      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
+      play: clip ? () => mixer?.recordings.playGroup({ ...newGroup(), gain: clip.gain ?? 1, pitchVar: 0, gainVar: 0, files: [clip] }, where()) : null,
       advanced: () => { selected = id; setTab('sounds'); },
       onFiles: ([f]) => {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
