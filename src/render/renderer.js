@@ -804,7 +804,7 @@ export function createRenderer(canvas, world, assets) {
     hud.fillStyle = '#c8d8b0';
     hud.lineWidth = 1;
     hud.beginPath();
-    hud.arc(x + 0.5, y + 0.5, hudCfg.crosshairSize, 0, Math.PI * 2);
+    hud.arc(x, y,hudCfg.crosshairSize, 0, Math.PI * 2);
     hud.stroke();
     hud.fillRect(x - 1, y - 1, 2, 2);
     hud.restore();
