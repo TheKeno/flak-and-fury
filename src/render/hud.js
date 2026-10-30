@@ -202,7 +202,7 @@ function serviceBar(ctx, world, plane, W) {
   const s = plane.service;
   if (!s) return;
   const y = 44;
-  const label = s.wait > 0 ? 'GROUND CREW COMING' : s.phase === 'done' ? 'READY - OPEN THROTTLE (W)' : JOBS[s.phase] ?? '';
+  const label = s.wait > 0 ? (s.setup ? 'GROUND CREW SETTING UP' : 'GROUND CREW COMING') : s.phase === 'done' ? 'READY - OPEN THROTTLE (W)' : JOBS[s.phase] ?? '';
   const colour = s.phase === 'done' ? '#a8e090' : '#f0e8c0';
   drawText(ctx, label, Math.round((W - textWidth(label)) / 2), y, colour);
   if (s.wait > 0 || s.phase === 'done') return;

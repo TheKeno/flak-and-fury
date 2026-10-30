@@ -135,7 +135,7 @@ export function createGore(world, cfg, particles, { uniformOf, overallsOf = () =
       else if (e.type === 'crewKilled') {
         // A mechanic caught by the propeller of a rolling plane.
         kill(e, overallsOf(e.slot));
-        addPlaneBlood(e.plane, world.planes.find((p) => p.id === e.plane)?.def.noseOffset?.[0] ?? 8);
+        if (e.cause === 'runDown') addPlaneBlood(e.plane, world.planes.find((p) => p.id === e.plane)?.def.noseOffset?.[0] ?? 8);
       }
     },
     update(dt) {

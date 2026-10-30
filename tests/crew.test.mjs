@@ -87,3 +87,28 @@ test('rolling into the crew kills them; a new crew carries on 3 s later', () => 
   assert.equal(t.p.hp, t.p.def.hp, 'the new crew finished the repair');
   assert.ok(hp < t.p.def.hp, 'work done before was kept');
 });
+
+test('the crew set up their equipment for a second at the plane before any work starts', () => {
+  const t = parkedAt(100);
+  ticksUntil(t, () => t.world.crew.length === 2 && t.world.crew.every((c) => c.state === 'setup'));
+  steps(t, 1);
+  const hp = t.p.hp;
+  assert.ok(t.p.service.setup, 'the HUD says they are setting up');
+  steps(t, 50);
+  assert.equal(t.p.hp, hp, 'no repair during the first second');
+  steps(t, 20);
+  assert.ok(t.p.hp > hp, 'work has started');
+});
+
+test('turning on the spot (Shift) kills the crew at the plane, engine running or not', () => {
+  for (const engine of [true, false]) {
+    const t = parkedAt(150);
+    t.p.engineRunning = engine;
+    ticksUntil(t, () => working(t));
+    steps(t, 1, { ...IDLE, roll: true });
+    steps(t, 90, IDLE);
+    const killed = t.events.filter((e) => e.type === 'crewKilled');
+    assert.equal(killed.length, 2, `both men die (engine ${engine})`);
+    assert.ok(killed.every((e) => e.cause === (engine ? 'runDown' : 'other')));
+  }
+});

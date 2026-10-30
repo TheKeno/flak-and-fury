@@ -800,7 +800,7 @@ export function createRenderer(canvas, world, assets) {
     if (gx < -10 || gx > bw + 10) return;
     const walking = c.state === 'out' || c.state === 'back';
     const step = Math.floor((frame + look.bob) / 6) % 2;
-    const working = c.state === 'work' && Math.floor((frame + look.bob) / 10) % 2; // arm moving at the job
+    const working = (c.state === 'work' || c.state === 'setup') && Math.floor((frame + look.bob) / 10) % 2; // arm moving at the job
     // legs
     ctx.fillStyle = '#2a2622';
     ctx.fillRect(gx - 1, gy - 3, 1, 3 - (walking && step ? 1 : 0));
@@ -810,7 +810,7 @@ export function createRenderer(canvas, world, assets) {
     ctx.fillRect(gx - 1, gy - 8, 3, 5);
     // arm reaching towards the plane at the job, hanging forward otherwise
     const toward = (p ? Math.sign(p.x - c.x) : 0) || 1;
-    if (c.state === 'work') ctx.fillRect(gx + toward * 2, gy - 7 - (working ? 1 : 0), 1, 2);
+    if (c.state === 'work' || c.state === 'setup') ctx.fillRect(gx + toward * 2, gy - 7 - (working ? 1 : 0), 1, 2);
     else ctx.fillRect(gx + (walking && step ? 1 : 0), gy - 6, 1, 2);
     // head and cap
     ctx.fillStyle = '#d6a77e';

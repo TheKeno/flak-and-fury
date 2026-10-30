@@ -13,12 +13,17 @@ export const DEFAULT_SERVICING = { crewDelay: 1.2, crewWalkSpeed: 50, crewRespaw
 
 // The ground crew are two mechanics in world.crew: { id, team, plane (the id they're sent to, null
 // once they head home), slot, x, y, state, t }. state: wait (at the hangar, reacting), out (walking to
-// the plane), work (at their job), back (walking home). Slot 0 works at the nose, slot 1 at the wing.
+// the plane), setup (at the plane, getting their equipment ready), work (at their job), back (walking
+// home). Slot 0 works at the nose, slot 1 at the wing.
 const CREW_AT = [9, -3]; // where along the plane each slot works, ahead of its centre
 const CREW_LAG = 0.25; // seconds the second man sets off after the first
 // Seconds the crew stand frozen at the job when the engine opens up: long enough for a plane opening
 // the throttle fully to start rolling into them (the throttle takes about a second to open).
 const CREW_STARTLE = 1.2;
+const CREW_SETUP = 1; // seconds at the plane setting up their equipment before work starts
+// Turning round on the spot (Shift) kills the men at the plane: how far through the turn the propeller
+// reaches the nose man and the wing the other.
+const TURN_KILL = [0.3, 0.4];
 const KILL_SPEED = 2.5; // a plane rolling faster than this runs down crew under its nose and wings
 const DT_MIN = 1e-3; // keeps a waiting service's wait above 0
 const walkSpeed = (cfg) => cfg.crewWalkSpeed ?? DEFAULT_SERVICING.crewWalkSpeed;
@@ -55,11 +60,14 @@ export function stepCrew(world, dt) {
   for (let i = world.crew.length - 1; i >= 0; i--) {
     const c = world.crew[i];
     const p = c.plane != null ? world.planes.find((o) => o.id === c.plane) : null;
-    if (c.plane != null && !p?.service) sendBack(c, c.state === 'work' ? CREW_STARTLE : 0);
+    if (c.plane != null && !p?.service) sendBack(c, c.state === 'work' || c.state === 'setup' ? CREW_STARTLE : 0);
     if (c.state === 'wait') {
       c.t -= dt;
       if (c.t <= 0) c.state = c.plane == null ? 'back' : 'out';
-    } else {
+    } else if (c.state === 'setup') {
+      c.t -= dt;
+      if (c.t <= 0) c.state = 'work';
+    } else if (c.state !== 'work') {
       const target = c.state === 'back'
         ? hangarX(world, world.map.airfields.find((a) => a.team === c.team))
         : p.x + facing(p) * CREW_AT[c.slot];
@@ -70,12 +78,21 @@ export function stepCrew(world, dt) {
           world.crew.splice(i, 1);
           continue;
         }
-        c.state = 'work';
+        c.state = 'setup';
+        c.t = CREW_SETUP;
       } else c.x += Math.sign(d) * speed * dt;
     }
     c.y = world.terrain.heightAt(c.x);
     const by = world.planes.find((o) => o.state === 'ground' && o.speed > KILL_SPEED && underPlane(o, c.x));
-    if (by) killCrew(world, i, by);
+    if (by) {
+      killCrew(world, i, by, 'runDown');
+      continue;
+    }
+    // A plane turning on the spot swings its propeller and wing through whoever stands at it. With the
+    // engine stopped it is just the wing, so less of a mess.
+    if (p && p.groundTurn != null && p.groundTurn >= TURN_KILL[c.slot] && (c.state === 'work' || c.state === 'setup')) {
+      killCrew(world, i, p, p.engineRunning ? 'runDown' : 'other');
+    }
   }
 }
 
@@ -85,14 +102,15 @@ function underPlane(p, x) {
   return along > -p.def.hitRadius * 1.2 && along < (p.def.noseOffset?.[0] ?? 8) + 2;
 }
 
-function killCrew(world, i, p) {
+function killCrew(world, i, p, cause) {
   const c = world.crew[i];
   world.crew.splice(i, 1);
   world.crewDown[c.team] = world.servicing.crewRespawn ?? DEFAULT_SERVICING.crewRespawn;
-  // Force in a soldier's hit points, as for infantry: the faster the plane, the worse it is.
+  // Force in a soldier's hit points, as for infantry: the faster the plane, the worse it is (a turn on
+  // the spot counts as 4).
   world.events.push({
     type: 'crewKilled', id: c.id, team: c.team, slot: c.slot, plane: p.id, x: c.x, y: c.y,
-    dir: facing(p), force: Math.max(2, p.speed / 3), cause: 'runDown',
+    dir: facing(p), force: Math.max(4, p.speed / 3), cause,
   });
 }
 
@@ -150,6 +168,7 @@ export function updateServicing(p, world, dt) {
       world.events.push({ type: 'serviceDone', phase, plane: p.id, x: p.x, y: p.y });
     }
     s.wait = 0;
+    s.setup = false;
     for (const c of crew) sendBack(c);
     return;
   }
@@ -159,14 +178,16 @@ export function updateServicing(p, world, dt) {
   // Nothing is done until the whole crew are at the plane. wait: an estimate of the seconds until
   // then, for the HUD and the sound (a man who was killed is replaced after crewRespawn).
   if (crew.length < CREW_AT.length || crew.some((c) => c.state !== 'work')) {
+    s.setup = crew.length === CREW_AT.length && crew.every((c) => c.state === 'work' || c.state === 'setup');
     const home = hangarX(world, ownAirfieldAt(world, p));
     const walkFrom = (x) => Math.abs(p.x - x) / walkSpeed(cfg);
     const missing = crew.length < CREW_AT.length ? (world.crewDown[p.team] ?? 0) + cfg.crewDelay + walkFrom(home) : 0;
-    const coming = crew.map((c) => (c.state === 'wait' ? c.t : 0) + (c.state === 'work' ? 0 : walkFrom(c.x)));
+    const coming = crew.map((c) => (c.state === 'wait' || c.state === 'setup' ? c.t : 0) + (c.state === 'work' || c.state === 'setup' ? 0 : walkFrom(c.x)));
     s.wait = Math.max(missing, ...coming) + DT_MIN;
     return;
   }
   s.wait = 0;
+  s.setup = false;
   dt *= hangar;
 
   if (phase !== s.phase) {
