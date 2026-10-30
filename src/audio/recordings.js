@@ -66,7 +66,8 @@ export function createRecordings(mixer, sound) {
     return derived.get(key);
   };
 
-  // A loop's seam is hidden by fading its end into its start.
+  // A loop's seam is hidden by fading what follows its end into its start, so it still runs right
+  // to the end marker. Only when the file has too little after the marker is the loop cut shorter.
   function seamless(file, xfade) {
     const buf = buffers.get(file.path);
     if (!buf) return null;
@@ -75,7 +76,8 @@ export function createRecordings(mixer, sound) {
     const key = `${file.path}|${a}|${b}|${xfade}`;
     if (derived.has(key)) return derived.get(key);
     const fade = Math.min(Math.floor(xfade * buf.sampleRate), Math.floor((b - a) / 2));
-    const len = Math.max(1, b - a - fade);
+    const past = Math.min(fade, buf.length - b);
+    const len = Math.max(1, b - a - (fade - past));
     const loop = ctx.createBuffer(1, len, buf.sampleRate);
     const d = loop.getChannelData(0);
     const s = buf.getChannelData(0);
