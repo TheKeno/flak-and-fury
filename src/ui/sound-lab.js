@@ -139,6 +139,51 @@ const LOOP_TEST = {
   radarStatic: ['Level', 0, 1, 0.5, (m) => createRadarStatic(m)],
 };
 
+// Where each sound is heard in the game. Keep this in step with src/audio/soundscape.js.
+const USED = {
+  'gun:rifle': 'Rifle-calibre guns on planes (.303 Browning, MG 17, ShKAS, MG 81Z), plus MG nests and tank machine guns, played lower.',
+  'gun:heavy': 'Heavy machine guns on planes: .50 M2 Browning, MG 131, Ho-103.',
+  'gun:cannon20': '20 mm cannon on planes: Hispano, MG 151/20, Type 99, ShVAK.',
+  'gun:cannon30': '30 mm cannon on planes: MK 108.',
+  'gun:infantryRifle': 'Infantry squads firing.',
+  'gun:flakGun': 'Flak guns firing. The burst in the air is Flak burst.',
+  'gun:tankGun': 'A tank firing its main gun. The shell landing is Explosion.',
+  'sfx:explosion': 'A plane crashing, a fatal midair, bombs, tank shells landing (quieter), and tanks, flak guns and other ground targets destroyed.',
+  'sfx:flakBurst': 'A flak shell bursting in the air.',
+  'sfx:touchdown': 'Wheels touching down, louder on a hard landing.',
+  'sfx:gearDown': 'The gear moving up or down, as it travels.',
+  'sfx:bellyCrunch': 'A belly landing, or a hard landing that drives the nose down.',
+  'sfx:midair': 'Two planes colliding and both surviving, including a ramming. A fatal one is Explosion.',
+  'sfx:helmetCreak': 'Your own plane: when you start looking around with the mouse.',
+  'sfx:gearHorn': 'Your own plane: the warning when the gear is up too close to landing.',
+  'sfx:ignite': 'A plane catching fire. The fire after that is Burning fire.',
+  'sfx:rollWhoosh': 'A plane doing its half roll.',
+  'sfx:shrapnel': 'Your own plane: flak splinters hitting it. Other planes use Splinter tick.',
+  'sfx:collapseMasonry': 'Buildings and tank depots destroyed.',
+  'sfx:collapseMetal': 'Hangars and radar stations destroyed.',
+  'sfx:collapseWood': 'Watchtowers and bridges destroyed. A bridge also plays Splash.',
+  'sfx:collapseCanvas': 'Tents destroyed.',
+  'sfx:splash': 'A bridge falling into the river.',
+  'sfx:fireOut': 'A plane fire being put out.',
+  'sfx:hammering': 'Engineers finishing a bridge.',
+  'sfx:radarPowerDown': 'Your side\'s radar failing completely.',
+  'sfx:clank': 'Shared by several sounds: bullets hitting a plane, the gear locking down, bullets on flak guns, MG nests and radar, and the ground crew\'s tools. Played at different pitches.',
+  'sfx:thunk': 'Shared by several sounds: being hit, the gear locking, the crew finishing servicing, and a plane being shot down.',
+  'sfx:snap': 'Your own plane: a round passing close by.',
+  'sfx:thud': 'Bullets hitting the soil and most ground targets.',
+  'sfx:patter': 'Flak splinters on other planes. Your own plane also uses it, inside Shrapnel.',
+  'sfx:release': 'A bomb being released.',
+  'sfx:click': 'Shared by several sounds: an empty gun, the low fuel warning, each radar sweep, and the ground crew\'s ratchet. Played at different pitches.',
+  'loop:wind': 'Heard from your own plane: wind, dive scream, stall shudder, wind through bullet holes, and wheels on the ground. One synth, one level.',
+  'loop:bombWhistle': 'Every bomb falling, rising with its fall speed.',
+  'loop:scrape': 'A plane sliding on its belly, louder with speed.',
+  'loop:fire': 'A plane on fire, louder when it is going down.',
+  'loop:radarStatic': 'Your side\'s radar when damaged or gone. Heard in the cockpit.',
+  'loop:heartbeat': 'Your own plane: the pilot blacking out and coming round.',
+  'loop:crew': 'The ground crew repairing, refuelling and rearming a plane. Ratchet, hammer, hose, belts.',
+};
+const BUILD_USE = { plane: 'The running engine of the planes on this build, from start-up on. Doppler and distance apply.', tank: 'The generic tank in the game today, if this is its default build. The nearest 4 tanks play. Other builds wait until those tanks exist.' };
+
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => {
   const e = Object.assign(document.createElement(tag), props);
@@ -349,6 +394,7 @@ function renderList() {
       const flagged = licenceFlag(id);
       list.append(el('div', {
         className: `row${id === selected ? ' sel' : ''}${done ? ' isdone' : ''}`,
+        title: USED[id] ?? '',
         onclick: () => {
           selected = id;
           renderList();
@@ -413,7 +459,9 @@ function compareButtons(id, getCurrent, getSaved, write, apply) {
 
 function pageHead(id, title, sub) {
   const done = Boolean(sound.status[id]?.done);
+  const used = USED[id] ?? (id.startsWith('build:') ? BUILD_USE[sound.builds[id.slice(6)]?.kind] : null);
   return el('div', {}, el('h2', { textContent: title }),
+    used ? el('div', { textContent: `Used for: ${used}` }) : null,
     sub ? el('div', { className: 'dim', textContent: sub }) : null,
     done ? el('div', { className: 'warn', textContent: 'Marked done: untick it in the list to change it.' }) : null);
 }
@@ -793,6 +841,7 @@ function renderGuide() {
   return el('div', { className: 'wide' }, el('h2', { textContent: 'Guide' }),
     h('Working here'),
     p('Sound Design is the place to start. Pick a shared sound or an engine on the left, drop files on the slots, and hover a slot for what it expects. Test Flight plays everything together. The other tabs hold the full settings; Advanced on a slot takes you there.'),
+    p('Each sound says what it is used for at the top of its page, and when you hover it in the list or on a slot. Some short sounds are shared by several things in the game, such as Bullet on metal: a change or recording there is heard in all of them.'),
     p('Pick a sound, press Play or Fire, and drag. Engines change as you drag; guns are re-rendered when you let go. Press Save to write the files; the game picks them up on its next reload. Saving does not commit to git.'),
     p('Tick a sound in the list when it is finished: its sliders lock until you untick it. Your notes stay editable and are the way to leave instructions for Claude for later.'),
     h('Shared builds'),
@@ -1533,7 +1582,7 @@ function groupSlot(id, key, name, help, locked, sub) {
   const group = rec.groups[0];
   const files = group?.files ?? [];
   return slotRow({
-    key, name, help, locked, files, sub,
+    key, name, help: USED[id] ? `${help} Used for: ${USED[id]}` : help, locked, files, sub,
     level: group && files.length ? { obj: group, key: 'gain' } : null,
     play: files.length ? () => mixer.recordings.playGroup({ ...group, pitchVar: 0 }, where(listen.distance, settings.audio.bangRange)) : null,
     advanced: () => { selected = id; setTab('sounds'); },
