@@ -228,6 +228,7 @@ function handleEvents() {
       if (e.type === 'bombRelease' && player.state === 'ground') renderer.message('BOMB AWAY... ON THE GROUND?!', '#ffd870');
       if (e.type === 'engineOut') renderer.message('ENGINE OUT - OUT OF FUEL', '#ff8070');
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
+      if (e.type === 'crewKilled') renderer.message(e.team === player.team ? 'YOU RAN DOWN YOUR OWN MECHANIC' : 'ENEMY MECHANIC RUN DOWN', '#ff8070');
       if (e.type === 'hedgeHit') renderer.message('THROUGH THE HEDGE!', '#ffd070');
       if (e.type === 'wallHit') {
         renderer.shake(5);

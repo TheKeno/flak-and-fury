@@ -7,7 +7,7 @@ import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LAN
 import { stepBullets, stepBombs } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand, DEFAULT_BOTS, DEFAULT_RADAR } from './ai.js';
-import { DEFAULT_SERVICING } from './airfield.js';
+import { DEFAULT_SERVICING, stepCrew } from './airfield.js';
 import { createGround, planesHitStructures } from './ground.js';
 import { stepDefences, stepShells } from './defences.js';
 import { DEFAULT_FIRE } from './fire.js';
@@ -81,6 +81,8 @@ export function createWorld({
     bullets: [],
     bombsInFlight: [],
     shells: [], // flak shells in flight
+    crew: [], // ground crew on foot (src/sim/airfield.js)
+    crewDown: {}, // team -> seconds until a killed crew is replaced
     events: [], // things that happened this tick, for sound and effects
     nextId: 1,
   };
@@ -127,6 +129,7 @@ export function stepWorld(world, commands) {
     }
     stepPlane(p, cmd ?? NO_COMMAND, world, DT);
   }
+  stepCrew(world, DT);
   stepArmy(world, DT);
   stepDefences(world, DT);
   stepBullets(world, DT);

@@ -68,7 +68,8 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 ## Ground crew and camera: `data/settings.json`
 
 `servicing`: `crewDelay` (seconds before the crew set off), `crewWalkSpeed` (world units per second they
-walk from the hangar, so the wait grows with the distance to your plane), `repairPerSec` (hit points per second),
+walk from the hangar and back, so the wait grows with the distance to your plane), `crewRespawn` (seconds
+after a plane rolls into a mechanic before a replacement walks out and carries on the job), `repairPerSec` (hit points per second),
 `refuelTime` and `rearmTime` (seconds), `recoveryTime` (seconds a plane stranded away from home waits to be
 brought home, damage and all, not counted as lost; B abandons it instead for a fresh plane, counted as
 lost). `camera` and `audio` hold the camera and volume settings.

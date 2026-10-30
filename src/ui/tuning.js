@@ -68,6 +68,7 @@ const CAMERA_FIELDS = [
 const SERVICING_FIELDS = [
   ['crewDelay', 'Crew reaction time', 0, 5, 0.1, 'Seconds after you stop before the ground crew set off from the hangar.'],
   ['crewWalkSpeed', 'Crew walking speed', 10, 150, 1, 'World units per second the crew walk from the hangar to your plane. Stop far down the strip and they take longer.'],
+  ['crewRespawn', 'Replacement crew after', 0, 30, 0.5, 'Seconds after a mechanic is run down before another walks out from the hangar to carry on the job.'],
   ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
   ['refuelTime', 'Refuel time', 0.5, 30, 0.5, 'Seconds to fill an empty tank.'],
   ['rearmTime', 'Rearm time', 0.5, 20, 0.5, 'Seconds to reload all guns and bombs.'],

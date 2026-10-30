@@ -1,5 +1,6 @@
-// Blood and gore from soldiers hit by bullets, bombs, shells and propellers. Visual only (the simulation
-// just says how a man died, in the soldierKilled and groundHit events), so Math.random is fine here.
+// Blood and gore from soldiers hit by bullets, bombs, shells and propellers, and ground crew run down.
+// Visual only (the simulation just says how a man died, in the soldierKilled, crewKilled and groundHit
+// events), so Math.random is fine here.
 // Everything is dark and muted. cfg is settings.gore, live from the tuning panel; mode is off, low (blood,
 // stains and bodies) or full (also limbs, thrown bodies and blood on the plane).
 //
@@ -15,7 +16,7 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const G = 140; // gravity for drops and pieces, world units/s²
 const MAX = { drops: 500, stains: 500, bodies: 160, chunks: 120, planeSplats: 14 };
 
-export function createGore(world, cfg, particles, { uniformOf }) {
+export function createGore(world, cfg, particles, { uniformOf, overallsOf = () => undefined }) {
   const drops = [];
   const stains = [];
   const bodies = [];
@@ -62,12 +63,11 @@ export function createGore(world, cfg, particles, { uniformOf }) {
     if (dmg > 1) mist(e.x, e.y, 2);
   }
 
-  function kill(e) {
+  function kill(e, uniform = uniformOf(e.id)) {
     const dir = e.dir || (Math.random() < 0.5 ? 1 : -1);
     const gy = groundAt(e.x);
     const y = e.y + 3;
     const force = e.force ?? 1;
-    const uniform = uniformOf(e.id);
     const blast = e.cause === 'blast';
     const prop = e.cause === 'runDown';
     const splash = Math.ceil((8 + Math.min(force, 8) * 3) * cfg.blood);
@@ -132,6 +132,11 @@ export function createGore(world, cfg, particles, { uniformOf }) {
       if (e.type === 'groundHit' && (e.kind === 'infantry' || e.kind === 'engineers')) bloodHit(e);
       else if (e.type === 'soldierKilled') kill(e);
       else if (e.type === 'runDown') addPlaneBlood(e.plane, world.planes.find((p) => p.id === e.plane)?.def.noseOffset?.[0] ?? 8);
+      else if (e.type === 'crewKilled') {
+        // A mechanic caught by the propeller of a rolling plane.
+        kill(e, overallsOf(e.slot));
+        addPlaneBlood(e.plane, world.planes.find((p) => p.id === e.plane)?.def.noseOffset?.[0] ?? 8);
+      }
     },
     update(dt) {
       if (!on()) return;

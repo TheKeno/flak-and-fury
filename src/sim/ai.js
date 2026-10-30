@@ -11,7 +11,7 @@
 // (plotted once a sweep, missing low flyers, degraded as the radar station is damaged).
 import { angleDiff, clamp } from './math.js';
 import { isUpright, GRAVITY } from './plane.js';
-import { ownAirfieldAt } from './airfield.js';
+import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { clearRunway } from './runway.js';
 import { allGuns } from './weapons.js';
@@ -132,6 +132,11 @@ function groundCommand(world, p, b) {
   if (crew && (needsService(p) || (p.service && p.service.phase !== 'done'))) {
     cmd.throttle = -1;
     b.taxi = false;
+    return cmd;
+  }
+  // Our own mechanics under the nose or walking the runway ahead: wait for them to get clear.
+  if (p.speed < 15 && crewAhead(world, p, 150)) {
+    cmd.throttle = -1;
     return cmd;
   }
   if (b.wait > 0) {

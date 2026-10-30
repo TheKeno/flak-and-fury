@@ -326,7 +326,12 @@ export function createRenderer(canvas, world, assets) {
   const nationOf = (team) => map.airfields.find((a) => a.team === team)?.nation;
   const gore = createGore(world, assets.settings.gore, particles, {
     uniformOf: (id) => assets.nations[nationOf(world.ground.find((o) => o.id === id)?.team)]?.uniform,
+    overallsOf: (slot) => CREW_LOOK[slot]?.overalls,
   });
+  const CREW_LOOK = [
+    { overalls: '#3c4a5c', bob: 0 },
+    { overalls: '#5a5446', bob: 7 },
+  ];
   const facingOf = (obj) => obj.dir ?? (obj.x < map.width / 2 ? 1 : -1);
   const spriteCache = new Map();
   // Tanks wear their nation's paint; everything else is drawn as it is.
@@ -785,42 +790,33 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // Ground crew: two mechanics walk out from the hangar and work at the nose and the wing. They stand
-  // by the hangar for the reaction time, then walk the whole way, so a far-off plane waits longer.
-  const CREW = [
-    { at: 9, lag: 0, overalls: '#3c4a5c', bob: 0 },
-    { at: -3, lag: 12, overalls: '#5a5446', bob: 7 },
-  ];
-  function drawCrew(p) {
-    const s = p.service;
-    if (!s || s.phase === 'done' || p.state !== 'ground') return;
-    const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
-    const walk = s.wait > 0 && s.walk > 0 ? 1 - Math.min(s.wait, s.walk) / s.walk : 1;
-    for (const c of CREW) {
-      const job = p.x + dir * c.at;
-      const back = Math.sign(s.fromX - job) || 1; // the hangar side of the job
-      const wx = job + (s.fromX - job + back * c.lag) * (1 - walk);
-      const gx = Math.round(toScreenX(wx));
-      const gy = Math.round(toScreenY(world.terrain.heightAt(wx)));
-      const walking = walk < 1 && s.wait <= s.walk; // standing at the hangar during the reaction time
-      const step = Math.floor((frame + c.bob) / 6) % 2;
-      const working = !walking && Math.floor((frame + c.bob) / 10) % 2; // arm moving at the job
-      // legs
-      ctx.fillStyle = '#2a2622';
-      ctx.fillRect(gx - 1, gy - 3, 1, 3 - (walking && step ? 1 : 0));
-      ctx.fillRect(gx + 1, gy - 3, 1, 3 - (walking && !step ? 1 : 0));
-      // overalls
-      ctx.fillStyle = c.overalls;
-      ctx.fillRect(gx - 1, gy - 8, 3, 5);
-      // arm reaching towards the plane while working
-      const toward = -Math.sign(dir * c.at);
-      ctx.fillRect(gx + toward * 2, gy - 7 - (working ? 1 : 0), 1, 2);
-      // head and cap
-      ctx.fillStyle = '#d6a77e';
-      ctx.fillRect(gx - 1, gy - 10, 2, 2);
-      ctx.fillStyle = '#26221e';
-      ctx.fillRect(gx - 1, gy - 11, 3, 1);
-    }
+  // Ground crew (world.crew, src/sim/airfield.js): mechanics on foot between the hangar and the
+  // plane they're sent to. Slot 0 works at the nose, slot 1 at the wing.
+  function drawCrew(c) {
+    const look = CREW_LOOK[c.slot] ?? CREW_LOOK[0];
+    const p = c.plane != null ? world.planes.find((o) => o.id === c.plane) : null;
+    const gx = Math.round(toScreenX(c.x));
+    const gy = Math.round(toScreenY(c.y));
+    if (gx < -10 || gx > bw + 10) return;
+    const walking = c.state === 'out' || c.state === 'back';
+    const step = Math.floor((frame + look.bob) / 6) % 2;
+    const working = c.state === 'work' && Math.floor((frame + look.bob) / 10) % 2; // arm moving at the job
+    // legs
+    ctx.fillStyle = '#2a2622';
+    ctx.fillRect(gx - 1, gy - 3, 1, 3 - (walking && step ? 1 : 0));
+    ctx.fillRect(gx + 1, gy - 3, 1, 3 - (walking && !step ? 1 : 0));
+    // overalls
+    ctx.fillStyle = look.overalls;
+    ctx.fillRect(gx - 1, gy - 8, 3, 5);
+    // arm reaching towards the plane at the job, hanging forward otherwise
+    const toward = (p ? Math.sign(p.x - c.x) : 0) || 1;
+    if (c.state === 'work') ctx.fillRect(gx + toward * 2, gy - 7 - (working ? 1 : 0), 1, 2);
+    else ctx.fillRect(gx + (walking && step ? 1 : 0), gy - 6, 1, 2);
+    // head and cap
+    ctx.fillStyle = '#d6a77e';
+    ctx.fillRect(gx - 1, gy - 10, 2, 2);
+    ctx.fillStyle = '#26221e';
+    ctx.fillRect(gx - 1, gy - 11, 3, 1);
   }
 
   // The last flight's damage report, frozen when the focused plane is lost. Shown while it's down
@@ -1032,7 +1028,7 @@ export function createRenderer(canvas, world, assets) {
       if (e.type === 'shrapnel') particles.sparks(e.x, e.y, 3 + Math.min(6, e.damage / 3));
       // The crew shovel a crater full: a little dust over the patch.
       if (e.type === 'runwayFilled') for (let i = 0; i < 6; i++) particles.spawn('dust', e.x + (Math.random() - 0.5) * e.width, world.terrain.heightAt(e.x) + 1, (Math.random() - 0.5) * 10, 6 + Math.random() * 8, 0.6, 0.8);
-      if (e.type === 'soldierKilled' && !gore.on) particles.spawn('dust', e.x, e.y + 2, 0, 8, 0.5, 0.7);
+      if ((e.type === 'soldierKilled' || e.type === 'crewKilled') && !gore.on) particles.spawn('dust', e.x, e.y + 2, 0, 8, 0.5, 0.7);
       if (e.type === 'collision') {
         if (e.severity === 'fatal') particles.explosion(e.x, e.y, 1.2);
         else if (e.severity === 'hard') {
@@ -1077,7 +1073,7 @@ export function createRenderer(canvas, world, assets) {
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       drawProjectiles();
       for (const p of world.planes) drawPlane(p, focus);
-      for (const p of world.planes) drawCrew(p);
+      for (const c of world.crew ?? []) drawCrew(c);
 
       if (focus && focus.consciousness < 1) {
         ctx.fillStyle = `rgba(16,0,0,${((1 - focus.consciousness) * 0.88).toFixed(3)})`;
