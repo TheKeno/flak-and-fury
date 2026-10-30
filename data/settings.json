@@ -106,7 +106,7 @@
     "dropout": 0.6,
     "outline": true,
     "outlineAlpha": 0.6,
-    "outlineTime": 3,
+    "outlineTime": 1.5,
     "outlineNear": 200,
     "outlineFar": 900
   },
