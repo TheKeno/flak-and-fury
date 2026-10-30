@@ -14,7 +14,7 @@
     "lookSpeed": 4.5,
     "lookZoom": 0.12,
     "lookSensitivity": 200,
-    "lookReturn": 10,
+    "lookReturn": 3,
     "mouseLook": true,
     "lookReturnOn": true,
     "shake": 1,

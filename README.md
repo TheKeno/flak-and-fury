@@ -43,7 +43,7 @@ in the browser.
 | Space or left mouse | Guns |
 | E or right mouse | Bombs |
 | G | Landing gear (overrides the automatic gear) |
-| Mouse | Look around (sticky: stays put, eases back ahead after 10 s without moving). Click the game to capture the mouse |
+| Mouse | Look around (sticky: stays put, eases back ahead after 3 s without moving). Click the game to capture the mouse |
 | Arrow keys | Look around while held |
 | Esc | Menu: pause (single player), options, quit |
 | F11 | Fullscreen (the game's own: in Chrome and Edge a tap of Esc then opens the menu, holding Esc leaves fullscreen; in Firefox Esc leaves it, and Resume or a click on the game goes back) |
