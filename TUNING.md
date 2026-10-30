@@ -308,8 +308,8 @@ computing. Hidden in free look, while dead, dying or waiting, and for planes wit
 |---|---|---|
 | `crosshair` | Show the gunsight at all. | true / false |
 | `crosshairRange` | World units ahead of the muzzle where the ring sits. | 80 – 200 |
-| `crosshairSize` | Ring radius in HUD pixels. | 6 – 12 |
-| `crosshairAlpha` | Opacity; 0 hides it. | 0.3 – 0.7 |
+| `crosshairSize` | Ring radius in HUD pixels. | 2 – 12 |
+| `crosshairAlpha` | Opacity; 0 hides it. | 0.2 – 0.6 |
 
 ## Markings: `data/settings.json` → `markings`
 

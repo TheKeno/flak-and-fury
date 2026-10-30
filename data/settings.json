@@ -199,8 +199,8 @@
     "lastFlightTime": 8,
     "crosshair": true,
     "crosshairRange": 120,
-    "crosshairSize": 9,
-    "crosshairAlpha": 0.55
+    "crosshairSize": 3,
+    "crosshairAlpha": 0.35
   },
   "rules": {
     "friendlyFire": false,
