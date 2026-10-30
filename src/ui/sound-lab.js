@@ -1389,7 +1389,7 @@ function airframeLayer(key) {
   const id = `slot_${key}`;
   if (sound.layers[id]) return sound.layers[id];
   const [name, type, driver, mapping] = AIRFRAME_SLOTS[key];
-  sound.layers[id] = { name, type, kind: 'plane', hearing: 'cockpit', driver, threshold: 1.5, cooldown: 3, chance: 0.4, group: { ...newGroup(), ...(mapping ?? {}) }, attach: { 'all:plane': { gain: 1, pitch: 0 } } };
+  sound.layers[id] = { name, type, kind: 'plane', hearing: key === 'damage' ? 'world' : 'cockpit', driver, threshold: 1.5, cooldown: 3, chance: 0.4, group: { ...newGroup(), ...(mapping ?? {}) }, attach: { 'all:plane': { gain: 1, pitch: 0 } } };
   return sound.layers[id];
 }
 
