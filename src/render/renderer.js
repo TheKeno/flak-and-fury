@@ -16,6 +16,7 @@ import { drawText, textWidth } from './font.js';
 import { createRadar, SCOPE } from './radar.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
+import { localToWorld } from '../sim/weapons.js';
 import { attitude, mainWheelContact, DEFAULT_WHEELS } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
@@ -785,6 +786,30 @@ export function createRenderer(canvas, world, assets) {
   let lastFlight = null;
   const hudCfg = assets.settings.hud;
 
+  // Reflector gunsight: a plain ring and pip a fixed range down the firing line (no lead, like a
+  // 1943 Revi). It follows the fuselage, tail-down tilt included, not the camera.
+  function drawSight(p) {
+    if (!hudCfg.crosshair || hudCfg.crosshairAlpha <= 0 || !p.guns.length) return;
+    if (p.state === 'dead' || p.dying || p.waiting) return;
+    const [mx, my] = localToWorld(p, p.def.noseOffset);
+    const a = attitude(p).angle;
+    const wx = mx + Math.cos(a) * hudCfg.crosshairRange;
+    const wy = my + Math.sin(a) * hudCfg.crosshairRange;
+    const x = Math.round(((wx - cam.x) * SCALE / bw) * W);
+    const y = Math.round(((bh - (wy - cam.y) * SCALE) / bh) * H);
+    if (x < 0 || y < 0 || x >= W || y >= H) return;
+    hud.save();
+    hud.globalAlpha = hudCfg.crosshairAlpha;
+    hud.strokeStyle = '#c8d8b0';
+    hud.fillStyle = '#c8d8b0';
+    hud.lineWidth = 1;
+    hud.beginPath();
+    hud.arc(x + 0.5, y + 0.5, hudCfg.crosshairSize, 0, Math.PI * 2);
+    hud.stroke();
+    hud.fillRect(x - 1, y - 1, 2, 2);
+    hud.restore();
+  }
+
   const flashes = new Map(); // plane id -> frames of muzzle flash left
   const messages = [];
 
@@ -1025,6 +1050,7 @@ export function createRenderer(canvas, world, assets) {
       }
       if (focus) gore.drawSpatters(hud, focus.id);
       drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
+      if (focus && !free) drawSight(focus);
       drawMessages();
       const banner = (text, y, colour) => drawText(hud, text, Math.round((W - textWidth(text)) / 2), y, colour);
       if (free) {

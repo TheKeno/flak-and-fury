@@ -237,6 +237,9 @@ const GORE_FIELDS = [
 ];
 const HUD_FIELDS = [
   ['lastFlightTime', 'Last-flight report', 0, 30, 1, 'Seconds the LAST FLIGHT damage report stays after you respawn.'],
+  ['crosshairRange', 'Gunsight range', 40, 300, 5, 'World units ahead of the muzzle where the sight ring sits (fixed, no lead).'],
+  ['crosshairSize', 'Gunsight size', 4, 20, 1, 'Ring radius in HUD pixels.'],
+  ['crosshairAlpha', 'Gunsight strength', 0, 1, 0.05, 'Opacity of the sight; 0 hides it.'],
 ];
 const AUDIO_FIELDS = [
   ['master', 'Master volume', 0, 1, 0.01, '1.0 = full loudness.'],

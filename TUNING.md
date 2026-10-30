@@ -299,6 +299,18 @@ page).
 | `margin` | Extra flat ground on each side of the object. | 2 – 10 |
 | `blend` | How far the pad eases back into the hill (smaller = sharper cut). | 10 – 40 |
 
+## Gunsight: `data/settings.json` → `hud`
+
+A plain reflector ring and pip down the firing line (`attitude(p).angle` from the muzzle), no lead
+computing. Hidden in free look, while dead, dying or waiting, and for planes with no guns.
+
+| Field | What it does | Try |
+|---|---|---|
+| `crosshair` | Show the gunsight at all. | true / false |
+| `crosshairRange` | World units ahead of the muzzle where the ring sits. | 80 – 200 |
+| `crosshairSize` | Ring radius in HUD pixels. | 6 – 12 |
+| `crosshairAlpha` | Opacity; 0 hides it. | 0.3 – 0.7 |
+
 ## Markings: `data/settings.json` → `markings`
 
 National markings are painted on the 3D models as they were in 1943 (`tools/plane-models.mjs`). One is

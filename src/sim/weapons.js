@@ -52,7 +52,7 @@ export const allGuns = (p) => [...p.guns, ...(p.turrets ?? [])];
 
 // Local offset on the plane (x forward, y up from the pilot's view) to a world position, as the
 // plane actually sits (tail-down on the ground).
-function localToWorld(p, [ox, oy]) {
+export function localToWorld(p, [ox, oy]) {
   const { angle, x, y } = attitude(p);
   const c = Math.cos(angle);
   const s = Math.sin(angle);

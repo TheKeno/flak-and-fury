@@ -196,7 +196,11 @@
     "spatterTime": 12
   },
   "hud": {
-    "lastFlightTime": 8
+    "lastFlightTime": 8,
+    "crosshair": true,
+    "crosshairRange": 120,
+    "crosshairSize": 9,
+    "crosshairAlpha": 0.55
   },
   "rules": {
     "friendlyFire": false,
