@@ -884,6 +884,7 @@ function renderGuide() {
     h('Recordings: getting ready'),
     p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/ and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
     p('Fill in licence and source for each file. A red ! in the list means one is missing or marked other, so it can be reviewed before release.'),
+    p('A looping sound with several files plays a random one each time round. Each file has its own trim, so trim them to clean pieces. Engine clips are the exception: there is one per slot.'),
     h('Recorded engines'),
     p('On a build, add up to three clips, usually idle, cruise and full, and enter the rpm of each. The game pitches them to the engine and crossfades between the two nearest. Synth level and Clip level blend them with the synth. Misfires dip the recording too. Clips with very different rpm from the engine sound stretched. Tanks take a standing clip, a moving clip and a tracks clip instead.'),
     h('Your layers'),
@@ -1396,8 +1397,8 @@ function playToggle(play, onText = '▶', offText = '■') {
 }
 
 // Plays a looping slot round and round. Its trim and level are followed as they change.
-function loopPlay(file, levelOf, xfadeOf) {
-  const group = { ...newGroup(), pitchVar: 0, gainVar: 0, files: [file], gain: 1, gainLow: 1, gainHigh: 1, pitchLow: 1, pitchHigh: 1, get xfade() { return xfadeOf(); } };
+function loopPlay(files, levelOf, xfadeOf) {
+  const group = { ...newGroup(), pitchVar: 0, gainVar: 0, files, gain: 1, gainLow: 1, gainHigh: 1, pitchLow: 1, pitchHigh: 1, get xfade() { return xfadeOf(); } };
   const loop = mixer.recordings.createLoop(group);
   if (!loop) return null;
   let frame = 0;
@@ -1508,7 +1509,7 @@ function engineSlots(buildId, specs, locked) {
       files: clip ? [clip] : [],
       sub: clip ? `${clip.rpm} rpm` : null,
       level: clip ? { obj: clip, key: 'gain' } : null,
-      play: clip ? () => loopPlay(clip, () => clip.gain ?? 1, () => clip.xfade ?? 0.05) : null,
+      play: clip ? () => loopPlay([clip], () => clip.gain ?? 1, () => clip.xfade ?? 0.05) : null,
       advanced: () => { selected = id; setTab('sounds'); },
       onFiles: ([f]) => {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
@@ -1539,7 +1540,7 @@ function tankSlots(buildId, locked) {
     return slotRow({
       key, name, locked, help, files: clip ? [clip] : [],
       level: clip ? { obj: clip, key: 'gain' } : null,
-      play: clip ? () => loopPlay(clip, () => clip.gain ?? 1, () => clip.xfade ?? 0.05) : null,
+      play: clip ? () => loopPlay([clip], () => clip.gain ?? 1, () => clip.xfade ?? 0.05) : null,
       advanced: () => { selected = id; setTab('sounds'); },
       onFiles: ([f]) => {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
@@ -1570,12 +1571,11 @@ function layerSlot(key, layer, help, locked, vehicleId) {
   return slotRow({
     key, name: layer?.name ?? AIRFRAME_SLOTS[key]?.[0], locked, help, files,
     level: layer && files.length ? { obj: layer.group, key: 'gain' } : null,
-    play: files.length ? () => (layer.type === 'continuous' ? loopPlay(files[0], () => layer.group.gain, () => layer.group.xfade) : mixer.recordings.playGroup({ ...layer.group, pitchVar: 0 }, where())) : null,
+    play: files.length ? () => (layer.type === 'continuous' ? loopPlay(files, () => layer.group.gain, () => layer.group.xfade) : mixer.recordings.playGroup({ ...layer.group, pitchVar: 0 }, where())) : null,
     advanced: layer ? () => { selected = `layer:${Object.keys(sound.layers).find((k) => sound.layers[k] === layer)}`; setTab('sounds'); } : null,
     onFiles: (added) => {
       const target = layer ?? airframeLayer(key);
-      if (target.type === 'continuous') target.group.files = added.slice(0, 1);
-      else target.group.files.push(...added);
+      target.group.files.push(...added);
     },
     body: [...files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
       layer && vehicleId ? layerOverride(layer, vehicleId) : null].filter(Boolean),
@@ -1604,7 +1604,7 @@ function gunVoices(vehicles) {
   return [...voiceNames].map((n) => [n, [...(weaponsBy.get(n) ?? [])]]);
 }
 
-// looping: one file that repeats while the sound lasts, not several to pick from.
+// looping: repeats while the sound lasts, a random one of its files each time round.
 function groupSlot(id, key, name, help, locked, sub, looping = false) {
   const rec = recOf(id);
   rec.groups ??= [];
@@ -1613,12 +1613,11 @@ function groupSlot(id, key, name, help, locked, sub, looping = false) {
   return slotRow({
     key, name, help: USED[id] ? `${help} Used for: ${USED[id]}` : help, locked, files, sub,
     level: group && files.length ? { obj: group, key: 'gain' } : null,
-    play: files.length ? () => (looping ? loopPlay(files[0], () => group.gain, () => group.xfade) : mixer.recordings.playGroup({ ...group, pitchVar: 0 }, where(listen.distance, settings.audio.bangRange))) : null,
+    play: files.length ? () => (looping ? loopPlay(files, () => group.gain, () => group.xfade) : mixer.recordings.playGroup({ ...group, pitchVar: 0 }, where(listen.distance, settings.audio.bangRange))) : null,
     advanced: () => { selected = id; setTab('sounds'); },
     onFiles: (added) => {
       if (!rec.groups[0]) rec.groups[0] = newGroup();
-      if (looping) rec.groups[0].files = added.slice(0, 1);
-      else rec.groups[0].files.push(...added);
+      rec.groups[0].files.push(...added);
     },
     body: files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
   });

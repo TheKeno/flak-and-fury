@@ -91,8 +91,14 @@ export function createRecordings(mixer, sound) {
     return loop;
   }
 
-  // A loop that follows its file's trim: moved markers are heard from the next time round.
-  function liveSource(file, xfadeOf, dest) {
+  // A loop that follows its file's trim: moved markers are heard from the next time round. With
+  // several files to choose from, each time round picks another at random.
+  function liveSource(choices, xfadeOf, dest) {
+    const pick = () => {
+      const files = choices();
+      return files[Math.floor(Math.random() * files.length)];
+    };
+    let file = pick();
     let src = null;
     let g = null;
     let key = '';
@@ -101,7 +107,7 @@ export function createRecordings(mixer, sound) {
     let rate = 1;
     let seam = xfadeOf();
     let hearSeamAt = Infinity;
-    const keyNow = () => `${file.start}|${file.end}|${xfadeOf()}`;
+    const keyNow = () => `${file.path}|${file.start}|${file.end}|${xfadeOf()}`;
     const open = (offset, at) => {
       key = keyNow();
       const buffer = seamless(file, xfadeOf());
@@ -151,7 +157,9 @@ export function createRecordings(mixer, sound) {
           return;
         }
         const left = (length - pos) / Math.max(0.05, r);
-        if (left > 0.12 || keyNow() === key) return;
+        const several = choices().length > 1;
+        if (left > 0.12 || (!several && keyNow() === key)) return;
+        if (several) file = pick();
         swap(now + left, 0);
         pos = -left * r;
       },
@@ -223,10 +231,10 @@ export function createRecordings(mixer, sound) {
 
   // One looping group that follows a value: a recorded fire, a wing rattle.
   function createLoop(group, chainMixer = mixer) {
-    const file = group.files.find((f) => buffers.has(f.path));
-    if (!file) return null;
+    const usable = () => group.files.filter((f) => buffers.has(f.path));
+    if (!usable().length) return null;
     const chain = spatialChain(chainMixer, group.reverb);
-    const src = liveSource(file, () => group.xfade, tweaks(group, chain.input));
+    const src = liveSource(usable, () => group.xfade, tweaks(group, chain.input));
     return {
       update(where, value = 1, { gain = 1, pitch = 0 } = {}) {
         const m = mapRange(value, group);
@@ -249,7 +257,7 @@ export function createRecordings(mixer, sound) {
       const g = ctx.createGain();
       g.gain.value = 0;
       g.connect(dest);
-      const srcs = Array.from({ length: engines }, () => liveSource(clip, () => clip.xfade ?? 0.05, g));
+      const srcs = Array.from({ length: engines }, () => liveSource(() => [clip], () => clip.xfade ?? 0.05, g));
       return { clip, g, srcs };
     });
     return {
@@ -284,7 +292,7 @@ export function createRecordings(mixer, sound) {
       const g = ctx.createGain();
       g.gain.value = 0;
       g.connect(dest);
-      return { clip, g, s: liveSource(clip, () => clip.xfade ?? 0.05, g) };
+      return { clip, g, s: liveSource(() => [clip], () => clip.xfade ?? 0.05, g) };
     });
     if (!voices.length) return null;
     return {
