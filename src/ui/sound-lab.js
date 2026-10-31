@@ -7,6 +7,8 @@ import { buildVoices, renderGun as renderGunVoice } from '../audio/gun-voices.js
 import { spatialize } from '../audio/spatial.js';
 import * as rawSfx from '../audio/sfx.js';
 import { createFire, createBombWhistle, createScrape, createRadarStatic } from '../audio/loops.js';
+import { createBody } from '../audio/body.js';
+import { createCrew } from '../audio/crew.js';
 import { createRecordings, newGroup, withRecordings } from '../audio/recordings.js';
 import { DRIVERS } from '../audio/sound-data.js';
 
@@ -126,6 +128,9 @@ const ONE_SHOTS = {
   fireOut: ['Fire put out', (w) => sfx.fireOut(mixer, w)],
   hammering: ['Hammering', (w) => sfx.hammering(mixer, w)],
   radarPowerDown: ['Radar power-down', () => sfx.radarPowerDown(mixer)],
+  heartbeat: ['Heartbeat', () => pilot().beat()],
+  breathing: ['Breathing', () => pilot().breathe()],
+  gasp: ['Gasp', () => pilot().gasp()],
   propStrike: ['Propeller strike', (w) => sfx.play(mixer, voices.propStrike, w, { gain: 0.9, reverb: 0.1, recordedRate: 1 })],
   clank: ['Bullet on metal', (w) => sfx.play(mixer, voices.clank, w, { gain: 0.7, reverb: 0.2 })],
   thunk: ['Being hit', (w) => sfx.play(mixer, voices.thunk, w, { gain: 0.6 })],
@@ -136,13 +141,16 @@ const ONE_SHOTS = {
   click: ['Empty gun click', (w) => sfx.play(mixer, voices.click, w, { gain: 0.5 })],
 };
 // Tracked here so they can be ticked and noted; their audition comes with the recording stage.
-const LOOPS = { wind: 'Wind, dive scream, stall, wheels', bombWhistle: 'Bomb whistle', scrape: 'Belly scrape', fire: 'Burning fire', radarStatic: 'Radar static', heartbeat: 'Heartbeat and breathing', crew: 'Ground crew at work' };
+const LOOPS = { wind: 'Wind, dive scream, stall, wheels', bombWhistle: 'Bomb whistle', scrape: 'Belly scrape', fire: 'Burning fire', radarStatic: 'Radar static', crewRepair: 'Crew repairing', crewRefuel: 'Crew refuelling', crewRearm: 'Crew rearming' };
 // Loops that can be auditioned here, with the value the game drives them by.
 const LOOP_TEST = {
   fire: ['Intensity', 0, 1, 0.7, (m) => createFire(m)],
   bombWhistle: ['Fall speed', 0, 300, 150, (m) => createBombWhistle(m)],
   scrape: ['Speed', 0, 100, 40, (m) => createScrape(m)],
   radarStatic: ['Level', 0, 1, 0.5, (m) => createRadarStatic(m)],
+  crewRepair: [null, 0, 1, 1, (m) => crewAtWork(m, 'repair')],
+  crewRefuel: [null, 0, 1, 1, (m) => crewAtWork(m, 'refuel')],
+  crewRearm: [null, 0, 1, 1, (m) => crewAtWork(m, 'rearm')],
 };
 
 // Where each sound is heard in the game. Keep this in step with src/audio/soundscape.js.
@@ -176,22 +184,33 @@ const USED = {
   'sfx:hammering': 'Engineers finishing a bridge.',
   'sfx:radarPowerDown': 'Your side\'s radar failing completely.',
   'sfx:propStrike': 'The propeller killing someone: ground crew, infantry on the ground, and pilots hanging in a parachute.',
-  'sfx:clank': 'Shared by several sounds: bullets hitting a plane, bullets on flak guns, MG nests and radar, and the ground crew\'s tools. Played at different pitches.',
+  'sfx:clank': 'Shared by several sounds: bullets hitting a plane, and bullets on flak guns, MG nests and radar. Played at different pitches.',
   'sfx:thunk': 'Shared by several sounds: being hit, the crew finishing servicing, and a plane being shot down.',
   'sfx:snap': 'Your own plane: a round passing close by.',
   'sfx:thud': 'Bullets hitting the soil and most ground targets.',
   'sfx:patter': 'Flak splinters on other planes. Your own plane also uses it, inside Shrapnel.',
   'sfx:release': 'A bomb being released.',
-  'sfx:click': 'Shared by several sounds: an empty gun, the low fuel warning, each radar sweep, and the ground crew\'s ratchet. Played at different pitches.',
+  'sfx:click': 'Shared by several sounds: an empty gun, the low fuel warning, and each radar sweep. Played at different pitches.',
   'loop:wind': 'Heard from your own plane: wind, dive scream, stall shudder, wind through bullet holes, and wheels on the ground. One synth, one level.',
   'loop:bombWhistle': 'Every bomb falling, rising with its fall speed.',
   'loop:scrape': 'A plane sliding on its belly, louder with speed.',
   'loop:fire': 'A plane on fire, louder when it is going down.',
   'loop:radarStatic': 'Your side\'s radar when damaged or gone. Heard in the cockpit.',
-  'loop:heartbeat': 'Your own plane: the pilot blacking out and coming round.',
-  'loop:crew': 'The ground crew repairing, refuelling and rearming a plane. Ratchet, hammer, hose, belts.',
+  'sfx:heartbeat': 'Your own plane: each heartbeat as the pilot starts to black out, faster and louder as consciousness fades. Not muffled by the blackout.',
+  'sfx:breathing': 'Your own plane: each breath, in and out, when close to blacking out. Not muffled by the blackout.',
+  'sfx:gasp': 'Your own plane: the gasp when the pilot comes round.',
+  'loop:crewRepair': 'Any plane near you being repaired by its ground crew. Loops while the job lasts.',
+  'loop:crewRefuel': 'Any plane near you being refuelled by its ground crew. Loops while the job lasts.',
+  'loop:crewRearm': 'Any plane near you being rearmed by its ground crew. Loops while the job lasts.',
 };
 const BUILD_USE = { plane: 'The running engine of the planes on this build, from start-up on. Doppler and distance apply.', tank: 'The generic tank in the game today, if this is its default build. The nearest 4 tanks play. Other builds wait until those tanks exist.' };
+
+const crewAtWork = (m, job) => {
+  const crew = createCrew(m, voices);
+  return { update: (where) => crew.update(job, where), stop: crew.stop };
+};
+let labBody = null;
+const pilot = () => (labBody ??= createBody(mixer));
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => {
@@ -694,9 +713,9 @@ function renderLoop(id, key) {
     live = { stop() { cancelAnimationFrame(frame); stop(); playBtn.textContent = 'Play'; } };
   }) : null;
   return el('div', {}, pageHead(id, LOOPS[key]),
-    test ? el('div', {}, el('div', { className: 'buttons' }, playBtn), testSlider(state, 'value', test[0], test[1], test[2], (test[2] - test[1]) / 100), distanceControl())
-      : el('p', { className: 'dim', textContent: 'No audition here yet: listen to it in the game. Its Synth level works; to add a recording, make a layer and attach it to the planes.' }),
-    recordingPanel(id, test ? { loop: true, driver: test[0] } : { synthOnly: true }), notesPanel(id));
+    test ? el('div', {}, el('div', { className: 'buttons' }, playBtn), test[0] ? testSlider(state, 'value', test[0], test[1], test[2], (test[2] - test[1]) / 100) : null, distanceControl())
+      : el('p', { className: 'dim', textContent: 'No audition here yet: listen to it in the game. Its Synth level works. For a recording, use the Airflow and Rattle slots or a layer: this one sound covers wind, stall and wheels.' }),
+    recordingPanel(id, test ? { loop: true, driver: test[0], fixed: !test[0] } : { synthOnly: true }), notesPanel(id));
 }
 
 // The Vehicles tab: the whole roster, and one vehicle's sound set-up.
@@ -1120,9 +1139,9 @@ function groupPanel(group, id, locked, opts = {}) {
     }),
     el('div', { className: 'buttons' }, trial, opts.loop ? null : el('label', {}, reverse, ' reverse')),
     ...GROUP_FIELDS.map((f) => slider(group, f, null, locked)),
-    ...(opts.loop ? LOOP_FIELDS.map((f) => slider(group, f, null, locked)) : []),
-    opts.loop ? slider(group, ['mapFrom', `Value low (${opts.driver ?? 'value'})`, opts.min ?? 0, opts.max ?? 1, ((opts.max ?? 1) - (opts.min ?? 0)) / 100, ''], null, locked) : null,
-    opts.loop ? slider(group, ['mapTo', `Value high (${opts.driver ?? 'value'})`, opts.min ?? 0, opts.max ?? 1, ((opts.max ?? 1) - (opts.min ?? 0)) / 100, ''], null, locked) : null,
+    ...(opts.loop ? LOOP_FIELDS.slice(0, opts.fixed ? 1 : LOOP_FIELDS.length).map((f) => slider(group, f, null, locked)) : []),
+    opts.loop && !opts.fixed ? slider(group, ['mapFrom', `Value low (${opts.driver ?? 'value'})`, opts.min ?? 0, opts.max ?? 1, ((opts.max ?? 1) - (opts.min ?? 0)) / 100, ''], null, locked) : null,
+    opts.loop && !opts.fixed ? slider(group, ['mapTo', `Value high (${opts.driver ?? 'value'})`, opts.min ?? 0, opts.max ?? 1, ((opts.max ?? 1) - (opts.min ?? 0)) / 100, ''], null, locked) : null,
   );
   return box;
 }
@@ -1331,7 +1350,7 @@ const AIRFRAME_SLOTS = {
   creak: ['Creak', 'triggered', 'turn', null, '3-4 short creaks or groans of 1-2 s, each different. One plays at random in hard turns, so they need to sound good alone and not be too loud.'],
   damage: ['Damage', 'continuous', 'damage', m(0.1, 0.8, 0, 1, 1, 1), 'A steady loop of knocking or rough rattling, 5-10 s. It fades in as the plane takes damage, so it should sound like something is broken.'],
 };
-const LOOPING = new Set(['idle', 'cruise', 'full', 'move', 'tracks', 'airflow', 'rattle', 'damage']);
+const LOOPING = new Set(['idle', 'cruise', 'full', 'move', 'tracks', 'airflow', 'rattle', 'damage', 'crewRepair', 'crewRefuel', 'crewRearm']);
 
 const pageBuild = () => {
   if (design.type === 'build') return design.id;
@@ -1585,7 +1604,8 @@ function gunVoices(vehicles) {
   return [...voiceNames].map((n) => [n, [...(weaponsBy.get(n) ?? [])]]);
 }
 
-function groupSlot(id, key, name, help, locked, sub) {
+// looping: one file that repeats while the sound lasts, not several to pick from.
+function groupSlot(id, key, name, help, locked, sub, looping = false) {
   const rec = recOf(id);
   rec.groups ??= [];
   const group = rec.groups[0];
@@ -1593,11 +1613,12 @@ function groupSlot(id, key, name, help, locked, sub) {
   return slotRow({
     key, name, help: USED[id] ? `${help} Used for: ${USED[id]}` : help, locked, files, sub,
     level: group && files.length ? { obj: group, key: 'gain' } : null,
-    play: files.length ? () => mixer.recordings.playGroup({ ...group, pitchVar: 0 }, where(listen.distance, settings.audio.bangRange)) : null,
+    play: files.length ? () => (looping ? loopPlay(files[0], () => group.gain, () => group.xfade) : mixer.recordings.playGroup({ ...group, pitchVar: 0 }, where(listen.distance, settings.audio.bangRange))) : null,
     advanced: () => { selected = id; setTab('sounds'); },
     onFiles: (added) => {
       if (!rec.groups[0]) rec.groups[0] = newGroup();
-      rec.groups[0].files.push(...added);
+      if (looping) rec.groups[0].files = added.slice(0, 1);
+      else rec.groups[0].files.push(...added);
     },
     body: files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
   });
@@ -1608,6 +1629,14 @@ function otherSlots(vehicles, locked) {
     ...gunVoices(vehicles).map(([name, used]) => groupSlot(`gun:${name}`, `gun${name}`, gunTitle(name), '3-4 single shots, each with the crack and a short tail, and trimmed tight to the start. No bursts: the game fires each round itself.', locked, used.join(', '))),
     el('h3', { textContent: 'Propeller: shared with all aircraft' }),
     groupSlot('sfx:propStrike', 'propStrike', 'Propeller strike', '3-4 short, wet, violent impacts, under 1 s each and different from each other, with no engine in them: the engine is already playing. One plays at random per man killed.', locked),
+    el('h3', { textContent: 'Pilot: shared with all aircraft' }),
+    groupSlot('sfx:heartbeat', 'heartbeat', 'Heartbeat', 'One heartbeat, lub-dub, under 1 s, starting straight away. The game plays it faster and louder as the pilot fades, so it should not be a run of beats.', locked),
+    groupSlot('sfx:breathing', 'breathing', 'Breathing', 'One whole breath, in and out, about 2 s, close to the mic. It repeats while the pilot is close to blacking out.', locked),
+    groupSlot('sfx:gasp', 'gasp', 'Gasp', '2-3 short, sharp gasps, under 1 s, for the pilot coming round.', locked),
+    el('h3', { textContent: 'Ground crew: shared with all aircraft' }),
+    groupSlot('loop:crewRepair', 'crewRepair', 'Repairing', 'A steady loop of ratchets and hammer blows, 5-15 s, recorded a little away. No engine or speech.', locked, null, true),
+    groupSlot('loop:crewRefuel', 'crewRefuel', 'Refuelling', 'A steady loop of fuel gurgling through a hose, 5-15 s. No engine or speech.', locked, null, true),
+    groupSlot('loop:crewRearm', 'crewRearm', 'Rearming', 'A steady loop of ammunition belts rattling and boxes knocking, 5-15 s. No engine or speech.', locked, null, true),
     el('h3', { textContent: 'Landing: shared with all aircraft' }),
     groupSlot('sfx:touchdown', 'touchdown', 'Touchdown', '2-3 short thumps of wheels hitting the ground, under 1 s, with no engine in them.', locked),
     groupSlot('sfx:gearLockUp', 'gearLockUp', 'Gear lock, up', '2-3 short metal clunks, under 1 s, with no motor sound in them. Plays as the gear finishes going up.', locked),

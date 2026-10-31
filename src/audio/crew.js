@@ -2,8 +2,14 @@
 // boxes for rearming. One per plane being serviced; update() each frame with the current job.
 import * as sfx from './sfx.js';
 
+// Each job has its own sound now, so these play apart from the sounds they borrow the synth of.
+const own = (voice) => [...voice];
+
 export function createCrew(mixer, voices) {
   const { ctx } = mixer;
+  const click = own(voices.click);
+  const clank = own(voices.clank);
+  const thunk = own(voices.thunk);
   let next = 0; // when the next one-shot is due (audio clock)
   let hose = null;
 
@@ -48,13 +54,13 @@ export function createCrew(mixer, voices) {
       if (job === 'repair') {
         // A burst of ratchet clicks, now and then a hammer blow.
         const n = 5 + Math.floor(Math.random() * 6);
-        for (let i = 0; i < n; i++) sfx.play(mixer, voices.click, where, { gain: 0.35, rate: 0.55, offset: i * 0.07 });
-        if (Math.random() < 0.4) sfx.play(mixer, voices.clank, where, { gain: 0.5, rate: 0.55, offset: n * 0.07 + 0.2 });
+        for (let i = 0; i < n; i++) sfx.play(mixer, click, where, { gain: 0.35, rate: 0.55, offset: i * 0.07 });
+        if (Math.random() < 0.4) sfx.play(mixer, clank, where, { gain: 0.5, rate: 0.55, offset: n * 0.07 + 0.2 });
         next = now + n * 0.07 + 0.5 + Math.random() * 0.6;
       } else if (job === 'rearm') {
         // Belts rattling into the ammunition bays, then a box knocked shut.
-        for (let i = 0; i < 6; i++) sfx.play(mixer, voices.clank, where, { gain: 0.18, rate: 1.6 + Math.random() * 0.3, offset: i * 0.05 });
-        if (Math.random() < 0.5) sfx.play(mixer, voices.thunk, where, { gain: 0.4, rate: 1.3, offset: 0.4 });
+        for (let i = 0; i < 6; i++) sfx.play(mixer, clank, where, { gain: 0.18, rate: 1.6 + Math.random() * 0.3, offset: i * 0.05 });
+        if (Math.random() < 0.5) sfx.play(mixer, thunk, where, { gain: 0.4, rate: 1.3, offset: 0.4 });
         next = now + 0.7 + Math.random() * 0.5;
       }
     },

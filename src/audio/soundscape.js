@@ -31,7 +31,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   const snapped = new Set();
   const scope = (id) => mixer.recordings?.scoped(id) ?? mixer;
   const airflow = createAirflow(scope('loop:wind'));
-  const body = createBody(scope('loop:heartbeat'));
+  const body = createBody(mixer);
   const layerHosts = new Map();
   const lastAngle = new Map();
   const voices = buildVoices(mixer.ctx, sound.guns);
@@ -130,9 +130,20 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       const job = p.service && p.service.wait <= 0 ? p.service.phase : null;
       let c = crews.get(p.id);
       if (job && job !== 'done') {
-        if (!c) crews.set(p.id, (c = createCrew(scope('loop:crew'), voices)));
+        // Each job is a sound of its own, with its recording.
+        if (c && c.job !== job) {
+          c.stop();
+          c = null;
+        }
+        if (!c) {
+          const id = `crew${job[0].toUpperCase()}${job.slice(1)}`;
+          const crew = createCrew(scope(`loop:${id}`), voices);
+          c = withLoop(id, { update: (where) => crew.update(job, where), stop: crew.stop });
+          c.job = job;
+          crews.set(p.id, c);
+        }
         const where = whereOf(p);
-        c.update(job, where === ME ? { ...ME, pan: 0.3 * (Math.cos(p.angle) >= 0 ? 1 : -1), gain: 0.8 } : where);
+        c.update(where === ME ? { ...ME, pan: 0.3 * (Math.cos(p.angle) >= 0 ? 1 : -1), gain: 0.8 } : where, 1);
       } else if (c) {
         c.stop();
         crews.delete(p.id);
