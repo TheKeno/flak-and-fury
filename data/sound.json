@@ -866,7 +866,9 @@
     "sfx:collapseMasonry": {},
     "sfx:shrapnel": {},
     "sfx:radarPowerDown": {},
-    "loop:fire": {},
+    "loop:fire": {
+      "done": true
+    },
     "layer:wingcreak0": {},
     "sfx:gearDown": {
       "done": true
@@ -878,7 +880,7 @@
     "sfx:rollWhoosh": {},
     "sfx:thunk": {},
     "gun:heavy": {
-      "done": false
+      "done": true
     },
     "sfx:helmetCreak": {},
     "sfx:collapseMetal": {},
@@ -887,10 +889,16 @@
     "sfx:snap": {},
     "sfx:patter": {},
     "sfx:release": {},
-    "sfx:click": {},
+    "sfx:click": {
+      "done": true
+    },
     "loop:bombWhistle": {},
-    "layer:slot_airflow": {},
-    "layer:slot_creak": {},
+    "layer:slot_airflow": {
+      "done": true
+    },
+    "layer:slot_creak": {
+      "done": true
+    },
     "sfx:fireOut": {},
     "sfx:thud": {},
     "sfx:gearLockUp": {
@@ -901,7 +909,29 @@
     },
     "gun:rifle": {
       "done": true
-    }
+    },
+    "layer:slot_rattle": {
+      "done": true
+    },
+    "layer:slot_damage": {
+      "done": true
+    },
+    "loop:scrape": {},
+    "loop:crewRepair": {
+      "done": true
+    },
+    "loop:crewRefuel": {
+      "done": true
+    },
+    "loop:crewRearm": {
+      "done": true
+    },
+    "loop:wind": {},
+    "sfx:heartbeat": {
+      "done": true
+    },
+    "sfx:breathing": {},
+    "sfx:propStrike": {}
   },
   "recordings": {
     "build:inline": {
@@ -1024,8 +1054,48 @@
       ]
     },
     "gun:cannon20": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/20mm-1.wav",
+              "size": 48780,
+              "start": 0,
+              "end": 0.3635,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/20mm-2.wav",
+              "size": 114724,
+              "start": 0,
+              "end": 0.8619375,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.265,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 1,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "gun:rifle": {
       "synth": 0,
@@ -1169,8 +1239,48 @@
       "groups": []
     },
     "sfx:click": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/click-2.wav",
+              "size": 24486,
+              "start": 0,
+              "end": 0.179875,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/click-4.wav",
+              "size": 31954,
+              "start": 0,
+              "end": 0.2363125,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "loop:bombWhistle": {
       "synth": 1,
@@ -1259,6 +1369,214 @@
           "pitchHigh": 1
         }
       ]
+    },
+    "sfx:propStrike": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/splat.wav",
+              "size": 62550,
+              "start": 0,
+              "end": 0.46758333333333335,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0.025,
+          "fadeOut": 0.165,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "loop:scrape": {
+      "synth": 1,
+      "groups": []
+    },
+    "loop:fire": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/burning-fire-with-sound-effects-fire-background-clip-nextverse-1.mp3",
+              "size": 619331,
+              "start": 0,
+              "end": 15.098114121222812,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.41,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:heartbeat": {
+      "synth": 1,
+      "groups": []
+    },
+    "sfx:breathing": {
+      "synth": 1,
+      "groups": []
+    },
+    "sfx:gasp": {
+      "synth": 1,
+      "groups": []
+    },
+    "loop:crewRepair": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/591528-rudmer-rotteveel-ratchet-wrench-slow-multiple-2.wav",
+              "size": 860928,
+              "start": 0,
+              "end": 3.0973716382980343,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/425653-soundholder-renault-kangoo-16-16v-foley-handbrake-pull-mono-ntg3-2.wav",
+              "size": 4549424,
+              "start": 6.353204581473213,
+              "end": 7.5966698288690475,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1.48,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "loop:crewRefuel": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/refuel-2.wav",
+              "size": 1219090,
+              "start": 0.13331666499376296,
+              "end": 9.209375,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1.77,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "loop:crewRearm": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/276959-gfl7-pistol-reload-sound.mp3",
+              "size": 17570,
+              "start": 0.1390697852021172,
+              "end": 2.378229166666667,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "loop:wind": {
+      "synth": 0,
+      "groups": []
     }
   },
   "layers": {
@@ -1283,7 +1601,7 @@
           }
         ],
         "gain": 2.25,
-        "pitch": 0,
+        "pitch": 0.1,
         "fadeIn": 0,
         "fadeOut": 0,
         "reverse": false,
@@ -1345,7 +1663,7 @@
             "source": ""
           }
         ],
-        "gain": 0.34,
+        "gain": 0.37,
         "pitch": 0,
         "fadeIn": 0,
         "fadeOut": 0,
@@ -1383,9 +1701,18 @@
       "cooldown": 3,
       "chance": 0.4,
       "group": {
-        "files": [],
-        "gain": 0.09,
-        "pitch": 0,
+        "files": [
+          {
+            "path": "assets/audio/344610-jsdoublel-car-rattle.wav",
+            "size": 3462730,
+            "start": 0,
+            "end": 9,
+            "licence": "",
+            "source": ""
+          }
+        ],
+        "gain": 3,
+        "pitch": -3.1,
         "fadeIn": 0,
         "fadeOut": 0,
         "reverse": false,
@@ -1407,7 +1734,7 @@
       "attach": {
         "all:plane": {
           "gain": 1,
-          "pitch": 0
+          "pitch": -4.4
         }
       }
     },
@@ -1454,7 +1781,7 @@
       "attach": {
         "all:plane": {
           "gain": 1,
-          "pitch": 0
+          "pitch": -4
         }
       }
     }
