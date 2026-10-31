@@ -860,12 +860,18 @@
     "engine:ash82": {
       "reference": "La-5FN and Pe-8 share it."
     },
-    "gun:cannon20": {},
-    "sfx:explosion": {},
+    "gun:cannon20": {
+      "done": true
+    },
+    "sfx:explosion": {
+      "done": true
+    },
     "sfx:clank": {},
     "sfx:collapseMasonry": {},
     "sfx:shrapnel": {},
-    "sfx:radarPowerDown": {},
+    "sfx:radarPowerDown": {
+      "done": true
+    },
     "loop:fire": {
       "done": true
     },
@@ -931,7 +937,11 @@
       "done": true
     },
     "sfx:breathing": {},
-    "sfx:propStrike": {}
+    "sfx:propStrike": {
+      "done": true
+    },
+    "sfx:hammering": {},
+    "sfx:midair": {}
   },
   "recordings": {
     "build:inline": {
@@ -1187,8 +1197,40 @@
       "groups": []
     },
     "sfx:explosion": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/huge-bomb-explosion-with-debris-sound-effect-zapsplat-sound-effects.mp3",
+              "size": 234374,
+              "start": 0.34857143920898437,
+              "end": 5.856,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:flakBurst": {
       "synth": 1,
@@ -1291,8 +1333,40 @@
       "groups": []
     },
     "sfx:radarPowerDown": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/tractor-beam-power-down.mp3",
+              "size": 243380,
+              "start": 1.9083725164095562,
+              "end": 5.922035751285553,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0.12,
+          "fadeOut": 2.8,
+          "reverse": false,
+          "lowpass": 1160,
+          "highpass": 195,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:thud": {
       "synth": 1,
@@ -1384,7 +1458,7 @@
               "source": ""
             }
           ],
-          "gain": 1,
+          "gain": 0.77,
           "pitch": 0,
           "fadeIn": 0.025,
           "fadeOut": 0.165,
@@ -1576,6 +1650,14 @@
     },
     "loop:wind": {
       "synth": 0,
+      "groups": []
+    },
+    "sfx:hammering": {
+      "synth": 1,
+      "groups": []
+    },
+    "sfx:midair": {
+      "synth": 1,
       "groups": []
     }
   },
