@@ -866,8 +866,12 @@
     "sfx:explosion": {
       "done": true
     },
-    "sfx:clank": {},
-    "sfx:collapseMasonry": {},
+    "sfx:clank": {
+      "done": false
+    },
+    "sfx:collapseMasonry": {
+      "done": true
+    },
     "sfx:shrapnel": {},
     "sfx:radarPowerDown": {
       "done": true
@@ -881,20 +885,28 @@
     },
     "sfx:bellyCrunch": {},
     "sfx:gearHorn": {},
-    "sfx:flakBurst": {},
+    "sfx:flakBurst": {
+      "done": true
+    },
     "sfx:touchdown": {},
     "sfx:rollWhoosh": {},
-    "sfx:thunk": {},
+    "sfx:thunk": {
+      "note": "Jobbiga ljudet i början!"
+    },
     "gun:heavy": {
       "done": true
     },
     "sfx:helmetCreak": {},
     "sfx:collapseMetal": {},
-    "sfx:collapseWood": {},
+    "sfx:collapseWood": {
+      "done": true
+    },
     "sfx:splash": {},
     "sfx:snap": {},
     "sfx:patter": {},
-    "sfx:release": {},
+    "sfx:release": {
+      "done": true
+    },
     "sfx:click": {
       "done": true
     },
@@ -940,8 +952,17 @@
     "sfx:propStrike": {
       "done": true
     },
-    "sfx:hammering": {},
-    "sfx:midair": {}
+    "sfx:hammering": {
+      "done": true
+    },
+    "sfx:midair": {
+      "done": true
+    },
+    "sfx:ignite": {},
+    "sfx:collapseCanvas": {},
+    "gun:flakGun": {},
+    "gun:infantryRifle": {},
+    "gun:cannon30": {}
   },
   "recordings": {
     "build:inline": {
@@ -993,10 +1014,10 @@
             "end": 2.796854166666667,
             "licence": "",
             "source": "",
-            "caught": 2.0310488997713727
+            "caught": 1.1237606654930885
           }
         ],
-        "gain": 2.46,
+        "gain": 2.09,
         "fade": 0.6
       },
       "synthWas": 1,
@@ -1144,8 +1165,40 @@
       ]
     },
     "sfx:touchdown": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/basketball-sound-binaural-beats-lab.mp3",
+              "size": 188263,
+              "start": 2.2117759863281248,
+              "end": 3.5176960546875,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.35,
+          "pitch": -0.4,
+          "fadeIn": 0,
+          "fadeOut": 2.64,
+          "reverse": false,
+          "lowpass": 340,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.04,
+          "gainVar": 0.13,
+          "reverb": 0.59,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "build:tankPetrol": {
       "synth": 0,
@@ -1210,7 +1263,7 @@
               "source": ""
             }
           ],
-          "gain": 1,
+          "gain": 0.46,
           "pitch": 0,
           "fadeIn": 0,
           "fadeOut": 0,
@@ -1233,8 +1286,64 @@
       ]
     },
     "sfx:flakBurst": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/flak-4.wav",
+              "size": 815772,
+              "start": 0,
+              "end": 6.160875,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/flak-5.wav",
+              "size": 385918,
+              "start": 0,
+              "end": 2.911770833333333,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/flak-1.wav",
+              "size": 197782,
+              "start": 0,
+              "end": 1.4897291666666668,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/flak-3.wav",
+              "size": 352240,
+              "start": 0,
+              "end": 2.6572291666666668,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.57,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:rollWhoosh": {
       "synth": 1,
@@ -1245,7 +1354,7 @@
       "groups": []
     },
     "sfx:thunk": {
-      "synth": 1,
+      "synth": 0,
       "groups": []
     },
     "sfx:helmetCreak": {
@@ -1254,7 +1363,39 @@
     },
     "sfx:collapseMasonry": {
       "synth": 1,
-      "groups": []
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/house-1.wav",
+              "size": 930618,
+              "start": 0.02075210055206503,
+              "end": 7.0289375,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.65,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:collapseMetal": {
       "synth": 1,
@@ -1262,23 +1403,127 @@
     },
     "sfx:collapseWood": {
       "synth": 1,
-      "groups": []
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/bridge-1.wav",
+              "size": 1263016,
+              "start": 0,
+              "end": 9.541395833333333,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.47,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 1.58,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:splash": {
       "synth": 1,
       "groups": []
     },
     "sfx:snap": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/miss-1.wav",
+              "size": 50574,
+              "start": 0.03350469683953694,
+              "end": 0.3770625,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/miss-2.wav",
+              "size": 34810,
+              "start": 0.027508887951941716,
+              "end": 0.2578958333333333,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.37,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 1,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:patter": {
       "synth": 1,
       "groups": []
     },
     "sfx:release": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/577082-hetanoyokozuki-door-open-close.wav",
+              "size": 705794,
+              "start": 0.6403809465680803,
+              "end": 1.5413333565848215,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.99,
+          "pitch": -6.1,
+          "fadeIn": 0,
+          "fadeOut": 0.54,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.04,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:click": {
       "synth": 0,
@@ -1466,9 +1711,9 @@
           "lowpass": 20000,
           "highpass": 20,
           "drive": 0,
-          "pitchVar": 0.03,
-          "gainVar": 0.1,
-          "reverb": 0.15,
+          "pitchVar": 0.085,
+          "gainVar": 0.45,
+          "reverb": 0.01,
           "delay": 0,
           "xfade": 0.05,
           "mapFrom": 0,
@@ -1653,10 +1898,138 @@
       "groups": []
     },
     "sfx:hammering": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/hammer-sound-effect-hammering-nail-sound-buzz-duo-sounds-music.mp3",
+              "size": 221893,
+              "start": 0,
+              "end": 5.544,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.37,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.09,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:midair": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/454418-kyles-bodyfall-thump-over-motorbike-seat-parking-space.flac",
+              "size": 34674,
+              "start": 0.16929305512837003,
+              "end": 0.87484476965768,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.74,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.53,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.05,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:ignite": {
       "synth": 1,
       "groups": []
     },
-    "sfx:midair": {
+    "sfx:collapseCanvas": {
+      "synth": 1,
+      "groups": []
+    },
+    "sfx:clank": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/plane-hit-1-2.wav",
+              "size": 74932,
+              "start": 0.0704397794087728,
+              "end": 0.5611666666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/plane-hit-2-2.wav",
+              "size": 62446,
+              "start": 0.054192292056764874,
+              "end": 0.46679166666666666,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.22,
+          "pitch": -16.3,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.045,
+          "gainVar": 0.11,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "gun:flakGun": {
+      "synth": 1,
+      "groups": []
+    },
+    "gun:infantryRifle": {
+      "synth": 1,
+      "groups": []
+    },
+    "gun:cannon30": {
       "synth": 1,
       "groups": []
     }
