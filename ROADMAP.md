@@ -203,6 +203,11 @@ Then: more themes, co-op missions, matchmaking.
   milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
   slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of
   the G-6 model carries over (slimmer cowl without the gun bulges, smaller spinner).
+- **Smoother wing wobble:** more roll animation steps, above all the first ones either side of level.
+  The sheets have 16 frames (22.5 degrees apart), so the small leans and tilts jump a whole step; with
+  finer steps near level (say every 5-8 degrees) the wobble, lean and flutter (`wobble` in
+  `data/settings.json`) would ease in smoothly. Needs the roll rows in `tools/plane-models.mjs` and every
+  `-frames.png` / `.json` regenerated, and the renderer's frame lookup in `transientFrame` to follow.
 - **Theatre markings (decide the theatre per nation first):** Germany: Eastern Front yellow (fuselage
   band, wingtip undersides, lower cowl) or Mediterranean white band; P-47: European white cowl ring and
   white fin and tailplane bands (its cowl ring is yellow for now). Markings that aren't the same both
