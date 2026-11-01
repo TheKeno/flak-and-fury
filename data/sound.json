@@ -993,7 +993,10 @@
     "loop:radarStatic": {
       "done": true
     },
-    "gun:tankGun": {}
+    "gun:tankGun": {},
+    "design:vehicle:bf109g6": {
+      "done": false
+    }
   },
   "recordings": {
     "build:inline": {
@@ -2607,6 +2610,65 @@
     "gun:tankGun": {
       "synth": 1,
       "groups": []
+    },
+    "build:radial": {
+      "synth": 0,
+      "clips": [
+        {
+          "path": "assets/audio/p47-idle-2.wav",
+          "size": 202062,
+          "start": 0,
+          "end": 1.5221041666666666,
+          "licence": "",
+          "source": "",
+          "slot": "idle",
+          "gain": 1.12,
+          "xfade": 0.05,
+          "rpm": 800
+        },
+        {
+          "path": "assets/audio/p47-idle-3.wav",
+          "size": 1120162,
+          "start": 0,
+          "end": 8.461625,
+          "licence": "",
+          "source": "",
+          "slot": "cruise",
+          "gain": 1.37,
+          "xfade": 0.05,
+          "rpm": 1900
+        },
+        {
+          "path": "assets/audio/p47-high.wav",
+          "size": 1671528,
+          "start": 0,
+          "end": 12.629166666666666,
+          "licence": "",
+          "source": "",
+          "slot": "full",
+          "gain": 1.85,
+          "xfade": 0.05,
+          "rpm": 2600
+        }
+      ],
+      "startup": {
+        "files": [
+          {
+            "path": "assets/audio/p47-start.wav",
+            "size": 754806,
+            "start": 0.7825119448183041,
+            "end": 5.7000625,
+            "licence": "",
+            "source": "",
+            "caught": 1.8851889387980443
+          }
+        ],
+        "gain": 1.08,
+        "fade": 0.6
+      },
+      "synthWas": 1,
+      "clipLevel": 1,
+      "loadLow": 0.6
     }
   },
   "layers": {
@@ -2693,7 +2755,7 @@
             "source": ""
           }
         ],
-        "gain": 0.37,
+        "gain": 0.46,
         "pitch": 0,
         "fadeIn": 0,
         "fadeOut": 0,
@@ -2741,7 +2803,7 @@
             "source": ""
           }
         ],
-        "gain": 3,
+        "gain": 1.66,
         "pitch": -3.1,
         "fadeIn": 0,
         "fadeOut": 0,
