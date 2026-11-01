@@ -867,12 +867,14 @@
       "done": true
     },
     "sfx:clank": {
-      "done": false
+      "done": true
     },
     "sfx:collapseMasonry": {
       "done": true
     },
-    "sfx:shrapnel": {},
+    "sfx:shrapnel": {
+      "done": true
+    },
     "sfx:radarPowerDown": {
       "done": true
     },
@@ -883,27 +885,41 @@
     "sfx:gearDown": {
       "done": true
     },
-    "sfx:bellyCrunch": {},
-    "sfx:gearHorn": {},
+    "sfx:bellyCrunch": {
+      "done": true
+    },
+    "sfx:gearHorn": {
+      "done": true
+    },
     "sfx:flakBurst": {
       "done": true
     },
-    "sfx:touchdown": {},
-    "sfx:rollWhoosh": {},
+    "sfx:touchdown": {
+      "done": true
+    },
+    "sfx:rollWhoosh": {
+      "done": true
+    },
     "sfx:thunk": {
       "note": "Jobbiga ljudet i början!"
     },
     "gun:heavy": {
       "done": true
     },
-    "sfx:helmetCreak": {},
+    "sfx:helmetCreak": {
+      "done": true
+    },
     "sfx:collapseMetal": {},
     "sfx:collapseWood": {
       "done": true
     },
     "sfx:splash": {},
-    "sfx:snap": {},
-    "sfx:patter": {},
+    "sfx:snap": {
+      "done": true
+    },
+    "sfx:patter": {
+      "done": true
+    },
     "sfx:release": {
       "done": true
     },
@@ -918,7 +934,9 @@
       "done": true
     },
     "sfx:fireOut": {},
-    "sfx:thud": {},
+    "sfx:thud": {
+      "done": true
+    },
     "sfx:gearLockUp": {
       "done": true
     },
@@ -934,7 +952,9 @@
     "layer:slot_damage": {
       "done": true
     },
-    "loop:scrape": {},
+    "loop:scrape": {
+      "done": true
+    },
     "loop:crewRepair": {
       "done": true
     },
@@ -958,11 +978,22 @@
     "sfx:midair": {
       "done": true
     },
-    "sfx:ignite": {},
+    "sfx:ignite": {
+      "done": true
+    },
     "sfx:collapseCanvas": {},
     "gun:flakGun": {},
-    "gun:infantryRifle": {},
-    "gun:cannon30": {}
+    "gun:infantryRifle": {
+      "done": true
+    },
+    "gun:cannon30": {
+      "note": "20mm but tuned down",
+      "done": true
+    },
+    "loop:radarStatic": {
+      "done": true
+    },
+    "gun:tankGun": {}
   },
   "recordings": {
     "build:inline": {
@@ -1072,7 +1103,7 @@
           "drive": 0,
           "pitchVar": 0.03,
           "gainVar": 0.1,
-          "reverb": 0.15,
+          "reverb": 0,
           "delay": 0,
           "xfade": 0.05,
           "mapFrom": 0,
@@ -1116,7 +1147,7 @@
           "drive": 0,
           "pitchVar": 0.03,
           "gainVar": 0.1,
-          "reverb": 1,
+          "reverb": 0,
           "delay": 0,
           "xfade": 0.05,
           "mapFrom": 0,
@@ -1184,7 +1215,7 @@
           "fadeOut": 2.64,
           "reverse": false,
           "lowpass": 340,
-          "highpass": 20,
+          "highpass": 110,
           "drive": 0,
           "pitchVar": 0.04,
           "gainVar": 0.13,
@@ -1242,11 +1273,59 @@
       ]
     },
     "sfx:bellyCrunch": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/belly-crunch-1.wav",
+              "size": 172732,
+              "start": 0,
+              "end": 1.3003958333333334,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/belly-crunch-2.wav",
+              "size": 166212,
+              "start": 0,
+              "end": 1.251125,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/belly-crunch-3.wav",
+              "size": 225066,
+              "start": 0.04054197879076004,
+              "end": 1.6959791666666666,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.86,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.02,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:gearHorn": {
-      "synth": 1,
+      "synth": 0.66,
       "groups": []
     },
     "sfx:explosion": {
@@ -1346,20 +1425,180 @@
       ]
     },
     "sfx:rollWhoosh": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/whoosh-2-2.wav",
+              "size": 142974,
+              "start": 0,
+              "end": 1.0754791666666668,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/whoosh-3-2.wav",
+              "size": 147822,
+              "start": 0,
+              "end": 1.112125,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/whoosh-4-2.wav",
+              "size": 130600,
+              "start": 0,
+              "end": 0.9819375,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.4,
+          "pitch": -9,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 205,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:shrapnel": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/hit-metal-1-3.wav",
+              "size": 74784,
+              "start": 0.012214696225098203,
+              "end": 0.5600625,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-2-3.wav",
+              "size": 95208,
+              "start": 0.014833083787560462,
+              "end": 0.7144375,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-3-3.wav",
+              "size": 60270,
+              "start": 0.013124606897433598,
+              "end": 0.45035416666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-4-3.wav",
+              "size": 83478,
+              "start": 0.005780930583973725,
+              "end": 0.6257708333333334,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.4,
+          "pitch": 8.6,
+          "fadeIn": 0,
+          "fadeOut": 0.235,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0.51,
+          "pitchVar": 0.065,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:thunk": {
       "synth": 0,
       "groups": []
     },
     "sfx:helmetCreak": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/leather-creak-1.wav",
+              "size": 89278,
+              "start": 0,
+              "end": 0.6696041666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/leather-creak-2.wav",
+              "size": 121264,
+              "start": 0,
+              "end": 0.911375,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/leather-creak-3.wav",
+              "size": 79858,
+              "start": 0,
+              "end": 0.5983958333333333,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/leather-creak-4.wav",
+              "size": 72436,
+              "start": 0,
+              "end": 0.5422916666666666,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1.5,
+          "pitch": 0,
+          "fadeIn": 0.145,
+          "fadeOut": 0.21,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:collapseMasonry": {
       "synth": 1,
@@ -1447,23 +1686,47 @@
         {
           "files": [
             {
-              "path": "assets/audio/miss-1.wav",
-              "size": 50574,
-              "start": 0.03350469683953694,
-              "end": 0.3770625,
+              "path": "assets/audio/miss-1-2.wav",
+              "size": 40942,
+              "start": 0,
+              "end": 0.30425,
               "licence": "",
               "source": ""
             },
             {
-              "path": "assets/audio/miss-2.wav",
-              "size": 34810,
-              "start": 0.027508887951941716,
-              "end": 0.2578958333333333,
+              "path": "assets/audio/miss-2-2.wav",
+              "size": 36768,
+              "start": 0,
+              "end": 0.27270833333333333,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/miss-3.wav",
+              "size": 33576,
+              "start": 0,
+              "end": 0.24858333333333332,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/miss-4.wav",
+              "size": 36172,
+              "start": 0,
+              "end": 0.2681875,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/miss-5.wav",
+              "size": 26892,
+              "start": 0,
+              "end": 0.1980625,
               "licence": "",
               "source": ""
             }
           ],
-          "gain": 0.37,
+          "gain": 1.2,
           "pitch": 0,
           "fadeIn": 0,
           "fadeOut": 0,
@@ -1473,7 +1736,7 @@
           "drive": 0,
           "pitchVar": 0.03,
           "gainVar": 0.1,
-          "reverb": 1,
+          "reverb": 0,
           "delay": 0,
           "xfade": 0.05,
           "mapFrom": 0,
@@ -1486,8 +1749,64 @@
       ]
     },
     "sfx:patter": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/hit-metal-1-2.wav",
+              "size": 74784,
+              "start": 0,
+              "end": 0.5600625,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-2-2.wav",
+              "size": 95208,
+              "start": 0,
+              "end": 0.7144375,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-3-2.wav",
+              "size": 60270,
+              "start": 0,
+              "end": 0.45035416666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-4-2.wav",
+              "size": 83478,
+              "start": 0,
+              "end": 0.6257708333333334,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.22,
+          "pitch": 12.3,
+          "fadeIn": 0,
+          "fadeOut": 0.22,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:release": {
       "synth": 0,
@@ -1547,7 +1866,7 @@
               "source": ""
             }
           ],
-          "gain": 1,
+          "gain": 1.25,
           "pitch": 0,
           "fadeIn": 0,
           "fadeOut": 0,
@@ -1557,7 +1876,7 @@
           "drive": 0,
           "pitchVar": 0.03,
           "gainVar": 0.1,
-          "reverb": 0.15,
+          "reverb": 0.03,
           "delay": 0,
           "xfade": 0.05,
           "mapFrom": 0,
@@ -1614,8 +1933,64 @@
       ]
     },
     "sfx:thud": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/hit-ground-1.wav",
+              "size": 59004,
+              "start": 0.0160784004733676,
+              "end": 0.4407916666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-ground-2.wav",
+              "size": 40740,
+              "start": 0.011042406526066008,
+              "end": 0.30272916666666666,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-ground-3.wav",
+              "size": 104862,
+              "start": 0.027896308665616168,
+              "end": 0.7873958333333333,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-ground-4.wav",
+              "size": 83730,
+              "start": 0.026182667350769042,
+              "end": 0.6276666666666667,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.56,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.05,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:gearLockUp": {
       "synth": 0,
@@ -1726,8 +2101,40 @@
       ]
     },
     "loop:scrape": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/328529-humanoide9000-fork-scraping-metal-5-2.wav",
+              "size": 1533904,
+              "start": 0.26492003139552617,
+              "end": 3.7103900619397847,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.35,
+          "pitch": -14.2,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.27,
+          "delay": 0,
+          "xfade": 0.035,
+          "mapFrom": 0,
+          "mapTo": 0.75,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 0.86,
+          "pitchHigh": 1.17
+        }
+      ]
     },
     "loop:fire": {
       "synth": 0,
@@ -1743,7 +2150,7 @@
               "source": ""
             }
           ],
-          "gain": 0.41,
+          "gain": 0.4,
           "pitch": 0,
           "fadeIn": 0,
           "fadeOut": 0,
@@ -1970,8 +2377,40 @@
       ]
     },
     "sfx:ignite": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/fire-starting.wav",
+              "size": 823162,
+              "start": 0.1355839005192121,
+              "end": 6.216729166666667,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1.36,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:collapseCanvas": {
       "synth": 1,
@@ -1983,33 +2422,49 @@
         {
           "files": [
             {
-              "path": "assets/audio/plane-hit-1-2.wav",
-              "size": 74932,
-              "start": 0.0704397794087728,
-              "end": 0.5611666666666667,
+              "path": "assets/audio/hit-metal-1.wav",
+              "size": 74784,
+              "start": 0.010454499949131692,
+              "end": 0.5600625,
               "licence": "",
               "source": ""
             },
             {
-              "path": "assets/audio/plane-hit-2-2.wav",
-              "size": 62446,
-              "start": 0.054192292056764874,
-              "end": 0.46679166666666666,
+              "path": "assets/audio/hit-metal-2.wav",
+              "size": 95208,
+              "start": 0.017078458592891692,
+              "end": 0.7144375,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-3.wav",
+              "size": 60270,
+              "start": 0.0126528071306433,
+              "end": 0.45035416666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/hit-metal-4.wav",
+              "size": 83478,
+              "start": 0.009058777664105098,
+              "end": 0.6257708333333334,
               "licence": "",
               "source": ""
             }
           ],
-          "gain": 0.22,
-          "pitch": -16.3,
+          "gain": 0.5,
+          "pitch": -1.2,
           "fadeIn": 0,
           "fadeOut": 0,
           "reverse": false,
           "lowpass": 20000,
           "highpass": 20,
           "drive": 0,
-          "pitchVar": 0.045,
-          "gainVar": 0.11,
-          "reverb": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.01,
           "delay": 0,
           "xfade": 0.05,
           "mapFrom": 0,
@@ -2026,10 +2481,130 @@
       "groups": []
     },
     "gun:infantryRifle": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/kar98-1.wav",
+              "size": 158002,
+              "start": 0.004756249919001545,
+              "end": 1.1890625,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/kar98-2.wav",
+              "size": 199296,
+              "start": 0.010722767857142856,
+              "end": 1.5011875,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.55,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.51,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "gun:cannon30": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/20mm-1-2.wav",
+              "size": 48780,
+              "start": 0,
+              "end": 0.3635,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/20mm-2-2.wav",
+              "size": 114724,
+              "start": 0,
+              "end": 0.8619375,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.88,
+          "pitch": -6.2,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "loop:radarStatic": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/radio-static-error-sound-effect-razendegijs.mp3",
+              "size": 251632,
+              "start": 0.31499884800502237,
+              "end": 5.235807744140625,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.13,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.03,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "gun:tankGun": {
       "synth": 1,
       "groups": []
     }
