@@ -15,7 +15,7 @@
     "lookZoom": 0.12,
     "lookSensitivity": 200,
     "lookReturn": 3,
-    "mouseLook": true,
+    "mouseLook": false,
     "lookReturnOn": true,
     "shake": 1,
     "fightOn": true,
@@ -42,10 +42,10 @@
     "muteInBackground": true
   },
   "wobble": {
-    "straightAmount": 11,
-    "straightFreq": 0.1,
-    "leanSteps": 1,
-    "flutterSteps": 0.5
+    "straightAmount": 0,
+    "straightFreq": 0,
+    "leanSteps": 0,
+    "flutterSteps": 0
   },
   "freeLook": {
     "panSpeed": 320,
