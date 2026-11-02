@@ -815,11 +815,11 @@
   "status": {
     "build:inline": {
       "reference": "Starts as the sound of every inline aircraft engine. Cylinders, rpm and propeller still come from each plane, so the synth differs between them.",
-      "done": false
+      "done": true
     },
     "build:radial": {
       "reference": "Starts as the sound of every radial aircraft engine. Clips worth finding first: R-1820 (Brewster, B-17) and ASh-82 (La-5FN, Pe-8).",
-      "done": false
+      "done": true
     },
     "build:tankPetrol": {
       "reference": "Panzer IV, Churchill, BT-42 and later the Tiger. All tank builds start with the same synth as the generic tank."
@@ -909,11 +909,15 @@
     "sfx:helmetCreak": {
       "done": true
     },
-    "sfx:collapseMetal": {},
+    "sfx:collapseMetal": {
+      "done": true
+    },
     "sfx:collapseWood": {
       "done": true
     },
-    "sfx:splash": {},
+    "sfx:splash": {
+      "done": true
+    },
     "sfx:snap": {
       "done": true
     },
@@ -926,14 +930,18 @@
     "sfx:click": {
       "done": true
     },
-    "loop:bombWhistle": {},
+    "loop:bombWhistle": {
+      "done": true
+    },
     "layer:slot_airflow": {
       "done": true
     },
     "layer:slot_creak": {
       "done": true
     },
-    "sfx:fireOut": {},
+    "sfx:fireOut": {
+      "done": true
+    },
     "sfx:thud": {
       "done": true
     },
@@ -968,7 +976,9 @@
     "sfx:heartbeat": {
       "done": true
     },
-    "sfx:breathing": {},
+    "sfx:breathing": {
+      "done": true
+    },
     "sfx:propStrike": {
       "done": true
     },
@@ -981,8 +991,12 @@
     "sfx:ignite": {
       "done": true
     },
-    "sfx:collapseCanvas": {},
-    "gun:flakGun": {},
+    "sfx:collapseCanvas": {
+      "done": true
+    },
+    "gun:flakGun": {
+      "done": true
+    },
     "gun:infantryRifle": {
       "done": true
     },
@@ -993,9 +1007,17 @@
     "loop:radarStatic": {
       "done": true
     },
-    "gun:tankGun": {},
+    "gun:tankGun": {
+      "done": true
+    },
     "design:vehicle:bf109g6": {
       "done": false
+    },
+    "engine:r975": {
+      "note": "https://www.youtube.com/watch?v=MkHXoZyiJFs"
+    },
+    "sfx:gasp": {
+      "done": true
     }
   },
   "recordings": {
@@ -1237,7 +1259,8 @@
     "build:tankPetrol": {
       "synth": 0,
       "clips": [],
-      "synthWas": 1
+      "synthWas": 1,
+      "clipLevel": 1
     },
     "sfx:gearDown": {
       "synth": 0,
@@ -1345,17 +1368,17 @@
               "source": ""
             }
           ],
-          "gain": 0.46,
+          "gain": 0.26,
           "pitch": 0,
           "fadeIn": 0,
           "fadeOut": 0,
           "reverse": false,
           "lowpass": 20000,
-          "highpass": 20,
+          "highpass": 175,
           "drive": 0,
           "pitchVar": 0.03,
           "gainVar": 0.1,
-          "reverb": 0.15,
+          "reverb": 0.07,
           "delay": 0,
           "xfade": 0.05,
           "mapFrom": 0,
@@ -1405,7 +1428,7 @@
               "source": ""
             }
           ],
-          "gain": 1,
+          "gain": 0.36,
           "pitch": 0,
           "fadeIn": 0,
           "fadeOut": 0.57,
@@ -1612,15 +1635,15 @@
               "path": "assets/audio/house-1.wav",
               "size": 930618,
               "start": 0.02075210055206503,
-              "end": 7.0289375,
+              "end": 4.799760178571428,
               "licence": "",
               "source": ""
             }
           ],
-          "gain": 0.65,
+          "gain": 0.18,
           "pitch": 0,
-          "fadeIn": 0,
-          "fadeOut": 0,
+          "fadeIn": 0.035,
+          "fadeOut": 1.665,
           "reverse": false,
           "lowpass": 20000,
           "highpass": 20,
@@ -1641,7 +1664,39 @@
     },
     "sfx:collapseMetal": {
       "synth": 1,
-      "groups": []
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/rare-metal-crash-sound-effect-keith-moon.mp3",
+              "size": 202667,
+              "start": 0.6366171428571429,
+              "end": 2.773142930733817,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.17,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.785,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:collapseWood": {
       "synth": 1,
@@ -1681,7 +1736,39 @@
     },
     "sfx:splash": {
       "synth": 1,
-      "groups": []
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/water-splash-sound-effect-arival0.mp3",
+              "size": 165220,
+              "start": 0.18949486764090404,
+              "end": 3.8870035965401786,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.12,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.695,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:snap": {
       "synth": 0,
@@ -1892,12 +1979,76 @@
       ]
     },
     "loop:bombWhistle": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/ww1-trench-whistle-hj-j-2.mp3",
+              "size": 259290,
+              "start": 3.6713829136439733,
+              "end": 6.169577218191964,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.47,
+          "pitch": 2.8,
+          "fadeIn": 0,
+          "fadeOut": 0.28,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:fireOut": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/torch-whoosh-sound-effect-sm-soundfx.mp3",
+              "size": 218023,
+              "start": 2.9799695765904017,
+              "end": 4.131140476422991,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.26,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:radarPowerDown": {
       "synth": 0,
@@ -2180,12 +2331,84 @@
       "groups": []
     },
     "sfx:breathing": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/breathing-sound-effect-sound-effects.mp3",
+              "size": 192103,
+              "start": 0.28571429443359375,
+              "end": 2.41782861328125,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/breathing-sound-effect-sound-effects-2.mp3",
+              "size": 192103,
+              "start": 2.4329142020089285,
+              "end": 4.705828543526786,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.42,
+          "pitch": 0,
+          "fadeIn": 0.265,
+          "fadeOut": 0.73,
+          "reverse": false,
+          "lowpass": 2730,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:gasp": {
       "synth": 1,
-      "groups": []
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/sound-effect-inhale-sound-breathing-sound-effects-1.mp3",
+              "size": 212283,
+              "start": 1.404802239467076,
+              "end": 2.288297142857143,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.15,
+          "pitch": -1.6,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "loop:crewRepair": {
       "synth": 0,
@@ -2417,7 +2640,39 @@
     },
     "sfx:collapseCanvas": {
       "synth": 1,
-      "groups": []
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/tent-collapse-cartn-tent-collapse-cartoon-01-prosound-effects.mp3",
+              "size": 2403488,
+              "start": 0.1144412335693446,
+              "end": 2.059942142857143,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.29,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0.96,
+          "reverse": false,
+          "lowpass": 12990,
+          "highpass": 280,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.15,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "sfx:clank": {
       "synth": 0,
@@ -2480,8 +2735,40 @@
       ]
     },
     "gun:flakGun": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/flak-fire-5.wav",
+              "size": 932658,
+              "start": 0,
+              "end": 3.1941113850066776,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 2.51,
+          "pitch": 0.5,
+          "fadeIn": 0,
+          "fadeOut": 3,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.025,
+          "gainVar": 0.12,
+          "reverb": 0,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "gun:infantryRifle": {
       "synth": 0,
@@ -2608,8 +2895,40 @@
       ]
     },
     "gun:tankGun": {
-      "synth": 1,
-      "groups": []
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/sherman-shooting-1.wav",
+              "size": 186606,
+              "start": 0.012982025857468445,
+              "end": 1.0184867862946647,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.67,
+          "pitch": -5.6,
+          "fadeIn": 0,
+          "fadeOut": 1.135,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.08,
+          "gainVar": 0.1,
+          "reverb": 0.11,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
     },
     "build:radial": {
       "synth": 0,
@@ -2669,6 +2988,10 @@
       "synthWas": 1,
       "clipLevel": 1,
       "loadLow": 0.6
+    },
+    "build:tankRadial": {
+      "synth": 1,
+      "clips": []
     }
   },
   "layers": {
