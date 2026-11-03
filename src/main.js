@@ -19,6 +19,7 @@ import { clamp } from './sim/math.js';
 import { hostGame, joinGame, cleanCode } from './net/session.js';
 import { createGuestView } from './net/guest.js';
 import { takePoses, writePoses } from './render/interpolate.js';
+import { prof, createPerfStats } from './ui/perfstats.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
@@ -208,6 +209,7 @@ keyboard.onPress((code, e) => {
       continue;
     }
     if (act === 'help') showHelp = !showHelp;
+    if (act === 'perf') perfStats.toggle();
     // The panel needs the cursor back.
     if (act === 'tuning' && tuning.toggle()) mouse.release();
     if (act === 'mute') {
@@ -424,6 +426,7 @@ function handleEvents() {
   }
 }
 
+const perfStats = createPerfStats();
 let lastSweeps = 0;
 let lastFacing = 1;
 let last = performance.now();
@@ -468,7 +471,9 @@ function advance(now) {
 }
 
 function frame(now) {
+  prof.begin();
   const dt = advance(now);
+  prof.mark('sim');
   // Screens faster than the sim's 60 ticks a second draw most frames between two ticks: show things
   // part-way between them, then put the true values back before the sim runs again.
   const blend = !guest && before && after;
@@ -491,8 +496,11 @@ function frame(now) {
     lastSweeps = renderer.radarSweeps;
     sound?.radarTick();
   }
+  prof.mark('other');
   sound?.update(free.on ? null : player, renderer.centre(), dt);
+  prof.mark('audio');
   if (blend) writePoses(world, after);
+  perfStats.frame(now);
   requestAnimationFrame(frame);
 }
 

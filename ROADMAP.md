@@ -205,6 +205,9 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Performance** (investigated 2026-11-03, findings and ranked fix list in `notes/perf-findings.md`;
+  F3 overlay built): awaiting the owner's F3 numbers from a 144 Hz screen and approval before any
+  optimising. Top proposals: cap the screen canvas size, camera snap to buffer pixels, cache terrain.
 - **Rebuild the Bf 109 F-4** (the lighter German option) from a 3-view drawing, like the other
   milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
   slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of

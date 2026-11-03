@@ -23,6 +23,7 @@ export const ACTIONS = [
   ['fullscreen', 'Fullscreen', ['F11', null]],
   ['freeLook', 'Free look (debug)', ['KeyV', null]],
   ['tuning', 'Tuning panel (debug)', ['KeyT', null]],
+  ['perf', 'Frame rate and timings (debug)', ['F3', null]],
 ];
 
 export const defaultBindings = () => Object.fromEntries(ACTIONS.map(([id, , codes]) => [id, [...codes]]));

@@ -15,6 +15,7 @@ import { createGore } from './gore.js';
 import { drawText, textWidth, lineHeight, setTextSize } from './font.js';
 import { createRadar, SCOPE, PHOSPHOR } from './radar.js';
 import { frameFight } from './fight-cam.js';
+import { prof } from '../ui/perfstats.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
 import { localToWorld } from '../sim/weapons.js';
@@ -1289,23 +1290,33 @@ export function createRenderer(canvas, world, assets) {
       fitDisplay();
       ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
       ctx.imageSmoothingEnabled = false;
+      prof.mark('other');
       updateCamera(focus, dt, look, free);
       for (const p of world.planes) updateWobble(p, dt);
       for (const p of world.planes) emitEffects(p, dt);
       emitGroundEffects(dt);
       particles.update(dt, world.terrain);
       gore.update(dt);
+      prof.mark('update');
 
       drawBackground();
+      prof.mark('sky');
       drawTerrain();
+      prof.mark('terrain');
       drawGround();
+      prof.mark('ground');
       gore.draw(ctx, toScreenX, toScreenY, SCALE, (x) => surfaceAt(world, x), bw);
+      prof.mark('gore');
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
+      prof.mark('particles');
       drawProjectiles();
+      prof.mark('shots');
       for (const p of world.planes) drawPlane(p, focus);
+      prof.mark('planes');
       for (const c of world.crew ?? []) drawCrew(c);
       for (const c of world.parachutes ?? []) drawParachute(c, focus);
       drawFallenCanopies(dt);
+      prof.mark('crew');
 
       if (focus && focus.consciousness < 1) {
         ctx.fillStyle = `rgba(16,0,0,${((1 - focus.consciousness) * 0.88).toFixed(3)})`;
@@ -1324,6 +1335,7 @@ export function createRenderer(canvas, world, assets) {
       out.imageSmoothingEnabled = Boolean(assets.settings.display?.smooth) || canvas.width < bw * DETAIL;
       out.drawImage(buffer, 0, 0, bw * DETAIL, bh * DETAIL, ox, oy, canvas.width, canvas.height);
       out.imageSmoothingEnabled = false;
+      prof.mark('present');
 
       // The HUD on top, in 480x270 units at the screen's full resolution.
       const hk = canvas.width / W;
@@ -1359,12 +1371,14 @@ export function createRenderer(canvas, world, assets) {
       });
       hud.globalAlpha = 1;
       hud.setTransform(1, 0, 0, 1, 0, 0);
+      prof.mark('hud');
       radar.update(dt, focus);
 
       // The radar scope is scaled up smoothly for a soft phosphor glow.
       out.imageSmoothingEnabled = true;
       out.drawImage(radar.draw(performance.now() / 1000), SCOPE.x * hk, SCOPE.y * hk, SCOPE.w * hk, SCOPE.h * hk);
       out.imageSmoothingEnabled = false;
+      prof.mark('radar');
     },
   };
 }

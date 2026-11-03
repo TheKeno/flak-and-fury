@@ -49,6 +49,7 @@ in the browser.
 | Esc | Menu: pause (single player), options, quit |
 | F11 | Fullscreen (the game's own: in Chrome and Edge a tap of Esc then opens the menu, holding Esc leaves fullscreen; in Firefox Esc leaves it, and Resume or a click on the game goes back) |
 | V | Free look: mouse or arrows move the camera, wheel zooms, 1/2/3 jump, W/S fast forward; an autopilot flies your plane |
+| F3 | Frame rate and timing overlay (debug): fps, frame gap, CPU ms per part of a frame |
 | T | Tuning panel |
 | M | Mute |
 | H | Hide help |
