@@ -80,3 +80,10 @@ RTX 5070, Windows 10, Edge, 125% scaling.
   `edge://gpu`, another browser.
 - Fix 2 (camera snap) and fix 3 (terrain cache, ~1.3 ms CPU) remain as cheap improvements; the
   stutter question can only be judged once the frame rate is steady.
+
+## Resolved: the 60 fps cap was the NVIDIA driver (2026-11-03)
+
+Owner's NVIDIA Control Panel had a 60 fps limit set. After clearing it Firefox shows 99 fps, gap 10.1 ms,
+worst 16.7 ms, CPU 2.7 ms a frame (terrain 1.24, planes 0.41, sky 0.28, hud 0.28). The game was never
+the limit. Open: owner to say whether scenery still stutters against the plane at ~100 Hz; if so, build
+fix 2 (camera snap to buffer pixels). Terrain cache stays an optional saving for weak 1080p machines.
