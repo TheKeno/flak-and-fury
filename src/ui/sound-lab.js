@@ -882,7 +882,7 @@ function renderGuide() {
     h('Finding an engine clip\'s rpm by ear'),
     p('Play the synth beside the clip and raise Rpm until the two sound matched. That rpm is the one to enter when clip support arrives.'),
     h('Recordings: getting ready'),
-    p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/inbox/ (a file already in the library is reused, not copied) and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
+    p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/ and are named after the slot, such as inline-idle-01 (a file already in the library is reused, not copied), and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
     p('Fill in licence and source for each file. A red ! in the list means one is missing or marked other, so it can be reviewed before release.'),
     p('A looping sound with several files plays a random one each time round. Each file has its own trim, so trim them to clean pieces. Engine clips are the exception: there is one per slot.'),
     h('Recorded engines'),
@@ -976,12 +976,24 @@ const shortPath = (path) => (path.startsWith('assets/audio/') ? path.slice(13) :
 
 const recOf = (id) => (sound.recordings[id] ??= { synth: 1 });
 
+// A file takes its name from the slot it is dropped on (inline + idle -> inline-idle-01) and goes
+// to the folder for that kind of sound; the server numbers it. The original name is kept as the source.
+const slug = (id) => id.replace(/^[a-z]+:/, '').replace(/([a-z])([A-Z0-9])/g, '$1-$2').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+const KIND_FOLDER = { gun: 'guns', build: 'engines', engine: 'engines' };
+function libraryFolder(id) {
+  if (KIND_FOLDER[id.split(':')[0]]) return KIND_FOLDER[id.split(':')[0]];
+  const r = sound.recordings[id] ?? sound.layers[id.replace(/^layer:/, '')];
+  const files = [...(r?.groups ?? []).flatMap((g) => g.files), ...(r?.clips ?? []), ...(r?.group?.files ?? [])];
+  return files[0]?.path.split('/')[2] ?? 'inbox';
+}
+
 // Sends files to the server and returns what the data needs to know about them.
-async function upload(fileList) {
+async function upload(fileList, stem, folder = 'inbox') {
   await audio();
   const added = [];
   for (const file of fileList) {
-    const res = await fetch(`recording/${encodeURIComponent(file.name)}`, { method: 'PUT', body: file });
+    const named = stem ? `${folder}/${encodeURIComponent(`${stem}.${file.name.split('.').pop()}`)}` : encodeURIComponent(file.name);
+    const res = await fetch(`recording/${named}`, { method: 'PUT', body: file });
     if (!res.ok) {
       alert(`${file.name}: ${await res.text()}\nThe server may be an old copy: restart it with node tools/serve.mjs 8080.`);
       continue;
@@ -994,15 +1006,15 @@ async function upload(fileList) {
     }
     if (existing) alert(`${file.name} is already in the library as ${shortPath(path)}. That file is reused; this sound keeps its own cut.`);
     else if (size > 5e6) alert(`${file.name} is ${(size / 1e6).toFixed(1)} MB. That is large to load and to keep in git; consider trimming it.`);
-    added.push({ path, size, start: 0, end: buf.duration, licence: '', source: '' });
+    added.push({ path, size, start: 0, end: buf.duration, licence: '', source: `original: ${file.name}` });
   }
   return added;
 }
 
 // A box that takes dropped files or a click.
-function dropBox(text, onFiles) {
+function dropBox(text, onFiles, stem, folder) {
   const input = el('input', { type: 'file', multiple: true, accept: '.wav,.mp3,.ogg,.flac', style: 'display:none' });
-  input.onchange = async () => onFiles(await upload([...input.files]));
+  input.onchange = async () => onFiles(await upload([...input.files], stem, folder));
   const box = el('div', { className: 'dim', textContent: text, style: 'border:1px dashed var(--line);padding:10px;margin:6px 0;cursor:pointer' }, input);
   box.onclick = (e) => { if (e.target !== input) input.click(); };
   box.ondragover = (e) => { e.preventDefault(); box.style.borderColor = 'var(--accent)'; };
@@ -1010,7 +1022,7 @@ function dropBox(text, onFiles) {
   box.ondrop = async (e) => {
     e.preventDefault();
     box.style.borderColor = '';
-    onFiles(await upload([...e.dataTransfer.files]));
+    onFiles(await upload([...e.dataTransfer.files], stem, folder));
   };
   return box;
 }
@@ -1141,7 +1153,7 @@ function groupPanel(group, id, locked, opts = {}) {
       updateCount();
       renderList();
       redo();
-    }),
+    }, slug(id), libraryFolder(id)),
     el('div', { className: 'buttons' }, trial, opts.loop ? null : el('label', {}, reverse, ' reverse')),
     ...GROUP_FIELDS.map((f) => slider(group, f, null, locked)),
     ...(opts.loop ? LOOP_FIELDS.slice(0, opts.fixed ? 1 : LOOP_FIELDS.length).map((f) => slider(group, f, null, locked)) : []),
@@ -1205,7 +1217,7 @@ function clipPanel(id, kind) {
       updateCount();
       renderList();
       renderMain();
-    }));
+    }, `${slug(id)}-clip`, 'engines'));
   }
   return box;
 }
@@ -1430,7 +1442,7 @@ function stopSlot() {
   src.stop();
 }
 
-function slotRow({ key, name, help, files, group, level, play, advanced, locked, onFiles, body, sub, shared }) {
+function slotRow({ key, name, help, files, group, level, play, advanced, locked, onFiles, body, sub, shared, stem, folder }) {
   const filled = files.length > 0;
   const tick = el('input', { type: 'checkbox', checked: filled, disabled: true });
   const summary = el('summary', { title: help },
@@ -1457,7 +1469,7 @@ function slotRow({ key, name, help, files, group, level, play, advanced, locked,
   if (body) inner.append(...body);
   if (!locked) {
     const take = async (raw) => {
-      const added = await upload(raw);
+      const added = await upload(raw, stem, folder);
       if (!added.length) return;
       drops.set(key, added.map((f) => checkDrop(key, mixer.recordings.buffers.get(f.path))).filter(Boolean).join(' '));
       onFiles(added);
@@ -1509,7 +1521,7 @@ function engineSlots(buildId, specs, locked) {
     const clip = rec.clips.find((c) => c.slot === key);
     const rpm = clip ? el('input', { type: 'number', min: 100, max: 6000, value: clip.rpm, disabled: locked, title: 'The rpm it was recorded at', style: 'width:90px', onchange: () => { clip.rpm = Number(rpm.value); touch(); } }) : null;
     return slotRow({
-      key, name, locked, help: `${help} About ${spec[rpmKey] ?? 2300} rpm on this engine.`,
+      key, name, locked, stem: `${slug(id)}-${key}`, folder: 'engines', help: `${help} About ${spec[rpmKey] ?? 2300} rpm on this engine.`,
       files: clip ? [clip] : [],
       sub: clip ? `${clip.rpm} rpm` : null,
       level: clip ? { obj: clip, key: 'gain' } : null,
@@ -1525,7 +1537,7 @@ function engineSlots(buildId, specs, locked) {
   rec.startup ??= { files: [], gain: 1, fade: 0.6 };
   const st = rec.startup;
   const startRow = slotRow({
-    key: 'startup', name: 'Start-up', locked, help: STARTUP_HELP, files: st.files,
+    key: 'startup', name: 'Start-up', locked, stem: `${slug(id)}-startup`, folder: 'engines', help: STARTUP_HELP, files: st.files,
     level: st.files.length ? { obj: st, key: 'gain' } : null,
     play: st.files.length ? () => mixer?.recordings.playGroup({ ...newGroup(), gain: st.gain ?? 1, pitchVar: 0, gainVar: 0, files: st.files }, where()) : null,
     onFiles: (added) => { for (const f of added) st.files.push({ ...f, caught: f.end * 0.8 }); },
@@ -1542,7 +1554,7 @@ function tankSlots(buildId, locked) {
   return [el('h3', { textContent: 'Engine and tracks' }), ...TANK_SLOTS.map(([key, name, help]) => {
     const clip = rec.clips.find((c) => c.role === key);
     return slotRow({
-      key, name, locked, help, files: clip ? [clip] : [],
+      key, name, locked, stem: `${slug(id)}-${key}`, folder: 'engines', help, files: clip ? [clip] : [],
       level: clip ? { obj: clip, key: 'gain' } : null,
       play: clip ? () => loopPlay([clip], () => clip.gain ?? 1, () => clip.xfade ?? 0.05) : null,
       advanced: () => { selected = id; setTab('sounds'); },
@@ -1573,7 +1585,7 @@ function layerOverride(layer, vehicleId) {
 function layerSlot(key, layer, help, locked, vehicleId) {
   const files = layer?.group.files ?? [];
   return slotRow({
-    key, name: layer?.name ?? AIRFRAME_SLOTS[key]?.[0], locked, help, files,
+    key, name: layer?.name ?? AIRFRAME_SLOTS[key]?.[0], locked, stem: `airframe-${slug(key)}`, folder: 'airframe', help, files,
     level: layer && files.length ? { obj: layer.group, key: 'gain' } : null,
     play: files.length ? () => (layer.type === 'continuous' ? loopPlay(files, () => layer.group.gain, () => layer.group.xfade) : mixer.recordings.playGroup({ ...layer.group, pitchVar: 0 }, where())) : null,
     advanced: layer ? () => { selected = `layer:${Object.keys(sound.layers).find((k) => sound.layers[k] === layer)}`; setTab('sounds'); } : null,
@@ -1615,7 +1627,7 @@ function groupSlot(id, key, name, help, locked, sub, looping = false) {
   const group = rec.groups[0];
   const files = group?.files ?? [];
   return slotRow({
-    key, name, help: USED[id] ? `${help} Used for: ${USED[id]}` : help, locked, files, sub,
+    key, name, stem: slug(id), folder: libraryFolder(id), help: USED[id] ? `${help} Used for: ${USED[id]}` : help, locked, files, sub,
     level: group && files.length ? { obj: group, key: 'gain' } : null,
     play: files.length ? () => (looping ? loopPlay(files, () => group.gain, () => group.xfade) : mixer.recordings.playGroup({ ...group, pitchVar: 0 }, where(listen.distance, settings.audio.bangRange))) : null,
     advanced: () => { selected = id; setTab('sounds'); },

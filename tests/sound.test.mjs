@@ -114,3 +114,17 @@ test('no two files in assets/audio hold the same sound', () => {
   scan('assets/audio');
   assert.deepEqual(dupes, [], 'Point the sound at the existing file instead of keeping a copy');
 });
+
+// Names say what a sound is and end in a two-digit number: hit-metal-01, inline-idle-02.
+test('every file in assets/audio is in a known folder and named by the convention', () => {
+  const FOLDERS = ['engines', 'guns', 'impacts', 'destruction', 'airframe', 'crew', 'ambience', 'voice', 'ui', 'inbox'];
+  const bad = [];
+  for (const e of readdirSync(new URL('../assets/audio', import.meta.url), { withFileTypes: true })) {
+    if (!e.isDirectory() || !FOLDERS.includes(e.name)) { bad.push(e.name); continue; }
+    for (const f of readdirSync(new URL(`../assets/audio/${e.name}`, import.meta.url))) {
+      if (f.startsWith('.')) continue;
+      if (e.name !== 'inbox' && !/^[a-z0-9]+(-[a-z0-9]+)*-[0-9]{2}.(wav|mp3|ogg|flac)$/.test(f)) bad.push(`${e.name}/${f}`);
+    }
+  }
+  assert.deepEqual(bad, [], 'Name it <what>-<NN> in a known folder (inbox may hold anything until sorted)');
+});

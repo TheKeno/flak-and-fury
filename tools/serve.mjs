@@ -42,11 +42,25 @@ async function findCopy(hash, size, dir = AUDIO) {
   return null;
 }
 
-// A recording from the Sound Lab goes to assets/audio/inbox/ under a clean name, never over another file.
+// The library's folders, one per kind of sound. A new file with no known place waits in inbox.
+const FOLDERS = ['engines', 'guns', 'impacts', 'destruction', 'airframe', 'crew', 'ambience', 'voice', 'ui', 'inbox'];
+const STEM = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+// The next free number for a name in a folder: the first file is -01, then -02.
+async function nextNumber(dir, stem) {
+  const taken = (await readdir(join(root, dir))).map((f) => new RegExp(`^${stem}-([0-9]{2})\\.`).exec(f)?.[1]).filter(Boolean).map(Number);
+  return String(Math.max(0, ...taken) + 1).padStart(2, '0');
+}
+
+// A recording from the Sound Lab arrives as folder/name.ext, where the Lab has named it after the
+// slot it was dropped on. It is saved as folder/name-NN.ext, never over another file.
 async function saveRecording(req, res, name) {
-  const match = /^(.+).(wav|mp3|ogg|flac)$/i.exec(name);
+  const [folder, file0] = name.includes('/') ? name.split('/') : ['inbox', name];
+  if (!FOLDERS.includes(folder)) throw new Error(`Unknown folder ${folder}`);
+  const match = /^(.+)\.(wav|mp3|ogg|flac)$/i.exec(file0);
   if (!match) throw new Error('Only WAV, MP3, OGG and FLAC');
   const stem = match[1].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sound';
+  if (!STEM.test(stem)) throw new Error('Use lowercase letters, digits and hyphens');
   const chunks = [];
   let size = 0;
   for await (const chunk of req) {
@@ -62,9 +76,9 @@ async function saveRecording(req, res, name) {
     res.end(JSON.stringify({ path: copy, size, existing: true }));
     return;
   }
-  await mkdir(join(root, AUDIO, 'inbox'), { recursive: true });
-  let file = `${AUDIO}/inbox/${stem}.${match[2].toLowerCase()}`;
-  for (let n = 2; await stat(join(root, file)).then(() => true, () => false); n++) file = `${AUDIO}/inbox/${stem}-${n}.${match[2].toLowerCase()}`;
+  const dir = `${AUDIO}/${folder}`;
+  await mkdir(join(root, dir), { recursive: true });
+  const file = `${dir}/${stem}-${await nextNumber(dir, stem)}.${match[2].toLowerCase()}`;
   await writeFile(join(root, file), body);
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ path: file, size }));

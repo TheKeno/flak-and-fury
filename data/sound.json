@@ -1025,7 +1025,7 @@
       "synth": 0,
       "clips": [
         {
-          "path": "assets/audio/engines/idle.wav",
+          "path": "assets/audio/engines/inline-idle-01.wav",
           "size": 1130074,
           "start": 0,
           "end": 8.536541666666666,
@@ -1037,7 +1037,7 @@
           "rpm": 800
         },
         {
-          "path": "assets/audio/engines/cruise.wav",
+          "path": "assets/audio/engines/inline-cruise-01.wav",
           "size": 675448,
           "start": 0.8077758679980324,
           "end": 3.6983796873274306,
@@ -1049,7 +1049,7 @@
           "rpm": 2300
         },
         {
-          "path": "assets/audio/engines/full2-2.wav",
+          "path": "assets/audio/engines/inline-full-01.wav",
           "size": 1768920,
           "start": 4.147065477446147,
           "end": 10.601874952071054,
@@ -1064,7 +1064,7 @@
       "startup": {
         "files": [
           {
-            "path": "assets/audio/engines/startup-2.wav",
+            "path": "assets/audio/engines/inline-startup-01.wav",
             "size": 370714,
             "start": 0,
             "end": 2.796854166666667,
@@ -1086,7 +1086,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/guns/m2-browning-1.wav",
+              "path": "assets/audio/guns/m2-browning-01.wav",
               "size": 248074,
               "start": 0,
               "end": 1.869875,
@@ -1094,7 +1094,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/guns/m2-browning-2.wav",
+              "path": "assets/audio/guns/m2-browning-02.wav",
               "size": 215410,
               "start": 0,
               "end": 1.6229791666666666,
@@ -1102,7 +1102,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/guns/m2-browning-3.wav",
+              "path": "assets/audio/guns/m2-browning-03.wav",
               "size": 242830,
               "start": 0,
               "end": 1.8302291666666666,
@@ -1110,7 +1110,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/guns/m2-browning-4.wav",
+              "path": "assets/audio/guns/m2-browning-04.wav",
               "size": 233890,
               "start": 0,
               "end": 1.7626666666666666,
@@ -1146,7 +1146,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/guns/20mm-1-2.wav",
+              "path": "assets/audio/guns/cannon-20mm-01.wav",
               "size": 48780,
               "start": 0,
               "end": 0.3635,
@@ -1154,7 +1154,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/guns/20mm-2-2.wav",
+              "path": "assets/audio/guns/cannon-20mm-02.wav",
               "size": 114724,
               "start": 0,
               "end": 0.8619375,
@@ -1190,7 +1190,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/guns/browning-303.wav",
+              "path": "assets/audio/guns/browning-303-01.wav",
               "size": 226812,
               "start": 0,
               "end": 1.7091666666666667,
@@ -1226,12 +1226,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/basketball-sound-binaural-beats-lab.mp3",
+              "path": "assets/audio/impacts/basketball-bounce-01.mp3",
               "size": 188263,
               "start": 2.2117759863281248,
               "end": 3.5176960546875,
               "licence": "",
-              "source": ""
+              "source": "original: basketball-sound-binaural-beats-lab.mp3"
             }
           ],
           "gain": 0.35,
@@ -1268,7 +1268,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/airframe/landing-gear.wav",
+              "path": "assets/audio/airframe/landing-gear-01.wav",
               "size": 1189072,
               "start": 7.2159246694855455,
               "end": 8.160606143816509,
@@ -1304,7 +1304,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/belly-crunch-1.wav",
+              "path": "assets/audio/impacts/belly-crunch-01.wav",
               "size": 172732,
               "start": 0,
               "end": 1.3003958333333334,
@@ -1312,7 +1312,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/belly-crunch-2.wav",
+              "path": "assets/audio/impacts/belly-crunch-02.wav",
               "size": 166212,
               "start": 0,
               "end": 1.251125,
@@ -1320,7 +1320,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/belly-crunch-3.wav",
+              "path": "assets/audio/impacts/belly-crunch-03.wav",
               "size": 225066,
               "start": 0.04054197879076004,
               "end": 1.6959791666666666,
@@ -1360,12 +1360,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/destruction/huge-bomb-explosion-with-debris-sound-effect-zapsplat-sound-effects.mp3",
+              "path": "assets/audio/destruction/explosion-bomb-01.mp3",
               "size": 234374,
               "start": 0.34857143920898437,
               "end": 5.856,
               "licence": "",
-              "source": ""
+              "source": "original: huge-bomb-explosion-with-debris-sound-effect-zapsplat-sound-effects.mp3"
             }
           ],
           "gain": 0.26,
@@ -1396,7 +1396,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/destruction/flak-4.wav",
+              "path": "assets/audio/destruction/explosion-flak-04.wav",
               "size": 815772,
               "start": 0,
               "end": 6.160875,
@@ -1404,7 +1404,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/destruction/flak-5.wav",
+              "path": "assets/audio/destruction/explosion-flak-05.wav",
               "size": 385918,
               "start": 0,
               "end": 2.911770833333333,
@@ -1412,7 +1412,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/destruction/flak-1.wav",
+              "path": "assets/audio/destruction/explosion-flak-01.wav",
               "size": 197782,
               "start": 0,
               "end": 1.4897291666666668,
@@ -1420,7 +1420,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/destruction/flak-3.wav",
+              "path": "assets/audio/destruction/explosion-flak-03.wav",
               "size": 352240,
               "start": 0,
               "end": 2.6572291666666668,
@@ -1456,7 +1456,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/airframe/whoosh-2-2.wav",
+              "path": "assets/audio/airframe/whoosh-02.wav",
               "size": 142974,
               "start": 0,
               "end": 1.0754791666666668,
@@ -1464,7 +1464,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/airframe/whoosh-3-2.wav",
+              "path": "assets/audio/airframe/whoosh-03.wav",
               "size": 147822,
               "start": 0,
               "end": 1.112125,
@@ -1472,7 +1472,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/airframe/whoosh-4-2.wav",
+              "path": "assets/audio/airframe/whoosh-04.wav",
               "size": 130600,
               "start": 0,
               "end": 0.9819375,
@@ -1508,7 +1508,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/hit-metal-1-2.wav",
+              "path": "assets/audio/impacts/hit-metal-01.wav",
               "size": 74784,
               "start": 0.012214696225098203,
               "end": 0.5600625,
@@ -1516,7 +1516,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-2-2.wav",
+              "path": "assets/audio/impacts/hit-metal-02.wav",
               "size": 95208,
               "start": 0.014833083787560462,
               "end": 0.7144375,
@@ -1524,7 +1524,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-3-2.wav",
+              "path": "assets/audio/impacts/hit-metal-03.wav",
               "size": 60270,
               "start": 0.013124606897433598,
               "end": 0.45035416666666667,
@@ -1532,7 +1532,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-4-2.wav",
+              "path": "assets/audio/impacts/hit-metal-04.wav",
               "size": 83478,
               "start": 0.005780930583973725,
               "end": 0.6257708333333334,
@@ -1572,7 +1572,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/airframe/leather-creak-1.wav",
+              "path": "assets/audio/airframe/leather-creak-01.wav",
               "size": 89278,
               "start": 0,
               "end": 0.6696041666666667,
@@ -1580,7 +1580,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/airframe/leather-creak-2.wav",
+              "path": "assets/audio/airframe/leather-creak-02.wav",
               "size": 121264,
               "start": 0,
               "end": 0.911375,
@@ -1588,7 +1588,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/airframe/leather-creak-3.wav",
+              "path": "assets/audio/airframe/leather-creak-03.wav",
               "size": 79858,
               "start": 0,
               "end": 0.5983958333333333,
@@ -1596,7 +1596,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/airframe/leather-creak-4.wav",
+              "path": "assets/audio/airframe/leather-creak-04.wav",
               "size": 72436,
               "start": 0,
               "end": 0.5422916666666666,
@@ -1632,7 +1632,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/destruction/house-1.wav",
+              "path": "assets/audio/destruction/collapse-house-01.wav",
               "size": 930618,
               "start": 0.02075210055206503,
               "end": 4.799760178571428,
@@ -1668,12 +1668,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/destruction/rare-metal-crash-sound-effect-keith-moon.mp3",
+              "path": "assets/audio/destruction/collapse-metal-01.mp3",
               "size": 202667,
               "start": 0.6366171428571429,
               "end": 2.773142930733817,
               "licence": "",
-              "source": ""
+              "source": "original: rare-metal-crash-sound-effect-keith-moon.mp3"
             }
           ],
           "gain": 0.17,
@@ -1704,7 +1704,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/destruction/bridge-1.wav",
+              "path": "assets/audio/destruction/collapse-bridge-01.wav",
               "size": 1263016,
               "start": 0,
               "end": 9.541395833333333,
@@ -1740,12 +1740,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/water-splash-sound-effect-arival0.mp3",
+              "path": "assets/audio/impacts/water-splash-01.mp3",
               "size": 165220,
               "start": 0.18949486764090404,
               "end": 3.8870035965401786,
               "licence": "",
-              "source": ""
+              "source": "original: water-splash-sound-effect-arival0.mp3"
             }
           ],
           "gain": 0.12,
@@ -1776,7 +1776,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/miss-1-2.wav",
+              "path": "assets/audio/impacts/miss-bullet-01.wav",
               "size": 40942,
               "start": 0,
               "end": 0.30425,
@@ -1784,7 +1784,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/miss-2-2.wav",
+              "path": "assets/audio/impacts/miss-bullet-02.wav",
               "size": 36768,
               "start": 0,
               "end": 0.27270833333333333,
@@ -1792,7 +1792,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/miss-3.wav",
+              "path": "assets/audio/impacts/miss-bullet-03.wav",
               "size": 33576,
               "start": 0,
               "end": 0.24858333333333332,
@@ -1800,7 +1800,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/miss-4.wav",
+              "path": "assets/audio/impacts/miss-bullet-04.wav",
               "size": 36172,
               "start": 0,
               "end": 0.2681875,
@@ -1808,7 +1808,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/miss-5.wav",
+              "path": "assets/audio/impacts/miss-bullet-05.wav",
               "size": 26892,
               "start": 0,
               "end": 0.1980625,
@@ -1844,7 +1844,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/hit-metal-1-2.wav",
+              "path": "assets/audio/impacts/hit-metal-01.wav",
               "size": 74784,
               "start": 0,
               "end": 0.5600625,
@@ -1852,7 +1852,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-2-2.wav",
+              "path": "assets/audio/impacts/hit-metal-02.wav",
               "size": 95208,
               "start": 0,
               "end": 0.7144375,
@@ -1860,7 +1860,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-3-2.wav",
+              "path": "assets/audio/impacts/hit-metal-03.wav",
               "size": 60270,
               "start": 0,
               "end": 0.45035416666666667,
@@ -1868,7 +1868,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-4-2.wav",
+              "path": "assets/audio/impacts/hit-metal-04.wav",
               "size": 83478,
               "start": 0,
               "end": 0.6257708333333334,
@@ -1904,12 +1904,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/ui/577082-hetanoyokozuki-door-open-close.wav",
+              "path": "assets/audio/ui/door-open-close-01.wav",
               "size": 705794,
               "start": 0.6403809465680803,
               "end": 1.5413333565848215,
               "licence": "",
-              "source": ""
+              "source": "original: 577082-hetanoyokozuki-door-open-close.wav"
             }
           ],
           "gain": 0.99,
@@ -1940,7 +1940,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/ui/click-2.wav",
+              "path": "assets/audio/ui/click-02.wav",
               "size": 24486,
               "start": 0,
               "end": 0.179875,
@@ -1948,7 +1948,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/ui/click-4.wav",
+              "path": "assets/audio/ui/click-04.wav",
               "size": 31954,
               "start": 0,
               "end": 0.2363125,
@@ -1984,12 +1984,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/ambience/ww1-trench-whistle-hj-j-2.mp3",
+              "path": "assets/audio/ambience/trench-whistle-01.mp3",
               "size": 259290,
               "start": 3.6713829136439733,
               "end": 6.169577218191964,
               "licence": "",
-              "source": ""
+              "source": "original: ww1-trench-whistle-hj-j-2.mp3"
             }
           ],
           "gain": 0.47,
@@ -2020,12 +2020,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/ambience/torch-whoosh-sound-effect-sm-soundfx.mp3",
+              "path": "assets/audio/ambience/torch-whoosh-01.mp3",
               "size": 218023,
               "start": 2.9799695765904017,
               "end": 4.131140476422991,
               "licence": "",
-              "source": ""
+              "source": "original: torch-whoosh-sound-effect-sm-soundfx.mp3"
             }
           ],
           "gain": 0.26,
@@ -2056,7 +2056,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/ui/tractor-beam-power-down.mp3",
+              "path": "assets/audio/ui/radar-power-down-01.mp3",
               "size": 243380,
               "start": 1.9083725164095562,
               "end": 5.922035751285553,
@@ -2092,7 +2092,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/hit-ground-1.wav",
+              "path": "assets/audio/impacts/hit-ground-01.wav",
               "size": 59004,
               "start": 0.0160784004733676,
               "end": 0.4407916666666667,
@@ -2100,7 +2100,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-ground-2.wav",
+              "path": "assets/audio/impacts/hit-ground-02.wav",
               "size": 40740,
               "start": 0.011042406526066008,
               "end": 0.30272916666666666,
@@ -2108,7 +2108,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-ground-3.wav",
+              "path": "assets/audio/impacts/hit-ground-03.wav",
               "size": 104862,
               "start": 0.027896308665616168,
               "end": 0.7873958333333333,
@@ -2116,7 +2116,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-ground-4.wav",
+              "path": "assets/audio/impacts/hit-ground-04.wav",
               "size": 83730,
               "start": 0.026182667350769042,
               "end": 0.6276666666666667,
@@ -2152,7 +2152,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/airframe/landing-gear.wav",
+              "path": "assets/audio/airframe/landing-gear-01.wav",
               "size": 1189072,
               "start": 8.205214021226354,
               "end": 8.651296508058557,
@@ -2188,7 +2188,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/airframe/landing-gear-lock-down.wav",
+              "path": "assets/audio/airframe/gear-lock-down-01.wav",
               "size": 104706,
               "start": 0.20670313922725644,
               "end": 0.7862291666666666,
@@ -2224,7 +2224,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/splat.wav",
+              "path": "assets/audio/impacts/splat-01.wav",
               "size": 62550,
               "start": 0,
               "end": 0.46758333333333335,
@@ -2260,12 +2260,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/crew/328529-humanoide9000-fork-scraping-metal-5-2.wav",
+              "path": "assets/audio/crew/fork-scraping-metal-01.wav",
               "size": 1533904,
               "start": 0.26492003139552617,
               "end": 3.7103900619397847,
               "licence": "",
-              "source": ""
+              "source": "original: 328529-humanoide9000-fork-scraping-metal-5-2.wav"
             }
           ],
           "gain": 0.35,
@@ -2296,12 +2296,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/ambience/burning-fire-with-sound-effects-fire-background-clip-nextverse-1.mp3",
+              "path": "assets/audio/ambience/fire-burning-01.mp3",
               "size": 619331,
               "start": 0,
               "end": 15.098114121222812,
               "licence": "",
-              "source": ""
+              "source": "original: burning-fire-with-sound-effects-fire-background-clip-nextverse-1.mp3"
             }
           ],
           "gain": 0.4,
@@ -2336,20 +2336,20 @@
         {
           "files": [
             {
-              "path": "assets/audio/voice/breathing-sound-effect-sound-effects.mp3",
+              "path": "assets/audio/voice/breathing-01.mp3",
               "size": 192103,
               "start": 0.28571429443359375,
               "end": 2.41782861328125,
               "licence": "",
-              "source": ""
+              "source": "original: breathing-sound-effect-sound-effects.mp3"
             },
             {
-              "path": "assets/audio/voice/breathing-sound-effect-sound-effects.mp3",
+              "path": "assets/audio/voice/breathing-01.mp3",
               "size": 192103,
               "start": 2.4329142020089285,
               "end": 4.705828543526786,
               "licence": "",
-              "source": ""
+              "source": "original: breathing-sound-effect-sound-effects.mp3"
             }
           ],
           "gain": 0.42,
@@ -2380,12 +2380,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/voice/sound-effect-inhale-sound-breathing-sound-effects-1.mp3",
+              "path": "assets/audio/voice/inhale-01.mp3",
               "size": 212283,
               "start": 1.404802239467076,
               "end": 2.288297142857143,
               "licence": "",
-              "source": ""
+              "source": "original: sound-effect-inhale-sound-breathing-sound-effects-1.mp3"
             }
           ],
           "gain": 0.15,
@@ -2416,20 +2416,20 @@
         {
           "files": [
             {
-              "path": "assets/audio/crew/591528-rudmer-rotteveel-ratchet-wrench-slow-multiple-2.wav",
+              "path": "assets/audio/crew/ratchet-wrench-01.wav",
               "size": 860928,
               "start": 0,
               "end": 3.0973716382980343,
               "licence": "",
-              "source": ""
+              "source": "original: 591528-rudmer-rotteveel-ratchet-wrench-slow-multiple-2.wav"
             },
             {
-              "path": "assets/audio/crew/425653-soundholder-renault-kangoo-16-16v-foley-handbrake-pull-mono-ntg3-2.wav",
+              "path": "assets/audio/crew/handbrake-pull-01.wav",
               "size": 4549424,
               "start": 6.353204581473213,
               "end": 7.5966698288690475,
               "licence": "",
-              "source": ""
+              "source": "original: 425653-soundholder-renault-kangoo-16-16v-foley-handbrake-pull-mono-ntg3-2.wav"
             }
           ],
           "gain": 1.48,
@@ -2460,7 +2460,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/crew/refuel-2.wav",
+              "path": "assets/audio/crew/refuel-02.wav",
               "size": 1219090,
               "start": 0.13331666499376296,
               "end": 9.209375,
@@ -2496,12 +2496,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/crew/276959-gfl7-pistol-reload-sound.mp3",
+              "path": "assets/audio/crew/pistol-reload-01.mp3",
               "size": 17570,
               "start": 0.1390697852021172,
               "end": 2.378229166666667,
               "licence": "",
-              "source": ""
+              "source": "original: 276959-gfl7-pistol-reload-sound.mp3"
             }
           ],
           "gain": 1,
@@ -2536,12 +2536,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/crew/hammer-sound-effect-hammering-nail-sound-buzz-duo-sounds-music.mp3",
+              "path": "assets/audio/crew/hammering-nail-01.mp3",
               "size": 221893,
               "start": 0,
               "end": 5.544,
               "licence": "",
-              "source": ""
+              "source": "original: hammer-sound-effect-hammering-nail-sound-buzz-duo-sounds-music.mp3"
             }
           ],
           "gain": 1,
@@ -2572,12 +2572,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/454418-kyles-bodyfall-thump-over-motorbike-seat-parking-space.flac",
+              "path": "assets/audio/impacts/bodyfall-thump-01.flac",
               "size": 34674,
               "start": 0.16929305512837003,
               "end": 0.87484476965768,
               "licence": "",
-              "source": ""
+              "source": "original: 454418-kyles-bodyfall-thump-over-motorbike-seat-parking-space.flac"
             }
           ],
           "gain": 0.74,
@@ -2608,7 +2608,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/crew/fire-starting.wav",
+              "path": "assets/audio/crew/fire-starting-01.wav",
               "size": 823162,
               "start": 0.1355839005192121,
               "end": 6.216729166666667,
@@ -2644,12 +2644,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/destruction/tent-collapse-cartn-tent-collapse-cartoon-01-prosound-effects.mp3",
+              "path": "assets/audio/destruction/collapse-tent-01.mp3",
               "size": 2403488,
               "start": 0.1144412335693446,
               "end": 2.059942142857143,
               "licence": "",
-              "source": ""
+              "source": "original: tent-collapse-cartn-tent-collapse-cartoon-01-prosound-effects.mp3"
             }
           ],
           "gain": 0.29,
@@ -2680,7 +2680,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/impacts/hit-metal-1-2.wav",
+              "path": "assets/audio/impacts/hit-metal-01.wav",
               "size": 74784,
               "start": 0.010454499949131692,
               "end": 0.5600625,
@@ -2688,7 +2688,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-2-2.wav",
+              "path": "assets/audio/impacts/hit-metal-02.wav",
               "size": 95208,
               "start": 0.017078458592891692,
               "end": 0.7144375,
@@ -2696,7 +2696,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-3-2.wav",
+              "path": "assets/audio/impacts/hit-metal-03.wav",
               "size": 60270,
               "start": 0.0126528071306433,
               "end": 0.45035416666666667,
@@ -2704,7 +2704,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/impacts/hit-metal-4-2.wav",
+              "path": "assets/audio/impacts/hit-metal-04.wav",
               "size": 83478,
               "start": 0.009058777664105098,
               "end": 0.6257708333333334,
@@ -2740,7 +2740,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/guns/flak-fire-5.wav",
+              "path": "assets/audio/guns/flak-gun-05.wav",
               "size": 932658,
               "start": 0,
               "end": 3.1941113850066776,
@@ -2776,7 +2776,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/guns/kar98-1.wav",
+              "path": "assets/audio/guns/kar98-01.wav",
               "size": 158002,
               "start": 0.004756249919001545,
               "end": 1.1890625,
@@ -2784,7 +2784,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/guns/kar98-2.wav",
+              "path": "assets/audio/guns/kar98-02.wav",
               "size": 199296,
               "start": 0.010722767857142856,
               "end": 1.5011875,
@@ -2820,7 +2820,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/guns/20mm-1-2.wav",
+              "path": "assets/audio/guns/cannon-20mm-01.wav",
               "size": 48780,
               "start": 0,
               "end": 0.3635,
@@ -2828,7 +2828,7 @@
               "source": ""
             },
             {
-              "path": "assets/audio/guns/20mm-2-2.wav",
+              "path": "assets/audio/guns/cannon-20mm-02.wav",
               "size": 114724,
               "start": 0,
               "end": 0.8619375,
@@ -2864,12 +2864,12 @@
         {
           "files": [
             {
-              "path": "assets/audio/ambience/radio-static-error-sound-effect-razendegijs.mp3",
+              "path": "assets/audio/ambience/radio-static-01.mp3",
               "size": 251632,
               "start": 0.31499884800502237,
               "end": 5.235807744140625,
               "licence": "",
-              "source": ""
+              "source": "original: radio-static-error-sound-effect-razendegijs.mp3"
             }
           ],
           "gain": 0.13,
@@ -2900,7 +2900,7 @@
         {
           "files": [
             {
-              "path": "assets/audio/guns/sherman-shooting-1.wav",
+              "path": "assets/audio/guns/sherman-gun-01.wav",
               "size": 186606,
               "start": 0.012982025857468445,
               "end": 1.0184867862946647,
@@ -2934,7 +2934,7 @@
       "synth": 0,
       "clips": [
         {
-          "path": "assets/audio/engines/p47-idle-2.wav",
+          "path": "assets/audio/engines/radial-idle-01.wav",
           "size": 202062,
           "start": 0,
           "end": 1.5221041666666666,
@@ -2946,7 +2946,7 @@
           "rpm": 800
         },
         {
-          "path": "assets/audio/engines/p47-idle-3.wav",
+          "path": "assets/audio/engines/radial-idle-02.wav",
           "size": 1120162,
           "start": 0,
           "end": 8.461625,
@@ -2958,7 +2958,7 @@
           "rpm": 1900
         },
         {
-          "path": "assets/audio/engines/p47-high.wav",
+          "path": "assets/audio/engines/radial-high-01.wav",
           "size": 1671528,
           "start": 0,
           "end": 12.629166666666666,
@@ -2973,7 +2973,7 @@
       "startup": {
         "files": [
           {
-            "path": "assets/audio/engines/p47-start.wav",
+            "path": "assets/audio/engines/radial-startup-01.wav",
             "size": 754806,
             "start": 0.7825119448183041,
             "end": 5.7000625,
@@ -3007,7 +3007,7 @@
       "group": {
         "files": [
           {
-            "path": "assets/audio/airframe/air.wav",
+            "path": "assets/audio/airframe/airflow-01.wav",
             "size": 1417356,
             "start": 0,
             "end": 10.708,
@@ -3054,7 +3054,7 @@
       "group": {
         "files": [
           {
-            "path": "assets/audio/airframe/creak1.wav",
+            "path": "assets/audio/airframe/airframe-creak-01.wav",
             "size": 165514,
             "start": 0,
             "end": 1.2458333333333333,
@@ -3062,7 +3062,7 @@
             "source": ""
           },
           {
-            "path": "assets/audio/airframe/creak2.wav",
+            "path": "assets/audio/airframe/airframe-creak-02.wav",
             "size": 177754,
             "start": 0,
             "end": 1.3383541666666667,
@@ -3070,7 +3070,7 @@
             "source": ""
           },
           {
-            "path": "assets/audio/airframe/creak3.wav",
+            "path": "assets/audio/airframe/airframe-creak-03.wav",
             "size": 229836,
             "start": 0,
             "end": 1.7320208333333333,
@@ -3118,12 +3118,12 @@
       "group": {
         "files": [
           {
-            "path": "assets/audio/airframe/344610-jsdoublel-car-rattle.wav",
+            "path": "assets/audio/airframe/car-rattle-01.wav",
             "size": 3462730,
             "start": 0,
             "end": 9,
             "licence": "",
-            "source": ""
+            "source": "original: 344610-jsdoublel-car-rattle.wav"
           }
         ],
         "gain": 1.66,
@@ -3165,12 +3165,12 @@
       "group": {
         "files": [
           {
-            "path": "assets/audio/airframe/metal-rattling-sound-effects-sfx-sound-effects-2.mp3",
+            "path": "assets/audio/airframe/metal-rattle-01.mp3",
             "size": 431155,
             "start": 4.822516508789062,
             "end": 10.625136187918526,
             "licence": "",
-            "source": ""
+            "source": "original: metal-rattling-sound-effects-sfx-sound-effects-2.mp3"
           }
         ],
         "gain": 0.18,
