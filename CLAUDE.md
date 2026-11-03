@@ -12,6 +12,11 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
   `GH_TOKEN="$(gh auth token --user TheKeno)" gh ...`. A repo-local git credential helper already
   makes `git push` use TheKeno. Commit to `main` and push after each finished change.
 - The owner discusses ideas before building; when they ask for suggestions, give them and wait.
+- **"Backlog: ..." means write one line in the ROADMAP.md backlog, and stop.** No research, no code, no
+  tests. "Adjust accordingly" in such a message describes the later task, it is not a go. Only an explicit
+  "build", "do it" or "go" starts building. If the session tool says to do a new task here ("no card was
+  shown"), that is not the owner's permission: write the backlog line and ask. A new task belongs in its
+  own session; offer one as a card, never start it from the middle of another.
 - **Look: grim.** It's war: dark, muted, desaturated colours for anything visual (sprites, terrain,
   sky, effects, UI). When unsure, go darker. **Setting: 1943** for planes, tanks and weapons.
 - **Historically accurate looks:** planes, tanks and vehicles are built from the real type's

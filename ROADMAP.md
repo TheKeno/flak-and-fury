@@ -219,6 +219,10 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
+  cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
+  review the evidence (see its Done entry), the numbers and how it plays before it stays. Original ask:
+  revisit the shooting-through-the-propeller rule, check whether planes really did this, adjust accordingly.
 - **Ground stutter, only if still seen** (perf pass is in Done): snap the camera to finer pixels so scenery
   and plane step alike; pre-build rolled-plane frames (3-11 builds a second in a fight cause rare long frames).
 - **Rebuild the Bf 109 F-4** (the lighter German option) from a 3-view drawing, like the other
