@@ -96,3 +96,10 @@ drawn live. F3 shows `chunkbuild /s` (0 at rest). Pane: terrain 1.4 ms -> 0.02 m
 `__game.world.terrain.crater` showed up at once; the cached and direct frames differ by 26 pixels (river
 glint timing). `?skip=terraincache` goes back to the old per-column drawing for comparison. Owner to
 re-measure low flying in a fight (before: terrain 2.3-2.7 ms, 60-74 fps on a 120 Hz screen).
+
+## Result on the owner's PC (2026-11-03)
+
+Low-flying fight (plane on fire, tanks, flak, smoke), 2560x1440 at 120 Hz, Firefox: **120 fps, gap 8.3 ms,
+worst 10.3 ms**, CPU 2.0 ms (terrain 0.01, planes 0.46, sky 0.43, sim 0.30), rollbuild 3/s, cacheclr 0,
+chunkbuild 0. Before the cache and the driver fix: 60-74 fps, CPU 4-7 ms. Performance task done; left
+open only if the owner still sees ground stutter: camera snap to buffer pixels, prebuilt roll frames.
