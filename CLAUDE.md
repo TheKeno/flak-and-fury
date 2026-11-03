@@ -23,6 +23,18 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
   dimensions, all to one scale; the outline shape matters most (canopy, nose, fin, gear, wing shape).
   Compare against 3-view references and show the owner the outlines before animation or data work.
 
+## Sessions and knowledge
+
+- **One task per session**, titled `Area — task`. Areas: Sound, Planes, Gameplay, UI, Design,
+  Milestone N. No custom sidebar groups; the sidebar's own project heading is enough.
+- **Knowledge lives in the repo, not in sessions.** A fresh session should need only `CLAUDE.md`,
+  `ROADMAP.md`, `TUNING.md` and the memory notes. Don't rely on what an old session "knows".
+- **Before a session ends, update `ROADMAP.md`** (Done, and Decisions for anything settled) and
+  `TUNING.md` if data values changed, then commit and push. Do this unasked when the task is finished;
+  when the owner calls a discussion done, write its outcome into Decisions.
+- **Sessions you start for the owner must not stay nested.** Right after `start_session`, call
+  `detach_session` on it so it sits at top level. Don't archive a session that has others nested under it.
+
 ## Running
 
 ```bash
