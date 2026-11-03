@@ -139,6 +139,12 @@ later.
   use, duplicates removed, every file renamed `<group>-<detail>-<NN>`. Sound Lab uploads are named after
   their slot, filed in the right folder and reuse an identical existing file; the original name is kept
   in the file's source field; `tests/sound.test.mjs` checks naming, duplicates and paths.
+- **Performance pass** (`009e1bf`..`5fb410f`, findings in `notes/perf-findings.md`): F3 overlay (fps, frame
+  gap, CPU ms per part, counters; `src/ui/perfstats.js`) and test switches `?skip=...` / `?cap=1080`. The
+  low FPS was an NVIDIA driver limit of 60 fps on the owner's PC (cleared) plus terrain drawing (about
+  1000 columns of rectangles a frame, worst when flying low): the ground is now drawn once into cached
+  chunks and blitted. Owner measured 120 fps, 8.3 ms gap in a low-flying fight. The canvas-size cap was
+  tested and dropped.
 
 ## Milestones ahead
 
@@ -205,8 +211,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
-- **Performance** (investigated 2026-11-03, findings and ranked fix list in `notes/perf-findings.md`;
-  F3 overlay and terrain cache built; owner measured 120 fps in a low-flying fight, task done): the game draws in ~3 ms; the 60 fps cap was an NVIDIA driver limit on the owner's PC (cleared). Only if ground stutter is still seen: camera snap, prebuilt roll frames.
+- **Ground stutter, only if still seen** (perf pass is in Done): snap the camera to finer pixels so scenery
+  and plane step alike; pre-build rolled-plane frames (3-11 builds a second in a fight cause rare long frames).
 - **Rebuild the Bf 109 F-4** (the lighter German option) from a 3-view drawing, like the other
   milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
   slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of
