@@ -45,7 +45,8 @@ test('the guns fire on the ground; the cowl MGs slow with the engine, the hub ca
   const fast = fireAtRpm(world, p, p.def.engine.maxRpm);
   const slow = fireAtRpm(world, p, p.def.engine.idleRpm);
   assert.ok(shotsBy(fast, p, mg) > 0, 'fires on the ground');
-  assert.ok(shotsBy(slow, p, mg) < shotsBy(fast, p, mg) * 0.6, `cowl MGs slower at idle (${shotsBy(slow, p, mg)} vs ${shotsBy(fast, p, mg)})`);
+  const idleShare = shotsBy(slow, p, mg) / shotsBy(fast, p, mg);
+  assert.ok(idleShare < 0.9 && idleShare > 0.55, `cowl MGs a little slower at idle, not crippled (${shotsBy(slow, p, mg)} vs ${shotsBy(fast, p, mg)})`);
   assert.ok(Math.abs(shotsBy(slow, p, cannon) - shotsBy(fast, p, cannon)) <= 1, 'the cannon through the hub keeps its rate');
   const stopped = fireAtRpm(world, p, 0);
   assert.equal(shotsBy(stopped, p, mg), 0, 'no cowl MG fire with the propeller stopped');

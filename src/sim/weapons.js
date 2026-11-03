@@ -10,9 +10,11 @@ const BOMB_INTERVAL = 0.35;
 const TRACER_EVERY = 3;
 
 // Firing rate of synchronized (through-the-propeller) guns, 0..1: full from SYNC_FULL of max RPM,
-// down to SYNC_MIN at idle; 0 with the propeller stopped.
-const SYNC_FULL = 0.8;
-const SYNC_MIN = 0.35;
+// down to SYNC_MIN at idle; 0 with the propeller stopped. The gear is driven by the engine, so a
+// stopped engine can't fire; but WWII's gears (electric or hydraulic, several impulses a turn) and
+// constant-speed propellers cost a cowl gun only a little of its rate, so it never falls far.
+const SYNC_FULL = 0.6;
+const SYNC_MIN = 0.7;
 export function syncRate(p) {
   if (p.rpm < 60) return 0;
   return Math.min(1, Math.max(SYNC_MIN, p.rpm / (p.def.engine.maxRpm * SYNC_FULL)));

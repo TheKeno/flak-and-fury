@@ -145,6 +145,14 @@ later.
   1000 columns of rectangles a frame, worst when flying low): the ground is now drawn once into cached
   chunks and blitted. Owner measured 120 fps, 8.3 ms gap in a low-flying fight. The canvas-size cap was
   tested and dropped.
+- **Shooting through the propeller revisited** (`src/sim/weapons.js`): checked against what's known of WWII
+  armament. Which guns are synced matches the real types (cowl MGs and cannon on the 109, La-5, Ki-43,
+  B-239 nose; wing guns on the Spitfire and P-47; Bf 110 nose guns clear of the props; the 109's hub
+  cannon unsynced). Early mechanical gears did slow with engine speed, but WWII gears fired several impulses
+  a turn and constant-speed propellers kept the ratio steady, so synchronising cost only a little rate.
+  The slowdown at idle was too harsh (a third of the rate): now full from 60% of max RPM, 70% at idle.
+  Still no fire with the propeller stopped (the gear runs off the engine). Not found in sources: exact
+  rates per gun, or whether a Luftwaffe electric gear fired with the engine dead.
 
 ## Milestones ahead
 
