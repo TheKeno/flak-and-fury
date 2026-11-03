@@ -882,7 +882,7 @@ function renderGuide() {
     h('Finding an engine clip\'s rpm by ear'),
     p('Play the synth beside the clip and raise Rpm until the two sound matched. That rpm is the one to enter when clip support arrives.'),
     h('Recordings: getting ready'),
-    p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/ and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
+    p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/inbox/ (a file already in the library is reused, not copied) and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
     p('Fill in licence and source for each file. A red ! in the list means one is missing or marked other, so it can be reviewed before release.'),
     p('A looping sound with several files plays a random one each time round. Each file has its own trim, so trim them to clean pieces. Engine clips are the exception: there is one per slot.'),
     h('Recorded engines'),
@@ -971,6 +971,9 @@ function licenceFlag(id) {
   return '';
 }
 
+// A file's place in the library without the common folder, e.g. guns/20mm-1.wav
+const shortPath = (path) => path.replace(/^assets/audio//, '');
+
 const recOf = (id) => (sound.recordings[id] ??= { synth: 1 });
 
 // Sends files to the server and returns what the data needs to know about them.
@@ -983,13 +986,14 @@ async function upload(fileList) {
       alert(`${file.name}: ${await res.text()}\nThe server may be an old copy: restart it with node tools/serve.mjs 8080.`);
       continue;
     }
-    const { path, size } = await res.json();
+    const { path, size, existing } = await res.json();
     const buf = await mixer.recordings.ensure(path);
     if (!buf) {
       alert(`${file.name} could not be decoded.`);
       continue;
     }
-    if (size > 5e6) alert(`${file.name} is ${(size / 1e6).toFixed(1)} MB. That is large to load and to keep in git; consider trimming it.`);
+    if (existing) alert(`${file.name} is already in the library as ${shortPath(path)}. That file is reused; this sound keeps its own cut.`);
+    else if (size > 5e6) alert(`${file.name} is ${(size / 1e6).toFixed(1)} MB. That is large to load and to keep in git; consider trimming it.`);
     added.push({ path, size, start: 0, end: buf.duration, licence: '', source: '' });
   }
   return added;
@@ -1098,7 +1102,7 @@ function fileRow(file, locked, remove, onChange, extra = []) {
     ...LICENCES.map(([k, t]) => el('option', { value: k, textContent: t, selected: file.licence === k })));
   const source = el('input', { placeholder: 'Source: site, author, link', value: file.source ?? '', disabled: locked, onchange: () => { file.source = source.value; touch(); } });
   return el('div', { style: 'margin:8px 0;padding:6px;border:1px solid var(--line)' },
-    el('div', { textContent: `${file.path.split('/').pop()}  (${((file.size ?? 0) / 1e6).toFixed(2)} MB)` }),
+    el('div', { textContent: `${shortPath(file.path)}  (${((file.size ?? 0) / 1e6).toFixed(2)} MB)` }),
     waveform(file, locked, onChange),
     el('div', { className: 'buttons' }, licence, source, ...extra, locked ? null : button('Remove', remove)));
 }
@@ -1431,7 +1435,7 @@ function slotRow({ key, name, help, files, group, level, play, advanced, locked,
   const tick = el('input', { type: 'checkbox', checked: filled, disabled: true });
   const summary = el('summary', { title: help },
     tick, el('span', { className: 'sname', textContent: name }),
-    el('span', { className: 'sfile', textContent: filled ? files.map((f) => f.path.split('/').pop()).join(', ') : help.split(/[.:]/)[0] }),
+    el('span', { className: 'sfile', textContent: filled ? files.map((f) => shortPath(f.path)).join(', ') : help.split(/[.:]/)[0] }),
     sub ? el('span', { className: 'dim', textContent: sub }) : null,
     filled && play ? playToggle(play) : null,
     level ? (() => {

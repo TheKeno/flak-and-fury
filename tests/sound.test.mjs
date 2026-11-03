@@ -1,7 +1,8 @@
 // data/sound.json must stay connected to the game data: the Sound Lab writes it, the game reads it.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { engineSoundFor, mapRange, DRIVERS, syncInPlace } from '../src/audio/sound-data.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../${f}`, import.meta.url)));
@@ -80,4 +81,36 @@ test('the slots an engine shares are found through a vehicle, an engine and a bu
 test('an unlisted plane falls back on its layout', () => {
   assert.equal(engineSoundFor(sound, 'nosuchplane', 'radial').build, sound.builds.radial);
   assert.equal(engineSoundFor(sound, 'bf110').count, 2);
+});
+
+test('every file the sound data names exists in assets/audio', () => {
+  const missing = [];
+  const walk = (o) => {
+    if (Array.isArray(o)) o.forEach(walk);
+    else if (o && typeof o === 'object') {
+      if (typeof o.path === 'string' && o.path.startsWith('assets/audio/') && !existsSync(new URL(`../${o.path}`, import.meta.url))) missing.push(o.path);
+      Object.values(o).forEach(walk);
+    }
+  };
+  walk(sound);
+  assert.deepEqual(missing, []);
+});
+
+// Two sounds can share one file and still keep their own cuts, so a second copy is never needed.
+test('no two files in assets/audio hold the same sound', () => {
+  const seen = new Map();
+  const dupes = [];
+  const scan = (dir) => {
+    for (const e of readdirSync(new URL(`../${dir}`, import.meta.url), { withFileTypes: true })) {
+      const path = `${dir}/${e.name}`;
+      if (e.isDirectory()) scan(path);
+      else if (!e.name.startsWith('.')) {
+        const hash = createHash('sha256').update(readFileSync(new URL(`../${path}`, import.meta.url))).digest('hex');
+        if (seen.has(hash)) dupes.push(`${path} = ${seen.get(hash)}`);
+        else seen.set(hash, path);
+      }
+    }
+  };
+  scan('assets/audio');
+  assert.deepEqual(dupes, [], 'Point the sound at the existing file instead of keeping a copy');
 });

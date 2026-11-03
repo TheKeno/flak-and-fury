@@ -1,7 +1,8 @@
 // Tiny static file server for local development: node tools/serve.mjs [port]
 // It also accepts PUT for the tuning panel's "Save to files", limited to existing data/*.json files.
 import { createServer } from 'node:http';
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,9 +26,25 @@ const TYPES = {
 
 const SAVABLE = /^\/data\/[a-z_]+\.json$/;
 
-// A recording from the Sound Lab goes to assets/audio/ under a clean name, never over another file.
+const AUDIO = 'assets/audio';
+const hashOf = (buf) => createHash('sha256').update(buf).digest('hex');
+
+// Where a file with these exact bytes already is, if anywhere: a second copy would only waste space
+// and be decoded twice, while two sound entries can share one file and still keep their own cuts.
+async function findCopy(hash, size, dir = AUDIO) {
+  for (const entry of await readdir(join(root, dir), { withFileTypes: true })) {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) {
+      const found = await findCopy(hash, size, path);
+      if (found) return found;
+    } else if ((await stat(join(root, path))).size === size && hashOf(await readFile(join(root, path))) === hash) return path;
+  }
+  return null;
+}
+
+// A recording from the Sound Lab goes to assets/audio/inbox/ under a clean name, never over another file.
 async function saveRecording(req, res, name) {
-  const match = /^(.+)\.(wav|mp3|ogg|flac)$/i.exec(name);
+  const match = /^(.+).(wav|mp3|ogg|flac)$/i.exec(name);
   if (!match) throw new Error('Only WAV, MP3, OGG and FLAC');
   const stem = match[1].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sound';
   const chunks = [];
@@ -37,10 +54,18 @@ async function saveRecording(req, res, name) {
     if (size > 100_000_000) throw new Error('Over 100 MB');
     chunks.push(chunk);
   }
-  await mkdir(join(root, 'assets/audio'), { recursive: true });
-  let file = `assets/audio/${stem}.${match[2].toLowerCase()}`;
-  for (let n = 2; await stat(join(root, file)).then(() => true, () => false); n++) file = `assets/audio/${stem}-${n}.${match[2].toLowerCase()}`;
-  await writeFile(join(root, file), Buffer.concat(chunks));
+  if (size === 0) throw new Error('The file is empty');
+  const body = Buffer.concat(chunks);
+  const copy = await findCopy(hashOf(body), size);
+  if (copy) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ path: copy, size, existing: true }));
+    return;
+  }
+  await mkdir(join(root, AUDIO, 'inbox'), { recursive: true });
+  let file = `${AUDIO}/inbox/${stem}.${match[2].toLowerCase()}`;
+  for (let n = 2; await stat(join(root, file)).then(() => true, () => false); n++) file = `${AUDIO}/inbox/${stem}-${n}.${match[2].toLowerCase()}`;
+  await writeFile(join(root, file), body);
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ path: file, size }));
 }
