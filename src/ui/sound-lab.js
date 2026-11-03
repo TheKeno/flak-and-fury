@@ -972,7 +972,7 @@ function licenceFlag(id) {
 }
 
 // A file's place in the library without the common folder, e.g. guns/20mm-1.wav
-const shortPath = (path) => path.replace(/^assets/audio//, '');
+const shortPath = (path) => (path.startsWith('assets/audio/') ? path.slice(13) : path);
 
 const recOf = (id) => (sound.recordings[id] ??= { synth: 1 });
 
