@@ -29,7 +29,9 @@ export function createPerfStats() {
   let lastFrame = 0;
   let gaps = [];
   let acc = new Map();
-  let counted = new Map();
+  // Always listed, so a 0 reads as "none" rather than "not working".
+  const fresh = () => new Map([['rollbuild', 0], ['cacheclr', 0]]);
+  let counted = fresh();
   let frames = 0;
   let since = 0;
   return {
@@ -67,7 +69,7 @@ export function createPerfStats() {
       window.__perf = { fps: frames * 1000 / (now - since), avg, worst, gaps: gaps.slice(), sections: Object.fromEntries([...acc].map(([k, v]) => [k, v / frames])) };
       gaps = [];
       acc = new Map();
-      counted = new Map();
+      counted = fresh();
       frames = 0;
       since = now;
     },
