@@ -154,6 +154,7 @@ later.
    Two-seaters get a simple AI rear gun now (mouse-aimed seats come with milestone 11). Twins get two
    prop discs and one engine sound until the sound pass. Plane choice from the tuning panel until the
    hangar. Build order: Spitfire IX, the other fighters, heavy fighters, dive bombers, tanks.
+   **Paused** after the Bf 110 G-2; resume at the Mosquito FB.VI, see [notes/milestone6.md](notes/milestone6.md).
    Later, rare heavy tanks (Tiger, KV-1S) worth more points.
 7. **Online multiplayer** (decided): online, each player in their own browser. **Host-authoritative**:
    the host's browser runs the real sim; guests send their per-tick commands and receive world
