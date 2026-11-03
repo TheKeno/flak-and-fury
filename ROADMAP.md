@@ -266,3 +266,4 @@ Then: more themes, co-op missions, matchmaking.
   heavy cannon (MK 108, 37 mm, 40 mm Vickers S), rockets (RP-3, RS-82, HVAR, Wfr.Gr.21), bombs (GP,
   SD2 cluster, incendiary, Tallboy, torpedo, depth charge, Upkeep), gadgets (Schräge Musik, Jericho
   siren, drop tank, armour, self-sealing tanks).
+- **Sound — clean file names:** give the files in `assets/audio/` clean names (raw download names like `344610-jsdoublel-car-rattle.wav` keep their source id in the Lab source field first). Propose the naming convention and list for approval, then rename with `git mv` and rewrite `data/sound.json` paths together; the owner has the task text in a document.
