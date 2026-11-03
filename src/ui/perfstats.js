@@ -6,6 +6,10 @@ export const prof = {
   on: false,
   sections: new Map(), // name -> ms this frame
   t: 0,
+  counts: new Map(), // name -> how many times this frame
+  count(name, n = 1) {
+    if (this.on) this.counts.set(name, (this.counts.get(name) ?? 0) + n);
+  },
   begin() {
     if (this.on) this.t = performance.now();
   },
@@ -25,6 +29,7 @@ export function createPerfStats() {
   let lastFrame = 0;
   let gaps = [];
   let acc = new Map();
+  let counted = new Map();
   let frames = 0;
   let since = 0;
   return {
@@ -43,6 +48,8 @@ export function createPerfStats() {
       lastFrame = now;
       for (const [k, v] of prof.sections) acc.set(k, (acc.get(k) ?? 0) + v);
       prof.sections.clear();
+      for (const [k, v] of prof.counts) counted.set(k, (counted.get(k) ?? 0) + v);
+      prof.counts.clear();
       frames++;
       if (!since) since = now;
       if (now - since < 1000) return;
@@ -55,10 +62,12 @@ export function createPerfStats() {
         sum += v / frames;
       }
       lines.push(`cpu total ${sum.toFixed(2)} ms`);
+      for (const [k, v] of counted) lines.push(`${k.padEnd(9)} ${(v * 1000 / (now - since)).toFixed(0)} /s`);
       el.textContent = lines.join('\n');
       window.__perf = { fps: frames * 1000 / (now - since), avg, worst, gaps: gaps.slice(), sections: Object.fromEntries([...acc].map(([k, v]) => [k, v / frames])) };
       gaps = [];
       acc = new Map();
+      counted = new Map();
       frames = 0;
       since = now;
     },

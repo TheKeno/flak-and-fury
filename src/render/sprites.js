@@ -5,6 +5,7 @@
 //   #ffff00 nose   #ff0000 national marking   #00c0c0 underside shade   #c0c000 nose shade
 //   #0080ff / #80ff00 optional marking, dark / light (the German fin swastika: black and white with
 //   the historical-markings setting on, the base colour with it off)
+import { prof } from '../ui/perfstats.js';
 export const ROTATION_STEPS = 128; // ~2.8 degrees per frame, so the nose shows where the guns point
 
 const KEYS = {
@@ -161,7 +162,11 @@ export function buildPlaneFrames(sheetImg, meta, paint, opts) {
       const key = `${row}|${index}|${step}|${mirror}`;
       let f = cache.get(key);
       if (!f) {
-        if (cache.size > 600) cache.clear();
+        prof.count('rollbuild');
+        if (cache.size > 600) {
+          cache.clear();
+          prof.count('cacheclr');
+        }
         const anchor = meta.rows[row].anchor;
         const radius = reach(cw, ch, anchor);
         f = { canvas: rotateOne(cell(row, index, mirror), cw, ch, anchor, step, false, radius), radius };
