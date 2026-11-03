@@ -206,7 +206,7 @@ Then: more themes, co-op missions, matchmaking.
 ## Backlog
 
 - **Performance** (investigated 2026-11-03, findings and ranked fix list in `notes/perf-findings.md`;
-  F3 overlay built): the game draws in ~3 ms; the 60 fps cap was an NVIDIA driver limit on the owner's PC (cleared, now ~99 fps). Waiting to hear whether the scenery stutter remains; if so, build the camera snap.
+  F3 overlay built; terrain cache built, owner to re-measure low flying): the game draws in ~3 ms; the 60 fps cap was an NVIDIA driver limit on the owner's PC (cleared). Still possible: prebuild rolled-plane frames (11 builds/s in a fight), camera snap if ground stutter remains.
 - **Rebuild the Bf 109 F-4** (the lighter German option) from a 3-view drawing, like the other
   milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
   slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of

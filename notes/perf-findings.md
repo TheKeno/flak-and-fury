@@ -87,3 +87,12 @@ Owner's NVIDIA Control Panel had a 60 fps limit set. After clearing it Firefox s
 worst 16.7 ms, CPU 2.7 ms a frame (terrain 1.24, planes 0.41, sky 0.28, hud 0.28). The game was never
 the limit. Open: owner to say whether scenery still stutters against the plane at ~100 Hz; if so, build
 fix 2 (camera snap to buffer pixels). Terrain cache stays an optional saving for weak 1080p machines.
+
+## Built: terrain cache (2026-11-03)
+
+`drawTerrain` now paints the ground once into 512-column chunks (world pixels) and blits the visible
+chunks each frame; a chunk repaints when its heights or scorch change (craters). Only the river glint is
+drawn live. F3 shows `chunkbuild /s` (0 at rest). Pane: terrain 1.4 ms -> 0.02 ms; a crater dug with
+`__game.world.terrain.crater` showed up at once; the cached and direct frames differ by 26 pixels (river
+glint timing). `?skip=terraincache` goes back to the old per-column drawing for comparison. Owner to
+re-measure low flying in a fight (before: terrain 2.3-2.7 ms, 60-74 fps on a 120 Hz screen).

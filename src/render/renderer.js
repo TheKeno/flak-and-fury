@@ -304,52 +304,124 @@ export function createRenderer(canvas, world, assets) {
     ridge(nearRidge, 0.45, '#3f4a3c');
   }
 
-  // Ground, one buffer-pixel column at a time: grass (or runway, or scorched earth), then soil layers.
+  // One buffer-pixel column of ground into g at x, its top row at `top`: grass (or runway, or scorched
+  // earth), then soil layers down to floorY. Rivers lie over the channel bed from waterOf(river) down;
+  // their glint is left out when ripple is false (drawn live).
+  function paintColumn(g, x, ix, top, floorY, waterOf, ripple) {
+    const t = world.terrain;
+    const wx = ix / SCALE;
+    const col = (x, y, h, colour) => {
+      g.fillStyle = colour;
+      g.fillRect(x, y, 1, h);
+    };
+    const bh = floorY;
+    const af = map.airfields.find((a) => wx >= a.x && wx < a.x + a.width);
+    const n = hash(ix);
+    const scorch = t.scorch[Math.floor(wx)] ?? 0;
+    if (af) {
+      col(x, top, 1, '#9c9a8e');
+      col(x, top + 1, 3, '#8c8a7e');
+      if (Math.floor((wx - af.x) / 10) % 2 === 0 && wx > af.x + 20 && wx < af.x + af.width - 20) col(x, top + 1, 1, '#e4e4d4');
+      col(x, top + 4, 4, '#6a685e');
+    } else if (scorch > 40) {
+      const burnt = scorch > 140;
+      col(x, top, 1, burnt ? '#3a3128' : '#5c5a34');
+      col(x, top + 1, 6, burnt ? '#4a3c2c' : '#5d6a34');
+      if (burnt && n % 6 === 0) col(x, top + 2, 1, '#2a231c');
+    } else {
+      // Drab grass with the odd tuft poking up, a lit top edge and a darker under-layer, over dark earth:
+      // the look is grim, it's war.
+      if (n % 9 === 0) col(x, top - 1 - (n % 2), 1 + (n % 2), '#5e6a3c');
+      col(x, top, 1, n % 4 === 0 ? '#838d52' : '#6f7a45');
+      col(x, top + 1, 4 + (n % 3), '#56603a');
+      col(x, top + 5 + (n % 3), 2, '#434b2e');
+    }
+    col(x, top + 7, bh - top - 7, '#33251a');
+    col(x, top + 22, bh - top - 22, '#241a12');
+    col(x, top + 44, bh - top - 44, '#160f0a');
+    if (n % 5 === 0) col(x, top + 10 + (n % 31), 1, '#0e0906');
+    if (n % 17 === 0) col(x, top + 14 + (n % 23), 2, '#3d3226'); // pebbles
+    // River water over the channel bed, with a glinting, rippling surface.
+    const river = map.rivers?.find((rv) => wx >= rv.x && wx <= rv.x + rv.width);
+    if (river && t.heightAt(wx) < river.water) {
+      const wy = waterOf(river);
+      col(x, wy, top - wy, '#2e3f47');
+      col(x, wy + 3, top - wy - 3, '#253239');
+      col(x, wy, 1, ripple && (ix + Math.floor(frame / 8)) % 7 < 2 ? '#7d8e94' : '#4b5e66');
+    }
+  }
+
+  // The ground is drawn once into chunks of CHUNK buffer-pixel columns, in world pixels (row 0 = the
+  // top of the chunk, the bottom row = height 0), and copied to the screen each frame: a frame no longer
+  // paints ~1000 columns of a handful of rectangles each. A chunk is repainted when its craters or
+  // scorch change (checked by a sum over its heights). Only the river's glint is drawn live.
+  // ?skip=terraincache goes back to painting every column every frame, for comparison.
+  const CHUNK = 512;
+  const chunks = new Map(); // index -> { canvas, top (rows above height 0), sig, used }
+  let chunkTerrain = null;
+  const chunkSig = (t, i) => {
+    let s = 0;
+    for (let k = Math.floor((i * CHUNK) / SCALE), end = Math.ceil(((i + 1) * CHUNK) / SCALE) + 1; k < end; k++) {
+      s += (t.heights[k] ?? 0) * ((k & 255) + 1) + (t.scorch[k] ?? 0) * (((k * 7) & 127) + 1) * 1000;
+    }
+    return s;
+  };
+  function buildChunk(t, i, old) {
+    prof.count('chunkbuild');
+    const k0 = Math.floor((i * CHUNK) / SCALE);
+    let high = 0;
+    for (let k = k0, end = Math.ceil(((i + 1) * CHUNK) / SCALE) + 1; k < end; k++) high = Math.max(high, t.heights[k] ?? 0);
+    const rows = Math.ceil((high + 4) * SCALE) + 4; // a little over the highest ground, for the tufts
+    const canvas = old?.canvas ?? makeCanvas(CHUNK, rows);
+    if (canvas.height !== rows) canvas.height = rows;
+    canvas.width = CHUNK; // clears it
+    const g = canvas.getContext('2d');
+    const waterOf = (river) => rows + Math.round(-river.water * SCALE);
+    for (let x = 0; x < CHUNK; x++) {
+      const ix = i * CHUNK + x;
+      paintColumn(g, x, ix, rows + Math.round(-t.heightAt(ix / SCALE) * SCALE), rows, waterOf, false);
+    }
+    return { canvas, rows, sig: chunkSig(t, i), used: frame };
+  }
   function drawTerrain() {
     const t = world.terrain;
     const px0 = Math.round(cam.x * SCALE);
-    const col = (x, y, h, colour) => {
-      ctx.fillStyle = colour;
-      ctx.fillRect(x, y, 1, h);
-    };
-    for (let x = 0; x < bw; x++) {
-      const ix = px0 + x; // absolute buffer-pixel column, stable as the camera moves
-      const wx = ix / SCALE;
-      const top = Math.round(bh - (t.heightAt(wx) - cam.y) * SCALE);
-      if (top >= bh) continue;
-      const af = map.airfields.find((a) => wx >= a.x && wx < a.x + a.width);
-      const n = hash(ix);
-      const scorch = t.scorch[Math.floor(wx)] ?? 0;
-      if (af) {
-        col(x, top, 1, '#9c9a8e');
-        col(x, top + 1, 3, '#8c8a7e');
-        if (Math.floor((wx - af.x) / 10) % 2 === 0 && wx > af.x + 20 && wx < af.x + af.width - 20) col(x, top + 1, 1, '#e4e4d4');
-        col(x, top + 4, 4, '#6a685e');
-      } else if (scorch > 40) {
-        const burnt = scorch > 140;
-        col(x, top, 1, burnt ? '#3a3128' : '#5c5a34');
-        col(x, top + 1, 6, burnt ? '#4a3c2c' : '#5d6a34');
-        if (burnt && n % 6 === 0) col(x, top + 2, 1, '#2a231c');
-      } else {
-        // Drab grass with the odd tuft poking up, a lit top edge and a darker under-layer, over dark earth:
-        // the look is grim, it's war.
-        if (n % 9 === 0) col(x, top - 1 - (n % 2), 1 + (n % 2), '#5e6a3c');
-        col(x, top, 1, n % 4 === 0 ? '#838d52' : '#6f7a45');
-        col(x, top + 1, 4 + (n % 3), '#56603a');
-        col(x, top + 5 + (n % 3), 2, '#434b2e');
+    const camPx = Math.round(cam.y * SCALE);
+    if (skip.has('terraincache')) {
+      for (let x = 0; x < bw; x++) {
+        const top = Math.round(bh - (t.heightAt((px0 + x) / SCALE) - cam.y) * SCALE);
+        if (top < bh) paintColumn(ctx, x, px0 + x, top, bh, (river) => Math.round(bh - (river.water - cam.y) * SCALE), true);
       }
-      col(x, top + 7, bh - top - 7, '#33251a');
-      col(x, top + 22, bh - top - 22, '#241a12');
-      col(x, top + 44, bh - top - 44, '#160f0a');
-      if (n % 5 === 0) col(x, top + 10 + (n % 31), 1, '#0e0906');
-      if (n % 17 === 0) col(x, top + 14 + (n % 23), 2, '#3d3226'); // pebbles
-      // River water over the channel bed, with a glinting, rippling surface.
-      const river = map.rivers?.find((rv) => wx >= rv.x && wx <= rv.x + rv.width);
-      if (river && t.heightAt(wx) < river.water) {
-        const wy = Math.round(bh - (river.water - cam.y) * SCALE);
-        col(x, wy, top - wy, '#2e3f47');
-        col(x, wy + 3, top - wy - 3, '#253239');
-        col(x, wy, 1, (ix + Math.floor(frame / 8)) % 7 < 2 ? '#7d8e94' : '#4b5e66');
+      return;
+    }
+    if (chunkTerrain !== t) {
+      chunks.clear();
+      chunkTerrain = t;
+    }
+    for (let i = Math.floor(px0 / CHUNK); i * CHUNK < px0 + bw; i++) {
+      let c = chunks.get(i);
+      if (!c || c.sig !== chunkSig(t, i)) {
+        c = buildChunk(t, i, c);
+        chunks.set(i, c);
+      }
+      c.used = frame;
+      // Where the chunk's row 0 lands on the screen; whole pixels, as the camera snaps to them.
+      const dy = bh + camPx - c.rows;
+      const sx = Math.max(0, px0 - i * CHUNK);
+      const sy = Math.max(0, -dy);
+      const w = Math.min(CHUNK, px0 + bw - i * CHUNK) - sx;
+      const h = Math.min(c.rows - sy, bh - (dy + sy));
+      if (w > 0 && h > 0) ctx.drawImage(c.canvas, sx, sy, w, h, i * CHUNK + sx - px0, dy + sy, w, h);
+    }
+    // Few chunks are needed at once; let go of ones not seen for a while.
+    if (chunks.size > 8) for (const [i, c] of chunks) if (frame - c.used > 300) chunks.delete(i);
+    // The river's glint ripples, so it is drawn on top each frame.
+    for (const river of map.rivers ?? []) {
+      const wy = Math.round(bh - (river.water - cam.y) * SCALE);
+      ctx.fillStyle = '#7d8e94';
+      for (let x = Math.max(0, Math.ceil(river.x * SCALE) - px0); x < bw && (px0 + x) / SCALE <= river.x + river.width; x++) {
+        const ix = px0 + x;
+        if ((ix + Math.floor(frame / 8)) % 7 < 2 && t.heightAt(ix / SCALE) < river.water) ctx.fillRect(x, wy, 1, 1);
       }
     }
   }
