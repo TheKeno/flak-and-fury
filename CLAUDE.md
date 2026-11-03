@@ -5,11 +5,6 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
 
 ## Working with the owner
 
-- **Before every build, recommend a model as its own step and wait for "go":**
-  `🟣 **Model: Sonnet.** <reason>` (or Opus). Say whether switching is worth it right now — each switch
-  re-reads the whole session, so in a long session small tweaks are cheaper on the current model.
-  Opus for new systems, AI, physics, netcode, audio DSP, rendering techniques, subtle bugs; Sonnet for
-  pattern-following work, data, UI, docs, small clear fixes. Pure discussion needs no recommendation.
 - **Test muted:** open the game as `http://localhost:8080/?mute` in the browser pane, never the plain
   URL — the owner hears test audio through their speakers.
 - **GitHub:** the repo is `TheKeno/flak-and-fury` (private). Use the **TheKeno** account, never the
@@ -23,17 +18,16 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
   dimensions, all to one scale; the outline shape matters most (canopy, nose, fin, gear, wing shape).
   Compare against 3-view references and show the owner the outlines before animation or data work.
 
-## Sessions and knowledge
+## Project facts
 
-- **One task per session**, titled `Area — task`. Areas: Sound, Planes, Gameplay, UI, Design,
-  Milestone N. No custom sidebar groups; the sidebar's own project heading is enough.
-- **Knowledge lives in the repo, not in sessions.** A fresh session should need only `CLAUDE.md`,
-  `ROADMAP.md`, `TUNING.md` and the memory notes. Don't rely on what an old session "knows".
-- **Before a session ends, update `ROADMAP.md`** (Done, and Decisions for anything settled) and
-  `TUNING.md` if data values changed, then commit and push. Do this unasked when the task is finished;
-  when the owner calls a discussion done, write its outcome into Decisions.
-- **Sessions you start for the owner must not stay nested.** Right after `start_session`, call
-  `detach_session` on it so it sits at top level. Don't archive a session that has others nested under it.
+The general workflow (sessions, wrap-up, size watch) is in the owner's user-level `~/.claude/CLAUDE.md`,
+kept in the private repo `TheKeno/claude-workflow`.
+
+- Test command: `node --test tests/`
+- Roadmap file: `ROADMAP.md` (data values in `TUNING.md`)
+- Notes folder: `notes/`
+- Areas: Sound, Planes, Gameplay, UI, Design, Milestone N
+- Repo and account: `TheKeno/flak-and-fury`, TheKeno account, commit to `main`
 
 ## Running
 
