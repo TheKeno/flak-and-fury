@@ -69,8 +69,9 @@ later.
   - Graded collisions (fatal / hard / graze) with uneven damage shares, the taran prop-into-tail
     strike and wing pull.
   - WWII radar CRT: sweep, afterglow, IFF pulse, low-level gap.
-  - Looking around with the arrow keys or the mouse (sticky; per-plane rear visibility). Left mouse
-    guns, right mouse bombs.
+  - Looking around with the arrow keys or the mouse (sticky; per-plane rear visibility). Mouse look and
+    the wing wobble were switched off by default in `68c767d` (settings only; code and options remain).
+    Left mouse guns, right mouse bombs.
   - Persistent damage report and LAST FLIGHT report with cause of death.
   - Runway damage: the runway is open, damaged (short, risky take-off) or closed by its longest
     crater-free stretch against each plane's take-off run. Smaller craters on concrete (bombs and tank
@@ -134,6 +135,10 @@ later.
     game) goes back into it.
   - **HUD pass:** smaller, smooth text drawn at the screen's full resolution instead of the blocky
     3×5 pixel font, muted read-outs, unit labels, and on-screen hints that name the keys as bound.
+- **Audio files reorganised** (`ca8e25f`, `c018df8`, `644af27`): `assets/audio/` sorted into folders by
+  use, duplicates removed, every file renamed `<group>-<detail>-<NN>`. Sound Lab uploads are named after
+  their slot, filed in the right folder and reuse an identical existing file; the original name is kept
+  in the file's source field; `tests/sound.test.mjs` checks naming, duplicates and paths.
 
 ## Milestones ahead
 
@@ -204,7 +209,7 @@ Then: more themes, co-op missions, matchmaking.
   milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
   slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of
   the G-6 model carries over (slimmer cowl without the gun bulges, smaller spinner).
-- **Smoother wing wobble:** more roll animation steps, above all the first ones either side of level.
+- **Smoother wing wobble** (off by default for now, see `wobble` in `data/settings.json`): more roll animation steps, above all the first ones either side of level.
   The sheets have 16 frames (22.5 degrees apart), so the small leans and tilts jump a whole step; with
   finer steps near level (say every 5-8 degrees) the wobble, lean and flutter (`wobble` in
   `data/settings.json`) would ease in smoothly. Needs the roll rows in `tools/plane-models.mjs` and every

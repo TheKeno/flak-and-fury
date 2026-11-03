@@ -7,7 +7,7 @@ and sound design built around a live-synthesized piston engine. Working title.
 ## Play it
 
 **<https://thekeno.github.io/flak-and-fury/>**: the latest build, updated on every push to `main`.
-Click the game to capture the mouse (Esc frees it). In the tuning panel (T), "Save to files" downloads
+Click the game to capture the mouse so its buttons work (Esc frees it). In the tuning panel (T), "Save to files" downloads
 the data files there instead of saving them.
 
 ## Running it
@@ -44,7 +44,7 @@ in the browser.
 | E or right mouse | Bombs |
 | G | Landing gear (overrides the automatic gear) |
 | B | Bail out, at once, anywhere. After 3 s, fire gets you a new plane |
-| Mouse | Look around (sticky: stays put, eases back ahead after 3 s without moving). Click the game to capture the mouse |
+| Mouse | Look around, off by default (switch on **Mouse look** in Options; sticky: stays put, eases back ahead after 3 s without moving). Click the game to capture the mouse so the left and right buttons fire and bomb |
 | Arrow keys | Look around while held |
 | Esc | Menu: pause (single player), options, quit |
 | F11 | Fullscreen (the game's own: in Chrome and Edge a tap of Esc then opens the menu, holding Esc leaves fullscreen; in Firefox Esc leaves it, and Resume or a click on the game goes back) |
@@ -57,15 +57,20 @@ in the browser.
 
 | Folder | Contents |
 |---|---|
-| `src/sim/` | The simulation: flight model, weapons, damage, bots. Pure logic, no graphics or sound, deterministic (ready for online play). |
-| `src/render/` | Pixel-art renderer, sprites, particles, HUD. |
-| `src/audio/` | Web Audio: engine synthesizer, gun voices, spatial sound, mixer. |
+| `src/sim/` | The simulation: flight model, weapons, damage, bots, seats, bailing out. Pure logic, no graphics or sound, deterministic (ready for online play). |
+| `src/render/` | Pixel-art renderer, sprites, particles, HUD, radar, fight camera. |
+| `src/audio/` | Web Audio: engine synthesizer, gun voices, recordings, spatial sound, mixer. |
+| `src/input/` | Keyboard and mouse: the bindable actions and their default keys. |
+| `src/content/` | Loads the data files and reads the LDtk maps. |
 | `src/net/` | Online play: snapshots of the world, the guest's smoothed view, PeerJS connections. |
-| `src/ui/` | Tuning panel. |
-| `data/` | Planes, weapons, nations, camera and sound settings (JSON). |
-| `maps/` | Maps. |
-| `assets/sprites/` | Sprite PNGs, drawn at 2 pixels per world unit. |
-| `tools/` | Local dev server and the sprite generator. |
+| `src/ui/` | Options menu (`options.js`), setup screen (`setup.js`), tuning panel (`tuning.js`) and the Sound Lab page (`sound-lab.js`). |
+| `data/` | Planes, weapons, nations, ground objects, settings and sound (`sound.json`, written by the Sound Lab), all JSON. |
+| `maps/` | Maps (LDtk projects). |
+| `assets/sprites/` | Sprite PNGs, drawn at 2 pixels per world unit (planes at 4). |
+| `assets/audio/` | Sound recordings, sorted by use into `engines/`, `guns/`, `impacts/`, `destruction/`, `airframe/`, `crew/`, `ambience/`, `voice/`, `ui/` (and `inbox/` for unsorted uploads). |
+| `tests/` | Headless tests of the simulation, online snapshots and sound data: `node --test tests/`. |
+| `tools/` | Local dev server (`serve.mjs`); sprite generator (`make-sprites.mjs`) with the 3D plane models (`plane-models.mjs`) and PNG writer (`png.mjs`); map tools (`make-map.mjs`, `map-guide.mjs`). |
+| `sound-lab.html` | The Sound Lab: audition and tune sounds, engines and recordings. Open <http://localhost:8080/sound-lab.html>. |
 
 ## Tuning
 
