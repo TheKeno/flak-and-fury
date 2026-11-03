@@ -130,7 +130,9 @@ export function createRenderer(canvas, world, assets) {
   // Match the screen canvas to its displayed size, so the final scale-up is sharp.
   function fitDisplay() {
     const dpr = window.devicePixelRatio || 1;
-    const w = Math.max(W * SCALE, Math.round(canvas.clientWidth * dpr));
+    // Test switch: ?cap=1080 limits the screen canvas to 1920x1080 (the browser stretches it).
+    const cap = Number(new URLSearchParams(location.search).get('cap')) * 16 / 9 || Infinity;
+    const w = Math.max(W * SCALE, Math.min(cap, Math.round(canvas.clientWidth * dpr)));
     const h = Math.round((w * H) / W);
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
