@@ -127,6 +127,10 @@ export function createRenderer(canvas, world, assets) {
   let bh = H * SCALE;
   let zoom = 1;
 
+  // Test switch for finding what costs frames: ?skip=sky,terrain,ground,planes,hud,radar,present
+  // leaves those out.
+  const skip = new Set((new URLSearchParams(location.search).get('skip') ?? '').split(','));
+
   // Match the screen canvas to its displayed size, so the final scale-up is sharp.
   function fitDisplay() {
     const dpr = window.devicePixelRatio || 1;
@@ -1301,11 +1305,11 @@ export function createRenderer(canvas, world, assets) {
       gore.update(dt);
       prof.mark('update');
 
-      drawBackground();
+      if (!skip.has('sky')) drawBackground();
       prof.mark('sky');
-      drawTerrain();
+      if (!skip.has('terrain')) drawTerrain();
       prof.mark('terrain');
-      drawGround();
+      if (!skip.has('ground')) drawGround();
       prof.mark('ground');
       gore.draw(ctx, toScreenX, toScreenY, SCALE, (x) => surfaceAt(world, x), bw);
       prof.mark('gore');
@@ -1313,7 +1317,7 @@ export function createRenderer(canvas, world, assets) {
       prof.mark('particles');
       drawProjectiles();
       prof.mark('shots');
-      for (const p of world.planes) drawPlane(p, focus);
+      if (!skip.has('planes')) for (const p of world.planes) drawPlane(p, focus);
       prof.mark('planes');
       for (const c of world.crew ?? []) drawCrew(c);
       for (const c of world.parachutes ?? []) drawParachute(c, focus);
@@ -1335,7 +1339,7 @@ export function createRenderer(canvas, world, assets) {
       // On a screen smaller than the buffer, shrink it smoothly: nearest-neighbour would drop pixel
       // rows unevenly and make the scenery shimmer. display.smooth softens the scale-up too.
       out.imageSmoothingEnabled = Boolean(assets.settings.display?.smooth) || canvas.width < bw * DETAIL;
-      out.drawImage(buffer, 0, 0, bw * DETAIL, bh * DETAIL, ox, oy, canvas.width, canvas.height);
+      if (!skip.has('present')) out.drawImage(buffer, 0, 0, bw * DETAIL, bh * DETAIL, ox, oy, canvas.width, canvas.height);
       out.imageSmoothingEnabled = false;
       prof.mark('present');
 
@@ -1352,7 +1356,7 @@ export function createRenderer(canvas, world, assets) {
       if (focus) gore.drawSpatters(hud, focus.id);
       if (focus && !free) drawSight(focus);
       hud.globalAlpha = hudCfg.opacity ?? 1;
-      drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free), units: hudCfg.units });
+      if (!skip.has('hud')) drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free), units: hudCfg.units });
       drawMessages();
       const L = lineHeight();
       const banner = (text, y, colour) => drawText(hud, text, (W - textWidth(text)) / 2, y, colour);
@@ -1378,7 +1382,7 @@ export function createRenderer(canvas, world, assets) {
 
       // The radar scope is scaled up smoothly for a soft phosphor glow.
       out.imageSmoothingEnabled = true;
-      out.drawImage(radar.draw(performance.now() / 1000), SCOPE.x * hk, SCOPE.y * hk, SCOPE.w * hk, SCOPE.h * hk);
+      if (!skip.has('radar')) out.drawImage(radar.draw(performance.now() / 1000), SCOPE.x * hk, SCOPE.y * hk, SCOPE.w * hk, SCOPE.h * hk);
       out.imageSmoothingEnabled = false;
       prof.mark('radar');
     },
