@@ -63,3 +63,20 @@ quiet scene).
 
 - What fps/gap does F3 show on your 144 Hz screen, in the title-to-flight scene and in a fight? Is it
   a laptop or a desktop GPU, and which browser?
+
+## Update (owner's own measurements, 2026-11-03)
+
+Owner's setup: ROG PG278QE 2560x1440 at 120 Hz (not 144), second display 1920x1080 at 60 Hz on HDMI,
+RTX 5070, Windows 10, Edge, 125% scaling.
+
+- Uncapped, parked: 93 fps (gap 10.8 ms). Flying: flat 60. Dropped to 40 when the screen-grab overlay
+  opened (120/2 and 120/3: frames land on whole refresh steps).
+- `?cap=1080` (canvas limited to 1920x1080): no change (60 fps). **Fix 1 (canvas cap) is dropped.**
+- `?skip=` switch (leaves parts out): terrain, sky+terrain, radar, hud, planes each: still 60. With
+  everything left out (cpu 0.5 ms, nearly empty screen): **still 60.** So the game's drawing is not what
+  limits the frame rate; something in the browser or system holds it to 60.
+- Suspects, not yet confirmed: the 60 Hz second display (Windows 10 mixed refresh rates), browser
+  hardware acceleration or power saving. Next: Win+P "PC screen only", testufo.com/refreshrate,
+  `edge://gpu`, another browser.
+- Fix 2 (camera snap) and fix 3 (terrain cache, ~1.3 ms CPU) remain as cheap improvements; the
+  stutter question can only be judged once the frame rate is steady.
