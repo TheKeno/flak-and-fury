@@ -311,6 +311,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
+  engine and other plane sounds stay those of the old plane; they should follow the new plane.
 - **Plane crash shockwave hits infantry** (Gameplay): a crashing plane sends a shockwave that hurts or knocks down
   nearby infantry, not only those it lands on.
 - **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
