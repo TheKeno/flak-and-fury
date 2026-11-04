@@ -485,20 +485,26 @@ function draw() {
   }
   ctx.globalAlpha = 1;
   ctx.restore();
-  // Points, in screen pixels.
-  for (const h of handlesFor(S.part)) {
-    const [px, py] = toScreen(T, ...h.pos());
-    const selected = S.sel && S.sel.ref === h.ref && S.sel.which === h.which;
-    const hovered = S.hover && S.hover.ref === h.ref && S.hover.which === h.which;
-    ctx.fillStyle = selected ? '#ffd24a' : hovered ? '#ffffff' : COLOURS[S.part] ?? '#fff';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    if (h.which === 'radius') ctx.arc(px, py, 4, 0, Math.PI * 2);
-    else ctx.rect(px - 4, py - 4, 8, 8);
-    ctx.fill();
-    ctx.stroke();
+  // Points, in screen pixels: the selected part's big, the others' small (click one to switch to its part).
+  for (const key of [...partIds().filter((k) => k !== S.part), S.part]) {
+    const active = key === S.part;
+    const r = active ? 4 : 2.5;
+    for (const h of handlesFor(key)) {
+      const [px, py] = toScreen(T, ...h.pos());
+      const selected = active && S.sel && S.sel.ref === h.ref && S.sel.which === h.which;
+      const hovered = S.hover && S.hover.ref === h.ref && S.hover.which === h.which;
+      ctx.fillStyle = selected ? '#ffd24a' : hovered ? '#ffffff' : COLOURS[key] ?? '#fff';
+      ctx.globalAlpha = active || hovered ? 1 : 0.7;
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (h.which === 'radius') ctx.arc(px, py, r, 0, Math.PI * 2);
+      else ctx.rect(px - r, py - r, r * 2, r * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
   }
+  ctx.globalAlpha = 1;
   // Calibration marks.
   if (S.bp) {
     for (const [name, p] of [['nose', S.bp.nose], ['tail', S.bp.tail]]) {
@@ -558,12 +564,15 @@ function hitHandle(p) {
   const T = matT();
   let best = null;
   let bestD = 10;
-  for (const h of handlesFor(S.part)) {
-    const [sx, sy] = toScreen(T, ...h.pos());
-    const dist = Math.hypot(sx - p[0], sy - p[1]);
-    if (dist <= bestD) {
-      bestD = dist;
-      best = h;
+  const keys = [S.part, ...partIds().filter((k) => k !== S.part)];
+  for (const key of keys) {
+    for (const h of handlesFor(key)) {
+      const [sx, sy] = toScreen(T, ...h.pos());
+      const dist = Math.hypot(sx - p[0], sy - p[1]) + (key === S.part ? 0 : 3); // the active part wins close calls
+      if (dist <= bestD) {
+        bestD = dist;
+        best = { ...h, key };
+      }
     }
   }
   return best;
@@ -587,6 +596,10 @@ cv.addEventListener('pointerdown', (e) => {
   }
   const h = e.button === 0 ? hitHandle(p) : null;
   if (h) {
+    if (h.key !== S.part) {
+      S.part = h.key;
+      rebuildPanel();
+    }
     pushUndo();
     S.sel = { ref: h.ref, which: h.which };
     drag = { h };
