@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Fire sound stays with the abandoned wreck:** `updateFires` (`src/audio/soundscape.js`) stopped a plane's fire loop and then updated the stopped loop in the same pass. The player's plane keeps its `id`, which is the listener (centred, full level), so the dying fire was re-raised on the player's own plane. It now stops cleanly; the wreck (new `id`) has its own spatialised, distance-faded voice. Not checked by ear and no headless test (needs browser audio). `scrapes` in `updateBellies` has the same stop-then-update pattern.
 - **Plane sounds follow the plane on a side/plane switch:** a switch keeps the plane's `id` but swaps its `def`, and the engine voice and airframe layer host were cached by id only. `engineFor` and `updatePlaneLayers` in `src/audio/soundscape.js` now rebuild when `def` differs (same path on guests, whose patched `def` changes in place). Checked by test (`tests/bailout.test.mjs`) and by reading the code, not by ear.
 - **Sound Lab keeps tab and scroll on reload:** the active tab, selected sound, vehicle/design pick and both scroll positions are kept in `localStorage` (`soundLabView`, `keepView` in `src/ui/sound-lab.js`); blocked storage just starts fresh.
 - **Rattle stops when it should:** a wreck makes no airframe layer sounds at all, and the rattle layer is silent with the engine off or the plane standing on the ground (`updatePlaneLayers` in `src/audio/soundscape.js`, `quiet` in `createLayerHost`). Checked by tests only, not by ear.
@@ -319,7 +320,6 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 - **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
-- **Fire sound effect carries over to the next plane** (Sound): after abandoning a burning plane, the fire sound continues on the player's next plane; it should stay with the abandoned wreck. Session: `Sound — fire sound follows wreck`.
 
 ## Backlog
 
