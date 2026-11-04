@@ -319,6 +319,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 - **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
+- **Fire sound effect carries over to the next plane** (Sound): after abandoning a burning plane, the fire sound continues on the player's next plane; it should stay with the abandoned wreck. Session: `Sound — fire sound follows wreck`.
 
 ## Backlog
 
@@ -337,8 +338,6 @@ Then: more themes, co-op missions, matchmaking.
   nearby infantry, not only those it lands on.
 - **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
   drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
-- **Fire sound effect carries over to the next plane** (Sound): after abandoning a burning plane, the fire sound
-  effect continues on the player's next plane; it should stay with the abandoned wreck.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
   (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
 - **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;

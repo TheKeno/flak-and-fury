@@ -191,6 +191,9 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       if (!burning && f) {
         f.stop();
         fires.delete(p.id);
+        // Not an update too: it would put the fading fire back at full level on this plane's id, which
+        // is the player's own (ME) after a bailout; the wreck has its own id and its own voice.
+        continue;
       }
       f?.update(whereOf(p), p.dying ? 1 : 0.7);
     }
