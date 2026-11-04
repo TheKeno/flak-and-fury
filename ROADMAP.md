@@ -312,6 +312,10 @@ later.
 
 Then: more themes, co-op missions, matchmaking.
 
+## In progress
+
+- **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
+
 ## Backlog
 
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
@@ -347,7 +351,6 @@ Then: more themes, co-op missions, matchmaking.
   host never saw it; a name changed after joining should reach the host and show in the HUD and logs.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
-- **Respawn out of the hangar** (Gameplay): on respawn the plane leaves the hangar with the runway roll animation, and the hangar doors open and close.
 - **Smooth turn at the map edge** (Planes): use the runway roll animation to turn the plane smoothly when it bounces off the map edge.
 - **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
 - **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
