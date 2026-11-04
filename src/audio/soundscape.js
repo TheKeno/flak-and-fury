@@ -63,9 +63,15 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
 
   const engineFor = (p) => {
     let v = engines.get(p.id);
+    // Changing side or plane keeps the plane's id but gives it another def: the voice is rebuilt for it.
+    if (v && v.def !== p.def) {
+      v.dispose();
+      v = null;
+    }
     if (!v) {
       const { build, buildId, count } = engineSoundFor(sound, planeIds.get(p.def), p.def.engine.layout);
       v = createEngineVoice(mixer, p.def.engine, build, count, `build:${buildId}`);
+      v.def = p.def;
       engines.set(p.id, v);
       if (p.state !== 'dead') v.start();
     }
@@ -113,9 +119,14 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   function updatePlaneLayers(p, where, dt) {
     if (!mixer.recordings) return;
     let host = layerHosts.get(p.id);
+    if (host && host.def !== p.def) {
+      host.stop();
+      host = null;
+    }
     if (!host) {
       const { buildId } = engineSoundFor(sound, planeIds.get(p.def), p.def.engine.layout);
       host = mixer.recordings.createLayerHost([`plane:${planeIds.get(p.def)}`, `build:${buildId}`, 'all:plane']);
+      host.def = p.def;
       layerHosts.set(p.id, host);
     }
     const last = lastAngle.get(p.id) ?? p.angle;

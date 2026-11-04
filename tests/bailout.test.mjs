@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld, DT } from '../src/sim/world.js';
 import { placeBots, changeSeat, freeSide, playersOn, isBot } from '../src/sim/seats.js';
+import { engineSoundFor } from '../src/audio/sound-data.js';
 import { encodeWorld, diff, applyPatch, staticRefs } from '../src/net/snapshot.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
@@ -254,4 +255,18 @@ test('parachutes, wrecks, soldiers and names all reach a guest', () => {
     }
   }
   assert.equal(guest.ground.find((o) => o.id === p.bailout.soldier).callsign, 'SIMON');
+});
+
+test('switching side and plane keeps the plane id but changes def: sounds are keyed by def, so they must follow', () => {
+  const { world, p } = setup();
+  const sound = load('data/sound.json');
+  const ids = new Map(Object.entries(world.planeDefs).map(([id, d]) => [d, id]));
+  const before = { id: p.id, def: p.def };
+  assert.equal(changeSeat(world, p, { team: 1, defId: 'p47d' }, DT), null);
+  assert.equal(p.id, before.id);
+  assert.notEqual(p.def, before.def, 'soundscape rebuilds its voices when def differs from the one they were built for');
+  assert.equal(ids.get(p.def), 'p47d');
+  const oldSound = engineSoundFor(sound, ids.get(before.def), before.def.engine.layout);
+  const newSound = engineSoundFor(sound, ids.get(p.def), p.def.engine.layout);
+  assert.notEqual(newSound.buildId, oldSound.buildId, 'a radial plane does not use the inline engine build');
 });

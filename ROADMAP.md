@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Plane sounds follow the plane on a side/plane switch:** a switch keeps the plane's `id` but swaps its `def`, and the engine voice and airframe layer host were cached by id only. `engineFor` and `updatePlaneLayers` in `src/audio/soundscape.js` now rebuild when `def` differs (same path on guests, whose patched `def` changes in place). Checked by test (`tests/bailout.test.mjs`) and by reading the code, not by ear.
 - **Sound Lab keeps tab and scroll on reload:** the active tab, selected sound, vehicle/design pick and both scroll positions are kept in `localStorage` (`soundLabView`, `keepView` in `src/ui/sound-lab.js`); blocked storage just starts fresh.
 - **Rattle stops when it should:** a wreck makes no airframe layer sounds at all, and the rattle layer is silent with the engine off or the plane standing on the ground (`updatePlaneLayers` in `src/audio/soundscape.js`, `quiet` in `createLayerHost`). Checked by tests only, not by ear.
 - **Ground fire flames always rise:** every flame leaves with its own upward kick, so a burning plane that stands still no longer burns low (`emitEffects` in `src/render/renderer.js`). Visual only; the sim and snapshots are untouched. Not the same cause as "Fire effect carries over to the next plane".
@@ -318,8 +319,6 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 - **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
-- **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
-  engine and other plane sounds stay those of the old plane; they should follow the new plane. Session: `Sound — side-switch sounds`.
 
 ## Backlog
 
