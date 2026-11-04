@@ -309,6 +309,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Respawn out of the hangar** (Gameplay): on respawn the plane leaves the hangar with the runway roll animation, and the hangar doors open and close.
 - **Smooth turn at the map edge** (Planes): use the runway roll animation to turn the plane smoothly when it bounces off the map edge.
 - **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
 - **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
