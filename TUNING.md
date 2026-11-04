@@ -103,7 +103,9 @@ ground the framing fades out.
 Wheel zoom, also in `camera`: the scroll wheel (bindable as Camera zoom in / out in the Keys tab) scales
 the camera's own zoom by a player factor that resets to 1 at each take-off and is never saved. `wheelStep`
 is the zoom change per notch (0.12 = about 13%), `wheelSmooth` how quickly the view follows (a spring: starts gently, settles without overshoot; also reset at each respawn). Zoom-out
-stops at `fightZoomMax` (read live; the camera's own speed or fight zoom is never cut by it). Zoom-in goes
+goes to `wheelOutMax` times the camera's own zoom (1.2 = 20% wider), relative so the speed zoom still shows
+at full zoom-out, and never past `fightZoomMax` (read live; the camera's own speed or fight zoom is never cut by
+either). Zoom-in goes
 down to `wheelMin` with no fight; in a fight only `wheelFightTighten` (share, 0.25 = 25%) tighter than the
 zoom the dogfight camera asks for, blended in with the fight, so more than that can push the framed planes
 off the screen edge. Rules in `src/render/player-zoom.js`.

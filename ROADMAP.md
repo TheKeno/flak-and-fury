@@ -10,7 +10,9 @@ later.
 - **Scroll-wheel camera zoom (built, to playtest and tune; trial of option C):** the wheel scales the camera's zoom through a
   player zoom factor (default 1, reset to 1 on each take-off, not saved). `src/render/renderer.js`
   `updateZoom` multiplies the automatic target (speed zoom, dogfight zoom, look-around) by it.
-  Zoom-out ends at `camera.fightZoomMax`, read live so tuning that value moves the wheel's limit too.
+  Zoom-out is relative to the camera's own zoom: up to `camera.wheelOutMax` (1.2) times it, never past
+  `camera.fightZoomMax` (read live). Relative on purpose, so the speed zoom (the feeling of going fast)
+  still shows when the player is zoomed all the way out; a fixed cap flattened it.
   Zoom-in goes further than 1 (tentative floor about 0.7; the buffers are sized for `MAX_ZOOM`, so a
   smaller view needs no new buffers, but terrain pixels get chunky when magnified, so check on screen).
   **During a fight the wheel may tighten the dogfight camera's zoom only by a limited amount** (new

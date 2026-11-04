@@ -78,6 +78,7 @@ const CAMERA_FIELDS = [
   ['fightLowAlt', 'Dogfight: fades below', 1, 400, 10, 'Height above the ground where the framing starts fading out, gone at the ground.'],
   ['wheelStep', 'Wheel zoom: step', 0.02, 0.4, 0.01, 'How much one wheel notch changes the zoom (0.12 = about 13%).'],
   ['wheelSmooth', 'Wheel zoom: smoothness', 1, 12, 0.5, 'How quickly the view follows the wheel (a spring: starts gently, settles without overshoot). Lower = slower, softer.'],
+  ['wheelOutMax', 'Wheel zoom: furthest out', 1, 2, 0.01, 'How much wider than the camera\'s own zoom the wheel may go (1.2 = 20% wider). Relative, so the speed zoom still shows. Never past the dogfight max zoom-out.'],
   ['wheelMin', 'Wheel zoom: closest in', 0.3, 1, 0.01, 'The tightest the wheel zooms in when no fight is on. 1 = no zooming in. Zoom-out is limited by the dogfight max zoom-out.'],
   ['wheelFightTighten', 'Wheel zoom: tighter in a fight', 0, 0.6, 0.01, 'How much tighter than the dogfight camera wants you may zoom in during a fight. 0 = none. More can push the framed planes off the screen edge.'],
 ];

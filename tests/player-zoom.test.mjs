@@ -3,17 +3,24 @@ import assert from 'node:assert/strict';
 import { playerZoom, wheelRange } from '../src/render/player-zoom.js';
 import { ACTIONS, defaultBindings } from '../src/input/keyboard.js';
 
-const cfg = { fightZoomMax: 1.6, wheelMin: 0.7, wheelFightTighten: 0.25 };
+const cfg = { fightZoomMax: 1.6, wheelMin: 0.7, wheelFightTighten: 0.25, wheelOutMax: 1.2 };
 
 test('wheel at 1 changes nothing', () => {
   for (const auto of [1, 1.3, 1.6]) assert.equal(playerZoom(auto, 1, 0, cfg), auto);
   assert.equal(playerZoom(1.4, 1, 1, cfg), 1.4);
 });
 
-test('zoom-out stops at fightZoomMax, and follows it when tuned', () => {
-  assert.equal(playerZoom(1, 5, 0, cfg), 1.6);
-  assert.equal(playerZoom(1, 5, 0, { ...cfg, fightZoomMax: 1.3 }), 1.3);
-  assert.deepEqual(wheelRange(cfg), [0.7, 1.6]);
+test('zoom-out is relative to the camera\'s own zoom, so the speed zoom still shows', () => {
+  assert.ok(Math.abs(playerZoom(1, 5, 0, cfg) - 1.2) < 1e-9); // slow: 1.2
+  assert.ok(Math.abs(playerZoom(1.3, 5, 0, cfg) - 1.56) < 1e-9); // fast: wider, not the same
+  assert.ok(playerZoom(1.3, 5, 0, cfg) > playerZoom(1, 5, 0, cfg));
+  assert.deepEqual(wheelRange(cfg), [0.7, 1.2]);
+});
+
+test('zoom-out never passes fightZoomMax, and follows it when tuned', () => {
+  assert.equal(playerZoom(1.35, 5, 0, cfg), 1.6); // 1.35 * 1.2 = 1.62, held at 1.6
+  assert.equal(playerZoom(1, 5, 0, { ...cfg, wheelOutMax: 2 }), 1.6);
+  assert.equal(playerZoom(1, 5, 0, { ...cfg, wheelOutMax: 2, fightZoomMax: 1.3 }), 1.3);
 });
 
 test('the camera\'s own zoom is never cut by the wheel cap', () => {
