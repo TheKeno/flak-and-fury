@@ -323,6 +323,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Blood on the plane drawn outside the body** (Gameplay): the blood effect on a plane has pixels outside the plane's
+  body; keep it inside the plane's outline.
 - **Plane switch mid-flight spawns on the runway, not in the hangar** (Gameplay): switching plane in the air
   (Esc) puts the new plane on the ground at the airfield instead of rolling it out of the hangar like a respawn
   (`changeSeat` in `src/sim/seats.js` calls `spawnAtAirfield` without `fromHangar`).
