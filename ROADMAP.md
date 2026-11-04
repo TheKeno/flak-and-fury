@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Planes can lift off from plain ground again:** the cause was rolling friction on grass (`GRASS_FRICTION` 1.6×), which for the weaker-engined P-47D, Bf 110 and B-25 capped full-throttle speed on flat grass at 59, 56 and 55, below their take-off speeds (66, 66, 56); the other planes only just made it, and any uphill slope stopped them too. Grass friction in `stepGround` (`src/sim/plane.js`) is now eased off per plane just enough that top speed on flat grass is 15% above take-off speed (`GRASS_TAKEOFF_MARGIN`, a code constant like `GRASS_FRICTION`, no data change). Runway behaviour is unchanged. Headless test for every plane in `tests/grass-takeoff.test.mjs`; not looked at in the browser, so please try a take-off from grass with the P-47 or Bf 110.
 - **Freeze after Start engine is gone:** rechecked in the browser pane (`?mute`, Single player, Start engine) with a long-task observer and a frame-gap check: nothing longer than 281 ms in the 5 s after the click (one 157 ms task on opening the menu), and 60 fps afterwards. No code change; the old stall went away with the hangar animations. The only ~1 s frame gaps seen were the browser pane pausing between tool calls.
 - **Belly scrape when gear is raised on the runway:** pressing G on the ground (not while the ground crew is servicing the plane) now calls the existing `bellyLand` in `src/sim/plane.js` (`updateGear`): the plane drops onto its belly, engine stops, propeller bent, damage as a belly landing, and the usual `bellyLanding` event gives the crunch sound, sparks and the belly-scrape loop while it slides. No new tunables. Headless test in `tests/field.test.mjs`; not looked at in the browser, so please press G on the runway once and check the sparks, sound and drag feel right.
 - **Crash shockwave hits infantry:** every crash (`crash()` in `src/sim/plane.js`) calls `crashShockwave` (`src/sim/ground.js`): soldiers of either side within `crashBlastRadius` (30) of the wreck take `crashBlastForce` (1.5) × their hit points at the wreck, falling off linearly; no score for it. Both values are in `collisions`, the tuning panel and TUNING.md. Headless test in `tests/ground.test.mjs`; not looked at in the browser, so please crash near some infantry and check the radius feels right (the soldiers die with the usual blast gore).
@@ -326,9 +327,6 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-
-- **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
-  can't take off however fast it goes; find out why and let it lift off when it has the speed.
 
 ## Backlog
 
