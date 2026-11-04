@@ -166,6 +166,11 @@
     "stallSink": 35,
     "plopDamage": 6
   },
+  "takeoff": {
+    "rotateRate": 0.4,
+    "liftoffPitch": 0.14,
+    "blendTime": 0.8
+  },
   "runway": {
     "concreteRadius": 0.6,
     "concreteDepth": 0.7,

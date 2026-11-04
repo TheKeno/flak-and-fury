@@ -3,7 +3,7 @@
 // so online play only has to deliver those commands.
 import { createRng } from './math.js';
 import { buildTerrain, structurePads, DEFAULT_PADS, DEFAULT_ZONES } from './terrain.js';
-import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LANDING } from './plane.js';
+import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LANDING, DEFAULT_TAKEOFF } from './plane.js';
 import { stepBullets, stepBombs } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand, DEFAULT_BOTS, DEFAULT_RADAR } from './ai.js';
@@ -39,6 +39,7 @@ export const DEFAULT_RULES = {
 // fire: how fires burn and are put out (src/sim/fire.js).
 // decor: hedges, walls and trees placed from the map's zones (src/sim/decor.js).
 // landing: how forgiving touchdowns are (src/sim/plane.js).
+// takeoff: how the nose rotates and the plane eases into flight (src/sim/plane.js).
 // runway: crater sizes on concrete, crater filling and runway points (src/sim/runway.js).
 // bots: bot pilots' numbers and difficulty levels (src/sim/ai.js); radar: what their radar picture sees.
 // groundDefs: ground object types (data/ground.json), shared the same way.
@@ -56,6 +57,7 @@ export function createWorld({
   zones = { ...DEFAULT_ZONES },
   runway = { ...DEFAULT_RUNWAY },
   landing = { ...DEFAULT_LANDING },
+  takeoff = { ...DEFAULT_TAKEOFF },
   decor = { ...DEFAULT_DECOR },
   bots = structuredClone(DEFAULT_BOTS),
   radar = { ...DEFAULT_RADAR },
@@ -74,6 +76,7 @@ export function createWorld({
     waves,
     runway,
     landing,
+    takeoff,
     decor,
     bots,
     radar,

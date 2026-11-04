@@ -65,7 +65,7 @@ function updateTilt(p, dt) {
   let target = 0;
   if (p.state === 'ground' && !p.belly && p.gear >= 1) {
     const t = clamp(p.speed / (p.def.takeoffSpeed * (p.def.tailUpSpeed ?? 0.85)), 0, 1);
-    target = wheelGeometry(p.def).tailDown * (1 - t * t * (3 - 2 * t));
+    target = wheelGeometry(p.def).tailDown * (1 - t * t * (3 - 2 * t)) + (p.rotation ?? 0);
   }
   p.groundTilt = (p.groundTilt ?? target) + (target - (p.groundTilt ?? target)) * Math.min(1, dt * 3.5);
 }
@@ -131,6 +131,8 @@ export function createPlane(id, def, { team, nation, seats }) {
     vx: 0,
     vy: 0,
     sink: 0,
+    rotation: 0, // nose pitch rotated up on the wheels during the take-off (rad)
+    liftBlend: 0, // seconds left of the climb-out blend after lift-off
     inverted: false,
     throttle: 0,
     rpm: def.engine.idleRpm,
@@ -431,6 +433,8 @@ function stepGround(p, cmd, world, dt) {
     const pull = p.speed * p.speed * curvature; // acceleration needed to follow the ground
     if (!p.belly && -pull > weight && p.groundLoop == null) {
       p.state = 'air';
+      p.rotation = 0;
+      p.liftBlend = (world.takeoff ?? DEFAULT_TAKEOFF).blendTime;
       p.y = Math.max(oldY + p.vy * dt, groundY + 0.1);
       world.events.push({ type: 'leftGround', plane: p.id, x: p.x, y: p.y, speed: p.speed });
       return;
@@ -442,12 +446,23 @@ function stepGround(p, cmd, world, dt) {
   }
   p.y = groundY;
 
-  // Rotating the nose upwards at flying speed lifts off: counter-clockwise facing right, clockwise facing left.
+  // Pulling the nose up at flying speed rotates it on the main wheels (counter-clockwise facing right,
+  // clockwise facing left) at rotateRate; the plane leaves the ground once it has come up liftoffPitch.
+  // Let go and the nose settles back. The pitch is drawn through the ground tilt (updateTilt).
   const noseUp = facingRight ? 1 : -1;
-  if (cmd.turn * noseUp > 0 && p.speed >= d.takeoffSpeed && !p.belly && p.groundLoop == null) {
+  const to = world.takeoff ?? DEFAULT_TAKEOFF;
+  const pulling = cmd.turn * noseUp > 0 && p.speed >= d.takeoffSpeed && !p.belly && p.groundLoop == null;
+  p.rotation = pulling ? (p.rotation ?? 0) + to.rotateRate * dt : Math.max(0, (p.rotation ?? 0) - to.rotateRate * 2 * dt);
+  if (pulling && p.rotation >= to.liftoffPitch) {
+    // Carry on from the pose it is drawn in, so there is no jump.
+    const a = attitude(p);
     p.state = 'air';
-    p.angle = wrapAngle(p.angle + noseUp * 0.1);
-    p.y += 1;
+    p.angle = wrapAngle(a.angle);
+    p.x = a.x;
+    p.y = Math.max(a.y, p.y) + 0.5;
+    p.groundTilt = 0;
+    p.rotation = 0;
+    p.liftBlend = to.blendTime;
     world.events.push({ type: 'takeoff', plane: p.id, x: p.x, y: p.y });
   }
 }
@@ -496,6 +511,15 @@ function stepAir(p, cmd, world, dt) {
   }
   // A damaged tail answers the controls only weakly; a damaged wing drags the nose round.
   let turn = p.blackout ? 0 : cmd.turn * d.turnRate * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;
+  // Just after lift-off the nose keeps turning at the ground rotation rate and eases up to the full
+  // flying rate over blendTime, so the climb-out has no kink where the two models meet.
+  if (p.liftBlend > 0) {
+    const to = world.takeoff ?? DEFAULT_TAKEOFF;
+    p.liftBlend = Math.max(0, p.liftBlend - dt);
+    const k = to.blendTime > 0 ? 1 - p.liftBlend / to.blendTime : 1;
+    const e = k * k * (3 - 2 * k);
+    if (Math.abs(turn) > to.rotateRate) turn = Math.sign(turn) * (to.rotateRate + (Math.abs(turn) - to.rotateRate) * e);
+  }
 
   // Below stall speed the wings stop lifting: controls go soft and the nose falls.
   // The stall only clears once the plane has picked up a margin of speed again.
@@ -554,7 +578,10 @@ function stepAir(p, cmd, world, dt) {
 // up to these (share of max landing speed, rad) it's a hard landing that bounces and damages the plane;
 // hardDamage: hit points at the worst of that; collapseFrom: past this share of the hard band the gear
 // may fold; stallSink and plopDamage: a stall this slow sinking (units/s) is a tail-first plop.
-export const DEFAULT_LANDING = { cleanAngle: 0.35, hardSpeed: 1.15, hardAngle: 0.6, hardDamage: 30, collapseFrom: 0.5, stallSink: 35, plopDamage: 6 };
+// rotateRate: how fast the nose comes up on the wheels at take-off (rad/s); liftoffPitch: the pitch it
+// leaves the ground at (rad); blendTime: seconds the turn rate takes to ease up to the flying rate.
+export const DEFAULT_TAKEOFF = { rotateRate: 0.4, liftoffPitch: 0.14, blendTime: 0.8 };
+export const DEFAULT_LANDING ={ cleanAngle: 0.35, hardSpeed: 1.15, hardAngle: 0.6, hardDamage: 30, collapseFrom: 0.5, stallSink: 35, plopDamage: 6 };
 
 // How a landing here would go right now, for the HUD's approach cues: speed and nose angle against the
 // landing limits, each 'ok' (clean), 'hard' (bounce) or 'bad' (crash). noseUp < 0: nose below the slope.

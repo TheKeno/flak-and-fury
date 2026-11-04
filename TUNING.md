@@ -423,3 +423,11 @@ node tools/map-guide.mjs countryside
 
 `tools/make-map.mjs` wrote the starting map. Don't run it again: it would replace the map and every edit
 made in LDtk (it refuses unless given `--force`).
+
+`takeoff` (tuning panel: Take-off): the take-off is a rotation, not a jump. Holding nose-up at
+`takeoffSpeed` pitches the nose up on the main wheels at `rotateRate` (rad/s); at `liftoffPitch` (rad)
+the plane leaves the ground, carrying on from the angle and height it was drawn at. Let go and the nose
+settles back. For `blendTime` seconds after lift-off (or after flying off a crest) the turn rate eases
+from `rotateRate` up to the plane's full flying turn rate. Rotation adds about `liftoffPitch / rotateRate`
+seconds (0.35 s at the defaults) to the roll, about 20 units more runway; the `runwayNeeded` values were
+measured before this and have not been re-measured.

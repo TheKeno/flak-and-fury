@@ -38,6 +38,7 @@ const world = createWorld({
   zones: content.settings.zones,
   runway: content.settings.runway,
   landing: content.settings.landing,
+  takeoff: content.settings.takeoff,
   decor: content.settings.decor,
   bots: content.settings.bots,
   radar: content.settings.radar,

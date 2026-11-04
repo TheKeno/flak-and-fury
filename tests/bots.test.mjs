@@ -187,9 +187,10 @@ test('set on fire, a bot puts the plane down and the fire goes out', () => {
 test('an ace outflies an easy pilot: it does far more damage and loses fewer planes', () => {
   const ace = { damage: 0, deaths: 0 };
   const easy = { damage: 0, deaths: 0 };
-  for (const seed of [0, 1, 2]) {
+  // Eight seeds: three were too few to be stable (a small change to the take-off timing flipped it).
+  for (const seed of [0, 1, 2, 3, 4, 5, 6, 7]) {
     const world = makeWorld({ seed });
-    // Both in the Spitfire: in three fights the heavier G-6 is too close a thing to prove the levels.
+    // Both in the Spitfire: in a few fights the heavier G-6 is too close a thing to prove the levels.
     const a = bot(world, { ...GERMAN, defId: BRITISH.defId }, 'ace');
     const b = bot(world, BRITISH, 'easy');
     const events = run(world, 240);

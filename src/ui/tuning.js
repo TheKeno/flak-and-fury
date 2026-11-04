@@ -107,6 +107,11 @@ const LANDING_FIELDS = [
   ['stallSink', 'Stall plop: sinking under', 0, 100, 1, 'A stall just above the ground sinking slower than this (units/s) is a heavy tail-first plop, not a crash.'],
   ['plopDamage', 'Stall plop damage', 0, 50, 1, 'Hit points lost in a stall plop.'],
 ];
+const TAKEOFF_FIELDS = [
+  ['rotateRate', 'Rotation rate', 0.1, 1.5, 0.05, 'How fast the nose comes up on the wheels (rad/s) when you pull back at take-off speed. Lower = a slower, longer rotation.'],
+  ['liftoffPitch', 'Lift-off pitch', 0.05, 0.4, 0.01, 'The nose angle (rad) the plane has rotated to when it leaves the ground. 0.14 is about 8 degrees.'],
+  ['blendTime', 'Climb-out blend', 0, 2, 0.05, 'Seconds after lift-off in which the turn rate eases up from the rotation rate to the full flying turn rate. 0 = no easing.'],
+];
 const RUNWAY_FIELDS = [
   ['concreteRadius', 'Crater size on concrete', 0.1, 1.5, 0.05, 'How wide a crater is dug in a runway, as a share (1 = as on grass). Smaller = more hits needed to close it.'],
   ['concreteDepth', 'Crater depth on concrete', 0.1, 1.5, 0.05, 'How deep a crater is dug in a runway, as a share.'],
@@ -564,6 +569,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     section('Work', true, ...SERVICING_FIELDS.map((f) => add(slider(settings.servicing, f)))),
   );
   const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
+  const takeoffSection = section('Take-off', false, ...TAKEOFF_FIELDS.map((f) => add(slider(settings.takeoff, f))));
   const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
   const audioSection = section(
     'Sound',
@@ -618,6 +624,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.servicing, saved.settings.servicing);
     Object.assign(settings.runway, saved.settings.runway);
     Object.assign(settings.landing, saved.settings.landing);
+    Object.assign(settings.takeoff, saved.settings.takeoff);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.net, saved.settings.net);
@@ -693,6 +700,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     ...gunSections,
     bombSection,
     landingSection,
+    takeoffSection,
     collisionSection,
     fireSection,
     radarSection,
