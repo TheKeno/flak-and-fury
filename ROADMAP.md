@@ -325,6 +325,9 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
+  drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
+
 ## Backlog
 
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
@@ -339,8 +342,6 @@ Then: more themes, co-op missions, matchmaking.
   when a plane touches down hard or bounces on the runway.
 - **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
   can't take off however fast it goes; find out why and let it lift off when it has the speed.
-- **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
-  drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
   (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
 - **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;
