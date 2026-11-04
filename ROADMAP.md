@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **M key works in the menus** (UI): the M key (its in-game action, e.g. mute) should also work while a menu is open
+  (title, options, pause).
 - **Fire effect carries over to the next plane** (Gameplay): after abandoning a burning plane, the fire effect
   continues on the player's next plane; it should stay with the abandoned wreck.
 - **Ground fire flames don't always rise** (Gameplay): when a plane catches fire on the ground the flames
