@@ -82,7 +82,9 @@ later.
   revolution at 2600 rpm (6 unlike firings), so the first answer was 434 (2600 ÷ 6). The finder now offers
   the revolution reading (× cylinders / 2) among the alternatives, and with a rough rpm it checks revolution
   repeats too when nothing repeats once a firing (Full with rough 2600 → 2603; Cruise with rough 2000 →
-  2330). Without a rough rpm the ear still has the last word.
+  2330). The rough rpm now starts at the slot's planned rpm (a Full clip is taken to be a high rpm; clear the
+  field to search everywhere), and a clip uploaded to an engine slot is measured at once, suggest only.
+  Without a rough rpm the ear still has the last word.
 - **Stack:** HTML5 canvas, plain JavaScript ES modules, no build step, a tiny local server
   (`node tools/serve.mjs 8080`). Chosen over Godot because Godot's web export lacks audio bus effects,
   and Web Audio suits the sound design.

@@ -1574,9 +1574,11 @@ function plotRpm(res) {
   return c;
 }
 
-function rpmFinder(clip, cylinders, rpmInput, locked) {
+const measureNext = new Set(); // clips just uploaded: measured as soon as their slot is drawn
+// planned: the rpm this slot is meant for (full is a high rpm), the rough rpm to start from.
+function rpmFinder(clip, cylinders, rpmInput, locked, planned) {
   const cyl = el('input', { type: 'number', min: 1, max: 48, value: cylinders, style: 'width:60px', title: 'Cylinders on this engine: the pulse rate depends on it' });
-  const rough = el('input', { type: 'number', min: 100, max: 6000, placeholder: 'any', style: 'width:70px', title: 'Optional: a rough rpm by ear picks the octave when the answer is double or half' });
+  const rough = el('input', { type: 'number', min: 100, max: 6000, value: planned || '', placeholder: 'any', style: 'width:70px', title: 'Starts at the rpm planned for this slot, so a Full clip is taken to be a high rpm. Change it to what you hear, or clear it to search everywhere.' });
   const out = el('div', {});
   const apply = (rpm) => {
     const v = Math.round(rpm);
@@ -1599,7 +1601,7 @@ function rpmFinder(clip, cylinders, rpmInput, locked) {
         locked ? null : button(`Apply ${Math.round(res.rpm)}`, () => apply(res.rpm)),
         ...alts.map((a) => locked ? null : button(`${Math.round(a.rpm)} (${Math.round(a.score * 100)} %)`, () => apply(a.rpm), 'Another repeat the clip also shows: use it if the main suggestion is double or half what you hear'))));
   };
-  const find = button('Find rpm', async () => {
+  const run = async () => {
     // The clip is usually loaded already; measuring does not need the audio to be unlocked.
     let buf = mixer?.recordings.buffers.get(clip.path);
     if (!buf) {
@@ -1612,9 +1614,11 @@ function rpmFinder(clip, cylinders, rpmInput, locked) {
     const part = d.subarray(Math.floor(clip.start * buf.sampleRate), Math.floor(clip.end * buf.sampleRate));
     rpmResults.set(clip.path, findRpm(part, buf.sampleRate, { cylinders: Number(cyl.value) || 12, hint: Number(rough.value) || 0 }));
     show();
-  }, 'Listens to the trimmed clip and suggests its rpm');
+  };
+  const find = button('Find rpm', run, 'Listens to the trimmed clip and suggests its rpm');
   const box = el('div', {}, el('div', { className: 'buttons' }, find, el('label', {}, 'cylinders ', cyl), el('label', {}, 'rough rpm ', rough)), out);
   show();
+  if (measureNext.delete(clip.path)) run();
   return box;
 }
 
@@ -1636,8 +1640,10 @@ function engineSlots(buildId, specs, locked) {
       onFiles: ([f]) => {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
         rec.clips.push({ ...f, slot: key, gain: 1, xfade: 0.05, rpm: spec[rpmKey] ?? 2300 });
+        rpmResults.delete(f.path);
+        measureNext.add(f.path);
       },
-      body: clip ? [el('label', {}, 'Recorded at rpm ', rpm), rpmFinder(clip, spec.cylinders ?? 12, rpm, locked), fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. While it plays, moving this jumps to just before the seam so you hear it.'], null, locked)] : [],
+      body: clip ? [el('label', {}, 'Recorded at rpm ', rpm), rpmFinder(clip, spec.cylinders ?? 12, rpm, locked, spec[rpmKey]), fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. While it plays, moving this jumps to just before the seam so you hear it.'], null, locked)] : [],
     });
   };
   rec.startup ??= { files: [], gain: 1, fade: 0.6 };
