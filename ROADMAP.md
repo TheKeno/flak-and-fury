@@ -7,6 +7,12 @@ later.
 
 ## Decisions
 
+- **Player options stay few (built):** players get only General (volume, music, mute in background,
+  fullscreen, dogfight camera, historical markings, gore), Keys and HUD (gunsight look, pilot names).
+  Camera, shake, zoom, mouse look, radar outline, text size and the like are the designer's decisions,
+  set in the data files and tuning panel only. Units are metric only. The game is muted while the
+  in-game menu is open. At 1.0: decide the historical markings default (on for now) and hide the debug
+  keys (V, T, F3) from the key list.
 - **Sound Lab rpm finder (built):** a button on each engine clip in the Sound Design tab
   that analyses the clip and *suggests* its `rpm`. Detect and suggest only: an Apply button sets the
   field, nothing is written automatically, and the owner's ear decides. Method: windowed (about 0.25 s,
