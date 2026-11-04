@@ -323,6 +323,9 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Plane switch mid-flight spawns on the runway, not in the hangar** (Gameplay): switching plane in the air
+  (Esc) puts the new plane on the ground at the airfield instead of rolling it out of the hangar like a respawn
+  (`changeSeat` in `src/sim/seats.js` calls `spawnAtAirfield` without `fromHangar`).
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
   (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
   variant (A6M5 fits 1943) first.
