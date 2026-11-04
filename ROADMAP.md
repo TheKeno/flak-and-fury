@@ -312,6 +312,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Screeching tires when bouncing on the runway** (Sound): add a tire screech effect (sound, maybe smoke puff)
+  when a plane touches down hard or bounces on the runway.
 - **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
   can't take off however fast it goes; find out why and let it lift off when it has the speed.
 - **Show the crosshair while editing it in the menu** (UI): when the player changes the crosshair in the options
