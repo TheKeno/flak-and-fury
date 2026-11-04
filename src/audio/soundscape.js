@@ -121,7 +121,10 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     const last = lastAngle.get(p.id) ?? p.angle;
     lastAngle.set(p.id, p.angle);
     const delta = Math.atan2(Math.sin(p.angle - last), Math.cos(p.angle - last));
-    host.update(planeValues(p, world, Math.abs(delta) / Math.max(dt, 0.001)), where, p.id === focusId);
+    // A wreck makes no airframe sounds; the rattle also needs a running engine and a moving plane.
+    const still = p.state === 'ground' && Math.abs(p.speed) < 2;
+    const quiet = p.state === 'dead' ? true : !p.engineRunning || still ? ['slot_rattle'] : false;
+    host.update(planeValues(p, world, Math.abs(delta) / Math.max(dt, 0.001)), where, p.id === focusId, quiet);
   }
 
   // Ground crew sounds, placed beside the plane.

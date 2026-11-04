@@ -398,11 +398,13 @@ export function createRecordings(mixer, sound) {
       }
     }
     return {
-      update(values, where, isMe) {
+      // quiet: true silences every layer (a wreck), or a list of layer ids that must not sound now.
+      update(values, where, isMe, quiet = false) {
         for (const item of attached) {
           const { layer, a } = item;
           const allowed = layer.hearing !== 'cockpit' || isMe;
-          const place = allowed ? (isMe ? ME : where) : null;
+          const hushed = quiet === true || (Array.isArray(quiet) && quiet.includes(item.id));
+          const place = allowed && !hushed ? (isMe ? ME : where) : null;
           const value = values[layer.driver] ?? 0;
           if (layer.type === 'triggered') {
             if (!place || mixer.now < item.next || value < (a.threshold ?? layer.threshold)) continue;
