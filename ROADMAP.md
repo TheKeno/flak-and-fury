@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Freeze after Start engine is gone:** rechecked in the browser pane (`?mute`, Single player, Start engine) with a long-task observer and a frame-gap check: nothing longer than 281 ms in the 5 s after the click (one 157 ms task on opening the menu), and 60 fps afterwards. No code change; the old stall went away with the hangar animations. The only ~1 s frame gaps seen were the browser pane pausing between tool calls.
 - **Belly scrape when gear is raised on the runway:** pressing G on the ground (not while the ground crew is servicing the plane) now calls the existing `bellyLand` in `src/sim/plane.js` (`updateGear`): the plane drops onto its belly, engine stops, propeller bent, damage as a belly landing, and the usual `bellyLanding` event gives the crunch sound, sparks and the belly-scrape loop while it slides. No new tunables. Headless test in `tests/field.test.mjs`; not looked at in the browser, so please press G on the runway once and check the sparks, sound and drag feel right.
 - **Crash shockwave hits infantry:** every crash (`crash()` in `src/sim/plane.js`) calls `crashShockwave` (`src/sim/ground.js`): soldiers of either side within `crashBlastRadius` (30) of the wreck take `crashBlastForce` (1.5) × their hit points at the wreck, falling off linearly; no score for it. Both values are in `collisions`, the tuning panel and TUNING.md. Headless test in `tests/ground.test.mjs`; not looked at in the browser, so please crash near some infantry and check the radius feels right (the soldiers die with the usual blast gore).
 - **Gunsight hidden until take-off:** the sight no longer shows while the plane rolls out of the hangar (where it sat on the wrong side, the plane still facing away) or while it waits in the queue. On the ground it appears only once the throttle is opened (and the hangar exit is over), fading in over 0.3 s; in the air it always shows. So it also hides on the ground with the throttle closed after landing. Render only (`drawSight` in `src/render/renderer.js`). Checked in the browser for the roll-out and idle states; the fade-in on throttle open was not seen (key hold could not be driven), so please try one take-off.
@@ -325,9 +326,7 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-- **Game freezes a second or two after Start engine from the menu** (Gameplay): pressing start engine in the menu
-  froze the game for a second or two while it loaded. Probably gone with the new hangar animations; recheck, and
-  drop this line if it no longer happens.
+
 
 ## Backlog
 
