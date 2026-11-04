@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;
+  go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another.
 - **Fire put out before the ground crew arrive** (Gameplay): a plane's fire goes out while the ground crew are still
   running to it; it should only be put out once they have reached the plane.
 - **Rattle sound stays after a crash** (Sound): the rattle (airframe/engine) keeps playing after the plane has crashed;
