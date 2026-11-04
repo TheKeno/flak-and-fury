@@ -318,6 +318,8 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 - **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
+- **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
+  engine and other plane sounds stay those of the old plane; they should follow the new plane. Session: `Sound — side-switch sounds`.
 
 ## Backlog
 
@@ -332,8 +334,6 @@ Then: more themes, co-op missions, matchmaking.
   when a plane touches down hard or bounces on the runway.
 - **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
   can't take off however fast it goes; find out why and let it lift off when it has the speed.
-- **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
-  engine and other plane sounds stay those of the old plane; they should follow the new plane.
 - **Plane crash shockwave hits infantry** (Gameplay): a crashing plane sends a shockwave that hurts or knocks down
   nearby infantry, not only those it lands on.
 - **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
