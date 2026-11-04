@@ -11,6 +11,7 @@ import { createBody } from '../audio/body.js';
 import { createCrew } from '../audio/crew.js';
 import { createRecordings, newGroup, withRecordings } from '../audio/recordings.js';
 import { DRIVERS } from '../audio/sound-data.js';
+import { findRpm } from '../audio/rpm-finder.js';
 
 const sfx = withRecordings(rawSfx);
 
@@ -880,7 +881,7 @@ function renderGuide() {
     p('For the running game: put the game and the Lab in separate windows side by side, because a hidden tab stops drawing and is muted. The header says Game linked when it is listening. Changes reach it as you drag; guns, reverb, clips and layers update when you let go or add a file. The game keeps them until it reloads, so press Save to keep them. The Under menu plays a running engine beneath whatever you audition, to hear whether a sound survives in the mix.'),
     p('The Listen from slider applies the game\'s distance fade, muffling and delay. The Master level here is the game\'s, so it can be very quiet; turn it up on the Mix tab while working if you need to, and remember it saves too.'),
     h('Finding an engine clip\'s rpm by ear'),
-    p('Play the synth beside the clip and raise Rpm until the two sound matched. That rpm is the one to enter when clip support arrives.'),
+    p('Play the synth beside the clip and raise Rpm until the two sound matched. Or press Find rpm on a clip in the Sound Design tab: it listens to the trimmed clip and suggests a number, with a plot of the rpm it hears over time. A flat line is a steady engine that loops well; a slope is a clip that changes speed; a spike to double or half is a wrong guess for that moment. It needs the right cylinder count, and a rough rpm from your ear settles which octave it means. It only suggests: Apply sets the number, and your ear decides.'),
     h('Recordings: getting ready'),
     p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/ and are named after the slot, such as inline-idle-01 (a file already in the library is reused, not copied), and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
     p('Fill in licence and source for each file. A red ! in the list means one is missing or marked other, so it can be reviewed before release.'),
@@ -1512,6 +1513,79 @@ function airframeLayer(key) {
 
 const removeFile = (list, i) => button('Remove', () => { list.splice(i, 1); drops.clear(); touch(); updateCount(); renderList(); renderMain(); });
 
+// Suggests the rpm a clip was recorded at, with the rpm it hears over time. It only suggests: Apply sets it.
+const rpmResults = new Map(); // by file path, so the answer survives the slot being redrawn
+function plotRpm(res) {
+  const w = 700, h = 90;
+  const c = el('canvas', { width: w, height: h, style: `width:100%;max-width:${w}px;height:${h}px;background:#0b0c0d;display:block` });
+  const g = c.getContext('2d');
+  const pts = res.track.filter((p) => p.rpm);
+  const lo = Math.min(...pts.map((p) => p.rpm), res.rpm) * 0.9;
+  const hi = Math.max(...pts.map((p) => p.rpm), res.rpm) * 1.1;
+  const y = (rpm) => h - 4 - ((rpm - lo) / (hi - lo)) * (h - 8);
+  g.strokeStyle = '#a8905c';
+  g.setLineDash([4, 4]);
+  g.beginPath();
+  g.moveTo(0, y(res.rpm));
+  g.lineTo(w, y(res.rpm));
+  g.stroke();
+  g.setLineDash([]);
+  g.fillStyle = '#7f837c';
+  g.font = '10px sans-serif';
+  g.fillText(`${Math.round(hi)}`, 3, 11);
+  g.fillText(`${Math.round(lo)}`, 3, h - 3);
+  for (const p of pts) {
+    g.globalAlpha = 0.2 + 0.8 * Math.min(1, p.conf);
+    g.fillStyle = '#c4c5bb';
+    g.fillRect((p.t / res.duration) * w - 2, y(p.rpm) - 2, 4, 4);
+  }
+  return c;
+}
+
+function rpmFinder(clip, cylinders, rpmInput, locked) {
+  const cyl = el('input', { type: 'number', min: 1, max: 48, value: cylinders, style: 'width:60px', title: 'Cylinders on this engine: the pulse rate depends on it' });
+  const rough = el('input', { type: 'number', min: 100, max: 6000, placeholder: 'any', style: 'width:70px', title: 'Optional: a rough rpm by ear picks the octave when the answer is double or half' });
+  const out = el('div', {});
+  const apply = (rpm) => {
+    const v = Math.round(rpm);
+    clip.rpm = v;
+    rpmInput.value = v;
+    const sub = box.closest('details')?.querySelector('summary > .dim');
+    if (sub) sub.textContent = `${v} rpm`;
+    touch();
+  };
+  const show = () => {
+    const res = rpmResults.get(clip.path);
+    out.replaceChildren();
+    if (!res) return;
+    if (!res.rpm) return out.append(el('p', { className: 'warn', textContent: 'Nothing steady enough to measure. Try a cleaner stretch, a rough rpm, or use your ear.' }));
+    const alts = res.alternatives.filter((a) => a.score > 0.2).sort((a, b) => b.score - a.score);
+    out.append(
+      el('p', { textContent: `Suggests ${Math.round(res.rpm)} rpm. Confidence ${Math.round(res.conf * 100)} %, steady for ${Math.round(res.steadiness * 100)} % of the clip${res.conf < 0.5 || res.steadiness < 0.6 ? ': treat with care' : ''}.` }),
+      plotRpm(res),
+      el('div', { className: 'buttons' },
+        locked ? null : button(`Apply ${Math.round(res.rpm)}`, () => apply(res.rpm)),
+        ...alts.map((a) => locked ? null : button(`${Math.round(a.rpm)} (${Math.round(a.score * 100)} %)`, () => apply(a.rpm), 'Another repeat the clip also shows: use it if the main suggestion is double or half what you hear'))));
+  };
+  const find = button('Find rpm', async () => {
+    // The clip is usually loaded already; measuring does not need the audio to be unlocked.
+    let buf = mixer?.recordings.buffers.get(clip.path);
+    if (!buf) {
+      await audio();
+      await mixer.recordings.ensure(clip.path);
+      buf = mixer.recordings.buffers.get(clip.path);
+    }
+    if (!buf) return;
+    const d = buf.getChannelData(0);
+    const part = d.subarray(Math.floor(clip.start * buf.sampleRate), Math.floor(clip.end * buf.sampleRate));
+    rpmResults.set(clip.path, findRpm(part, buf.sampleRate, { cylinders: Number(cyl.value) || 12, hint: Number(rough.value) || 0 }));
+    show();
+  }, 'Listens to the trimmed clip and suggests its rpm');
+  const box = el('div', {}, el('div', { className: 'buttons' }, find, el('label', {}, 'cylinders ', cyl), el('label', {}, 'rough rpm ', rough)), out);
+  show();
+  return box;
+}
+
 function engineSlots(buildId, specs, locked) {
   const id = `build:${buildId}`;
   const rec = recOf(id);
@@ -1531,7 +1605,7 @@ function engineSlots(buildId, specs, locked) {
         if (clip) rec.clips.splice(rec.clips.indexOf(clip), 1);
         rec.clips.push({ ...f, slot: key, gain: 1, xfade: 0.05, rpm: spec[rpmKey] ?? 2300 });
       },
-      body: clip ? [el('label', {}, 'Recorded at rpm ', rpm), fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. While it plays, moving this jumps to just before the seam so you hear it.'], null, locked)] : [],
+      body: clip ? [el('label', {}, 'Recorded at rpm ', rpm), rpmFinder(clip, spec.cylinders ?? 12, rpm, locked), fileRow(clip, locked, () => { rec.clips.splice(rec.clips.indexOf(clip), 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, []), slider(clip, ['xfade', 'Loop seam fade, s', 0, 1, 0.005, 'Hides the loop seam. While it plays, moving this jumps to just before the seam so you hear it.'], null, locked)] : [],
     });
   };
   rec.startup ??= { files: [], gain: 1, fade: 0.6 };
