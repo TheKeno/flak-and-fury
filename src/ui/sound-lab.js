@@ -429,7 +429,7 @@ function renderList() {
           renderList();
           renderMain();
         },
-      }, tick, el('span', { textContent: name }), flagged ? el('b', { className: 'warn', title: flagged, textContent: ' !' }) : null));
+      }, tick, el('span', { textContent: name }), el('span', { className: 'sid', textContent: `(${id})` }), flagged ? el('b', { className: 'warn', title: flagged, textContent: ' !' }) : null));
     }
   }
 }
