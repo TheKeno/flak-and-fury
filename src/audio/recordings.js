@@ -438,7 +438,14 @@ export function createRecordings(mixer, sound) {
       if (done < 0 || done > h.length) return null;
       return h.backwards ? h.begin - done : h.begin + done;
     },
-    load: () => Promise.all([...pathsIn(sound)].map(ensure)),
+    // A few at a time: hundreds of fetches and decodes at once make the browser refuse some
+    // (ERR_INSUFFICIENT_RESOURCES) and the Lab never finishes loading.
+    async load() {
+      const queue = [...pathsIn(sound)];
+      await Promise.all(Array.from({ length: 6 }, async () => {
+        for (let path; (path = queue.shift()) !== undefined;) await ensure(path);
+      }));
+    },
     trigger,
     stopSound,
     playGroup,
