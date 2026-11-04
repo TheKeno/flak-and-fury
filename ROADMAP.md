@@ -313,6 +313,9 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
+  (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
+  variant (A6M5 fits 1943) first.
 - **Add the Stuka (Ju 87 D-3)** (Planes): the German dive bomber, from a 3-view like every plane. Blocked until the
   Outline Lab is finished; ask the owner for the 3-view first.
 - **Sound Lab keeps scroll position and tab on refresh** (Sound): reloading the Sound Lab page should return to the
