@@ -209,3 +209,22 @@ test('marker-like strings and infinities survive the trip', () => {
   const live = applyPatch({}, JSON.parse(JSON.stringify(diff({}, tree))), refs);
   assert.deepEqual(live.planes[0], { id: 1, name: '@home', cause: '#1', cooldown: Infinity, tilde: '~x' });
 });
+
+test('a name a guest sets after joining reaches the host and then every guest', async () => {
+  const { applyPilotName } = await import('../src/net/names.js');
+  const clean = (s) => String(s ?? '').toUpperCase().replace(/[^A-Z0-9 .'-]/g, '').slice(0, 12).trim();
+  const host = busyHost();
+  const mine = host.planes.find((p) => p.seats[0].controller === 'net1');
+  assert.ok(!mine.callsign, 'joined without a name');
+  const guest = guestWorld();
+  const hostRefs = staticRefs(host);
+  const guestRefs = staticRefs(guest);
+  applyPatch(guest, diff({}, encodeWorld(host, hostRefs)), guestRefs);
+  const before = encodeWorld(host, hostRefs);
+  assert.equal(applyPilotName(host, mine.id, 'ace<b>pilot</b>long', clean), 'ACEBPILOTBLO');
+  const patch = JSON.parse(JSON.stringify(diff(before, encodeWorld(host, hostRefs))));
+  applyPatch(guest, patch, guestRefs);
+  assert.equal(guest.planes.find((p) => p.id === mine.id).callsign, 'ACEBPILOTBLO');
+  assert.equal(applyPilotName(host, mine.id, '', clean), null, 'clearing the name');
+  assert.equal(applyPilotName(host, -1, 'x', clean), null, 'a plane that is gone');
+});

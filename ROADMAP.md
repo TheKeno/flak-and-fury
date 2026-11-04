@@ -208,6 +208,7 @@ later.
     view stays with him; after 3 s fire gets a new plane.
   - Pilot names on the title screen and in Options, drawn like paint along other players' planes (upside
     down when they are), khaki for your side and dull red for the enemy; bots have none. Switch in Options.
+    A name set or changed after joining (Options, mid-game) goes to the host (`name` message, `src/net/names.js`), shows on the plane for everyone and in a "X IS NOW Y" line on the host.
   - Smooth drawing on fast screens (120/144 Hz): every frame draws things part-way between the last
     two sim ticks (a guest: between the last two snapshots), so terrain and ground no longer stutter
     against the plane. One layer for both (`src/render/interpolate.js`); only what's drawn is blended,
@@ -315,8 +316,6 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 - **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
-- **Name set mid-game not shown to the host** (UI): a friend joined without a name and set it during the game, but the
-  host never saw it; a name changed after joining should reach the host and show in the HUD and logs. Session: `UI — mid-game name`.
 - **Rattle sound stays when it shouldn't** (Sound): the rattle (airframe/engine) keeps playing after the plane has
   crashed, and also with the engine off or the plane standing still; it should stop in all three cases. Session: `Sound — rattle stops`.
 

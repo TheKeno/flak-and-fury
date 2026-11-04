@@ -18,6 +18,7 @@ import { releasePilot } from './sim/bailout.js';
 import { clamp } from './sim/math.js';
 import { hostGame, joinGame, cleanCode } from './net/session.js';
 import { createGuestView } from './net/guest.js';
+import { applyPilotName } from './net/names.js';
 import { takePoses, writePoses } from './render/interpolate.js';
 import { prof, createPerfStats } from './ui/perfstats.js';
 import { shotDownMessage } from './ui/shotdown-text.js';
@@ -100,6 +101,8 @@ const options = createOptions({
       $('pilot-name').value = options.name;
       drawSetup();
     }
+    // A guest tells the host, who sets it on our plane (the snapshots bring it back to every screen).
+    if (id === 'name' && guest) guest.net.send({ t: 'name', name: options.name });
   },
 });
 // Your callsign, shown to the other side online.
@@ -719,6 +722,13 @@ $('host').addEventListener('click', async () => {
         sidesChanged();
       },
       onMessage(g, m) {
+        if (m?.t === 'name') {
+          const was = world.planes.find((o) => o.id === g.planeId)?.callsign;
+          const now = applyPilotName(world, g.planeId, m.name, cleanName);
+          if (now && now !== was) renderer.message(`${was ?? 'A FRIEND'} IS NOW ${now}`, '#e8c860');
+          sidesChanged();
+          return;
+        }
         if (m?.t !== 'seat') return;
         const p = world.planes.find((o) => o.id === g.planeId);
         if (!p) return;
