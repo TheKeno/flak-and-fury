@@ -863,12 +863,14 @@
     "gun:cannon20": {
       "done": true
     },
-    "sfx:explosion": {
-      "done": true
-    },
-    "sfx:clank": {
-      "done": true
-    },
+    "sfx:explosionPlane": {},
+    "sfx:explosionBomb": {},
+    "sfx:explosionShell": {},
+    "sfx:explosionTank": {},
+    "sfx:explosionFlakGun": {},
+    "sfx:hitPlane": {},
+    "sfx:hitGroundObject": {},
+    "sfx:hitOwnPlane": {},
     "sfx:collapseMasonry": {
       "done": true
     },
@@ -900,9 +902,8 @@
     "sfx:rollWhoosh": {
       "done": true
     },
-    "sfx:thunk": {
-      "note": "Jobbiga ljudet i början!"
-    },
+    "sfx:shotDown": {},
+    "sfx:serviceDone": {},
     "gun:heavy": {
       "done": true
     },
@@ -927,9 +928,9 @@
     "sfx:release": {
       "done": true
     },
-    "sfx:click": {
-      "done": true
-    },
+    "sfx:gunEmpty": {},
+    "sfx:fuelLow": {},
+    "sfx:radarTick": {},
     "loop:bombWhistle": {
       "done": true
     },
@@ -1354,7 +1355,151 @@
       "synth": 0.66,
       "groups": []
     },
-    "sfx:explosion": {
+    "sfx:explosionPlane": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/destruction/explosion-bomb-01.mp3",
+              "size": 234374,
+              "start": 0.34857143920898437,
+              "end": 5.856,
+              "licence": "",
+              "source": "original: huge-bomb-explosion-with-debris-sound-effect-zapsplat-sound-effects.mp3"
+            }
+          ],
+          "gain": 0.26,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 175,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.07,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:explosionBomb": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/destruction/explosion-bomb-01.mp3",
+              "size": 234374,
+              "start": 0.34857143920898437,
+              "end": 5.856,
+              "licence": "",
+              "source": "original: huge-bomb-explosion-with-debris-sound-effect-zapsplat-sound-effects.mp3"
+            }
+          ],
+          "gain": 0.26,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 175,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.07,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:explosionShell": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/destruction/explosion-bomb-01.mp3",
+              "size": 234374,
+              "start": 0.34857143920898437,
+              "end": 5.856,
+              "licence": "",
+              "source": "original: huge-bomb-explosion-with-debris-sound-effect-zapsplat-sound-effects.mp3"
+            }
+          ],
+          "gain": 0.26,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 175,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.07,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:explosionTank": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/destruction/explosion-bomb-01.mp3",
+              "size": 234374,
+              "start": 0.34857143920898437,
+              "end": 5.856,
+              "licence": "",
+              "source": "original: huge-bomb-explosion-with-debris-sound-effect-zapsplat-sound-effects.mp3"
+            }
+          ],
+          "gain": 0.26,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 175,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.07,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:explosionFlakGun": {
       "synth": 0,
       "groups": [
         {
@@ -1562,7 +1707,11 @@
         }
       ]
     },
-    "sfx:thunk": {
+    "sfx:shotDown": {
+      "synth": 0,
+      "groups": []
+    },
+    "sfx:serviceDone": {
       "synth": 0,
       "groups": []
     },
@@ -1934,7 +2083,95 @@
         }
       ]
     },
-    "sfx:click": {
+    "sfx:gunEmpty": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/ui/click-02.wav",
+              "size": 24486,
+              "start": 0,
+              "end": 0.179875,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/ui/click-04.wav",
+              "size": 31954,
+              "start": 0,
+              "end": 0.2363125,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1.25,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.03,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:fuelLow": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/ui/click-02.wav",
+              "size": 24486,
+              "start": 0,
+              "end": 0.179875,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/ui/click-04.wav",
+              "size": 31954,
+              "start": 0,
+              "end": 0.2363125,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 1.25,
+          "pitch": 0,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.03,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:radarTick": {
       "synth": 0,
       "groups": [
         {
@@ -2674,7 +2911,127 @@
         }
       ]
     },
-    "sfx:clank": {
+    "sfx:hitPlane": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/impacts/hit-metal-01.wav",
+              "size": 74784,
+              "start": 0.010454499949131692,
+              "end": 0.5600625,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/impacts/hit-metal-02.wav",
+              "size": 95208,
+              "start": 0.017078458592891692,
+              "end": 0.7144375,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/impacts/hit-metal-03.wav",
+              "size": 60270,
+              "start": 0.0126528071306433,
+              "end": 0.45035416666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/impacts/hit-metal-04.wav",
+              "size": 83478,
+              "start": 0.009058777664105098,
+              "end": 0.6257708333333334,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.5,
+          "pitch": -1.2,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.01,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:hitGroundObject": {
+      "synth": 0,
+      "groups": [
+        {
+          "files": [
+            {
+              "path": "assets/audio/impacts/hit-metal-01.wav",
+              "size": 74784,
+              "start": 0.010454499949131692,
+              "end": 0.5600625,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/impacts/hit-metal-02.wav",
+              "size": 95208,
+              "start": 0.017078458592891692,
+              "end": 0.7144375,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/impacts/hit-metal-03.wav",
+              "size": 60270,
+              "start": 0.0126528071306433,
+              "end": 0.45035416666666667,
+              "licence": "",
+              "source": ""
+            },
+            {
+              "path": "assets/audio/impacts/hit-metal-04.wav",
+              "size": 83478,
+              "start": 0.009058777664105098,
+              "end": 0.6257708333333334,
+              "licence": "",
+              "source": ""
+            }
+          ],
+          "gain": 0.5,
+          "pitch": -1.2,
+          "fadeIn": 0,
+          "fadeOut": 0,
+          "reverse": false,
+          "lowpass": 20000,
+          "highpass": 20,
+          "drive": 0,
+          "pitchVar": 0.03,
+          "gainVar": 0.1,
+          "reverb": 0.01,
+          "delay": 0,
+          "xfade": 0.05,
+          "mapFrom": 0,
+          "mapTo": 1,
+          "gainLow": 1,
+          "gainHigh": 1,
+          "pitchLow": 1,
+          "pitchHigh": 1
+        }
+      ]
+    },
+    "sfx:hitOwnPlane": {
       "synth": 0,
       "groups": [
         {

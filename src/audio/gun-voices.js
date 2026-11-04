@@ -149,6 +149,9 @@ export function buildVoices(ctx, guns) {
   voices.gearLockDown = [...voices.thunk];
   voices.gearPins = [...voices.clank];
   voices.gearPins.soundId = 'sfx:gearLockDown';
-  for (const name of ['clank', 'thunk', 'snap', 'thud', 'patter', 'release', 'click', 'gearLockUp', 'gearLockDown', 'propStrike']) voices[name].soundId = `sfx:${name}`;
+  // clank, thunk and click stay as plain synth sources (the crew copy them); every use has its own sound.
+  const copies = { hitPlane: 'clank', hitGroundObject: 'clank', hitOwnPlane: 'thunk', shotDown: 'thunk', serviceDone: 'thunk', gunEmpty: 'click', fuelLow: 'click', radarTick: 'click' };
+  for (const [name, from] of Object.entries(copies)) voices[name] = [...voices[from]];
+  for (const name of ['snap', 'thud', 'patter', 'release', 'gearLockUp', 'gearLockDown', 'propStrike', ...Object.keys(copies)]) voices[name].soundId = `sfx:${name}`;
   return voices;
 }

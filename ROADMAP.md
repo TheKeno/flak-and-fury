@@ -86,6 +86,15 @@ later.
   separate underside colour; unlockable paints and skins (cosmetic only, milestone 10); weathering as a
   paint layer with a wear amount (exhaust staining, chipped wing roots).
 
+- **Sound split (built):** the shared sounds `clank`, `thunk`, `click` and `explosion` split
+  into 13 entries so each can be tuned and replaced alone (table in `notes/sound-split-review.md`):
+  `hitPlane`, `hitOwnPlane`, `hitGroundObject` (flak gun, MG nest, radar, tank), `shotDown`,
+  `serviceDone`, `gunEmpty`, `fuelLow`, `radarTick`, `explosionPlane/Bomb/Shell/Tank/FlakGun`.
+  Collapses, `thud`, `patter`, `shrapnel` stay as they are. New entries inherit cuts, gain and pitch
+  but **not the done tick** (unticked = needs re-evaluation); `thunk`'s note goes with the old entry.
+  Files stay shared at first; an upload makes a new file for that entry only. One build session, in the
+  order hits, explosions, clicks.
+
 ## Done
 
 - **1. Flight:** throttle, A/D absolute rotation with fine-aim taps, roll, stalls, slow-speed turn bonus,

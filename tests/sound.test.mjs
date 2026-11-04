@@ -128,3 +128,23 @@ test('every file in assets/audio is in a known folder and named by the conventio
   }
   assert.deepEqual(bad, [], 'Name it <what>-<NN> in a known folder (inbox may hold anything until sorted)');
 });
+
+test('the split sounds each have an entry, unticked, and the old shared ones are gone', () => {
+  const split = ['hitPlane', 'hitGroundObject', 'hitOwnPlane', 'shotDown', 'serviceDone', 'gunEmpty', 'fuelLow', 'radarTick',
+    'explosionPlane', 'explosionBomb', 'explosionShell', 'explosionTank', 'explosionFlakGun'];
+  for (const n of split) {
+    assert.ok(sound.recordings[`sfx:${n}`], `sfx:${n} has no recording entry`);
+    assert.ok(!sound.status[`sfx:${n}`]?.done, `sfx:${n} should wait for re-evaluation`);
+  }
+  for (const old of ['clank', 'thunk', 'click', 'explosion']) {
+    assert.ok(!sound.recordings[`sfx:${old}`] && !sound.status[`sfx:${old}`], `sfx:${old} should be gone`);
+  }
+});
+
+test('every voice the soundscape plays exists in the voice builder', () => {
+  const read = (f) => readFileSync(new URL(`../src/audio/${f}`, import.meta.url), 'utf8');
+  const builder = read('gun-voices.js');
+  const used = new Set([...read('soundscape.js').matchAll(/(?<![-\w])voices\.(\w+)/g)].map((m) => m[1]));
+  // A voice is built by name in a list or as voices.name; guns come from the data.
+  for (const v of used) if (!sound.guns[v]) assert.ok(builder.includes(`voices.${v}`) || builder.includes(`${v}:`) || builder.includes(`'${v}'`), `voices.${v} is not built`);
+});

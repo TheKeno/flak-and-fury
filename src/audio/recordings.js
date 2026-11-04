@@ -459,7 +459,8 @@ export function createRecordings(mixer, sound) {
 
 // The one-shots with their recordings beside them. Each function keeps its signature.
 const ONE_SHOT_IDS = {
-  explosion: () => 'explosion', flakBurst: () => 'flakBurst', touchdown: () => 'touchdown', gearMotor: () => 'gearDown', bellyCrunch: () => 'bellyCrunch',
+  explosion: (args) => `explosion${args[2] ?? 'Bomb'}`, // args: where, size, kind (Plane, Bomb, Shell, Tank, FlakGun)
+  flakBurst: () => 'flakBurst', touchdown: () => 'touchdown', gearMotor: () => 'gearDown', bellyCrunch: () => 'bellyCrunch',
   midair: () => 'midair', helmetCreak: () => 'helmetCreak', gearHorn: () => 'gearHorn', ignite: () => 'ignite', rollWhoosh: () => 'rollWhoosh', shrapnel: () => 'shrapnel',
   collapse: (args) => `collapse${String(args[1])[0].toUpperCase()}${String(args[1]).slice(1)}`, splash: () => 'splash', fireOut: () => 'fireOut', hammering: () => 'hammering', radarPowerDown: () => 'radarPowerDown',
 };

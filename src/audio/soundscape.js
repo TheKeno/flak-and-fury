@@ -288,7 +288,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     },
     // A soft tick as the radar beam starts a new sweep.
     radarTick() {
-      sfx.play(mixer, voices.click, ME, { gain: 0.12, rate: 0.6, bus: 'ambience' });
+      sfx.play(mixer, voices.radarTick, ME, { gain: 0.12, rate: 0.6, bus: 'ambience' });
     },
     // Ears ride with the focused plane; while it's down they stay at the camera.
     update(focus, camCentre, dt = 1 / 60) {
@@ -321,7 +321,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           break;
         case 'crash':
           engines.get(e.plane)?.stop();
-          sfx.explosion(mixer, mine ? ME : whereAt(e.x, e.y, range), 1);
+          sfx.explosion(mixer, mine ? ME : whereAt(e.x, e.y, range), 1, 'Plane');
           break;
         case 'touchdown':
           sfx.touchdown(mixer, where, e.speed);
@@ -360,11 +360,11 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           engines.get(e.plane)?.start();
           break;
         case 'serviceDone':
-          sfx.play(mixer, voices.thunk, where, { gain: 0.5, rate: 1.1 });
-          sfx.play(mixer, voices.thunk, where, { gain: 0.5, rate: 1.1, offset: 0.18 });
+          sfx.play(mixer, voices.serviceDone, where, { gain: 0.5, rate: 1.1 });
+          sfx.play(mixer, voices.serviceDone, where, { gain: 0.5, rate: 1.1, offset: 0.18 });
           break;
         case 'fuelLow':
-          if (mine) for (let i = 0; i < 3; i++) sfx.play(mixer, voices.click, ME, { gain: 0.5, rate: 0.8, offset: i * 0.25 });
+          if (mine) for (let i = 0; i < 3; i++) sfx.play(mixer, voices.fuelLow, ME, { gain: 0.5, rate: 0.8, offset: i * 0.25 });
           break;
         case 'wake':
           body.gasp();
@@ -377,15 +377,14 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           break;
         }
         case 'empty':
-          if (mine) sfx.play(mixer, voices.click, ME, { gain: 0.5 });
+          if (mine) sfx.play(mixer, voices.gunEmpty, ME, { gain: 0.5 });
           break;
         case 'hit':
           if (mine) {
-            sfx.play(mixer, voices.thunk, ME, { gain: 0.6, bus: 'body' });
-            sfx.play(mixer, voices.clank, { ...ME, pan: (Math.random() - 0.5) * 0.8 }, { gain: 0.5 });
+            sfx.play(mixer, voices.hitOwnPlane, ME, { gain: 0.6, bus: 'body' });
             mixer.duck(0.25, 0.04, 0.3);
           } else {
-            sfx.play(mixer, voices.clank, where, { gain: 0.7, reverb: 0.2 });
+            sfx.play(mixer, voices.hitPlane, where, { gain: 0.7, reverb: 0.2 });
           }
           break;
         case 'impact':
@@ -398,7 +397,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         case 'groundHit':
           if (impactBudget >= 1) {
             impactBudget--;
-            sfx.play(mixer, e.kind === 'flak' || e.kind === 'mgNest' || e.kind === 'radar' ? voices.clank : voices.thud, where, { gain: 0.5, reverb: 0.2 });
+            sfx.play(mixer, e.kind === 'flak' || e.kind === 'mgNest' || e.kind === 'radar' || e.kind === 'tank' ? voices.hitGroundObject : voices.thud, where, { gain: 0.5, reverb: 0.2 });
           }
           break;
         case 'flakFire':
@@ -415,7 +414,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           sfx.play(mixer, voices.tankGun, where, { gain: 0.9, reverb: 0.45 });
           break;
         case 'tankShellBurst':
-          sfx.explosion(mixer, whereAt(e.x, e.y, range), 0.5);
+          sfx.explosion(mixer, whereAt(e.x, e.y, range), 0.5, 'Shell');
           break;
         case 'flakBurst':
           sfx.flakBurst(mixer, whereAt(e.x, e.y, range));
@@ -426,7 +425,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           break;
         case 'groundDestroyed':
           if (MATERIAL[e.kind]) sfx.collapse(mixer, where, MATERIAL[e.kind], e.kind === 'building' || e.kind === 'depot' || e.kind === 'hangar' ? 1.2 : 0.8);
-          else sfx.explosion(mixer, where, e.kind === 'tank' ? 0.9 : 0.6);
+          else sfx.explosion(mixer, where, e.kind === 'tank' ? 0.9 : 0.6, e.kind === 'tank' ? 'Tank' : 'FlakGun');
           if (e.kind === 'bridge') sfx.splash(mixer, where);
           break;
         case 'fireOut':
@@ -443,18 +442,18 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           whistles.delete(e.bomb);
           break;
         case 'explosion':
-          sfx.explosion(mixer, whereAt(e.x, e.y, range), 1.25);
+          sfx.explosion(mixer, whereAt(e.x, e.y, range), 1.25, 'Bomb');
           break;
         case 'fire':
           sfx.ignite(mixer, where);
           break;
         case 'shotDown':
-          sfx.play(mixer, voices.thunk, where, { gain: mine ? 0.8 : 0.6, rate: 0.6, bus: mine ? 'body' : 'sfx' });
+          sfx.play(mixer, voices.shotDown, where, { gain: mine ? 0.8 : 0.6, rate: 0.6, bus: mine ? 'body' : 'sfx' });
           break;
         case 'collision': {
           const involved = e.a === focusId || e.b === focusId;
           const at = involved ? ME : whereAt(e.x, e.y, range);
-          if (e.severity === 'fatal') sfx.explosion(mixer, at, 1.1);
+          if (e.severity === 'fatal') sfx.explosion(mixer, at, 1.1, 'Plane');
           else sfx.midair(mixer, at, e.severity, e.taran);
           break;
         }
