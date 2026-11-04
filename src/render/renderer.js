@@ -1171,9 +1171,20 @@ export function createRenderer(canvas, world, assets) {
   // Reflector gunsight: a ring and pip a fixed range down the firing line (no lead, like a 1943
   // Revi). It follows the fuselage, tail-down tilt included, not the camera. hud.crosshairStyle picks
   // ring (ring and pip), circle, cross or dot.
+  // On the ground the sight stays hidden (hangar exit, queue, parked) until the throttle is opened for
+  // the take-off; it then fades in over SIGHT_FADE seconds so it doesn't pop up.
+  const SIGHT_FADE = 0.3;
+  let sightFade = 0;
+  let sightFadeAt = 0;
   function drawSight(p) {
     if (!hudCfg.crosshair || hudCfg.crosshairAlpha <= 0 || !p.guns.length) return;
     if (p.state === 'dead' || p.dying || p.waiting) return;
+    const now = performance.now();
+    const dt = Math.min(0.1, (now - sightFadeAt) / 1000);
+    sightFadeAt = now;
+    const live = p.state === 'air' || (p.exitTo == null && p.throttle > 0.05);
+    sightFade = live ? Math.min(1, sightFade + dt / SIGHT_FADE) : 0;
+    if (sightFade <= 0) return;
     const [mx, my] = localToWorld(p, p.def.noseOffset);
     const a = attitude(p).angle;
     const wx = mx + Math.cos(a) * hudCfg.crosshairRange;
@@ -1181,7 +1192,7 @@ export function createRenderer(canvas, world, assets) {
     const x = ((wx - cam.x) * SCALE / bw) * W;
     const y = ((bh - (wy - cam.y) * SCALE) / bh) * H;
     if (x < 0 || y < 0 || x >= W || y >= H) return;
-    drawSightShape(hud, x, y, hudCfg);
+    drawSightShape(hud, x, y, sightFade < 1 ? { ...hudCfg, crosshairAlpha: hudCfg.crosshairAlpha * sightFade } : hudCfg);
   }
 
   const flashes = new Map(); // plane id -> frames of muzzle flash left
