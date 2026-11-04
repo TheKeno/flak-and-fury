@@ -25,6 +25,11 @@ later.
   the local server run `tools/make-sprites.mjs` (no tokens); Claude commits and pushes when the owner
   calls an outline done. **The seven finished planes move onto outline files** (look unchanged), and the
   tanks use the same editor later. Details (markings positions etc.) stay in code in the first version.
+  **Pixel control (both):** points move in 0.1 m steps over a visible pixel grid (one step = one
+  side-view pixel, so a 1 px change is one drag); and a **pixel touch-up layer** for final polish: the
+  owner paints single pixels onto the rendered side-view sprite, saved apart from the model (e.g. in the
+  outline file) and applied after every rebuild. Touch-ups fit only the side view (used in normal
+  flight, also rotated); the roll, ground-turn and loop frames keep the model's look.
 - **Scroll-wheel camera zoom (built, owner happy with the feel 2026-11-04; in-fight tightening still a trial of option C to tune):** the wheel scales the camera's zoom through a
   player zoom factor (default 1, reset to 1 at each take-off and each respawn, not saved). `src/render/renderer.js`
   `updateZoom` multiplies the automatic target (speed zoom, dogfight zoom, look-around) by it.
