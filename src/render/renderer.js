@@ -18,6 +18,7 @@ import { frameFight } from './fight-cam.js';
 import { playerZoom, wheelRange } from './player-zoom.js';
 import { prof } from '../ui/perfstats.js';
 import { fireStage } from '../sim/fire.js';
+import { drawSightShape } from './sight.js';
 import { surfaceAt } from '../sim/ground.js';
 import { localToWorld } from '../sim/weapons.js';
 import { attitude, mainWheelContact, DEFAULT_WHEELS } from '../sim/plane.js';
@@ -1155,30 +1156,7 @@ export function createRenderer(canvas, world, assets) {
     const x = ((wx - cam.x) * SCALE / bw) * W;
     const y = ((bh - (wy - cam.y) * SCALE) / bh) * H;
     if (x < 0 || y < 0 || x >= W || y >= H) return;
-    const r = hudCfg.crosshairSize;
-    const style = hudCfg.crosshairStyle ?? 'ring';
-    hud.save();
-    hud.globalAlpha = hudCfg.crosshairAlpha;
-    hud.strokeStyle = hud.fillStyle = hudCfg.crosshairColour ?? '#c8d8b0';
-    hud.lineWidth = 0.75;
-    hud.beginPath();
-    if (style === 'ring' || style === 'circle') hud.arc(x, y, r, 0, Math.PI * 2);
-    if (style === 'cross') {
-      // Four ticks with a gap in the middle, so the target stays visible.
-      const gap = r * 0.35;
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        hud.moveTo(x + dx * gap, y + dy * gap);
-        hud.lineTo(x + dx * r, y + dy * r);
-      }
-    }
-    hud.stroke();
-    if (style === 'ring' || style === 'dot') {
-      const d = style === 'dot' ? Math.max(1, r * 0.35) : 1;
-      hud.beginPath();
-      hud.arc(x, y, d, 0, Math.PI * 2);
-      hud.fill();
-    }
-    hud.restore();
+    drawSightShape(hud, x, y, hudCfg);
   }
 
   const flashes = new Map(); // plane id -> frames of muzzle flash left

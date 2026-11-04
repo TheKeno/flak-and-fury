@@ -4,6 +4,7 @@
 // browser (localStorage), applied over the values loaded from data/settings.json, which stay the
 // defaults. They are written into the live settings objects, so the game (and the tuning panel)
 // see them at once; the tuning panel's "Save to files" would save them as the new defaults.
+import { drawSightShape } from '../render/sight.js';
 import { ACTIONS, defaultBindings, codeName, wheelCode } from '../input/keyboard.js';
 
 const STORE = 'flak-and-fury.options';
@@ -299,6 +300,27 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     return [row('Fullscreen', b, 'Hold Esc to leave fullscreen; a tap opens the menu (Chrome and Edge; elsewhere a tap leaves it).')];
   }
 
+  // A dark strip with a nose marker and the gunsight at its set distance, redrawn on every change,
+  // so the gunsight can be seen while it is edited (the game behind the menu is hidden).
+  function sightPreview() {
+    const cv = el('canvas', { class: 'sight-preview', width: 240, height: 80, title: 'Preview of your gunsight' });
+    const g = cv.getContext('2d');
+    refreshers.push(() => {
+      const cfg = settings.hud;
+      g.setTransform(4, 0, 0, 4, 0, 0);
+      g.fillStyle = '#1c2024';
+      g.fillRect(0, 0, 60, 20);
+      g.fillStyle = '#2a2c24';
+      g.fillRect(0, 14, 60, 6);
+      // The plane's nose on the left; the sight sits ahead of it in proportion to the range.
+      g.fillStyle = '#3c4038';
+      g.fillRect(0, 8, 7, 3);
+      if (!cfg.crosshair || cfg.crosshairAlpha <= 0) return;
+      drawSightShape(g, 8 + (cfg.crosshairRange / 300) * 46, 9.5, cfg);
+    });
+    return cv;
+  }
+
   function show(id) {
     stopListening();
     tab = id;
@@ -309,7 +331,11 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     if (id === 'controls') body.append(...controlsPage());
     else {
       if (id === 'general') body.append(...viewExtras());
-      body.append(...options.filter((o) => o.tab === id).map(optionRow));
+      const rows = options.filter((o) => o.tab === id).map(optionRow);
+      // The preview goes just above the first gunsight row.
+      const at = options.filter((o) => o.tab === id).findIndex((o) => o.id === 'hud.crosshair');
+      if (at >= 0) rows.splice(at, 0, sightPreview());
+      body.append(...rows);
     }
     refresh();
   }
