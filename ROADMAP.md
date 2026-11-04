@@ -320,8 +320,8 @@ Then: more themes, co-op missions, matchmaking.
   go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another.
 - **Fire put out before the ground crew arrive** (Gameplay): a plane's fire goes out while the ground crew are still
   running to it; it should only be put out once they have reached the plane.
-- **Rattle sound stays after a crash** (Sound): the rattle (airframe/engine) keeps playing after the plane has crashed;
-  it should stop when the plane is destroyed.
+- **Rattle sound stays when it shouldn't** (Sound): the rattle (airframe/engine) keeps playing after the plane has
+  crashed, and also with the engine off or the plane standing still; it should stop in all three cases.
 - **Name set mid-game not shown to the host** (UI): a friend joined without a name and set it during the game, but the
   host never saw it; a name changed after joining should reach the host and show in the HUD and logs.
 - **Friendly collision logged as enemy** (Gameplay): when a plane collides with a friendly, the kill/event log
