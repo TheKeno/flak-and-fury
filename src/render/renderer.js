@@ -1428,7 +1428,7 @@ export function createRenderer(canvas, world, assets) {
       if (focus) gore.drawSpatters(hud, focus.id);
       if (focus && !free) drawSight(focus);
       hud.globalAlpha = hudCfg.opacity ?? 1;
-      if (!skip.has('hud')) drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free), units: hudCfg.units });
+      if (!skip.has('hud')) drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
       drawMessages();
       const L = lineHeight();
       const banner = (text, y, colour) => drawText(hud, text, (W - textWidth(text)) / 2, y, colour);

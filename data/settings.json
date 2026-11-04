@@ -250,8 +250,7 @@
     "crosshairColour": "#c8d8b0",
     "textSize": 1,
     "opacity": 0.85,
-    "units": "metric",
-    "showHelp": true,
+    "showHelp": false,
     "showNames": true,
     "showOwnName": false
   },

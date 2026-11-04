@@ -10,7 +10,7 @@ import { createRecordings } from './audio/recordings.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { createSetup } from './ui/setup.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
-import { setKeyNames, speedText, sinkText as sinkUnits } from './render/hud.js';
+import { setKeyNames, speedText, sinkText } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
 import { NO_COMMAND } from './sim/plane.js';
 import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
@@ -69,7 +69,7 @@ const keyboard = createKeyboard();
 const mouse = createMouse(canvas, content.settings.camera);
 setKeyNames(keyboard.keyName);
 
-let showHelp = content.settings.hud.showHelp ?? true;
+let showHelp = content.settings.hud.showHelp ?? false;
 let paused = false;
 const tuning = createTuningPanel({
   content,
@@ -185,9 +185,9 @@ let guest = null;
 // itself, so they stay with the host.
 const HOST_ONLY = new Set(['tuning', 'freeLook']);
 
-// Mute (M), and with audio.muteInBackground also while the tab is hidden.
+// Mute (M), while the in-game menu is open, and with audio.muteInBackground also while the tab is hidden.
 function applyMute() {
-  mixer?.setMuted(muted || (document.hidden && content.settings.audio.muteInBackground !== false));
+  mixer?.setMuted(muted || menuOpen || (document.hidden && content.settings.audio.muteInBackground !== false));
 }
 
 // Keys and mouse buttons as bound in the options. Free look's own keys (1/2/3, W/S speed) stay fixed:
@@ -245,6 +245,7 @@ function openMenu() {
   document.getElementById('pause-note').textContent = online() ? 'THE GAME GOES ON: YOUR PLANE FLIES LEVEL UNTIL YOU RESUME.' : '';
   document.getElementById('quit').textContent = host ? 'END ONLINE GAME' : guest ? 'LEAVE GAME' : 'QUIT TO TITLE';
   pauseScreen.classList.remove('hidden');
+  applyMute();
   mouse.release();
 }
 function closeMenu() {
@@ -253,6 +254,7 @@ function closeMenu() {
   setup.hide();
   pauseScreen.classList.add('hidden');
   menuOpen = false;
+  applyMute();
   if (!online()) setPaused(false);
   backToFullscreen();
   // After the player's own Esc the browser won't hand the mouse back without a click.
@@ -298,9 +300,8 @@ document.getElementById('pause-options').addEventListener('click', () => {
   options.open(() => pauseScreen.classList.remove('hidden'));
 });
 
-// The same display scales and units as the HUD.
-const kmh = (v) => speedText(v, content.settings.hud.units);
-const sinkText = (v) => sinkUnits(v, content.settings.hud.units);
+// The same display scale as the HUD.
+const kmh = speedText;
 const deg = (a) => Math.round((a * 180) / Math.PI);
 const CAUSES = {
   guns: (by) => (by ? `SHOT DOWN BY ${by}` : 'SHOT DOWN'),
@@ -760,6 +761,7 @@ $('join-go').addEventListener('click', async () => {
       onClose() {
         started = false;
         menuOpen = false;
+        applyMute();
         pauseScreen.classList.add('hidden');
         options.close();
         setup.hide();

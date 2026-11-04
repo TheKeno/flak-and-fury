@@ -13,16 +13,10 @@ const JOBS = { repair: 'REPAIRING', refuel: 'REFUELLING', rearm: 'REARMING' };
 const VALUE = '#d4d8c8';
 const LABEL = '#a0a696';
 
-// Display units (settings.hud.units). Speeds use the game's display scale, not physics units.
-const UNITS = {
-  metric: { speed: 'KM/H', sk: 1, alt: 'M', ak: 1, sink: 'M/S' },
-  imperial: { speed: 'MPH', sk: 0.6214, alt: 'FT', ak: 3.281, sink: 'FT/S' },
-  nautical: { speed: 'KN', sk: 0.54, alt: 'FT', ak: 3.281, sink: 'FT/S' },
-};
-const unitsOf = (u) => UNITS[u] ?? UNITS.metric;
-export const speedValue = (v, u) => Math.round(v * 3.6 * 0.4 * 3.2 * unitsOf(u).sk);
-export const speedText = (v, u) => `${speedValue(v, u)} ${unitsOf(u).speed}`;
-export const sinkText = (v, u) => `${Math.round(v * 0.4 * unitsOf(u).ak)} ${unitsOf(u).sink}`;
+// Display units: metric only. Speeds use the game's display scale, not physics units.
+export const speedValue = (v) => Math.round(v * 3.6 * 0.4 * 3.2);
+export const speedText = (v) => `${speedValue(v)} KM/H`;
+export const sinkText = (v) => `${Math.round(v * 0.4)} M/S`;
 
 // The keys for on-screen hints, as bound in the options (src/input/keyboard.js keyName).
 let keyOf = (id) => id.toUpperCase();
@@ -38,10 +32,9 @@ function bar(ctx, x, y, w, value, colour) {
   ctx.fillRect(x + 0.8, y + 0.8, w * value, 1.4);
 }
 
-export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLook = false, units }) {
+export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLook = false }) {
   if (!plane) return;
   const L = lineHeight();
-  const u = unitsOf(units);
 
   const x = 6;
   let y = 6;
@@ -56,8 +49,8 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
     drawText(ctx, label, x, y, labelColour);
     bar(ctx, col, y + L * 0.2, barW, value, colour);
   };
-  stat('SPD', speedText(plane.speed, units));
-  stat('ALT', `${Math.max(0, Math.round((plane.y - world.terrain.heightAt(plane.x)) * 4 * u.ak))} ${u.alt}`);
+  stat('SPD', speedText(plane.speed));
+  stat('ALT', `${Math.max(0, Math.round((plane.y - world.terrain.heightAt(plane.x)) * 4))} M`);
   stat('RPM', Math.round(plane.rpm / 10) * 10);
   y += L * 0.2;
   meter('THR', plane.throttle, '#c8aa58');

@@ -102,10 +102,12 @@ ground the framing fades out.
 
 **Sound: `data/sound.json`.** Easiest through the Sound Lab, `http://localhost:8080/sound-lab.html`: it has a Guide tab and explains each slider on hover. `vehicles` lists every aircraft and tank, planned ones too, each pointing at an entry in `engines`, which points at an entry in `builds`. `builds` hold the synth numbers, `guns` the gun recipes, `space` the reverb, ducking and limiter, `status` the done ticks and notes, `recordings` each sound's synth level, files and engine clips, `layers` your own attached sounds. Bus levels and hearing ranges stay in `settings.json` → `audio`, and the Lab saves those too.
 
-**Player options.** The options menu (`src/ui/options.js`, title screen or Esc) changes many of these
-values for one player: they are kept in that browser and written over the values loaded from this file,
-which stay the defaults. Options in % (volumes, sensitivity) and the camera lead and speed zoom presets
-scale the file's value. Saving from the tuning panel saves what is live, player options included.
+**Player options.** The options menu (`src/ui/options.js`, title screen or Esc) lets a player change only
+a few of these: master and music volume (in %, scaling this file's value), mute in background, dogfight
+camera, historical markings, gore, and the gunsight's on/off, style, colour, opacity and distance, plus
+pilot names. Everything else here is a design decision, set only in this file and the tuning panel. The
+choices are kept in that browser and written over the values loaded from this file, which stay the
+defaults. Saving from the tuning panel saves what is live, player options included.
 
 `freeLook` (V, the debug view for the ground war): `panSpeed` moves the camera with the arrows,
 `mousePan` (world units per pixel) with the mouse, `zoom` is how wide the view starts, `autopilotHeight` is how high above the ground the autopilot flies
@@ -361,8 +363,7 @@ The rest of `hud` is the read-outs:
 |---|---|---|
 | `textSize` | Scale of all HUD text (1 = normal). | 0.85 – 1.45 |
 | `opacity` | Opacity of the read-outs, messages and warnings (not the gunsight). | 0.6 – 1 |
-| `units` | `metric` (km/h, m), `imperial` (mph, ft) or `nautical` (knots, ft). | metric |
-| `showHelp` | Show the key help at start (H toggles it). | true |
+| `showHelp` | Show the key help at start (H toggles it). | false |
 | `showNames` | Other players' names along their planes. | true |
 | `showOwnName` | Your own name too. | false |
 | `lastFlightTime` | Seconds the LAST FLIGHT report stays after you respawn. | 5 – 12 |

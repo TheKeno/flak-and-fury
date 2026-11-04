@@ -142,11 +142,12 @@ later.
     against the plane. One layer for both (`src/render/interpolate.js`); only what's drawn is blended,
     the sim stays exact (`tests/interpolate.test.mjs`).
   - **Options menu** (`src/ui/options.js`), from the title screen and Esc in game: two keys or mouse
-    buttons per action (a taken key swaps), mouse look on/off, sensitivity and look return, volumes,
-    mute in the background, gunsight style/size/opacity/colour/range, HUD text size, opacity, units,
-    help at start, radar outline, screen shake, camera lead, speed zoom, dogfight camera, fullscreen, sharp or smooth
-    scaling, historical markings (on by default for now), gore, and an online callsign. Kept in the
-    browser, written over the data files' values. Esc pauses single player (P is gone); online it
+    buttons per action (a taken key swaps). Slimmed to three tabs: Keys; General (master and music
+    volume, mute in the background, fullscreen, dogfight camera, historical markings (on by default
+    for now), gore); HUD (gunsight on/off, style, colour, opacity, distance; pilot names). Camera, shake,
+    mouse look, other volumes, text size and radar outline are design decisions, not options; the HUD
+    is metric only. Kept in the browser, written over the data files' values. The game is muted while
+    the in-game menu is open. Esc pauses single player (P is gone); online it
     opens the menu while the V autopilot flies the plane. Losing the mouse (the browser's own Esc,
     leaving fullscreen, alt-tab) opens it too. The game's fullscreen (F11 or the option) claims Esc
     with the Keyboard Lock API in Chrome and Edge, so a tap opens the menu and only a held Esc leaves

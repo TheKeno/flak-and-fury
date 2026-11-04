@@ -32,8 +32,8 @@ the host's. Esc online opens the menu without pausing: an autopilot flies your p
 ## Controls
 
 These are the defaults; **Options** (title screen, or Esc in game) rebinds every action to two keys or
-mouse buttons each, and holds the mouse, sound, gunsight, HUD, view and content settings. They are kept
-in the browser.
+mouse buttons each, and holds volume, fullscreen, gore, markings, the gunsight and pilot names. They are
+kept in the browser.
 
 | Key | Action |
 |---|---|
