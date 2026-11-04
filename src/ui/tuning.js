@@ -123,6 +123,8 @@ const COLLISION_FIELDS = [
   ['taxiBump', 'Ground bump below', 0, 80, 1, 'Rolling on the ground slower than this, running into a building or tank is a bump (damage, the plane stops), not a wreck.'],
   ['bumpDamage', 'Bump damage', 0, 60, 1, 'Hit points a bump costs the plane and the thing it ran into.'],
   ['runDownDamage', 'Damage per soldier run down', 0, 20, 0.5, 'Flying low through enemy infantry kills the soldiers it strikes; each costs the plane this much.'],
+  ['crashBlastRadius', 'Crash shockwave radius', 0, 100, 1, 'A plane going in hurts soldiers (friend and foe) within this many world units; 0 turns it off.'],
+  ['crashBlastForce', 'Crash shockwave force', 0, 5, 0.1, 'Damage at the wreck in soldier hit points; it falls off to nothing at the radius. 1 or more kills at point blank.'],
   ['headOnSpeed', 'Head-on: fatal from', 0, 300, 5, 'Closing speed at which two noses meeting kills both planes.'],
   ['fatalSpeed', 'Any angle: fatal from', 50, 400, 5, 'Closing speed at which any collision kills both planes.'],
   ['hardSpeed', 'Hard hit from', 10, 200, 5, 'Closing speed separating a graze from a hard hit.'],

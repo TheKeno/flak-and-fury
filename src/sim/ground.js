@@ -245,6 +245,23 @@ export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = fa
   }
 }
 
+// A plane going in throws a shockwave: soldiers near the wreck are hurt or killed, friend and foe alike,
+// stronger the closer they stand. No score for it (nobody aimed it). Settings: collisions.crashBlast*.
+export function crashShockwave(world, x, y) {
+  const { crashBlastRadius: radius, crashBlastForce: force } = world.collisions;
+  if (!(radius > 0) || !(force > 0)) return;
+  for (const obj of world.ground) {
+    if (!obj.alive || !obj.soldiers) continue;
+    for (const s of obj.soldiers) {
+      if (s.hp <= 0) continue;
+      const sx = obj.x + s.dx;
+      const d = Math.hypot(sx - x, surfaceAt(world, sx) + obj.def.height / 2 - y);
+      if (d >= radius) continue;
+      hurtSoldier(world, obj, s, obj.def.hp * force * (1 - d / radius), null, { cause: 'blast', dir: Math.sign(sx - x) });
+    }
+  }
+}
+
 // Planes that run into a standing solid object. Flying, or rolling fast, the plane is wrecked and the
 // object damaged; a tank it dives into is destroyed with it. At taxi speed on the ground it's only a
 // bump: a little damage to both, and the plane stops. Flying low through enemy infantry cuts them

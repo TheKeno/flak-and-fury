@@ -32,6 +32,8 @@ export const DEFAULT_COLLISIONS = {
   taxiBump: 20, // below this speed on the ground, running into a building is a bump, not a wreck
   bumpDamage: 10, // hit points a bump costs the plane (and the object)
   runDownDamage: 1, // hit points a plane loses per soldier it runs down
+  crashBlastRadius: 30, // a crashing plane's shockwave hurts soldiers this far from the wreck (world units)
+  crashBlastForce: 1.5, // its damage at the wreck, in soldier hit points (falls off to 0 at the radius)
 };
 
 const NOSE = 0.6; // cos of the angle within which the other plane counts as "in front"

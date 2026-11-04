@@ -185,7 +185,9 @@ hit. Damage is split between the planes: `driveWeight` puts more on whoever drov
 "taran" on or off. Planes and ground objects: in the air (or rolling fast) a solid building is a crash;
 rolling slower than `taxiBump` it is a bump costing plane and object `bumpDamage`, and the plane stops.
 Diving into a tank destroys it with the plane (the points go to the plane). Flying low through enemy
-infantry kills the soldiers it strikes, `runDownDamage` hit points each. All of these are also in the
+infantry kills the soldiers it strikes, `runDownDamage` hit points each. Any crash throws a shockwave:
+soldiers (either side) within `crashBlastRadius` of the wreck take `crashBlastForce` × their hit
+points at the wreck, falling off linearly to nothing at the radius; no score for it. All of these are also in the
 tuning panel's Collisions section.
 
 ## Bots: `data/settings.json` → `bots`, `rules`

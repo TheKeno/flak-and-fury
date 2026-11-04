@@ -90,7 +90,9 @@
     "grace": 1,
     "taxiBump": 20,
     "bumpDamage": 10,
-    "runDownDamage": 1
+    "runDownDamage": 1,
+    "crashBlastRadius": 30,
+    "crashBlastForce": 1.5
   },
   "fire": {
     "burnTime": 25,

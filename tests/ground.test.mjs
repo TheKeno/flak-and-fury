@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
-import { groundBox } from '../src/sim/ground.js';
+import { groundBox, surfaceAt } from '../src/sim/ground.js';
+import { crash } from '../src/sim/plane.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 
@@ -133,4 +134,26 @@ test('structures stand on level ground; squads and decor on the natural slope', 
     const half = o.def.width / 2;
     assert.ok(Math.abs(h(o.x - half) - h(o.x + half)) < 0.01, `${o.type} at ${o.x} stands on a slope`);
   }
+});
+
+test('a crashing plane hurts nearby infantry of either side, and not those far away', () => {
+  const { world, player } = makeWorld();
+  const squads = world.ground.filter((o) => o.soldiers);
+  const near = squads.find((o) => o.team === 1);
+  const friend = squads.find((o) => o.team === 0);
+  const far = squads.find((o) => o !== near && o !== friend && Math.abs(o.x - near.x) > 200 && Math.abs(o.x - friend.x) > 200);
+  const hpBefore = (o) => o.soldiers.reduce((n, s) => n + s.hp, 0);
+  const [nearHp, friendHp, farHp] = [near, friend, far].map(hpBefore);
+  for (const o of [near, friend]) {
+    // Put the wreck right on the first soldier so the blow is at full strength.
+    const s = o.soldiers[0];
+    player.x = o.x + s.dx;
+    player.y = surfaceAt(world, player.x) + o.def.height / 2;
+    crash(player, world, 'rough');
+    player.state = 'air';
+  }
+  assert.ok(hpBefore(near) < nearHp, 'enemy infantry hurt');
+  assert.ok(hpBefore(friend) < friendHp, 'friendly infantry hurt too');
+  assert.equal(hpBefore(far), farHp, 'infantry out of reach untouched');
+  assert.equal(player.score, 0, 'no score for a shockwave');
 });

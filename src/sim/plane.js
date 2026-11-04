@@ -2,6 +2,7 @@ import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage, allGuns } from './weapons.js';
 import { updateServicing, ownAirfieldAt, sendPushCrew } from './airfield.js';
 import { clearRunway } from './runway.js';
+import { crashShockwave } from './ground.js';
 
 export { clearRunway };
 
@@ -274,6 +275,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
 export function crash(p, world, cause, what = null) {
   const why = p.dying ? p.downCause ?? 'guns' : cause;
   world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, by: p.dying ? p.lastHitBy : null, cause: why, what });
+  crashShockwave(world, p.x, p.y);
   p.state = 'dead';
   p.deaths++;
   p.respawnTimer = RESPAWN_TIME;
