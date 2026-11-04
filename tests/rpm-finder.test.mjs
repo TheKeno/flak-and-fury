@@ -52,6 +52,14 @@ test('a rough rpm picks the octave', () => {
   assert.ok(alt.some((a) => Math.abs(a.rpm / 900 - 1) < 0.02));
 });
 
+test('cylinders that sound different: the revolution reading is offered, and a rough rpm picks it', () => {
+  // 12 cylinders, 6 firings a revolution, each firing unlike the others: the sound repeats once a revolution.
+  const clip = engine({ rpm: 2600, cylinders: 12, amps: [1, 0.25, 0.7, 0.4, 0.9, 0.15], tones: [300, 520, 380, 700, 340, 900] });
+  const plain = findRpm(clip, RATE, { cylinders: 12 });
+  assert.ok(plain.alternatives.some((a) => Math.abs(a.rpm / 2600 - 1) < 0.02 && a.score > 0.4), JSON.stringify(plain.alternatives));
+  within(findRpm(clip, RATE, { cylinders: 12, hint: 2500 }).rpm, 2600, 0.02);
+});
+
 test('a sweep is reported as not steady', () => {
   const r = findRpm(engine({ rpm: 1200, sweep: 2400, seconds: 5 }), RATE, { cylinders: 12 });
   assert.ok(r.steadiness < 0.5, `steadiness ${r.steadiness}`);

@@ -78,6 +78,11 @@ later.
   an editable field because a shared build can cover engines with different counts, and the Lab's load of
   all recordings is very slow in the built-in browser pane, so the button was checked there only on the
   analysis, not clicked through in the Lab.
+  Second finding, from the owner's ear on the Full clip: its sound repeats exactly every 23.1 ms, which is one
+  revolution at 2600 rpm (6 unlike firings), so the first answer was 434 (2600 ÷ 6). The finder now offers
+  the revolution reading (× cylinders / 2) among the alternatives, and with a rough rpm it checks revolution
+  repeats too when nothing repeats once a firing (Full with rough 2600 → 2603; Cruise with rough 2000 →
+  2330). Without a rough rpm the ear still has the last word.
 - **Stack:** HTML5 canvas, plain JavaScript ES modules, no build step, a tiny local server
   (`node tools/serve.mjs 8080`). Chosen over Godot because Godot's web export lacks audio bus effects,
   and Web Audio suits the sound design.

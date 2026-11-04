@@ -68,11 +68,11 @@ const lagAt = (r, lag) => {
   return r[i] + (r[i + 1] - r[i]) * (lag - i);
 };
 
-const periodOf = (rpm, cylinders, rate) => (120 / (rpm * cylinders)) * rate; // samples between firings
+// Samples between firings, or (rev) between revolutions.
+const periodOf = (rpm, cylinders, rate, rev = false) => (rev ? 60 / rpm : 120 / (rpm * cylinders)) * rate;
 
-// How well one window repeats at this rpm's firing period and its multiples, 0 to 1.
-function score(r, rpm, cylinders, rate) {
-  const t = periodOf(rpm, cylinders, rate);
+// How well one window repeats at a period and its multiples, 0 to 1.
+function comb(r, t) {
   const k = Math.min(COMB, Math.floor((r.length - 1) / t));
   if (k < 1) return 0;
   let s = 0;
@@ -80,19 +80,28 @@ function score(r, rpm, cylinders, rate) {
   return s / k;
 }
 
+// ...at this rpm's firing period, or, when revs is allowed, at its revolution period: cylinders that
+// sound different make a sound that repeats once a revolution, not once a firing.
+function score(r, rpm, cylinders, rate, revs = false) {
+  const fire = comb(r, periodOf(rpm, cylinders, rate));
+  return revs ? Math.max(fire, comb(r, periodOf(rpm, cylinders, rate, true))) : fire;
+}
+
 // The waveform and the loudness shape each vote; whichever repeats better counts.
-function bestScore(rs, rpm, cylinders, rate) {
-  let best = { score: -1, r: rs[0] };
+function bestScore(rs, rpm, cylinders, rate, revs = false) {
+  let best = { score: -1, r: rs[0], rev: false };
   for (const r of rs) {
-    const s = score(r, rpm, cylinders, rate);
-    if (s > best.score) best = { score: s, r };
+    const fire = comb(r, periodOf(rpm, cylinders, rate));
+    const rev = revs ? comb(r, periodOf(rpm, cylinders, rate, true)) : 0;
+    if (fire > best.score) best = { score: fire, r, rev: false };
+    if (rev > best.score) best = { score: rev, r, rev: true };
   }
   return best;
 }
 
 // Moves a candidate to the exact peak of its longest repeat, which is the most precise.
-function refine(r, rpm, cylinders, rate) {
-  const t = periodOf(rpm, cylinders, rate);
+function refine(r, rpm, cylinders, rate, rev = false) {
+  const t = periodOf(rpm, cylinders, rate, rev);
   const k = Math.min(COMB, Math.floor((r.length - 1) / t));
   if (k < 1) return rpm;
   let best = Math.round(k * t);
@@ -103,7 +112,7 @@ function refine(r, rpm, cylinders, rate) {
   const a = r[best - 1], b = r[best], c = r[best + 1];
   const d = a - 2 * b + c;
   const lag = best + (d < 0 ? (0.5 * (a - c)) / d : 0);
-  return (120 * rate * k) / (lag * cylinders);
+  return rev ? (60 * rate * k) / lag : (120 * rate * k) / (lag * cylinders);
 }
 
 // Power near one frequency (Hann window), with a little slack either side for the rpm not being exact.
@@ -166,19 +175,26 @@ export function findRpm(samples, sampleRate, { cylinders = 12, hint = 0, minRpm 
       track.push({ t, rpm: null, conf: 0 });
       continue;
     }
-    const scores = grid.map((rpm) => bestScore(rs, rpm, cylinders, rate).score);
+    let revs = false;
+    let scores = grid.map((rpm) => bestScore(rs, rpm, cylinders, rate).score);
+    // Only when nothing repeats once a firing near the rough rpm: then once a revolution may be all there is.
+    if (hint > 0 && Math.max(...scores) < CONF_MIN) {
+      revs = true;
+      scores = grid.map((rpm) => bestScore(rs, rpm, cylinders, rate, true).score);
+    }
     const top = Math.max(...scores);
-    // The highest peak close to the best: a slower candidate repeats whenever the true one does.
+    // Peaks close to the best: a slower candidate repeats whenever the true one does, so without a hint
+    // the highest wins; with one, the peak nearest the rough rpm.
     let pick = -1;
     for (let i = scores.length - 1; i > 0; i--) {
-      if (scores[i] >= top * PEAK_KEEP && scores[i] >= scores[i - 1] && (i === scores.length - 1 || scores[i] >= scores[i + 1])) {
-        pick = i;
-        break;
-      }
+      const peak = scores[i] >= top * PEAK_KEEP && scores[i] >= scores[i - 1] && (i === scores.length - 1 || scores[i] >= scores[i + 1]);
+      if (peak && (pick < 0 || (hint > 0 && Math.abs(Math.log(grid[i] / hint)) < Math.abs(Math.log(grid[pick] / hint))))) pick = i;
+      if (peak && hint <= 0) break;
     }
     if (pick < 0) pick = scores.indexOf(top);
     starts.push(start);
-    track.push({ t, rpm: refine(bestScore(rs, grid[pick], cylinders, rate).r, grid[pick], cylinders, rate), conf: Math.min(1, scores[pick]) });
+    const chosen = bestScore(rs, grid[pick], cylinders, rate, revs);
+    track.push({ t, rpm: refine(chosen.r, grid[pick], cylinders, rate, chosen.rev), conf: Math.min(1, scores[pick]) });
   }
   const good = track.filter((p) => p.conf >= CONF_MIN);
   if (!good.length) return { track, rpm: null, conf: 0, steadiness: 0, alternatives: [], duration };
@@ -189,9 +205,9 @@ export function findRpm(samples, sampleRate, { cylinders = 12, hint = 0, minRpm 
     const segs = track.map((p, i) => (steady.includes(p) ? x.subarray(starts[i], starts[i] + size) : null)).filter(Boolean);
     for (let n = 0; n < 2 && rpm * 2 <= maxRpm && missingOdd(segs, rpm, cylinders, rate); n++) rpm *= 2;
   }
-  const alternatives = [rpm / 2, rpm * 2, rpm / 3, rpm * 3].filter((a) => a >= minRpm && a <= maxRpm).map((a) => {
+  const alternatives = [rpm / 2, rpm * 2, rpm / 3, rpm * 3, ...(cylinders > 2 ? [rpm * (cylinders / 2), rpm / (cylinders / 2)] : [])].filter((a) => a >= minRpm && a <= maxRpm).map((a) => {
     const idx = track.map((p, i) => (steady.includes(p) ? i : -1)).filter((i) => i >= 0);
-    return { rpm: a, score: idx.reduce((s, i) => s + bestScore(lags[i], a, cylinders, rate).score, 0) / idx.length };
+    return { rpm: a, score: idx.reduce((s, i) => s + bestScore(lags[i], a, cylinders, rate, true).score, 0) / idx.length };
   });
   return {
     track, rpm,
