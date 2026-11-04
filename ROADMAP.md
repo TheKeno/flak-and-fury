@@ -315,6 +315,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Plane crash shockwave hits infantry** (Gameplay): a crashing plane sends a shockwave that hurts or knocks down
+  nearby infantry, not only those it lands on.
 - **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
   drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
 - **M key works in the menus** (UI): the M key (its in-game action, e.g. mute) should also work while a menu is open
