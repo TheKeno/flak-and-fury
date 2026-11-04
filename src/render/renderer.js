@@ -1292,6 +1292,14 @@ export function createRenderer(canvas, world, assets) {
     },
     // The scroll wheel: steps > 0 zoom out, < 0 in. The wheel factor is local to this screen.
     zoomBy(steps) {
+      // When a limit is holding the view back (the zoom-out cap, or the fight's tightening limit), the
+      // wheel factor may sit beyond it. Start from what is really applied, or the first notches back
+      // would move nothing.
+      const applied = zoom / autoZoom;
+      if (Math.abs(applied - cam.wheel) > 1e-3) {
+        cam.wheel = cam.wheelTarget = applied;
+        cam.wheelV = 0;
+      }
       const [lo, hi] = wheelRange(camCfg);
       cam.wheelTarget = clamp(cam.wheelTarget * Math.exp(steps * camCfg.wheelStep), lo, hi);
     },
