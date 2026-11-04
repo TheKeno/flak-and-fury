@@ -1070,8 +1070,9 @@ export function createRenderer(canvas, world, assets) {
     } else {
       const set = assets.planeSprite(p)[p.inverted ? 'inverted' : 'upright'];
       drawGear(p, sx, sy, view.angle);
-      drawOutlined(set.frames[frameIndex(view.angle)], sx - set.radius, sy - set.radius, outline);
-      gore.drawPlane(ctx, p, sx, sy, view.angle, PLANE_SCALE);
+      const sprite = set.frames[frameIndex(view.angle)];
+      drawOutlined(sprite, sx - set.radius, sy - set.radius, outline);
+      gore.drawPlane(ctx, p, sx, sy, view.angle, PLANE_SCALE, sprite, set.radius);
     }
     drawMuzzleFlash(p, sx, sy, view.angle);
 

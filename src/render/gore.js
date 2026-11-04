@@ -22,6 +22,7 @@ export function createGore(world, cfg, particles, { uniformOf, overallsOf = () =
   const bodies = [];
   const chunks = [];
   const planeBlood = new Map(); // plane id -> splats { lx, ly, age }
+  let layer = null; // offscreen canvas for masking plane blood to the sprite
   const spatters = []; // blood thrown on the pilot's screen { plane, x, y, r, age, drip }
   const profile = PROFILES.man;
   const on = () => cfg.mode !== 'off';
@@ -284,18 +285,32 @@ export function createGore(world, cfg, particles, { uniformOf, overallsOf = () =
       }
     },
     // Blood on a plane that has run soldiers down: points in the plane's frame, rotated like the sprite.
-    drawPlane(ctx, p, sx, sy, angle, scale) {
+    // sprite = the plane's frame canvas drawn at (sx - radius, sy - radius): the blood is masked to its
+    // opaque pixels so no splat shows outside the body, whatever the roll frame or facing.
+    drawPlane(ctx, p, sx, sy, angle, scale, sprite, radius) {
       const list = planeBlood.get(p.id);
-      if (!list || !on()) return;
+      if (!list || !on() || !sprite) return;
+      if (!layer) layer = document.createElement('canvas');
+      if (layer.width !== sprite.width || layer.height !== sprite.height) {
+        layer.width = sprite.width;
+        layer.height = sprite.height;
+      }
+      const g = layer.getContext('2d');
+      g.globalCompositeOperation = 'source-over';
+      g.clearRect(0, 0, layer.width, layer.height);
       const c = Math.cos(angle);
       const s = Math.sin(angle);
       const f = p.inverted ? -1 : 1;
       for (const b of list) {
-        ctx.globalAlpha = clamp((cfg.planeBloodTime - b.age) / (cfg.planeBloodTime * 0.3), 0, 1);
-        ctx.fillStyle = b.age < 6 ? '#4a1410' : '#2e0c0a';
-        ctx.fillRect(Math.round(sx + (c * b.lx - s * b.ly * f) * scale), Math.round(sy - (s * b.lx + c * b.ly * f) * scale), 2, 2);
+        g.globalAlpha = clamp((cfg.planeBloodTime - b.age) / (cfg.planeBloodTime * 0.3), 0, 1);
+        g.fillStyle = b.age < 6 ? '#4a1410' : '#2e0c0a';
+        g.fillRect(Math.round(radius + (c * b.lx - s * b.ly * f) * scale), Math.round(radius - (s * b.lx + c * b.ly * f) * scale), 2, 2);
       }
-      ctx.globalAlpha = 1;
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = 'destination-in';
+      g.drawImage(sprite, 0, 0);
+      g.globalCompositeOperation = 'source-over';
+      ctx.drawImage(layer, sx - radius, sy - radius);
     },
     // 0..1: how bloody the propeller still is.
     bloodied(planeId) {

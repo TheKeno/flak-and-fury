@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Blood stays inside the plane:** the blood a plane gets from running soldiers down is drawn on an offscreen layer and masked to the sprite frame's opaque pixels (`drawPlane` in `src/render/gore.js`, `destination-in`), so no splat shows outside the body at any angle or facing. Tests pass; looked at only for load errors in the browser, not zoomed on a bloodied plane. The mid-roll and ground-turn frames draw no plane blood at all (as before).
 - **Fire waits for the ground crew:** on your own airstrip a fire is only put out once both crew stand at the plane (`crewAtPlane` in `src/sim/fire.js`); `crewTime` counts from their arrival, not from the plane stopping. The time keeps running while they walk out, so a far-off landing can still burn out. With the throttle held open no crew come, so the pilot puts it out alone (`pilotTime`). HUD shows GROUND CREW COMING until they arrive. Checked by headless tests (`tests/fire.test.mjs`; the bot fire test gets +15 s of fire so the landing and walk fit), not in the browser or online. Shares a cause with the "Ground crew pass" backlog item only in that the fire bar did not follow crew state; the bar/sound/task-order problems there are separate.
 - **Out of the hangar:** at the start of a game and after every respawn a plane stands inside its hangar, engine idling, facing the camera. The doors open, two crew push it out (drawn from 90% size up to full: the illusion of coming closer), it turns into the runway using the ground-turn frames from head-on, and the crew push it to its place in the line; then the crew walk home and the doors shut. A human pilot can take over by opening the throttle once the turn is done. Planes leave one at a time (oldest first); an idle plane in the first place is shoved up the line, the line holds `queueSize` planes, and the first place is right at the door (`exitClear` 0). Sim: `exitTo`/`exitPhase`/`exitT`/`exitSeq` on the plane, `door`/`doorHold` on the hangar, `stepHangarExit` in `src/sim/plane.js`, `stepHangarDoors` in `src/sim/ground.js`, push crew in `src/sim/airfield.js`; snapshots need nothing extra. New `hangar-half`/`hangar-shut` sprites; Hangar tunables in the tuning panel and TUNING.md. Checked headless and in the browser, not online and not by ear. Shoved planes ahead are moved without crew (only two crew per team). The airframe creak ignores the turn out of the hangar. The "ace outflies easy" bot test margin went from 1.5 to 1.3 over 16 seeds, as the roll-out shifts bot timing.
 - **Fire sound stays with the abandoned wreck:** `updateFires` (`src/audio/soundscape.js`) stopped a plane's fire loop and then updated the stopped loop in the same pass. The player's plane keeps its `id`, which is the listener (centred, full level), so the dying fire was re-raised on the player's own plane. It now stops cleanly; the wreck (new `id`) has its own spatialised, distance-faded voice. Not checked by ear and no headless test (needs browser audio). The belly-scrape loop in `updateBellies` had the same stop-then-update bug and got the same fix. The real leak behind the carry-over: a crashed wreck leaves `world.planes`, so its fire loop was never stopped; `stopGone` now stops loops of planes no longer in the world.
@@ -321,11 +322,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-
 ## Backlog
 
-- **Blood on the plane drawn outside the body** (Gameplay): the blood effect on a plane has pixels outside the plane's
-  body; keep it inside the plane's outline.
 - **Plane switch mid-flight spawns on the runway, not in the hangar** (Gameplay): switching plane in the air
   (Esc) puts the new plane on the ground at the airfield instead of rolling it out of the hangar like a respawn
   (`changeSeat` in `src/sim/seats.js` calls `spawnAtAirfield` without `fromHangar`).
