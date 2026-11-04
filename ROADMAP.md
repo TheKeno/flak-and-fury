@@ -151,7 +151,7 @@ later.
   use, duplicates removed, every file renamed `<group>-<detail>-<NN>`. Sound Lab uploads are named after
   their slot, filed in the right folder and reuse an identical existing file; the original name is kept
   in the file's source field; `tests/sound.test.mjs` checks naming, duplicates and paths.
-- **Performance pass** (`009e1bf`..`5fb410f`, findings in `notes/perf-findings.md`): F3 overlay (fps, frame
+- **Performance pass** (`009e1bf`..`5fb410f`; owner confirmed ground stutter gone and the Pages site fine, 2026-11-04; terrain cache untested online, address if multiplayer issues show; findings in `notes/perf-findings.md`): F3 overlay (fps, frame
   gap, CPU ms per part, counters; `src/ui/perfstats.js`) and test switches `?skip=...` / `?cap=1080`. The
   low FPS was an NVIDIA driver limit of 60 fps on the owner's PC (cleared) plus terrain drawing (about
   1000 columns of rectangles a frame, worst when flying low): the ground is now drawn once into cached
@@ -235,8 +235,6 @@ Then: more themes, co-op missions, matchmaking.
   cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
   review the evidence (see its Done entry), the numbers and how it plays before it stays. Original ask:
   revisit the shooting-through-the-propeller rule, check whether planes really did this, adjust accordingly.
-- **Ground stutter, only if still seen** (perf pass is in Done): snap the camera to finer pixels so scenery
-  and plane step alike; pre-build rolled-plane frames (3-11 builds a second in a fight cause rare long frames).
 - **Rebuild the Bf 109 F-4** (the lighter German option) from a 3-view drawing, like the other
   milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
   slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of
