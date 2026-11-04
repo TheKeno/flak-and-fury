@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **M key works in the menus:** mute toggles on the title, options and setup screens too (`src/main.js`).
 - **1. Flight:** throttle, A/D absolute rotation with fine-aim taps, roll, stalls, slow-speed turn bonus,
   ceiling blackout, take-off and landing, look-ahead camera with speed zoom and vertical lead.
 - **2. Combat:** guns per weapon class (about 60% of historical rate), tracers, bombs, craters, damage,
@@ -308,11 +309,6 @@ later.
 15. **Polish:** balance.
 
 Then: more themes, co-op missions, matchmaking.
-
-## In progress
-
-- **M key works in the menus** (UI): the M key (its in-game action, e.g. mute) should also work while a menu is open
-  (title, options, pause). *(session: UI — M key in menus)*
 
 ## Backlog
 

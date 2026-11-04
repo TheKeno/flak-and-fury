@@ -206,6 +206,11 @@ keyboard.onPress((code, e) => {
     e?.preventDefault?.();
     return toggleFullscreen();
   }
+  // Mute works in every menu too; the world stays muted while the menu is open and M decides what you hear after.
+  if (acts.includes('mute')) {
+    muted = !muted;
+    applyMute();
+  }
   if (menuOpen) return;
   for (const act of acts) {
     if (guest && HOST_ONLY.has(act)) {
@@ -216,10 +221,6 @@ keyboard.onPress((code, e) => {
     if (act === 'perf') perfStats.toggle();
     // The panel needs the cursor back.
     if (act === 'tuning' && tuning.toggle()) mouse.release();
-    if (act === 'mute') {
-      muted = !muted;
-      applyMute();
-    }
     if (act === 'freeLook') setFreeLook(!free.on);
     if (act === 'zoomIn' && !free.on) renderer.zoomBy(-1);
     if (act === 'zoomOut' && !free.on) renderer.zoomBy(1);
@@ -232,6 +233,16 @@ keyboard.onPress((code, e) => {
     if (code === 'KeyS') free.speed = Math.max(0, free.speed - 1);
   }
 });
+
+// The menu screens (title, options, setup) stop their keys reaching the game so typing doesn't fly the
+// plane; mute is let through here instead, before they stop it. Not while typing or rebinding a key.
+addEventListener('keydown', (e) => {
+  if (e.repeat || !(e.target instanceof Element) || !e.target.closest('.screen')) return;
+  if (e.target instanceof HTMLInputElement || document.querySelector('.screen button.key.on')) return;
+  if (!keyboard.actionsOf(e.code).includes('mute')) return;
+  muted = !muted;
+  applyMute();
+}, true);
 
 // The in-game menu (Esc). Single player pauses; online the world goes on for the others, so the V
 // autopilot flies your plane until you're back. The browser itself takes Esc to free the mouse (and
