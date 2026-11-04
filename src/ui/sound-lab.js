@@ -422,14 +422,14 @@ function renderList() {
       };
       const flagged = licenceFlag(id);
       list.append(el('div', {
-        className: `row${id === selected ? ' sel' : ''}${done ? ' isdone' : ''}`,
+        className: `row cols${id === selected ? ' sel' : ''}${done ? ' isdone' : ''}`,
         title: USED[id] ?? '',
         onclick: () => {
           selected = id;
           renderList();
           renderMain();
         },
-      }, tick, el('span', { textContent: name }), el('span', { className: 'sid', textContent: `(${id})` }), flagged ? el('b', { className: 'warn', title: flagged, textContent: ' !' }) : null));
+      }, tick, el('span', { className: 'sname', title: name, textContent: name }), el('span', { className: 'sid', title: id, textContent: id }), el('b', { className: 'warn flag', title: flagged ?? '', textContent: flagged ? '!' : '' })));
     }
   }
 }

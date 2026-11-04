@@ -32,14 +32,16 @@
       #count { color: var(--dim); }
       #scope { width: 180px; height: 30px; background: #0b0c0d; border: 1px solid var(--line); }
       #tabview { flex: 1; min-height: 0; display: flex; }
-      #list { width: 290px; flex: none; overflow: auto; border-right: 1px solid var(--line); padding: 8px; }
+      #list { width: 430px; flex: none; overflow: auto; border-right: 1px solid var(--line); padding: 8px; }
       #main { flex: 1; overflow: auto; padding: 14px 18px; }
       .group { margin: 10px 0 2px; color: var(--accent); }
       .row { display: flex; align-items: center; gap: 6px; padding: 2px 4px; cursor: pointer; }
       .row:hover { background: #20242a; }
       .row.sel { background: #2a2d2c; }
       .row.isdone span { color: var(--done); }
-      .row span.sid { color: var(--dim); font-size: 0.85em; }
+      .row.cols .flag { flex: none; width: 10px; text-align: center; }
+      .row.cols .sname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .row.cols .sid { flex: none; width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); font-size: 0.85em; }
       .field { display: grid; grid-template-columns: 170px minmax(120px, 340px) 70px; gap: 8px; align-items: center; margin: 2px 0; }
       .field output { color: var(--dim); }
       .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
