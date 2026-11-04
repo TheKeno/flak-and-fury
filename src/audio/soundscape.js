@@ -178,6 +178,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       }
       s?.update(whereOf(p), p.speed);
     }
+    stopGone(scrapes);
     if (focus?.gearWarning && mixer.now >= nextHorn) {
       sfx.gearHorn(mixer);
       nextHorn = mixer.now + 0.5;
@@ -197,6 +198,17 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         continue;
       }
       f?.update(whereOf(p), p.dying ? 1 : 0.7);
+    }
+    stopGone(fires);
+  }
+
+  // A crashed wreck is taken out of world.planes, so the loops above never see it stop burning:
+  // stop any loop whose plane is no longer in the world.
+  function stopGone(loops) {
+    for (const [id, l] of loops) {
+      if (world.planes.some((p) => p.id === id)) continue;
+      l.stop();
+      loops.delete(id);
     }
   }
 
