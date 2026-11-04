@@ -9,7 +9,8 @@
 // so hand-drawn sprites must use the same keys (see src/render/sprites.js).
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
-import { MODELS, render, rollPose, groundPose, tipBank, project } from './plane-models.mjs';
+import { BUILDERS, render, rollPose, groundPose, tipBank, project } from './plane-models.mjs';
+import { loadOutline } from './outlines.mjs';
 import { readFileSync } from 'node:fs';
 import { wheelGeometry } from '../src/sim/plane.js';
 
@@ -540,7 +541,8 @@ function planeSheet(model, tailDown) {
 
 const outDir = new URL('../assets/sprites/', import.meta.url);
 mkdirSync(outDir, { recursive: true });
-for (const [name, model] of Object.entries(MODELS)) {
+for (const [name, build] of Object.entries(BUILDERS)) {
+  const model = build(loadOutline(name));
   // Side view, 96 x 36 (or the plane's spriteSize) at the pivot planes.json gives, without the gear:
   // the game draws the gear so it can retract.
   const def = defOf(name);

@@ -1,0 +1,88 @@
+{
+  "plane": "bf109",
+  "_notes": "Metres. d = back from the reference nose point, h = up from the reference line, z = out from the centre line. Stations are [d, top h, bottom h, half width]; edge tables are [along, d] (tailplane and wing: along = metres out from the root, fin: along = h). scale = model units per metre; frame = where d = 0, h = 0 sits in the model.",
+  "length": 8.94,
+  "span": 9.92,
+  "scale": 5,
+  "frame": {
+    "x": 24.5,
+    "y": 0.3
+  },
+  "fuselage": {
+    "n": 2.5,
+    "stations": [
+      [0.7, 0.42, -0.42, 0.42],
+      [1, 0.47, -0.47, 0.43],
+      [1.6, 0.53, -0.52, 0.45],
+      [2.3, 0.57, -0.57, 0.46],
+      [2.7, 0.58, -0.61, 0.47],
+      [3.4, 0.58, -0.62, 0.46],
+      [3.95, 0.55, -0.6, 0.43],
+      [4.6, 0.48, -0.53, 0.38],
+      [5.5, 0.42, -0.47, 0.32],
+      [6.5, 0.35, -0.37, 0.25],
+      [7.4, 0.29, -0.25, 0.18],
+      [8.2, 0.25, -0.09, 0.1],
+      [8.6, 0.22, 0.04, 0.05]
+    ]
+  },
+  "spinner": {
+    "n": 2,
+    "stations": [
+      [0, 0.02, -0.02, 0.02],
+      [0.1, 0.15, -0.15, 0.15],
+      [0.25, 0.27, -0.27, 0.27],
+      [0.45, 0.36, -0.36, 0.36],
+      [0.72, 0.42, -0.42, 0.42]
+    ]
+  },
+  "canopy": {
+    "n": 4,
+    "stations": [
+      [2.5, 0.56, 0.3, 0.3],
+      [2.85, 1, 0.3, 0.32],
+      [3.55, 1.03, 0.3, 0.32],
+      [3.85, 0.92, 0.3, 0.31],
+      [4.15, 0.56, 0.3, 0.27]
+    ]
+  },
+  "wing": {
+    "root": [2.25, 4.3],
+    "tip": [2.8, 3.85],
+    "span": 4.96,
+    "at": -0.48,
+    "rise": 0.114,
+    "thick": 0.15,
+    "round": 0.2
+  },
+  "tailplane": {
+    "root": [7.45, 8.25],
+    "tip": [7.7, 8.15],
+    "span": 1.55,
+    "at": 0.42,
+    "thick": 0.06,
+    "round": 0.5
+  },
+  "fin": {
+    "root": [7.1, 8.8],
+    "tip": [7.6, 8.72],
+    "span": 1.05,
+    "at": 0.25,
+    "from": -0.3,
+    "thick": 0.07,
+    "round": 0.45
+  },
+  "gear": {
+    "main": {
+      "d": 2.3,
+      "bottom": -10,
+      "half": 1.03,
+      "r": 0.33
+    },
+    "tail": {
+      "d": 7.875,
+      "bottom": -4.2,
+      "r": 0.17
+    }
+  }
+}

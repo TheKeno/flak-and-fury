@@ -142,6 +142,59 @@ export function mirrorZ(part, zc) {
   };
 }
 
+// ----- Outlines -----
+// Everything that sets a plane's outline lives in data/outlines/<plane>.json (the Outline Lab edits
+// it): fuselage, spinner, canopy and nacelle stations, wing, tailplane and fin planforms, wheel size and
+// place. The model functions below add what sits inside the outline (materials, markings, guns, struts).
+// kit turns an outline into the helpers a model function needs; all numbers go through the same
+// arithmetic the models used inline, so the rendered sprites are unchanged.
+export function kit(o) {
+  const M = o.scale;
+  const X = (d) => o.frame.x - d * M;
+  const Y = (h) => o.frame.y + h * M;
+  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+  // A body of revolution from stations; z puts a mirrored pair out at ±z (nacelles, twin fins).
+  const bodyOf = (s) => {
+    const part = body(st(s.stations), s.n ?? 2);
+    return s.z ? mirrorZ(part, s.z * M) : part;
+  };
+  // A wing, tailplane or fin. le/te are edge tables [along, d]: along the span in metres from the
+  // root (a fin: h, up from the model's reference line).
+  const surfaceOf = (s, vertical = false) => {
+    const outline = s.le && (vertical
+      ? (k) => [X(interp(s.le, s.at + k * s.span)[1]), X(interp(s.te, s.at + k * s.span)[1])]
+      : (k) => [X(interp(s.le, k * s.span)[1]), X(interp(s.te, k * s.span)[1])]);
+    const part = surface({
+      root: s.root.map((d) => X(d)),
+      tip: s.tip?.map((d) => X(d)),
+      span: s.span * M,
+      at: Y(s.at),
+      rise: s.rise,
+      thick: s.thick * M,
+      round: s.round,
+      from: s.from === undefined ? undefined : s.from * M,
+      ellipse: s.ellipse,
+      outline,
+      vertical,
+    });
+    return s.z ? mirrorZ(part, s.z * M) : part;
+  };
+  // Wheel sizes and centres in model units. A wheel is placed by its centre height h, or by the model
+  // height of its bottom.
+  const gearOf = (g) => {
+    const place = (w) => (w.bottom === undefined ? Y(w.h) : w.bottom + w.r * M);
+    const wheelR = g.main.r * M;
+    const tailR = g.tail.r * M;
+    return {
+      wheelR,
+      tailR,
+      main: [X(g.main.d), place({ ...g.main, r: g.main.r }), g.main.half * M],
+      tailW: [X(g.tail.d), place(g.tail), 0],
+    };
+  };
+  return { M, X, Y, st, bodyOf, surfaceOf, gearOf };
+}
+
 // ----- Materials -----
 // A material returns { kind, dark } for a hit: kind picks the tone ramp, dark steps it darker
 // (panel lines, hinge lines).
@@ -435,31 +488,11 @@ const spiralSpinner = (x0, yc, len) => (p) => {
 // cowling with a pointed spinner, deep cockpit section tapering hard to a slim tail, low framed
 // hood, small rounded fin and rudder, cantilever tailplane set on the fin (the F lost the E's struts),
 // rounded wingtips, chin oil cooler, shallow radiator baths under the wings, narrow splayed gear.
-function bf109() {
-  const M = 5; // model units per metre
-  const X = (d) => 24.5 - d * M;
-  const Y = (h) => 0.3 + h * M;
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function bf109(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   const split = Y(-0.22); // camouflage demarcation down the fuselage side
   const tone = (p) => (p[1] < split ? 'under' : 'paint');
-  const fuselage = body(
-    st([
-      [0.7, 0.42, -0.42, 0.42],
-      [1.0, 0.47, -0.47, 0.43],
-      [1.6, 0.53, -0.52, 0.45],
-      [2.3, 0.57, -0.57, 0.46],
-      [2.7, 0.58, -0.61, 0.47],
-      [3.4, 0.58, -0.62, 0.46],
-      [3.95, 0.55, -0.6, 0.43],
-      [4.6, 0.48, -0.53, 0.38],
-      [5.5, 0.42, -0.47, 0.32],
-      [6.5, 0.35, -0.37, 0.25],
-      [7.4, 0.29, -0.25, 0.18],
-      [8.2, 0.25, -0.09, 0.1],
-      [8.6, 0.22, 0.04, 0.05],
-    ]),
-    2.5,
-  );
+  const fuselage = bodyOf(o.fuselage);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     // Panel lines: cowling joint, firewall, cockpit rear, rear fuselage joint.
@@ -472,7 +505,7 @@ function bf109() {
       return k ? { kind: k } : null;
     },
   ];
-  const wing = surface({ root: [X(2.25), X(4.3)], tip: [X(2.8), X(3.85)], span: 4.96 * M, at: Y(-0.48), rise: 0.114, thick: 0.15 * M, round: 0.2 });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -482,31 +515,19 @@ function bf109() {
     const slat = s.k > 0.55 && s.k < 0.92 && Math.abs(s.u - 0.13) < 0.035; // leading-edge slats
     return { kind: under ? 'under' : 'paint', dark: hinge || slat ? 1 : 0 };
   };
-  const tailplane = surface({ root: [X(7.45), X(8.25)], tip: [X(7.7), X(8.15)], span: 1.55 * M, at: Y(0.42), thick: 0.06 * M, round: 0.5 });
-  const fin = surface({ root: [X(7.1), X(8.8)], tip: [X(7.6), X(8.72)], span: 1.05 * M, at: Y(0.25), from: -0.3 * M, thick: 0.07 * M, round: 0.45, vertical: true });
-  const canopy = body(
-    st([
-      [2.5, 0.56, 0.3, 0.3],
-      [2.85, 1.0, 0.3, 0.32],
-      [3.55, 1.03, 0.3, 0.32],
-      [3.85, 0.92, 0.3, 0.31],
-      [4.15, 0.56, 0.3, 0.27],
-    ]),
-    4,
-  );
+  const tailplane = surfaceOf(o.tailplane);
+  const fin = surfaceOf(o.fin, true);
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => {
     const frame = [2.86, 3.57].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M);
     const armour = p[0] < X(3.6) && p[0] > X(3.72) && p[1] > Y(0.58); // head armour behind the pilot
     return { kind: frame || armour ? 'frame' : 'glass' };
   };
-  const spinner = body(st([[0, 0.02, -0.02, 0.02], [0.1, 0.15, -0.15, 0.15], [0.25, 0.27, -0.27, 0.27], [0.45, 0.36, -0.36, 0.36], [0.72, 0.42, -0.42, 0.42]]), 2);
+  const spinner = bodyOf(o.spinner);
   const plain = (kind) => () => ({ kind });
   // Gear (world units in data/planes.json bf109.wheels, here in model units): main wheels 2.3 m back,
   // 2.06 m track, splayed legs from the wing roots; small tail wheel under the fin.
-  const wheelR = 0.33 * M;
-  const main = [X(2.3), -10 + wheelR, 1.03 * M];
-  const tailR = 0.17 * M;
-  const tailW = [X(7.875), -4.2 + tailR, 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -554,38 +575,12 @@ function bf109() {
 // runs back to the fin; deep rear fuselage whose underside sweeps up into the tail; tall squarish fin
 // with a rounded top; strut-less tailplane set high on the fin; straight-tapered wing with rounded
 // tips and slats; radiators under the wings; narrow splayed gear, a long tail-down stance.
-function bf109g6() {
-  const M = 5;
-  const X = (d) => 23 - d * M;
-  const Y = (h) => -0.85 + h * M; // the main wheels' bottom (h -1.83) lands at the usual -10
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function bf109g6(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   // Camouflage: the pale underside colour reaches high up the rear fuselage sides, low on the cowling.
   const split = (p) => Y(lerp(0.3, -0.2, clamp((p[0] - X(4.4)) / (X(2.8) - X(4.4)), 0, 1)));
   const tone = (p) => (p[1] < split(p) ? 'under' : 'paint');
-  const fuselage = body(
-    st([
-      [0.55, 0.36, -0.36, 0.36],
-      [0.75, 0.4, -0.4, 0.4],
-      [1.0, 0.45, -0.44, 0.42],
-      [1.4, 0.5, -0.47, 0.44],
-      [1.9, 0.56, -0.48, 0.45],
-      [2.4, 0.63, -0.5, 0.46],
-      [3.05, 0.66, -0.53, 0.46],
-      [3.2, 0.58, -0.54, 0.46],
-      [3.5, 0.58, -0.56, 0.45],
-      [4.3, 0.6, -0.46, 0.42],
-      [4.45, 0.96, -0.43, 0.41], // spine raised to stay flush with the raised hood, easing back into
-      [5.0, 0.92, -0.34, 0.38], // the drawn line by 6 m
-      [5.5, 0.87, -0.29, 0.355],
-      [6.0, 0.81, -0.2, 0.32],
-      [6.5, 0.77, -0.11, 0.27],
-      [7.0, 0.73, -0.02, 0.22],
-      [7.6, 0.7, 0.1, 0.16],
-      [8.2, 0.64, 0.23, 0.1],
-      [8.95, 0.56, 0.45, 0.03],
-    ]),
-    2.5,
-  );
+  const fuselage = bodyOf(o.fuselage);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     // Panel lines: cowling joint, firewall, rear fuselage joint.
@@ -596,7 +591,7 @@ function bf109g6() {
       return k ? { kind: k } : null;
     },
   ];
-  const wing = surface({ root: [X(2.19), X(4.43)], tip: [X(2.4), X(3.49)], span: 4.92 * M, at: Y(-0.38), rise: 0.114, thick: 0.15 * M, round: 0.14 });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -606,39 +601,21 @@ function bf109g6() {
     const slat = s.k > 0.55 && s.k < 0.92 && Math.abs(s.u - 0.13) < 0.035; // leading-edge slats
     return { kind: under ? 'under' : 'paint', dark: hinge || slat ? 1 : 0 };
   };
-  const tailplane = surface({ root: [X(7.68), X(8.62)], tip: [X(7.97), X(8.45)], span: 1.5 * M, at: Y(0.82), thick: 0.06 * M, round: 0.45 });
+  const tailplane = surfaceOf(o.tailplane);
   // Fin and rudder as drawn, [h, d] along each edge: the leading edge rising steeply from the spine to a
   // broad rounded top, the rudder bulging furthest back 0.6 m up and tucking in under the tailcone.
-  const finLE = [[0.4, 7.4], [0.86, 7.55], [0.98, 7.68], [1.13, 7.78], [1.28, 7.88], [1.42, 7.98], [1.5, 8.1], [1.53, 8.25], [1.535, 8.37]];
-  const finTE = [[0.4, 8.85], [0.47, 8.96], [0.52, 8.99], [0.62, 9.0], [0.77, 8.97], [0.93, 8.94], [1.13, 8.87], [1.23, 8.82], [1.33, 8.72], [1.43, 8.66], [1.48, 8.57], [1.53, 8.4], [1.535, 8.37]];
-  const finOutline = (k) => {
-    const h = 0.4 + k * 1.135;
-    return [X(interp(finLE, h)[1]), X(interp(finTE, h)[1])];
-  };
-  const fin = surface({ root: [X(7.4), X(9.0)], span: 1.135 * M, at: Y(0.4), thick: 0.07 * M, round: 0, outline: finOutline, vertical: true });
-  const canopy = body(
-    st([
-      [3.08, 0.66, 0.45, 0.25],
-      [3.3, 0.94, 0.45, 0.27], // the hood stands a pixel above the drawing's, so it reads at game size
-      [3.55, 0.97, 0.45, 0.28],
-      [4.3, 0.96, 0.45, 0.28],
-      [4.52, 0.95, 0.45, 0.26],
-    ]),
-    4,
-  );
+  const fin = surfaceOf(o.fin, true);
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => {
     const frame = [3.27, 3.75, 4.08].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M) || Math.abs(p[1] - Y(0.72)) < 0.03 * M;
     const armour = p[0] < X(4.1) && p[0] > X(4.25) && p[1] > Y(0.72); // head armour behind the pilot
     return { kind: frame || armour ? 'frame' : 'glass' };
   };
-  const spinner = body(st([[0, 0.02, -0.02, 0.02], [0.1, 0.15, -0.15, 0.15], [0.25, 0.26, -0.26, 0.26], [0.4, 0.32, -0.32, 0.32], [0.55, 0.36, -0.36, 0.36]]), 2);
+  const spinner = bodyOf(o.spinner);
   const plain = (kind) => () => ({ kind });
   // Gear (world units in data/planes.json bf109g6.wheels): main wheels 2.31 m back on legs splayed out
   // from the wing roots, 2.06 m track; small tail wheel under the upswept tail.
-  const wheelR = 0.33 * M;
-  const main = [X(2.31), Y(-1.5), 1.03 * M];
-  const tailR = 0.14 * M;
-  const tailW = [X(8.0), Y(-0.09), 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -687,41 +664,13 @@ function bf109g6() {
 // flat cowl top to the windscreen; razorback spine falling straight from the hood to the fin; deep
 // belly; long sloping fin; wing with a straight leading edge and an elliptical trailing edge, four
 // .50s a side sticking out of it; very wide-track gear raking forward; tail wheel under the tail.
-function p47d() {
-  const M = 5;
-  const X = (d) => 27.5 - d * M;
-  const Y = (h) => 1.45 + h * M; // the main wheels' bottom (h -2.29) lands at the usual -10
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function p47d(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   const split = Y(-0.45);
   const tone = (p) => (p[1] < split ? 'under' : 'paint');
-  const fuselage = body(
-    st([
-      [0.62, 0.36, -0.72, 0.45],
-      [0.9, 0.6, -0.91, 0.58],
-      [1.15, 0.65, -0.98, 0.62],
-      [1.64, 0.69, -1.06, 0.64],
-      [2.14, 0.71, -1.1, 0.65],
-      [2.63, 0.71, -1.12, 0.66],
-      [3.37, 0.71, -1.14, 0.66],
-      [3.62, 0.66, -1.14, 0.66],
-      [4.4, 0.62, -1.12, 0.66],
-      [5.5, 0.66, -1.06, 0.66],
-      [6.2, 0.68, -1.04, 0.64],
-      [6.82, 0.6, -0.95, 0.6],
-      [7.31, 0.52, -0.9, 0.55],
-      [7.8, 0.45, -0.8, 0.5],
-      [8.3, 0.38, -0.7, 0.44],
-      [8.79, 0.3, -0.64, 0.38],
-      [9.09, 0.27, -0.58, 0.33],
-      [9.53, 0.22, -0.45, 0.25],
-      [10.27, 0.15, -0.37, 0.14],
-      [10.76, 0.1, -0.3, 0.07],
-      [10.95, 0.08, -0.15, 0.03],
-    ]),
-    2.2,
-  );
+  const fuselage = bodyOf(o.fuselage);
   // Razorback: the narrow ridge from the hood straight down to the fin.
-  const spine = body(st([[5.75, 0.95, 0.4, 0.36], [6.2, 0.83, 0.4, 0.3], [6.82, 0.73, 0.35, 0.22], [7.31, 0.62, 0.3, 0.17], [7.8, 0.52, 0.25, 0.13], [8.3, 0.42, 0.2, 0.1], [9.03, 0.28, 0.1, 0.06]]), 2.2);
+  const spine = bodyOf(o.spine);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     // Cowl ring at the front, panel lines: cowl flaps, firewall, rear fuselage joint.
@@ -735,9 +684,7 @@ function p47d() {
       return k ? { kind: k } : null;
     },
   ];
-  const wingLE = [[0, 2.78], [5.0, 2.78], [5.53, 2.91], [5.81, 3.03], [5.96, 3.15], [6.06, 3.28], [6.1, 3.45]];
-  const wingTE = [[0, 5.45], [0.7, 5.4], [2.2, 5.26], [3.11, 5.13], [3.73, 5.01], [4.21, 4.89], [4.58, 4.76], [4.91, 4.64], [5.18, 4.52], [5.38, 4.39], [5.59, 4.27], [5.75, 4.14], [5.88, 4.02], [5.98, 3.9], [6.04, 3.77], [6.08, 3.65], [6.1, 3.45]];
-  const wing = surface({ root: [X(2.78), X(5.45)], span: 6.1 * M, at: Y(-0.85), rise: 0.086, thick: 0.2 * M, round: 0, outline: (k) => [X(interp(wingLE, k * 6.1)[1]), X(interp(wingTE, k * 6.1)[1])] });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -748,37 +695,19 @@ function p47d() {
     const hinge = s.k > 0.2 && Math.abs(s.u - 0.76) < 0.03; // flap and aileron line
     return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
   };
-  const tailLE = [[0, 9.15], [0.56, 9.34], [0.97, 9.46], [1.4, 9.59], [1.84, 9.71], [2.23, 9.84], [2.37, 9.96], [2.45, 10.08], [2.47, 10.25]];
-  const tailTE = [[0, 10.88], [1.55, 10.82], [2.04, 10.7], [2.29, 10.58], [2.41, 10.45], [2.47, 10.25]];
-  const tailplane = surface({ root: [X(9.15), X(10.88)], span: 2.47 * M, at: Y(0.05), thick: 0.07 * M, round: 0, outline: (k) => [X(interp(tailLE, k * 2.47)[1]), X(interp(tailTE, k * 2.47)[1])] });
+  const tailplane = surfaceOf(o.tailplane);
   // Fin and rudder as drawn, [h, d] along each edge: a long sloping leading edge to a rounded top, the
   // rudder straight down the back and tucked in under the tailcone.
-  const finLE = [[-0.24, 9.0], [0.28, 9.03], [0.41, 9.15], [0.59, 9.28], [0.79, 9.4], [0.97, 9.53], [1.16, 9.65], [1.35, 9.77], [1.53, 9.9], [1.67, 10.02], [1.75, 10.14], [1.8, 10.27], [1.805, 10.33]];
-  const finTE = [[-0.24, 10.88], [-0.07, 11.0], [0.35, 11.0], [0.92, 10.88], [1.27, 10.76], [1.52, 10.64], [1.68, 10.51], [1.78, 10.39], [1.805, 10.33]];
-  const fin = surface({ root: [X(9.0), X(11.0)], span: 2.045 * M, at: Y(-0.24), thick: 0.08 * M, round: 0, outline: (k) => [X(interp(finLE, -0.24 + k * 2.045)[1]), X(interp(finTE, -0.24 + k * 2.045)[1])], vertical: true });
-  const canopy = body(
-    st([
-      [3.6, 0.69, 0.5, 0.3],
-      [3.86, 0.87, 0.5, 0.33],
-      [4.1, 1.02, 0.5, 0.35],
-      [4.48, 1.04, 0.5, 0.35],
-      [4.85, 1.02, 0.5, 0.35],
-      [5.34, 0.98, 0.5, 0.34],
-      [5.83, 0.91, 0.5, 0.3],
-    ]),
-    3,
-  );
+  const fin = surfaceOf(o.fin, true);
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => ({ kind: [3.88, 4.55, 5.2].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M) ? 'frame' : 'glass' });
-  const hub = body(st([[0, 0.03, -0.03, 0.03], [0.15, 0.12, -0.12, 0.12], [0.35, 0.16, -0.16, 0.16], [0.62, 0.2, -0.2, 0.2]]), 2);
+  const hub = bodyOf(o.spinner);
   const plain = (kind) => () => ({ kind });
   // Four .50s a side, staggered, sticking out of the leading edge 2.7 to 3.45 m out.
   const guns = [[2.7, 0.48], [2.95, 0.42], [3.2, 0.36], [3.45, 0.3]].map(([z, out]) => ({ ...strut([X(2.85), Y(-0.85) + z * M * 0.086, z * M], [X(2.78 - out), Y(-0.85) + z * M * 0.086, z * M], 0.04 * M), material: plain('dark') }));
   // Gear (world units in data/planes.json p47d.wheels): big main wheels well forward on long legs,
   // 4.7 m track; tail wheel under the tail, sitting the plane about 11 degrees tail-down.
-  const wheelR = 0.41 * M;
-  const main = [X(2.81), Y(-1.88), 2.36 * M];
-  const tailR = 0.19 * M;
-  const tailW = [X(9.24), Y(-0.85), 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -819,37 +748,11 @@ function p47d() {
 // under the nose; cut-down rear decking only a little below the hood; deep, short rear fuselage; tall
 // rounded fin; wing with a swept leading edge, forward-swept trailing edge and rounded tips; tailplane
 // set high; two ShVAK cannon in the cowling; long main legs, tail wheel under the tail.
-function la5fn() {
-  const M = 5;
-  const X = (d) => 21.7 - d * M;
-  const Y = (h) => -0.1 + h * M; // the main wheels' bottom (h -1.98) lands at the usual -10
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function la5fn(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   const split = Y(-0.25);
   const tone = (p) => (p[1] < split ? 'under' : 'paint');
-  const fuselage = body(
-    st([
-      [0.53, 0.44, -0.44, 0.52],
-      [0.65, 0.59, -0.54, 0.62],
-      [0.76, 0.63, -0.59, 0.66],
-      [1.0, 0.66, -0.65, 0.68],
-      [1.5, 0.67, -0.66, 0.66],
-      [2.0, 0.67, -0.67, 0.62],
-      [2.5, 0.67, -0.68, 0.58],
-      [3.1, 0.67, -0.62, 0.54],
-      [3.3, 0.52, -0.61, 0.53],
-      [4.2, 0.52, -0.59, 0.48],
-      [4.6, 0.6, -0.57, 0.44],
-      [5.0, 0.81, -0.55, 0.41],
-      [5.55, 0.8, -0.48, 0.38],
-      [6.0, 0.8, -0.4, 0.33],
-      [6.46, 0.8, -0.32, 0.28],
-      [6.92, 0.79, -0.21, 0.24],
-      [7.5, 0.72, -0.07, 0.17],
-      [8.1, 0.62, 0.08, 0.1],
-      [8.6, 0.55, 0.42, 0.03],
-    ]),
-    2.4,
-  );
+  const fuselage = bodyOf(o.fuselage);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     // Cowling joint and rear fuselage joint.
@@ -860,7 +763,7 @@ function la5fn() {
       return k ? { kind: k } : null;
     },
   ];
-  const wing = surface({ root: [X(1.6), X(4.5)], tip: [X(2.3), X(3.45)], span: 5.0 * M, at: Y(-0.42), rise: 0.087, thick: 0.2 * M, round: 0.2 });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -871,39 +774,22 @@ function la5fn() {
     const slat = s.k > 0.45 && s.k < 0.9 && Math.abs(s.u - 0.12) < 0.03; // leading-edge slats
     return { kind: under ? 'under' : 'paint', dark: hinge || slat ? 1 : 0 };
   };
-  const tailLE = [[0, 6.6], [0.31, 6.75], [0.69, 6.9], [1.0, 7.05], [1.31, 7.2], [1.58, 7.35], [1.74, 7.5], [1.76, 7.65]];
-  const tailTE = [[0, 8.22], [1.31, 8.1], [1.62, 7.95], [1.72, 7.8], [1.76, 7.65]];
-  const tailplane = surface({ root: [X(6.6), X(8.22)], span: 1.76 * M, at: Y(0.5), thick: 0.06 * M, round: 0, outline: (k) => [X(interp(tailLE, k * 1.76)[1]), X(interp(tailTE, k * 1.76)[1])] });
+  const tailplane = surfaceOf(o.tailplane);
   // Fin and rudder as drawn, [h, d] along each edge: the leading edge rising from the decking to a
   // rounded top, the rudder straight down the back and curving in under the tailcone.
-  const finLE = [[0.1, 6.9], [0.8, 6.95], [0.87, 7.03], [1.0, 7.15], [1.12, 7.26], [1.2, 7.38], [1.31, 7.49], [1.46, 7.6], [1.54, 7.72], [1.58, 7.83], [1.62, 7.95]];
-  const finTE = [[0.1, 8.1], [0.21, 8.4], [0.29, 8.52], [0.44, 8.63], [0.86, 8.63], [1.12, 8.52], [1.31, 8.4], [1.43, 8.29], [1.5, 8.17], [1.58, 8.06], [1.62, 7.95]];
-  const fin = surface({ root: [X(6.9), X(8.63)], span: 1.52 * M, at: Y(0.1), thick: 0.07 * M, round: 0, outline: (k) => [X(interp(finLE, 0.1 + k * 1.52)[1]), X(interp(finTE, 0.1 + k * 1.52)[1])], vertical: true });
+  const fin = surfaceOf(o.fin, true);
   const finMat = (p, n) => {
     const k = side(n) && redStar(p[0] - X(8.0), p[1] - Y(1.0), 0.36 * M);
     if (k) return { kind: k };
     return { kind: 'paint', dark: Math.abs(p[0] - X(8.15)) < 0.04 * M && p[1] > Y(0.5) ? 1 : 0 }; // rudder hinge
   };
-  const canopy = body(
-    st([
-      [3.1, 0.7, 0.4, 0.25],
-      [3.3, 0.89, 0.4, 0.3],
-      [3.45, 0.93, 0.4, 0.32],
-      [4.1, 0.93, 0.4, 0.32],
-      [4.5, 0.86, 0.4, 0.3],
-      [5.0, 0.82, 0.4, 0.26],
-    ]),
-    3,
-  );
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => ({ kind: [3.3, 4.15].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M) ? 'frame' : 'glass' });
-  const spinner = body(st([[0, 0.02, -0.02, 0.02], [0.08, 0.1, -0.1, 0.1], [0.19, 0.21, -0.21, 0.21], [0.3, 0.25, -0.25, 0.25], [0.42, 0.29, -0.29, 0.29], [0.55, 0.32, -0.32, 0.32]]), 2);
+  const spinner = bodyOf(o.spinner);
   const plain = (kind) => () => ({ kind });
   // Gear (world units in data/planes.json la5fn.wheels): main wheels on long legs from the wing,
   // 2.8 m track; small tail wheel, sitting the plane about 16 degrees tail-down.
-  const wheelR = 0.33 * M;
-  const main = [X(2.12), Y(-1.65), 1.4 * M];
-  const tailR = 0.15 * M;
-  const tailW = [X(7.5), Y(-0.29), 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -946,36 +832,11 @@ function la5fn() {
 // thin tail; bubble hood falling into a low turtledeck; straight-edged fin with a rounded rudder
 // hanging below the tailcone; wing with a nearly straight leading edge and a strongly forward-swept
 // trailing edge; light, wide-track gear. Dark cowling, Army hinomaru with white surrounds.
-function ki43() {
-  const M = 5;
-  const X = (d) => 22.5 - d * M;
-  const Y = (h) => -0.65 + h * M; // the main wheels' bottom (h -1.87) lands at the usual -10
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function ki43(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   const split = Y(-0.3);
   const tone = (p) => (p[1] < split ? 'under' : 'paint');
-  const fuselage = body(
-    st([
-      [0.58, 0.51, -0.46, 0.45],
-      [0.75, 0.58, -0.55, 0.55],
-      [0.9, 0.63, -0.6, 0.59],
-      [1.22, 0.68, -0.66, 0.61],
-      [1.6, 0.67, -0.69, 0.6],
-      [2.38, 0.67, -0.71, 0.58],
-      [2.6, 0.6, -0.72, 0.57],
-      [3.2, 0.6, -0.72, 0.56],
-      [3.99, 0.6, -0.7, 0.53],
-      [4.37, 0.51, -0.67, 0.5],
-      [5.0, 0.47, -0.6, 0.42],
-      [5.5, 0.43, -0.54, 0.32],
-      [6.0, 0.38, -0.48, 0.27],
-      [6.6, 0.33, -0.42, 0.23],
-      [7.38, 0.26, -0.35, 0.19],
-      [8.0, 0.22, -0.3, 0.14],
-      [8.39, 0.19, -0.23, 0.09],
-      [9.0, 0.15, -0.05, 0.02],
-    ]),
-    2.3,
-  );
+  const fuselage = bodyOf(o.fuselage);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     // The cowling painted dark, up to its rear edge.
@@ -988,7 +849,7 @@ function ki43() {
     // Panel lines: firewall, rear fuselage joint.
     (p, n) => (side(n) && [line(2.3), line(5.3)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
   ];
-  const wing = surface({ root: [X(2.08), X(4.49)], tip: [X(1.73), X(3.15)], span: 5.42 * M, at: Y(-0.52), rise: 0.105, thick: 0.17 * M, round: 0.15 });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -999,34 +860,17 @@ function ki43() {
     const hinge = s.k > 0.2 && Math.abs(s.u - 0.76) < 0.03; // flap and aileron line
     return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
   };
-  const tailLE = [[0, 7.6], [0.8, 7.8], [1.45, 7.95], [1.99, 8.1], [2.19, 8.25], [2.23, 8.4]];
-  const tailTE = [[0, 8.9], [1.19, 8.85], [1.97, 8.7], [2.18, 8.55], [2.23, 8.4]];
-  const tailplane = surface({ root: [X(7.6), X(8.9)], span: 2.23 * M, at: Y(0.0), thick: 0.06 * M, round: 0, outline: (k) => [X(interp(tailLE, k * 2.23)[1]), X(interp(tailTE, k * 2.23)[1])] });
+  const tailplane = surfaceOf(o.tailplane);
   // Fin and rudder as drawn, [h, d] along each edge: a straight leading edge up to the rudder hinge, the
   // rudder rounded behind it and hanging below the tailcone.
-  const finLE = [[-0.23, 7.3], [0.23, 7.38], [1.33, 8.3], [1.39, 8.37]];
-  const finTE = [[-0.23, 8.39], [-0.21, 8.71], [-0.09, 8.91], [0.11, 9.03], [0.51, 9.03], [0.92, 8.95], [1.24, 8.74], [1.39, 8.37]];
-  const fin = surface({ root: [X(7.3), X(9.03)], span: 1.62 * M, at: Y(-0.23), thick: 0.06 * M, round: 0, outline: (k) => [X(interp(finLE, -0.23 + k * 1.62)[1]), X(interp(finTE, -0.23 + k * 1.62)[1])], vertical: true });
-  const canopy = body(
-    st([
-      [2.38, 0.67, 0.45, 0.25],
-      [2.6, 0.86, 0.45, 0.28],
-      [2.79, 0.94, 0.45, 0.3],
-      [3.43, 0.94, 0.45, 0.3],
-      [3.75, 0.8, 0.45, 0.28],
-      [3.99, 0.6, 0.45, 0.25],
-    ]),
-    3,
-  );
+  const fin = surfaceOf(o.fin, true);
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => ({ kind: [2.62, 3.1].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
-  const spinner = body(st([[0, 0.02, -0.02, 0.02], [0.15, 0.08, -0.08, 0.08], [0.3, 0.14, -0.14, 0.14], [0.45, 0.18, -0.18, 0.18], [0.58, 0.2, -0.2, 0.2]]), 2);
+  const spinner = bodyOf(o.spinner);
   const plain = (kind) => () => ({ kind });
   // Gear (world units in data/planes.json ki43.wheels): light legs from the wing, 3.4 m track; small
   // tail wheel, sitting the plane about 12 degrees tail-down.
-  const wheelR = 0.3 * M;
-  const main = [X(2.2), Y(-1.57), 1.69 * M];
-  const tailR = 0.1 * M;
-  const tailW = [X(7.64), Y(-0.63), 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -1068,38 +912,12 @@ function ki43() {
 // the windscreen; turtledeck falling to a tall fin with a long concave leading edge and a rounded top;
 // mid-set wing with a straight leading edge and rounded tips; stubby gear well forward, tail wheel
 // under the tail. Yellow Eastern Front band round the rear fuselage and under the wingtips.
-function b239() {
-  const M = 5;
-  const X = (d) => 20.5 - d * M;
-  const Y = (h) => -0.15 + h * M; // the main wheels' bottom (h -1.97) lands at the usual -10
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function b239(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   const split = Y(-0.35);
   const tone = (p) => (p[1] < split ? 'under' : 'paint');
   const band = (p) => p[0] < X(6.2) && p[0] > X(6.55); // yellow Eastern Front band
-  const fuselage = body(
-    st([
-      [0.48, 0.6, -0.64, 0.62],
-      [0.6, 0.65, -0.69, 0.7],
-      [0.78, 0.68, -0.72, 0.74],
-      [1.02, 0.7, -0.75, 0.75],
-      [1.34, 0.74, -0.76, 0.76],
-      [1.66, 0.8, -0.8, 0.75],
-      [2.06, 0.82, -0.84, 0.73],
-      [2.79, 0.85, -0.88, 0.71],
-      [2.95, 0.62, -0.88, 0.7],
-      [3.9, 0.62, -0.87, 0.67],
-      [5.0, 0.62, -0.77, 0.58],
-      [5.2, 0.84, -0.74, 0.56],
-      [5.51, 0.76, -0.7, 0.53],
-      [6.0, 0.64, -0.64, 0.45],
-      [6.5, 0.52, -0.56, 0.37],
-      [7.0, 0.4, -0.49, 0.27],
-      [7.5, 0.28, -0.37, 0.17],
-      [7.88, 0.2, -0.28, 0.08],
-      [8.1, 0.02, -0.02, 0.02],
-    ]),
-    2.3,
-  );
+  const fuselage = bodyOf(o.fuselage);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     (p) => (band(p) ? { kind: 'nose' } : null),
@@ -1111,9 +929,7 @@ function b239() {
     // Panel lines: cowl gills at the back of the cowling, firewall.
     (p, n) => (side(n) && [line(1.7, 0.07), line(2.4)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
   ];
-  const wingLE = [[0, 1.9], [3.7, 1.93], [4.5, 1.98], [5.05, 2.1], [5.24, 2.25], [5.33, 2.55], [5.35, 2.7]];
-  const wingTE = [[0, 4.15], [0.87, 4.05], [2.16, 3.9], [3.45, 3.75], [4.57, 3.6], [4.91, 3.45], [5.09, 3.3], [5.19, 3.15], [5.28, 3.0], [5.33, 2.85], [5.35, 2.7]];
-  const wing = surface({ root: [X(1.9), X(4.15)], span: 5.35 * M, at: Y(-0.15), rise: 0.077, thick: 0.17 * M, round: 0, outline: (k) => [X(interp(wingLE, k * 5.35)[1]), X(interp(wingTE, k * 5.35)[1])] });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -1126,39 +942,19 @@ function b239() {
     const hinge = s.k > 0.2 && Math.abs(s.u - 0.76) < 0.03; // flap and aileron line
     return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
   };
-  const tailLE = [[0, 6.7], [0.31, 6.75], [1.1, 6.9], [1.53, 7.05], [1.8, 7.2], [1.9, 7.35], [1.94, 7.5]];
-  const tailTE = [[0, 8.12], [0.67, 8.1], [1.05, 8.05], [1.23, 8.0], [1.4, 7.95], [1.53, 7.9], [1.64, 7.85], [1.71, 7.8], [1.88, 7.65], [1.94, 7.5]];
-  const tailplane = surface({ root: [X(6.7), X(8.12)], span: 1.94 * M, at: Y(-0.1), thick: 0.06 * M, round: 0, outline: (k) => [X(interp(tailLE, k * 1.94)[1]), X(interp(tailTE, k * 1.94)[1])] });
+  const tailplane = surfaceOf(o.tailplane);
   // Fin and rudder as drawn, [h, d] along each edge: a long concave leading edge sweeping up from the
   // turtledeck to a rounded top, the rudder's trailing edge almost straight down to the tailcone.
-  const finLE = [[-0.25, 5.3], [0.74, 5.51], [0.79, 5.67], [0.94, 5.93], [1.25, 6.25], [1.49, 6.62], [1.65, 6.94], [1.71, 7.2]];
-  const finTE = [[-0.25, 7.7], [0.0, 8.1], [0.06, 8.02], [0.15, 7.94], [0.3, 7.86], [1.0, 7.78], [1.25, 7.7], [1.41, 7.61], [1.53, 7.53], [1.61, 7.45], [1.65, 7.37], [1.71, 7.2]];
-  const fin = surface({ root: [X(5.3), X(8.1)], span: 1.96 * M, at: Y(-0.25), thick: 0.07 * M, round: 0, outline: (k) => [X(interp(finLE, -0.25 + k * 1.96)[1]), X(interp(finTE, -0.25 + k * 1.96)[1])], vertical: true });
+  const fin = surfaceOf(o.fin, true);
   const finMat = (p) => ({ kind: band(p) && p[1] < Y(0.6) ? 'nose' : 'paint', dark: Math.abs(p[0] - X(7.25)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }); // rudder hinge
-  const canopy = body(
-    st([
-      [2.79, 0.85, 0.5, 0.3],
-      [2.95, 0.98, 0.5, 0.34],
-      [3.11, 1.07, 0.5, 0.36],
-      [3.27, 1.19, 0.5, 0.37],
-      [3.91, 1.19, 0.5, 0.37],
-      [4.15, 1.13, 0.5, 0.36],
-      [4.48, 1.05, 0.5, 0.34],
-      [4.8, 0.97, 0.5, 0.32],
-      [5.16, 0.86, 0.5, 0.3],
-    ]),
-    3,
-  );
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => ({ kind: [2.98, 3.6, 4.4, 4.85].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
-  const spinner = body(st([[0, 0.02, -0.02, 0.02], [0.05, 0.1, -0.1, 0.1], [0.13, 0.13, -0.13, 0.13], [0.21, 0.16, -0.16, 0.16], [0.29, 0.18, -0.18, 0.18], [0.37, 0.2, -0.2, 0.2], [0.45, 0.22, -0.22, 0.22]]), 2);
+  const spinner = bodyOf(o.spinner);
   const plain = (kind) => () => ({ kind });
   // Gear (world units in data/planes.json b239.wheels): stubby legs from the wing roots raking forward,
   // 2.5 m track, the wheels folding up into the fuselage sides; tail wheel under the tail, about 13
   // degrees tail-down.
-  const wheelR = 0.36 * M;
-  const main = [X(1.72), Y(-1.61), 1.23 * M];
-  const tailR = 0.13 * M;
-  const tailW = [X(7.22), Y(-0.58), 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -1200,38 +996,11 @@ function b239() {
 // two DB 605 nacelles 2.43 m out with oil coolers under them and the radiator baths under the outer
 // wings; wing with a straight leading edge and a forward-swept trailing edge; tailplane on top of the
 // tailcone with the twin rounded fins at its tips; main wheels under the nacelles, tail wheel.
-function bf110() {
-  const M = 5;
-  const X = (d) => 30 - d * M;
-  const Y = (h) => 2.05 + h * M; // the main wheels' bottom (h -2.41) lands at the usual -10
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function bf110(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   const split = Y(-0.2);
   const tone = (p) => (p[1] < split ? 'under' : 'paint');
-  const fuselage = body(
-    st([
-      [0.0, 0.0, -0.02, 0.03],
-      [0.08, 0.15, -0.15, 0.2],
-      [0.3, 0.38, -0.28, 0.33],
-      [0.53, 0.45, -0.38, 0.38],
-      [0.75, 0.51, -0.45, 0.41],
-      [0.98, 0.55, -0.51, 0.45],
-      [1.21, 0.6, -0.55, 0.48],
-      [1.45, 0.63, -0.58, 0.49],
-      [1.6, 0.62, -0.6, 0.5],
-      [1.9, 0.45, -0.63, 0.5],
-      [2.5, 0.45, -0.66, 0.5],
-      [5.0, 0.45, -0.66, 0.48],
-      [5.2, 0.68, -0.65, 0.46],
-      [5.85, 0.68, -0.62, 0.42],
-      [7.1, 0.6, -0.58, 0.33],
-      [8.57, 0.53, -0.5, 0.26],
-      [10.04, 0.45, -0.4, 0.18],
-      [10.68, 0.36, -0.34, 0.14],
-      [11.3, 0.3, -0.15, 0.08],
-      [11.7, 0.25, 0.1, 0.02],
-    ]),
-    2.3,
-  );
+  const fuselage = bodyOf(o.fuselage);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     // Balkenkreuz on the rear fuselage.
@@ -1242,7 +1011,7 @@ function bf110() {
     // Panel lines: gun bay, rear fuselage joints.
     (p, n) => (side(n) && [line(1.3), line(6.3), line(9.2)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
   ];
-  const wing = surface({ root: [X(2.4), X(5.87)], tip: [X(3.33), X(4.43)], span: 8.13 * M, at: Y(-0.45), rise: 0.03, thick: 0.22 * M, round: 0.08 });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -1254,59 +1023,26 @@ function bf110() {
   };
   // Engine nacelles, 2.43 m out on each side, round the thrust line.
   const nz = 2.43 * M;
-  const nacelle = mirrorZ(
-    body(
-      st([
-        [1.55, 0.42, -0.5, 0.47],
-        [2.0, 0.46, -0.8, 0.5],
-        [2.45, 0.44, -0.92, 0.5],
-        [2.9, 0.4, -0.85, 0.48],
-        [3.5, 0.32, -0.75, 0.44],
-        [4.5, 0.18, -0.55, 0.34],
-        [5.5, 0.04, -0.35, 0.18],
-        [6.2, -0.04, -0.2, 0.04],
-      ]),
-      2.3,
-    ),
-    nz,
-  );
-  const spinner = mirrorZ(body(st([[0.92, -0.04, -0.08, 0.02], [1.05, 0.14, -0.26, 0.2], [1.2, 0.24, -0.36, 0.3], [1.4, 0.34, -0.46, 0.4], [1.55, 0.39, -0.51, 0.45]]), 2), nz);
+  const nacelle = bodyOf(o.nacelle);
+  const spinner = bodyOf(o.spinner);
   // Ventral gun tray under the wing root with the two MG 151/20 cannon.
-  const gunTray = body(st([[3.9, -0.55, -0.62, 0.14], [4.1, -0.55, -0.78, 0.24], [5.3, -0.55, -0.8, 0.26], [5.7, -0.55, -0.66, 0.18], [5.9, -0.55, -0.6, 0.08]]), 2.5);
+  const gunTray = bodyOf(o.gunTray);
   // Radiator baths under the outer wings, slipper-shaped: rounded intake, flat bottom, tapered rear.
-  const radiators = mirrorZ(body(st([[3.0, -0.62, -0.9, 0.22], [3.15, -0.6, -1.05, 0.28], [3.4, -0.6, -1.12, 0.3], [4.3, -0.6, -1.12, 0.3], [4.8, -0.6, -0.92, 0.24], [5.0, -0.62, -0.75, 0.15]]), 3), 3.33 * M);
-  const tailplane = surface({ root: [X(10.35), X(11.7)], tip: [X(10.4), X(11.65)], span: 2.32 * M, at: Y(0.3), thick: 0.07 * M, round: 0.1 });
+  const radiators = bodyOf(o.radiators);
+  const tailplane = surfaceOf(o.tailplane);
   // Twin fins at the tailplane tips, traced off the drawing, [h, d] along each edge: a gently curved
   // leading edge, a broad round top and the rudder's trailing edge straight down with rounded corners.
-  const finLE = [[-0.31, 11.32], [-0.26, 10.96], [-0.21, 10.83], [-0.15, 10.77], [-0.09, 10.72], [0.02, 10.68], [0.15, 10.66], [0.3, 10.67], [0.47, 10.7], [0.58, 10.73], [0.7, 10.77], [0.81, 10.83], [0.92, 10.89], [0.98, 10.94], [1.04, 10.99], [1.1, 11.04], [1.15, 11.1], [1.19, 11.25], [1.2, 11.35]];
-  const finTE = [[-0.31, 11.32], [-0.26, 11.83], [-0.21, 11.92], [-0.15, 11.98], [-0.09, 12.02], [-0.04, 12.04], [0.87, 12.04], [0.92, 11.98], [0.98, 11.94], [1.04, 11.89], [1.09, 11.83], [1.15, 11.74], [1.19, 11.55], [1.2, 11.35]];
-  const finOutline = (k) => [X(interp(finLE, -0.31 + k * 1.51)[1]), X(interp(finTE, -0.31 + k * 1.51)[1])];
-  const fins = mirrorZ(surface({ root: [X(10.66), X(12.04)], span: 1.51 * M, at: Y(-0.31), thick: 0.08 * M, round: 0, outline: finOutline, vertical: true }), 2.3 * M);
+  const fins = surfaceOf(o.fins, true);
   const finMat = (p, n) => {
     const k = side(n) && hakenkreuz(p[0] - X(11.45), p[1] - Y(0.42), 0.32 * M);
     return { kind: k || 'paint', dark: !k && Math.abs(p[0] - X(11.75)) < 0.04 * M && p[1] > Y(-0.1) ? 1 : 0 }; // rudder hinge
   };
-  const canopy = body(
-    st([
-      [1.45, 0.63, 0.3, 0.22],
-      [1.6, 0.72, 0.3, 0.3],
-      [1.77, 0.85, 0.3, 0.38],
-      [1.95, 0.96, 0.3, 0.42],
-      [2.1, 0.98, 0.3, 0.43],
-      [4.53, 0.98, 0.3, 0.42],
-      [4.83, 0.87, 0.3, 0.4],
-      [5.15, 0.68, 0.3, 0.35],
-    ]),
-    3,
-  );
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => ({ kind: [1.8, 2.25, 2.7, 3.15, 3.6, 4.05, 4.5, 4.85].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
   const plain = (kind) => () => ({ kind });
   // Gear (world units in data/planes.json bf110.wheels): big main wheels under the nacelles, tail wheel
   // under the tail, about 11.5 degrees tail-down.
-  const wheelR = 0.46 * M;
-  const main = [X(3.0), Y(-1.95), nz];
-  const tailR = 0.11 * M;
-  const tailW = [X(11.16), Y(-0.63), 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -1357,36 +1093,14 @@ function bf110() {
 // round top, the rudder bulging furthest back low down and running on below the tailcone; symmetric
 // radiators under both wings; C-wing cannon barrels well out ahead of the wing; narrow splayed gear
 // raking forward, fixed tail wheel. Dark Green / Ocean Grey over Medium Sea Grey, Sky spinner and band.
-function spitfire() {
-  const M = 5;
-  const X = (d) => 23.5 - d * M;
-  const Y = (h) => 0.3 + h * M;
-  const st = (rows) => rows.map(([d, top, bottom, hw]) => [X(d), Y(top), Y(bottom), hw * M]).sort((a, b) => a[0] - b[0]);
+function spitfire(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
   const split = Y(-0.3);
   const tone = (p) => (p[1] < split ? 'under' : 'paint');
   const band = (p) => p[0] < X(7.25) && p[0] > X(7.7); // Sky band round the rear fuselage
-  const fuselage = body(
-    st([
-      [0.72, 0.35, -0.37, 0.37],
-      [1.0, 0.37, -0.55, 0.39],
-      [1.3, 0.39, -0.66, 0.41],
-      [1.6, 0.41, -0.72, 0.42],
-      [2.2, 0.42, -0.76, 0.43],
-      [2.8, 0.42, -0.8, 0.44],
-      [3.4, 0.42, -0.82, 0.44],
-      [4.2, 0.42, -0.79, 0.42],
-      [4.63, 0.42, -0.77, 0.42],
-      [5.4, 0.4, -0.69, 0.4],
-      [6.6, 0.36, -0.54, 0.34],
-      [7.76, 0.32, -0.38, 0.24],
-      [8.29, 0.29, -0.3, 0.17],
-      [8.9, 0.26, -0.2, 0.09],
-      [9.1, 0.24, -0.1, 0.04],
-    ]),
-    2.4,
-  );
+  const fuselage = bodyOf(o.fuselage);
   // Razorback: the narrow spine behind the hood, falling gently to the fin.
-  const spine = body(st([[4.42, 0.66, 0.3, 0.25], [4.6, 0.64, 0.3, 0.21], [5.6, 0.62, 0.3, 0.17], [6.6, 0.53, 0.25, 0.13], [7.76, 0.44, 0.2, 0.09], [8.3, 0.4, 0.2, 0.06]]), 2.2);
+  const spine = bodyOf(o.spine);
   const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
   const fuselageDecals = [
     // The hood's side glazing reaches a little below the sill line.
@@ -1400,7 +1114,7 @@ function spitfire() {
       return k ? { kind: k } : null;
     },
   ];
-  const wing = surface({ root: [X(2.1), X(4.6)], span: 5.615 * M, at: Y(-0.68), rise: 0.105, thick: 0.155 * M, round: 0, ellipse: 0.34 });
+  const wing = surfaceOf(o.wing);
   const wingMat = (p, n, vn) => {
     const s = wing.shape(p);
     const under = n[1] < -0.3;
@@ -1414,37 +1128,19 @@ function spitfire() {
   };
   // Tailplane as drawn, [z, d] along each edge: curved leading edge, the elevators' trailing edge
   // straight out to two thirds of the span before rounding into the tip.
-  const tailLE = [[0, 7.93], [0.5, 7.97], [0.82, 8.0], [1.09, 8.1], [1.27, 8.2], [1.42, 8.3], [1.52, 8.4], [1.59, 8.5], [1.63, 8.64]];
-  const tailTE = [[0, 9.12], [1.04, 9.09], [1.44, 8.99], [1.55, 8.89], [1.61, 8.79], [1.63, 8.64]];
-  const tailOutline = (k) => [X(interp(tailLE, k * 1.63)[1]), X(interp(tailTE, k * 1.63)[1])];
-  const tailplane = surface({ root: [X(7.93), X(9.12)], span: 1.63 * M, at: Y(0.2), thick: 0.06 * M, round: 0, outline: tailOutline });
+  const tailplane = surfaceOf(o.tailplane);
   // Fin and rudder as drawn, [h, d] along each edge: the leading edge curving up from the spine into
   // the round top, the rudder bulging furthest back 0.24 m up and curving forward above and below.
-  const finLE = [[-0.25, 7.8], [0.44, 7.9], [0.59, 8.12], [1.01, 8.35], [1.33, 8.59], [1.43, 8.7], [1.48, 8.82]];
-  const finTE = [[-0.25, 8.9], [-0.2, 9.22], [-0.12, 9.33], [0.02, 9.41], [0.24, 9.47], [0.69, 9.41], [0.97, 9.33], [1.16, 9.22], [1.31, 9.1], [1.43, 8.94], [1.48, 8.82]];
-  const finOutline = (k) => {
-    const h = -0.25 + k * 1.73;
-    return [X(interp(finLE, h)[1]), X(interp(finTE, h)[1])];
-  };
-  const fin = surface({ root: [X(7.8), X(9.47)], span: 1.73 * M, at: Y(-0.25), thick: 0.07 * M, round: 0, outline: finOutline, vertical: true });
+  const fin = surfaceOf(o.fin, true);
   const finMat = (p, n) => {
     // Fin flash (red, white, blue) ahead of the rudder hinge.
     const flash = side(n) && p[1] > Y(0.45) && p[1] < Y(1.05) && p[0] < X(8.2) && p[0] > X(8.78);
     if (flash) return { kind: p[0] > X(8.44) ? 'red' : p[0] > X(8.54) ? 'white' : 'marking' };
     return { kind: 'paint', dark: Math.abs(p[0] - X(8.82)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }; // rudder hinge
   };
-  const canopy = body(
-    st([
-      [3.5, 0.42, 0.3, 0.25],
-      [3.75, 0.62, 0.3, 0.28],
-      [4.0, 0.7, 0.3, 0.3],
-      [4.3, 0.71, 0.3, 0.3],
-      [4.5, 0.65, 0.3, 0.26],
-    ]),
-    3,
-  );
+  const canopy = bodyOf(o.canopy);
   const canopyMat = (p) => ({ kind: [3.85, 4.45].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M) ? 'frame' : 'glass' });
-  const spinner = body(st([[0, 0.02, -0.02, 0.02], [0.12, 0.14, -0.14, 0.14], [0.24, 0.2, -0.2, 0.2], [0.53, 0.3, -0.3, 0.3], [0.72, 0.35, -0.35, 0.35]]), 2);
+  const spinner = bodyOf(o.spinner);
   const plain = (kind) => () => ({ kind });
   // Cannon barrels stick out 0.9 m ahead of the leading edge, 2.05 m out from the centre line.
   const gunZ = 2.05 * M;
@@ -1452,10 +1148,7 @@ function spitfire() {
   // Gear (world units in data/planes.json spitfire.wheels): main wheels well forward, under the wing
   // leading edge, 1.68 m track on legs splayed out and raked forward; fixed tail wheel under the tail,
   // which sits the plane about 13 degrees tail-down.
-  const wheelR = 0.33 * M;
-  const main = [X(2.35), -10 + wheelR, 0.84 * M];
-  const tailR = 0.13 * M;
-  const tailW = [X(8.75), Y(-0.45), 0];
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
@@ -1493,4 +1186,6 @@ function spitfire() {
   };
 }
 
-export const MODELS = { bf109: bf109(), bf109g6: bf109g6(), spitfire: spitfire(), p47d: p47d(), la5fn: la5fn(), ki43: ki43(), b239: b239(), bf110: bf110() };
+// Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
+export const BUILDERS = { bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110 };
+export const buildModel = (name, outline) => BUILDERS[name](outline);
