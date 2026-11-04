@@ -1188,4 +1188,6 @@ function spitfire(o) {
 
 // Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
 export const BUILDERS = { bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110 };
-export const buildModel = (name, outline) => BUILDERS[name](outline);
+// A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
+// model code through outline.template, so its outline can be traced and previewed.
+export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);

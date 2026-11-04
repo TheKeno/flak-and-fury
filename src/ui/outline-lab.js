@@ -1043,17 +1043,16 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // ---------- Start ----------
-async function openPlane(name) {
+async function openPlane(name, fresh = null) {
   if (isDirty() && !confirm('Discard unsaved changes?')) {
     $('plane').value = S.name;
     return;
   }
-  const res = await fetch(`data/outlines/${name}.json`, { cache: 'no-store' });
-  S.o = await res.json();
+  S.o = fresh ?? (await (await fetch(`data/outlines/${name}.json`, { cache: 'no-store' })).json());
   S.name = name;
-  S.saved = formatOutline(S.o);
+  S.saved = fresh ? '' : formatOutline(S.o);
   S.baseGear = JSON.stringify(S.o.gear);
-  S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { pivot: [48, 20], nation: 'germany' };
+  S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { pivot: S.o.sprite?.pivot ?? [48, 20], spriteSize: S.o.sprite?.size, nation: 'germany' };
   S.part = 'fuselage';
   S.sel = null;
   S.undo = [];
@@ -1068,6 +1067,66 @@ async function openPlane(name) {
   showDirty();
 }
 
+// A new plane starts as a scaled copy of a finished one (its template), which also supplies the model
+// code for the preview until the plane gets a model of its own.
+async function newPlane() {
+  const id = (prompt('Short name for the new plane (lowercase letters and digits), e.g. blenheim') ?? '').trim();
+  if (!id) return;
+  if (!/^[a-z][a-z0-9_]*$/.test(id) || [...$('plane').options].some((o) => o.value === id)) return alert('That name is not usable or already exists.');
+  const tmpl = (prompt('Start from which plane? bf109, spitfire, p47d, la5fn, ki43, b239 are single-engine; bf110 is a twin.', 'bf110') ?? '').trim();
+  if (!BASES.includes(tmpl)) return alert(`Pick one of: ${BASES.join(', ')}`);
+  const base = await (await fetch(`data/outlines/${tmpl}.json`, { cache: 'no-store' })).json();
+  const L = parseFloat(prompt('Length in metres (nose tip to tail end)', '12.9'));
+  const W = parseFloat(prompt('Wingspan in metres', '17.2'));
+  if (!(L > 0 && W > 0)) return;
+  const o = scaledOutline(base, id, tmpl, L, W);
+  $('plane').append(new Option(id, id));
+  $('plane').value = id;
+  await openPlane(id, o);
+  status(`${id}: new, unsaved (a copy of ${tmpl} scaled to ${L} m)`);
+}
+const BASES = ['bf109', 'bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239', 'bf110'];
+function scaledOutline(base, id, template, L, W) {
+  const f = L / base.length; // along the plane
+  const g = W / base.span; // across it
+  const o = clone(base);
+  o.plane = id;
+  o.template = template;
+  o.length = L;
+  o.span = W;
+  const rows = (list, fn) => list.map((r) => fn(r));
+  for (const key of ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators']) {
+    if (!o[key]) continue;
+    o[key].stations = rows(o[key].stations, ([d, t, b, hw]) => [r4(d * f), r4(t * f), r4(b * f), r4(hw * g)]);
+    if (o[key].z) o[key].z = r4(o[key].z * g);
+  }
+  for (const key of ['wing', 'tailplane', 'fin', 'fins']) {
+    const s = o[key];
+    if (!s) continue;
+    const vertical = key === 'fin' || key === 'fins';
+    s.root = s.root.map((d) => r4(d * f));
+    if (s.tip) s.tip = s.tip.map((d) => r4(d * f));
+    s.at = r4(s.at * f);
+    if (s.from !== undefined) s.from = r4(s.from * f);
+    s.span = r4(s.span * (vertical ? f : g));
+    s.thick = r4(s.thick * f);
+    if (s.z) s.z = r4(s.z * g);
+    for (const edge of ['le', 'te']) if (s[edge]) s[edge] = s[edge].map(([a, d]) => [r4(a * (vertical ? f : g)), r4(d * f)]);
+  }
+  const gear = o.gear;
+  for (const w of ['main', 'tail']) {
+    gear[w].d = r4(gear[w].d * f);
+    if (gear[w].h !== undefined) gear[w].h = r4(gear[w].h * f);
+    gear[w].r = r4(gear[w].r * f);
+    if (gear[w].half !== undefined) gear[w].half = r4(gear[w].half * g);
+  }
+  // The sprite is 10 pixels per metre; put the pivot at the middle of the plane.
+  const width = Math.ceil(L * 10) + 16;
+  o.frame = { x: r4((L * o.scale) / 2), y: r4(base.frame.y * f) };
+  o.sprite = { size: [width, 44], pivot: [Math.round(width / 2), 22] };
+  return o;
+}
+
 async function start() {
   S.planes = await (await fetch('data/planes.json', { cache: 'no-store' })).json();
   S.nations = await (await fetch('data/nations.json', { cache: 'no-store' })).json();
@@ -1076,6 +1135,7 @@ async function start() {
   const list = await res.json();
   for (const n of list) $('plane').append(new Option(n, n));
   $('plane').onchange = () => openPlane($('plane').value);
+  $('newPlane').onclick = newPlane;
   new ResizeObserver(resizeCanvas).observe($('stage'));
   const first = new URLSearchParams(location.search).get('plane');
   const name = list.includes(first) ? first : list[0];
