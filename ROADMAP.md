@@ -316,6 +316,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Sound Lab keeps scroll position and tab on refresh** (Sound): reloading the Sound Lab page should return to the
+  same tab and scroll position instead of starting at the top of the first tab.
 - **Long load after pressing start engine** (Sound): there is a long wait after pressing start engine before
   anything happens; find what is loading (likely the start-up sound) and make it start at once.
 - **Screeching tires when bouncing on the runway** (Sound): add a tire screech effect (sound, maybe smoke puff)
