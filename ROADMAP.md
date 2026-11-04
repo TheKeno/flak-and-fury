@@ -142,9 +142,9 @@ later.
     against the plane. One layer for both (`src/render/interpolate.js`); only what's drawn is blended,
     the sim stays exact (`tests/interpolate.test.mjs`).
   - **Options menu** (`src/ui/options.js`), from the title screen and Esc in game: two keys or mouse
-    buttons per action (a taken key swaps). Slimmed to three tabs: Keys; General (master and music
+    buttons per action (a taken key swaps). Slimmed to three tabs: General (master and music
     volume, mute in the background, fullscreen, dogfight camera, historical markings (on by default
-    for now), gore); HUD (gunsight on/off, style, colour, opacity, distance; pilot names). Camera, shake,
+    for now), gore), opened first; Keys; HUD (gunsight on/off, style, colour, opacity, distance; pilot names). Camera, shake,
     mouse look, other volumes, text size and radar outline are design decisions, not options; the HUD
     is metric only. Kept in the browser, written over the data files' values. The game is muted while
     the in-game menu is open. Esc pauses single player (P is gone); online it

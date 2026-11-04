@@ -43,8 +43,8 @@ function optionList(settings, defaults) {
 }
 
 const TABS = [
-  ['controls', 'KEYS'],
   ['general', 'GENERAL'],
+  ['controls', 'KEYS'],
   ['hud', 'HUD'],
 ];
 
@@ -106,7 +106,7 @@ export function createOptions({ settings, bindings, parent, onChange }) {
   const status = el('p', { class: 'status' });
   const body = el('div', { class: 'opt-body' });
   const tabBar = el('div', { class: 'opt-tabs' });
-  let tab = 'controls';
+  let tab = 'general';
   const tabButtons = TABS.map(([id, label]) => {
     const b = el('button', { onclick: () => show(id) }, label);
     b.dataset.tab = id;
