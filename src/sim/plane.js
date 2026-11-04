@@ -321,7 +321,7 @@ function updateEngine(p, world, dt) {
 }
 
 // Landing gear. Automatic by default: up once climbing away, down when low and slow. Pressing G takes
-// over for the rest of the flight (bots always use automatic). The gear can't be raised on the ground.
+// over for the rest of the flight (bots always use automatic). Raising the gear on the ground drops the plane on its belly.
 function updateGear(p, cmd, world, dt) {
   const pressed = cmd.gear && !p.prevGear;
   p.prevGear = cmd.gear;
@@ -332,6 +332,11 @@ function updateGear(p, cmd, world, dt) {
   const alt = p.y - world.terrain.heightAt(p.x) - GEAR_HEIGHT;
   let want = p.gearDown;
   if (p.state === 'ground') {
+    // G on the ground folds the gear: down on the belly (not while the ground crew works on it).
+    if (pressed && !p.dying && !(p.service?.phase && p.service.phase !== 'done')) {
+      bellyLand(p, world, world.terrain.heightAt(p.x) + BELLY_HEIGHT);
+      return;
+    }
     want = true;
     p.gearManual = false;
   } else if (pressed && !p.dying) {

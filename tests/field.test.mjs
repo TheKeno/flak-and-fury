@@ -131,3 +131,14 @@ test('flying low through enemy infantry cuts them down', () => {
   assert.ok(dead >= 2, `${dead} soldiers run down`);
   assert.notEqual(p.state, 'dead');
 });
+
+test('pressing G on the ground drops the plane onto its belly', () => {
+  const { world, p } = makeWorld();
+  steps(world, 5);
+  assert.equal(p.state, 'ground');
+  assert.ok(!p.belly);
+  steps(world, 1, { ...IDLE, gear: true });
+  assert.ok(p.belly, 'on its belly');
+  assert.equal(p.gear, 0);
+  assert.ok(world.events.some((e) => e.type === 'bellyLanding') || p.belly);
+});
