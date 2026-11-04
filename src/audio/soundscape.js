@@ -174,6 +174,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       if (!sliding && s) {
         s.stop();
         scrapes.delete(p.id);
+        continue; // a stopped loop must not be updated back up
       }
       s?.update(whereOf(p), p.speed);
     }
