@@ -324,6 +324,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Plane crash shockwave hits infantry** (Gameplay): session "Gameplay — Plane crash shockwave hits infantry".
+
 ## Backlog
 
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
@@ -338,8 +340,6 @@ Then: more themes, co-op missions, matchmaking.
   when a plane touches down hard or bounces on the runway.
 - **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
   can't take off however fast it goes; find out why and let it lift off when it has the speed.
-- **Plane crash shockwave hits infantry** (Gameplay): a crashing plane sends a shockwave that hurts or knocks down
-  nearby infantry, not only those it lands on.
 - **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
   drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
