@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Fire put out before the ground crew arrive** (Gameplay): a plane's fire goes out while the ground crew are still
+  running to it; it should only be put out once they have reached the plane.
 - **Rattle sound stays after a crash** (Sound): the rattle (airframe/engine) keeps playing after the plane has crashed;
   it should stop when the plane is destroyed.
 - **Name set mid-game not shown to the host** (UI): a friend joined without a name and set it during the game, but the
