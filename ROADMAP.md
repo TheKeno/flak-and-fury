@@ -24,7 +24,7 @@ later.
   only (not in snapshots, nothing online). A test covers the fight-zoom rule.
   Built: `src/render/player-zoom.js` (the rules), `renderer.zoomBy` and the take-off reset in
   `renderer.js`, the wheel as the bindable pseudo-keys WheelUp/WheelDown (Camera zoom in / out), values
-  `wheelStep` 0.12, `wheelSmooth` 10, `wheelMin` 0.7, `wheelFightTighten` 0.25 in the tuning panel.
+  `wheelStep` 0.12, `wheelSmooth` 3.5 (a spring, as the mouse look), `wheelMin` 0.7, `wheelFightTighten` 0.25 in the tuning panel.
   Checked in the browser pane on the ground (zoom range, Keys tab); the in-fight feel is for the owner to
   playtest. A trackpad sends many small wheel events, so it zooms faster than a notched wheel.
 

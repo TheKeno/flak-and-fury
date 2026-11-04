@@ -31,7 +31,7 @@
     "fightLeaveSpeed": 100,
     "fightLowAlt": 120,
     "wheelStep": 0.12,
-    "wheelSmooth": 10,
+    "wheelSmooth": 3.5,
     "wheelMin": 0.7,
     "wheelFightTighten": 0.25
   },

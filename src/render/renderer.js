@@ -161,7 +161,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelTarget: 1, wasAir: false };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -184,12 +184,28 @@ export function createRenderer(canvas, world, assets) {
     // The scroll wheel on top (not in free look). It has its own, quicker smoothing.
     zoom = autoZoom;
     if (focus) {
+      // Back to normal at a respawn (the plane was down, now it is not) and at each take-off.
       const airborne = focus.state === 'air';
-      if (airborne && !cam.wasAir) cam.wheelTarget = cam.wheel = 1; // each take-off starts at normal
+      const down = focus.state === 'dead';
+      if ((airborne && !cam.wasAir) || (!down && cam.wasDown)) {
+        cam.wheelTarget = cam.wheel = 1;
+        cam.wheelV = 0;
+      }
       cam.wasAir = airborne;
+      cam.wasDown = down;
       const [lo, hi] = wheelRange(camCfg);
       cam.wheelTarget = clamp(cam.wheelTarget, lo, hi);
-      cam.wheel += (cam.wheelTarget - cam.wheel) * (cam.snapped ? 1 - Math.exp(-dt * camCfg.wheelSmooth) : 1);
+      // A critically damped spring, like the look: it starts moving gently, builds up and settles
+      // without overshoot, instead of jumping a notch at once. wheelSmooth is its stiffness.
+      if (!cam.snapped) cam.wheel = cam.wheelTarget;
+      else {
+        const w = camCfg.wheelSmooth;
+        const step = Math.min(dt, 0.05) / 2;
+        for (let i = 0; i < 2; i++) {
+          cam.wheelV += (w * w * (cam.wheelTarget - cam.wheel) - 2 * w * cam.wheelV) * step;
+          cam.wheel += cam.wheelV * step;
+        }
+      }
       zoom = playerZoom(autoZoom, cam.wheel, cam.fight, camCfg, MAX_ZOOM);
     }
     bw = Math.round(W * zoom * SCALE);
