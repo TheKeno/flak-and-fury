@@ -2,7 +2,7 @@
 // A/D rotate the plane on screen: A counter-clockwise, D clockwise, regardless of direction or roll.
 // Each action has two slots (primary, secondary); null is an empty slot. Mouse buttons are the codes
 // Mouse0 (left), Mouse1 (middle), Mouse2 (right), Mouse3 and Mouse4 (the side buttons): src/input/mouse.js
-// presses them here while the mouse is captured. The options menu rebinds them (src/ui/options.js).
+// presses them here while the mouse is captured. The wheel's notches are WheelUp and WheelDown. The options menu rebinds them (src/ui/options.js).
 export const ACTIONS = [
   ['turnCcw', 'Rotate counter-clockwise', ['KeyA', null]],
   ['turnCw', 'Rotate clockwise', ['KeyD', null]],
@@ -17,6 +17,8 @@ export const ACTIONS = [
   ['lookDown', 'Look down', ['ArrowDown', null]],
   ['lookLeft', 'Look left', ['ArrowLeft', null]],
   ['lookRight', 'Look right', ['ArrowRight', null]],
+  ['zoomIn', 'Camera zoom in', ['WheelUp', null]],
+  ['zoomOut', 'Camera zoom out', ['WheelDown', null]],
   ['menu', 'Pause / menu', ['Escape', null]],
   ['help', 'Show / hide help', ['KeyH', null]],
   ['mute', 'Mute', ['KeyM', null]],
@@ -42,6 +44,17 @@ export function press(code, e) {
 export function release(code) {
   held.delete(code);
 }
+// One notch of the mouse wheel is a press that lets go at once: the pseudo-keys WheelUp and WheelDown,
+// bindable like any other.
+export function wheelCode(deltaY) {
+  return deltaY < 0 ? 'WheelUp' : 'WheelDown';
+}
+export function wheel(deltaY, e) {
+  if (!deltaY) return;
+  const code = wheelCode(deltaY);
+  press(code, e);
+  release(code);
+}
 
 function attach() {
   if (attached) return;
@@ -62,7 +75,7 @@ const NAMES = {
   AltLeft: 'L.ALT', AltRight: 'R.ALT', MetaLeft: 'L.WIN', MetaRight: 'R.WIN', Enter: 'ENTER', Tab: 'TAB',
   Escape: 'ESC', Backspace: 'BACKSPACE', CapsLock: 'CAPS', ArrowUp: 'UP', ArrowDown: 'DOWN',
   ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', Mouse0: 'L.MOUSE', Mouse1: 'M.MOUSE', Mouse2: 'R.MOUSE',
-  Mouse3: 'MOUSE 4', Mouse4: 'MOUSE 5',
+  Mouse3: 'MOUSE 4', Mouse4: 'MOUSE 5', WheelUp: 'WHEEL UP', WheelDown: 'WHEEL DOWN',
 };
 let layout = null;
 navigator.keyboard?.getLayoutMap?.().then((m) => (layout = m)).catch(() => {});

@@ -15,6 +15,7 @@ import { createGore } from './gore.js';
 import { drawText, textWidth, lineHeight, setTextSize } from './font.js';
 import { createRadar, SCOPE, PHOSPHOR } from './radar.js';
 import { frameFight } from './fight-cam.js';
+import { playerZoom, wheelRange } from './player-zoom.js';
 import { prof } from '../ui/perfstats.js';
 import { fireStage } from '../sim/fire.js';
 import { surfaceAt } from '../sim/ground.js';
@@ -125,7 +126,8 @@ export function createRenderer(canvas, world, assets) {
   let vh = H;
   let bw = W * SCALE;
   let bh = H * SCALE;
-  let zoom = 1;
+  let zoom = 1; // what is drawn: autoZoom with the player's wheel factor on top
+  let autoZoom = 1; // the camera's own zoom (speed, dogfight, looking around)
 
   // Test switch for finding what costs frames: ?skip=sky,terrain,ground,planes,hud,radar,present
   // leaves those out.
@@ -159,7 +161,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1 };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelTarget: 1, wasAir: false };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -178,7 +180,18 @@ export function createRenderer(canvas, world, assets) {
     }
     target += camCfg.lookZoom * Math.min(1, Math.hypot(cam.lookX, cam.lookY)); // glancing around widens the view
     const k = cam.snapped ? 1 - Math.exp(-dt * camCfg.zoomSpeed) : 1;
-    zoom += (clamp(target, 1, MAX_ZOOM) - zoom) * k;
+    autoZoom += (clamp(target, 1, MAX_ZOOM) - autoZoom) * k;
+    // The scroll wheel on top (not in free look). It has its own, quicker smoothing.
+    zoom = autoZoom;
+    if (focus) {
+      const airborne = focus.state === 'air';
+      if (airborne && !cam.wasAir) cam.wheelTarget = cam.wheel = 1; // each take-off starts at normal
+      cam.wasAir = airborne;
+      const [lo, hi] = wheelRange(camCfg);
+      cam.wheelTarget = clamp(cam.wheelTarget, lo, hi);
+      cam.wheel += (cam.wheelTarget - cam.wheel) * (cam.snapped ? 1 - Math.exp(-dt * camCfg.wheelSmooth) : 1);
+      zoom = playerZoom(autoZoom, cam.wheel, cam.fight, camCfg, MAX_ZOOM);
+    }
     bw = Math.round(W * zoom * SCALE);
     bh = Math.round(H * zoom * SCALE);
     vw = bw / SCALE;
@@ -1261,8 +1274,10 @@ export function createRenderer(canvas, world, assets) {
     get zoom() {
       return zoom;
     },
-    get zoom() {
-      return zoom;
+    // The scroll wheel: steps > 0 zoom out, < 0 in. The wheel factor is local to this screen.
+    zoomBy(steps) {
+      const [lo, hi] = wheelRange(camCfg);
+      cam.wheelTarget = clamp(cam.wheelTarget * Math.exp(steps * camCfg.wheelStep), lo, hi);
     },
     // World point at the centre of the view (where the ears go when no plane is focused).
     centre() {

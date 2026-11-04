@@ -100,6 +100,14 @@ seconds. The view frames the `fightPlanes` most urgent enemies: nearest first, t
 `fightSpeed` are how quickly it eases in and out and follows the planes, and below `fightLowAlt` above the
 ground the framing fades out.
 
+Wheel zoom, also in `camera`: the scroll wheel (bindable as Camera zoom in / out in the Keys tab) scales
+the camera's own zoom by a player factor that resets to 1 at each take-off and is never saved. `wheelStep`
+is the zoom change per notch (0.12 = about 13%), `wheelSmooth` how quickly the view follows. Zoom-out
+stops at `fightZoomMax` (read live; the camera's own speed or fight zoom is never cut by it). Zoom-in goes
+down to `wheelMin` with no fight; in a fight only `wheelFightTighten` (share, 0.25 = 25%) tighter than the
+zoom the dogfight camera asks for, blended in with the fight, so more than that can push the framed planes
+off the screen edge. Rules in `src/render/player-zoom.js`.
+
 **Sound: `data/sound.json`.** Easiest through the Sound Lab, `http://localhost:8080/sound-lab.html`: it has a Guide tab and explains each slider on hover. `vehicles` lists every aircraft and tank, planned ones too, each pointing at an entry in `engines`, which points at an entry in `builds`. `builds` hold the synth numbers, `guns` the gun recipes, `space` the reverb, ducking and limiter, `status` the done ticks and notes, `recordings` each sound's synth level, files and engine clips, `layers` your own attached sounds. Bus levels and hearing ranges stay in `settings.json` → `audio`, and the Lab saves those too.
 
 **Player options.** The options menu (`src/ui/options.js`, title screen or Esc) lets a player change only

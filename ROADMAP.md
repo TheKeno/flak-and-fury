@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Scroll-wheel camera zoom (to build; trial of option C):** the wheel scales the camera's zoom through a
+- **Scroll-wheel camera zoom (built, to playtest and tune; trial of option C):** the wheel scales the camera's zoom through a
   player zoom factor (default 1, reset to 1 on each take-off, not saved). `src/render/renderer.js`
   `updateZoom` multiplies the automatic target (speed zoom, dogfight zoom, look-around) by it.
   Zoom-out ends at `camera.fightZoomMax`, read live so tuning that value moves the wheel's limit too.
@@ -22,6 +22,11 @@ later.
   of the wheel in the Keys tab (`ACTIONS` in `src/input/keyboard.js`); no other menu entries. Free look
   keeps its own wheel zoom; hand the wheel to whichever mode is active. Zoom is a local view setting
   only (not in snapshots, nothing online). A test covers the fight-zoom rule.
+  Built: `src/render/player-zoom.js` (the rules), `renderer.zoomBy` and the take-off reset in
+  `renderer.js`, the wheel as the bindable pseudo-keys WheelUp/WheelDown (Camera zoom in / out), values
+  `wheelStep` 0.12, `wheelSmooth` 10, `wheelMin` 0.7, `wheelFightTighten` 0.25 in the tuning panel.
+  Checked in the browser pane on the ground (zoom range, Keys tab); the in-fight feel is for the owner to
+  playtest. A trackpad sends many small wheel events, so it zooms faster than a notched wheel.
 
 - **Player options stay few (built):** players get only General (volume, music, mute in background,
   fullscreen, dogfight camera, historical markings, gore), Keys and HUD (gunsight look, pilot names).

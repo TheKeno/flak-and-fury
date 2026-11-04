@@ -29,7 +29,11 @@
     "fightPlanes": 3,
     "fightRear": 1.5,
     "fightLeaveSpeed": 100,
-    "fightLowAlt": 120
+    "fightLowAlt": 120,
+    "wheelStep": 0.12,
+    "wheelSmooth": 10,
+    "wheelMin": 0.7,
+    "wheelFightTighten": 0.25
   },
   "audio": {
     "master": 1.06,

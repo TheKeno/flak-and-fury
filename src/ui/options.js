@@ -4,7 +4,7 @@
 // browser (localStorage), applied over the values loaded from data/settings.json, which stay the
 // defaults. They are written into the live settings objects, so the game (and the tuning panel)
 // see them at once; the tuning panel's "Save to files" would save them as the new defaults.
-import { ACTIONS, defaultBindings, codeName } from '../input/keyboard.js';
+import { ACTIONS, defaultBindings, codeName, wheelCode } from '../input/keyboard.js';
 
 const STORE = 'flak-and-fury.options';
 
@@ -195,6 +195,7 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     listening = null;
     removeEventListener('keydown', onCaptureKey, true);
     removeEventListener('mousedown', onCaptureMouse, true);
+    removeEventListener('wheel', onCaptureWheel, true);
     refresh();
   }
   function bind(code) {
@@ -238,16 +239,23 @@ export function createOptions({ settings, bindings, parent, onChange }) {
     e.stopImmediatePropagation();
     bind(`Mouse${e.button}`);
   }
+  function onCaptureWheel(e) {
+    if (!e.deltaY) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    bind(wheelCode(e.deltaY));
+  }
   function listen(id, slot) {
     stopListening();
     listening = { id, slot };
-    say('PRESS A KEY OR MOUSE BUTTON. ESC CANCELS, BACKSPACE CLEARS THE SLOT.');
+    say('PRESS A KEY, MOUSE BUTTON OR TURN THE WHEEL. ESC CANCELS, BACKSPACE CLEARS THE SLOT.');
     refresh();
     // From the next press on: the click that opened the slot mustn't bind itself.
     setTimeout(() => {
       if (!listening) return;
       addEventListener('keydown', onCaptureKey, true);
       addEventListener('mousedown', onCaptureMouse, true);
+      addEventListener('wheel', onCaptureWheel, { capture: true, passive: false });
     }, 0);
   }
 
@@ -266,7 +274,7 @@ export function createOptions({ settings, bindings, parent, onChange }) {
       });
       grid.append(el('span', {}, label), ...slots);
     }
-    return [el('p', { class: 'fine' }, 'CLICK A SLOT, THEN PRESS A KEY OR MOUSE BUTTON. EACH ACTION HAS TWO.'), grid];
+    return [el('p', { class: 'fine' }, 'CLICK A SLOT, THEN PRESS A KEY, MOUSE BUTTON OR TURN THE WHEEL. EACH ACTION HAS TWO.'), grid];
   }
 
   // Your pilot name: above the tabs, always in view, the same name as the title screen's box.

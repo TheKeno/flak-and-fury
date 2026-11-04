@@ -1,7 +1,7 @@
 import { loadContent } from './content/load.js';
 import { createWorld, addPlane, setBots, stepWorld, DT } from './sim/world.js';
 import { autopilotCommand } from './sim/ai.js';
-import { createKeyboard } from './input/keyboard.js';
+import { createKeyboard, wheel as wheelPress } from './input/keyboard.js';
 import { createMouse } from './input/mouse.js';
 import { createRenderer, MAX_ZOOM } from './render/renderer.js';
 import { createMixer } from './audio/mixer.js';
@@ -163,10 +163,12 @@ function moveFreeLook(dt) {
   free.x += (free.tx - free.x) * e;
   free.y += (free.ty - free.y) * e;
 }
+// The wheel: free look zooms its own view; in flight each notch is a bindable key press (zoomIn,
+// zoomOut), handled with the other bound keys below.
 canvas.addEventListener('wheel', (e) => {
-  if (!free.on) return;
   e.preventDefault();
-  free.zoom = clamp(free.zoom * Math.exp(e.deltaY * 0.0012), 1, MAX_ZOOM);
+  if (free.on) free.zoom = clamp(free.zoom * Math.exp(e.deltaY * 0.0012), 1, MAX_ZOOM);
+  else if (started && !menuOpen) wheelPress(e.deltaY, e);
 }, { passive: false });
 // Clicking the game takes keyboard focus back from the tuning panel.
 canvas.addEventListener('mousedown', () => {
@@ -217,6 +219,8 @@ keyboard.onPress((code, e) => {
       applyMute();
     }
     if (act === 'freeLook') setFreeLook(!free.on);
+    if (act === 'zoomIn' && !free.on) renderer.zoomBy(-1);
+    if (act === 'zoomOut' && !free.on) renderer.zoomBy(1);
   }
   if (free.on) {
     if (code === 'Digit1') jumpTo('front');
