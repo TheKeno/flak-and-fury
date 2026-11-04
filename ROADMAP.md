@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Friendly collision logged as enemy** (Gameplay): when a plane collides with a friendly, the kill/event log
+  says "enemy"; it should name the friend (or say friendly) instead.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
 - **Respawn out of the hangar** (Gameplay): on respawn the plane leaves the hangar with the runway roll animation, and the hangar doors open and close.
