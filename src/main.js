@@ -457,6 +457,11 @@ let acc = 0;
 // its own blending, between snapshots).
 let before = null;
 let after = null;
+// The world was changed outside a tick (a plane switch from the menu): the saved poses are stale, and
+// writing them back would put the new plane where the old one was.
+function resetPoses() {
+  if (before) before = after = takePoses(world);
+}
 // Runs the world's ticks due by now (on a guest: gathers the commands and shows the host's world).
 // Returns the frame's dt.
 function advance(now) {
@@ -689,6 +694,7 @@ function seatDone(reason) {
 function askSeat(req) {
   if (guest) return guest.net.send({ t: 'seat', team: req.team, defId: req.defId });
   const reason = changeSeat(world, player, req, DT);
+  resetPoses();
   sidesChanged();
   seatDone(reason);
 }
@@ -734,6 +740,7 @@ $('host').addEventListener('click', async () => {
         const p = world.planes.find((o) => o.id === g.planeId);
         if (!p) return;
         const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name ? m.defId : null }, DT);
+        resetPoses();
         g.conn.send({ t: 'seat', reason });
         sidesChanged();
       },

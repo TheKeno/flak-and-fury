@@ -14,7 +14,7 @@ const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta
 const settings = load('data/settings.json');
 const IDLE = { turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false };
 
-function makeWorld() {
+function makeWorld(extra = {}) {
   const groundDefs = load('data/ground.json');
   delete groundDefs._notes;
   return createWorld({
@@ -35,6 +35,7 @@ function makeWorld() {
     radar: { ...settings.radar },
     bailout: { ...settings.bailout },
     rules: { bots: 'off' },
+    ...extra,
   });
 }
 
@@ -269,4 +270,18 @@ test('switching side and plane keeps the plane id but changes def: sounds are ke
   const oldSound = engineSoundFor(sound, ids.get(before.def), before.def.engine.layout);
   const newSound = engineSoundFor(sound, ids.get(p.def), p.def.engine.layout);
   assert.notEqual(newSound.buildId, oldSound.buildId, 'a radial plane does not use the inline engine build');
+});
+
+test('a new plane mid-flight comes out of the hangar like a respawn (game worlds start from the hangar)', () => {
+  const world = makeWorld({ hangarStart: true });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
+  flying(p, world);
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === 0);
+  assert.equal(changeSeat(world, p, { defId: 'p47d' }, DT), null);
+  assert.equal(p.state, 'ground');
+  assert.equal(p.x, hangar.x, 'inside the hangar, not where the old plane was');
+  assert.equal(p.exitPhase, 'wait');
+  run(world, 20, { p1: IDLE });
+  assert.equal(p.exitTo, null, 'rolled out');
+  assert.ok(Math.abs(p.x - world.map.airfields[0].x) < world.map.airfields[0].width, 'on its own airfield');
 });
