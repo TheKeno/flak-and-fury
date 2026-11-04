@@ -1,6 +1,8 @@
 // Tiny static file server for local development: node tools/serve.mjs [port]
-// It also accepts PUT for the tuning panel's "Save to files", limited to existing data/*.json files.
+// It also accepts PUT for the tuning panel's "Save to files", limited to existing data/*.json files
+// (and data/outlines/*.json), POST /build-sprites[?plane=x] for the Outline Lab, GET /api/outlines.
 import { createServer } from 'node:http';
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
@@ -86,7 +88,8 @@ async function saveRecording(req, res, name) {
 
 async function save(req, res, path) {
   const file = normalize(join(root, path));
-  if (!SAVABLE.test(path) || !(await stat(file)).isFile()) throw new Error('not savable');
+  if (OUTLINE.test(path)) await mkdir(join(root, 'data/outlines'), { recursive: true });
+  else if (!SAVABLE.test(path) || !(await stat(file)).isFile()) throw new Error('not savable');
   let body = '';
   for await (const chunk of req) {
     body += chunk;
@@ -98,7 +101,31 @@ async function save(req, res, path) {
   res.end();
 }
 
+// The Outline Lab's Build sprites button: runs the sprite generator for one plane (or all).
+function buildSprites(res, plane) {
+  if (plane && !/^[a-z0-9_]+$/.test(plane)) throw new Error('bad plane name');
+  execFile(process.execPath, ['tools/make-sprites.mjs', ...(plane ? [plane] : [])], { cwd: root, timeout: 300_000 }, (err, stdout, stderr) => {
+    res.writeHead(err ? 500 : 200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: !err, output: String(stdout) + String(stderr) }));
+  });
+}
+
 createServer(async (req, res) => {
+  if (req.method === 'POST' && req.url.startsWith('/build-sprites')) {
+    try {
+      buildSprites(res, new URL(req.url, 'http://x').searchParams.get('plane'));
+    } catch (e) {
+      res.writeHead(400, { 'Content-Type': 'text/plain' });
+      res.end(String(e.message));
+    }
+    return;
+  }
+  if (req.method === 'GET' && req.url.split('?')[0] === '/api/outlines') {
+    const files = (await readdir(join(root, 'data/outlines')).catch(() => [])).filter((f) => f.endsWith('.json'));
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify(files.map((f) => f.replace('.json', ''))));
+    return;
+  }
   if (req.method === 'PUT') {
     try {
       const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);

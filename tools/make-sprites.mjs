@@ -541,7 +541,10 @@ function planeSheet(model, tailDown) {
 
 const outDir = new URL('../assets/sprites/', import.meta.url);
 mkdirSync(outDir, { recursive: true });
+// Optional plane names on the command line limit which planes are rebuilt (the Outline Lab uses it).
+const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 for (const [name, build] of Object.entries(BUILDERS)) {
+  if (only.length && !only.includes(name)) continue;
   const model = build(loadOutline(name));
   // Side view, 96 x 36 (or the plane's spriteSize) at the pivot planes.json gives, without the gear:
   // the game draws the gear so it can retract.
@@ -554,6 +557,7 @@ for (const [name, build] of Object.entries(BUILDERS)) {
   console.log(`wrote assets/sprites/${name}-frames.png and ${name}.json`);
 }
 for (const [name, rows] of Object.entries(SPRITES)) {
+  if (only.length && !only.includes(name)) continue;
   writeFileSync(new URL(`${name}.png`, outDir), encodePng(rows));
   console.log(`wrote assets/sprites/${name}.png`);
   if (process.argv.includes('--print')) console.log(rows.join('\n'));
