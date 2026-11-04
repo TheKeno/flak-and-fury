@@ -370,7 +370,8 @@ page).
 ## Gunsight: `data/settings.json` → `hud`
 
 A plain reflector ring and pip down the firing line (`attitude(p).angle` from the muzzle), no lead
-computing. Hidden in free look, while dead, dying or waiting, and for planes with no guns.
+computing. Hidden in free look, while dead, dying or waiting, and for planes with no guns. On the
+ground it is hidden until the throttle is opened (not during the hangar exit), then fades in over 0.3 s.
 
 | Field | What it does | Try |
 |---|---|---|
