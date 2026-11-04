@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Rattle sound stays after a crash** (Sound): the rattle (airframe/engine) keeps playing after the plane has crashed;
+  it should stop when the plane is destroyed.
 - **Name set mid-game not shown to the host** (UI): a friend joined without a name and set it during the game, but the
   host never saw it; a name changed after joining should reach the host and show in the HUD and logs.
 - **Friendly collision logged as enemy** (Gameplay): when a plane collides with a friendly, the kill/event log
