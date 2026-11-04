@@ -308,6 +308,11 @@ later.
 
 Then: more themes, co-op missions, matchmaking.
 
+## In progress
+
+- **Friendly collision logged as enemy** (Gameplay): when a plane collides with a friendly, the kill/event log
+  says "enemy"; it should name the friend (or say friendly) instead. Session: "Gameplay — friendly collision log".
+
 ## Backlog
 
 - **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
@@ -328,8 +333,6 @@ Then: more themes, co-op missions, matchmaking.
   crashed, and also with the engine off or the plane standing still; it should stop in all three cases.
 - **Name set mid-game not shown to the host** (UI): a friend joined without a name and set it during the game, but the
   host never saw it; a name changed after joining should reach the host and show in the HUD and logs.
-- **Friendly collision logged as enemy** (Gameplay): when a plane collides with a friendly, the kill/event log
-  says "enemy"; it should name the friend (or say friendly) instead.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
 - **Respawn out of the hangar** (Gameplay): on respawn the plane leaves the hangar with the runway roll animation, and the hangar doors open and close.
