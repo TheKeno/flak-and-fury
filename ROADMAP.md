@@ -7,8 +7,8 @@ later.
 
 ## Decisions
 
-- **Scroll-wheel camera zoom (built, to playtest and tune; trial of option C):** the wheel scales the camera's zoom through a
-  player zoom factor (default 1, reset to 1 on each take-off, not saved). `src/render/renderer.js`
+- **Scroll-wheel camera zoom (built, owner happy with the feel 2026-11-04; in-fight tightening still a trial of option C to tune):** the wheel scales the camera's zoom through a
+  player zoom factor (default 1, reset to 1 at each take-off and each respawn, not saved). `src/render/renderer.js`
   `updateZoom` multiplies the automatic target (speed zoom, dogfight zoom, look-around) by it.
   Zoom-out is relative to the camera's own zoom: up to `camera.wheelOutMax` (1.2) times it, never past
   `camera.fightZoomMax` (read live). Relative on purpose, so the speed zoom (the feeling of going fast)
@@ -33,7 +33,7 @@ later.
 - **Player options stay few (built):** players get only General (volume, music, mute in background,
   fullscreen, dogfight camera, historical markings, gore), Keys and HUD (gunsight look, pilot names).
   Camera, shake, zoom, mouse look, radar outline, text size and the like are the designer's decisions,
-  set in the data files and tuning panel only. Units are metric only. The game is muted while the
+  set in the data files and tuning panel only (the one exception: the scroll wheel's key mapping, below). Units are metric only. The game is muted while the
   in-game menu is open. At 1.0: decide the historical markings default (on for now) and hide the debug
   keys (V, T, F3) from the key list.
 - **Sound Lab rpm finder (built):** a button on each engine clip in the Sound Design tab
@@ -203,6 +203,7 @@ later.
   Still no fire with the propeller stopped (the gear runs off the engine). Not found in sources: exact
   rates per gun, or whether a Luftwaffe electric gear fired with the engine dead.
 
+- **Scroll-wheel camera zoom** (`35800f9`..`7c02777`; design in Decisions): `src/render/player-zoom.js`, bindable WheelUp/WheelDown (Camera zoom in / out in the Keys tab), spring smoothing, reset at take-off and respawn, zoom-out relative to the camera's own zoom (`wheelOutMax`) so the speed zoom still shows, limited tightening in fights (`wheelFightTighten`); tests in `tests/player-zoom.test.mjs`. Checked on the ground in the browser pane; the owner has played it and is happy with the feel; the in-fight tightening amount may still be tuned.
 - **Sound Lab list shows internal ids:** the Sounds list has two aligned columns, name and a muted id (`gun:`, `sfx:`, `loop:`, `build:`, `layer:`), so sounds can be matched to `soundscape.js` and `data/sound.json`. Long names truncate with the full name on hover. Sound Design tab unchanged (no sound ids there).
 ## Milestones ahead
 
