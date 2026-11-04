@@ -27,6 +27,8 @@ const TYPES = {
 };
 
 const SAVABLE = /^\/data\/[a-z_]+\.json$/;
+// The Outline Lab may also create a plane's outline file.
+const OUTLINE = /^\/data\/outlines\/[a-z0-9_]+\.json$/;
 
 const AUDIO = 'assets/audio';
 const hashOf = (buf) => createHash('sha256').update(buf).digest('hex');
