@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Sound effect layering** (Sound): build sound effects from several layered sounds played together
+  (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
 - **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;
   go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another.
 - **Fire put out before the ground crew arrive** (Gameplay): a plane's fire goes out while the ground crew are still
