@@ -405,6 +405,28 @@ function resizeCanvas() {
   requestDraw();
 }
 
+// The nose and tail clicks, as red crosses on the picture.
+function drawCalibMarks() {
+  const { k, x: vx, y: vy } = S.view;
+  if (!S.bp) return;
+  ctx.font = '12px monospace';
+  for (const [name, p] of [['nose', S.bp.nose], ['tail', S.bp.tail]]) {
+    if (!p) continue;
+    const sx = p[0] * k + vx;
+    const sy = p[1] * k + vy;
+    ctx.strokeStyle = '#ff5030';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx - 9, sy);
+    ctx.lineTo(sx + 9, sy);
+    ctx.moveTo(sx, sy - 9);
+    ctx.lineTo(sx, sy + 9);
+    ctx.stroke();
+    ctx.fillStyle = '#ff5030';
+    ctx.fillText(name, sx + 6, sy - 6);
+  }
+}
+
 function draw() {
   if (!S.o) return;
   const dpr = window.devicePixelRatio || 1;
@@ -422,6 +444,18 @@ function draw() {
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(S.bp.img, vx, vy, S.bp.img.width * k, S.bp.img.height * k);
     ctx.restore();
+  }
+  // Until both calibration clicks are made, the plane has no place on the picture: show only the picture.
+  if (S.bp && !(S.bp.nose && S.bp.tail)) {
+    drawCalibMarks();
+    const msg = S.calibrating === 'tail' ? 'Click the END OF THE TAIL (the rearmost point of the side view)' : S.calibrating === 'nose' ? 'Click the NOSE TIP of the side view (zoom in with the wheel first if you like)' : 'Press Calibrate, then click the nose tip and the tail end';
+    ctx.font = '16px monospace';
+    ctx.fillStyle = 'rgba(16,18,20,0.85)';
+    ctx.fillRect(0, 0, W, 30);
+    ctx.fillStyle = '#ffd24a';
+    ctx.fillText(msg, 12, 20);
+    $('hint').textContent = '';
+    return;
   }
   // Everything else in metres: screen = k * image + v, image = T(d, h).
   ctx.save();
@@ -505,23 +539,7 @@ function draw() {
     }
   }
   ctx.globalAlpha = 1;
-  // Calibration marks.
-  if (S.bp) {
-    for (const [name, p] of [['nose', S.bp.nose], ['tail', S.bp.tail]]) {
-      if (!p) continue;
-      const sx = p[0] * k + vx;
-      const sy = p[1] * k + vy;
-      ctx.strokeStyle = '#ff5030';
-      ctx.beginPath();
-      ctx.moveTo(sx - 9, sy);
-      ctx.lineTo(sx + 9, sy);
-      ctx.moveTo(sx, sy - 9);
-      ctx.lineTo(sx, sy + 9);
-      ctx.stroke();
-      ctx.fillStyle = '#ff5030';
-      ctx.fillText(name, sx + 6, sy - 6);
-    }
-  }
+  drawCalibMarks();
   // Hint line.
   let hint = '';
   if (S.calibrating) hint = S.calibrating === 'nose' ? 'Click the nose tip (d = 0) on the picture' : 'Click the end of the tail on the picture';
