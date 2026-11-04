@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Crash shockwave hits infantry:** every crash (`crash()` in `src/sim/plane.js`) calls `crashShockwave` (`src/sim/ground.js`): soldiers of either side within `crashBlastRadius` (30) of the wreck take `crashBlastForce` (1.5) × their hit points at the wreck, falling off linearly; no score for it. Both values are in `collisions`, the tuning panel and TUNING.md. Headless test in `tests/ground.test.mjs`; not looked at in the browser, so please crash near some infantry and check the radius feels right (the soldiers die with the usual blast gore).
 - **Gunsight hidden until take-off:** the sight no longer shows while the plane rolls out of the hangar (where it sat on the wrong side, the plane still facing away) or while it waits in the queue. On the ground it appears only once the throttle is opened (and the hangar exit is over), fading in over 0.3 s; in the air it always shows. So it also hides on the ground with the throttle closed after landing. Render only (`drawSight` in `src/render/renderer.js`). Checked in the browser for the roll-out and idle states; the fade-in on throttle open was not seen (key hold could not be driven), so please try one take-off.
 - **Plane switch mid-flight comes out of the hangar:** the sim already sent the new plane to the hangar (`changeSeat`), but the menu switch happens between ticks and `main.js` still held the pre-switch pose maps (`before`/`after`); `writePoses(world, after)` then put the old in-air position back over the new plane every frame, so it showed up mid-air and dropped upside down where the old one was. `resetPoses()` in `src/main.js` refreshes them after a switch (single player and a guest's request to the host). Old plane keeps its behaviour: it burns and falls as a wreck. Headless test in `tests/bailout.test.mjs` (hangarStart world); the draw fix itself is not checked in the browser (a real in-air Esc switch could not be driven reliably), so please try it.
 - **Blood stays inside the plane:** the blood a plane gets from running soldiers down is drawn on an offscreen layer and masked to the sprite frame's opaque pixels (`drawPlane` in `src/render/gore.js`, `destination-in`), so no splat shows outside the body at any angle or facing. Tests pass; looked at only for load errors in the browser, not zoomed on a bloodied plane. The mid-roll and ground-turn frames draw no plane blood at all (as before).
@@ -323,8 +324,6 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-
-- **Plane crash shockwave hits infantry** (Gameplay): session "Gameplay — Plane crash shockwave hits infantry".
 
 ## Backlog
 
