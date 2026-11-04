@@ -245,6 +245,7 @@ later.
 - **Smoother take-off** (design: owner chose gradual rotation + blended climb-out): holding nose-up at take-off speed rotates the nose on the wheels at `rotateRate` and lifts off at `liftoffPitch`, carrying on from the drawn angle and height (no jump); the turn rate eases from the rotation rate to full over `blendTime` after lift-off. New `takeoff` settings block + tuning panel section + TUNING.md; tests in `tests/takeoff.test.mjs`. The ace-vs-easy bot test now uses 8 seeds (3 were too few to stay stable when take-off timing moved). Not checked by eye in the browser yet; `runwayNeeded` not re-measured (roll is about 20 units longer).
 - **Scroll-wheel camera zoom** (`35800f9`..`7c02777`; design in Decisions): `src/render/player-zoom.js`, bindable WheelUp/WheelDown (Camera zoom in / out in the Keys tab), spring smoothing, reset at take-off and respawn, zoom-out relative to the camera's own zoom (`wheelOutMax`) so the speed zoom still shows, limited tightening in fights (`wheelFightTighten`); tests in `tests/player-zoom.test.mjs`. Checked on the ground in the browser pane; the owner has played it and is happy with the feel; the in-fight tightening amount may still be tuned.
 - **Sound Lab list shows internal ids:** the Sounds list has two aligned columns, name and a muted id (`gun:`, `sfx:`, `loop:`, `build:`, `layer:`), so sounds can be matched to `soundscape.js` and `data/sound.json`. Long names truncate with the full name on hover. Sound Design tab unchanged (no sound ids there).
+- **Friendly collision no longer logged as enemy:** the "shot down" line is now built by `shotDownMessage` in `src/ui/shotdown-text.js`; downing a plane on your own team (e.g. ramming a friend) reads "YOU DOWNED A FRIEND: <callsign>" instead of "ENEMY SHOT DOWN!". Tests in `tests/shotdown-text.test.mjs`. Page loads clean in the browser pane; the in-game collision itself was not staged by eye.
 ## Milestones ahead
 
 6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
@@ -307,11 +308,6 @@ later.
 15. **Polish:** balance.
 
 Then: more themes, co-op missions, matchmaking.
-
-## In progress
-
-- **Friendly collision logged as enemy** (Gameplay): when a plane collides with a friendly, the kill/event log
-  says "enemy"; it should name the friend (or say friendly) instead. Session: "Gameplay — friendly collision log".
 
 ## Backlog
 

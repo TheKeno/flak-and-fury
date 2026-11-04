@@ -20,6 +20,7 @@ import { hostGame, joinGame, cleanCode } from './net/session.js';
 import { createGuestView } from './net/guest.js';
 import { takePoses, writePoses } from './render/interpolate.js';
 import { prof, createPerfStats } from './ui/perfstats.js';
+import { shotDownMessage } from './ui/shotdown-text.js';
 
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
@@ -426,8 +427,8 @@ function handleEvents() {
     if (e.type === 'runwayReopened') renderer.message(e.team === player.team ? 'OUR RUNWAY IS OPEN AGAIN' : 'ENEMY RUNWAY REOPENED', e.team === player.team ? '#a8e090' : '#ffb070');
     if (e.by === player.id && e.type === 'squadWiped') renderer.message(e.kind === 'engineers' ? 'ENGINEERS WIPED OUT' : 'INFANTRY SQUAD WIPED OUT', '#e8c860');
     if (e.type === 'shotDown') {
-      if (e.by === player.id) renderer.message('ENEMY SHOT DOWN!', '#e8c860');
-      else if (e.plane === player.id) renderer.message('YOU ARE GOING DOWN', '#ff8070');
+      const m = shotDownMessage(world, e, player);
+      if (m) renderer.message(m.text, m.color);
     }
   }
 }
