@@ -313,6 +313,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Add the Stuka (Ju 87 D-3)** (Planes): the German dive bomber, from a 3-view like every plane. Blocked until the
+  Outline Lab is finished; ask the owner for the 3-view first.
 - **Sound Lab keeps scroll position and tab on refresh** (Sound): reloading the Sound Lab page should return to the
   same tab and scroll position instead of starting at the top of the first tab.
 - **Long load after pressing start engine** (Sound): there is a long wait after pressing start engine before
