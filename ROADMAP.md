@@ -320,6 +320,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Fire put out before the ground crew arrive** (Gameplay): session "Gameplay — fire out when crew arrive".
 
 ## Backlog
 
@@ -347,8 +348,6 @@ Then: more themes, co-op missions, matchmaking.
   (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
 - **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;
   go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another.
-- **Fire put out before the ground crew arrive** (Gameplay): a plane's fire goes out while the ground crew are still
-  running to it; it should only be put out once they have reached the plane.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
 - **Smooth turn at the map edge** (Planes): use the runway roll animation to turn the plane smoothly when it bounces off the map edge.
