@@ -1040,7 +1040,9 @@ async function openPlane(name) {
 async function start() {
   S.planes = await (await fetch('data/planes.json', { cache: 'no-store' })).json();
   S.nations = await (await fetch('data/nations.json', { cache: 'no-store' })).json();
-  const list = await (await fetch('/api/outlines', { cache: 'no-store' })).json();
+  const res = await fetch('/api/outlines', { cache: 'no-store' });
+  if (!res.ok) throw new Error('the dev server is the old version: stop it and start it again (node tools/serve.mjs 8080)');
+  const list = await res.json();
   for (const n of list) $('plane').append(new Option(n, n));
   $('plane').onchange = () => openPlane($('plane').value);
   new ResizeObserver(resizeCanvas).observe($('stage'));
