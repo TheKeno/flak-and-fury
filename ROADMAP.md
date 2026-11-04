@@ -201,6 +201,7 @@ later.
   Still no fire with the propeller stopped (the gear runs off the engine). Not found in sources: exact
   rates per gun, or whether a Luftwaffe electric gear fired with the engine dead.
 
+- **Sound Lab list shows internal ids:** the Sounds list has two aligned columns, name and a muted id (`gun:`, `sfx:`, `loop:`, `build:`, `layer:`), so sounds can be matched to `soundscape.js` and `data/sound.json`. Long names truncate with the full name on hover. Sound Design tab unchanged (no sound ids there).
 ## Milestones ahead
 
 6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
