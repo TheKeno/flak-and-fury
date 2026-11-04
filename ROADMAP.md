@@ -327,6 +327,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
+  can't take off however fast it goes; find out why and let it lift off when it has the speed.
 
 ## Backlog
 
