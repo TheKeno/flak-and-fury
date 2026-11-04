@@ -309,6 +309,11 @@ later.
 
 Then: more themes, co-op missions, matchmaking.
 
+## In progress
+
+- **M key works in the menus** (UI): the M key (its in-game action, e.g. mute) should also work while a menu is open
+  (title, options, pause). *(session: UI — M key in menus)*
+
 ## Backlog
 
 - **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
@@ -317,8 +322,6 @@ Then: more themes, co-op missions, matchmaking.
   nearby infantry, not only those it lands on.
 - **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
   drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
-- **M key works in the menus** (UI): the M key (its in-game action, e.g. mute) should also work while a menu is open
-  (title, options, pause).
 - **Fire effect carries over to the next plane** (Gameplay): after abandoning a burning plane, the fire effect
   continues on the player's next plane; it should stay with the abandoned wreck.
 - **Ground fire flames don't always rise** (Gameplay): when a plane catches fire on the ground the flames
