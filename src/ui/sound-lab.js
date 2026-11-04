@@ -297,20 +297,31 @@ let vehicleSel = null;
 let filterNotDone = false;
 const vehicleFilter = { nation: '', kind: '', status: '', notDone: false, sort: 'nation', dir: 1 };
 
-// Audio can only start from a click, so everything waits for the first one that needs it.
-async function audio() {
-  if (!mixer) {
-    mixer = await createMixer(settings.audio, sound.space);
-    mixer.recordings = createRecordings(mixer, sound);
-    await mixer.recordings.load();
-    voices = buildVoices(mixer.ctx, sound.guns);
-    mixer.setMuted(muted);
+// The mixer and the decoded recordings. Made once, however many waveforms ask at the same time (each
+// asking separately made a mixer and a full load apiece). Needs no click: decoding works while the
+// audio is still locked, so waveforms and measuring do not wait for one.
+let starting = null;
+function setup() {
+  starting ??= (async () => {
+    const m = await createMixer(settings.audio, sound.space);
+    m.recordings = createRecordings(m, sound);
+    await m.recordings.load();
+    mixer = m;
+    voices = buildVoices(m.ctx, sound.guns);
+    m.setMuted(muted);
     movePlayMarkers();
-    scope = mixer.ctx.createAnalyser();
+    scope = m.ctx.createAnalyser();
     scope.fftSize = 1024;
-    mixer.limiter.connect(scope);
+    m.limiter.connect(scope);
     drawScope();
-  }
+    return m;
+  })();
+  return starting;
+}
+
+// Audio can only start from a click, so playing waits for the first one that needs it.
+async function audio() {
+  await setup();
   if (mixer.ctx.state === 'suspended') await mixer.ctx.resume();
   return mixer;
 }
@@ -1125,7 +1136,7 @@ function waveform(file, locked, onChange, height = 70) {
     touch();
     onChange?.();
   };
-  audio().then(() => mixer.recordings.ensure(file.path)).then(draw);
+  setup().then(() => mixer.recordings.ensure(file.path)).then(draw);
   const marker = el('div', { style: 'position:absolute;top:0;bottom:0;width:2px;background:#d9542b;display:none;pointer-events:none' });
   playMarkers.add({ marker, file, draw });
   return el('div', { style: `position:relative;width:100%;${height === 70 ? 'max-width:700px' : ''}` }, c, marker);
@@ -1592,7 +1603,7 @@ function rpmFinder(clip, cylinders, rpmInput, locked) {
     // The clip is usually loaded already; measuring does not need the audio to be unlocked.
     let buf = mixer?.recordings.buffers.get(clip.path);
     if (!buf) {
-      await audio();
+      await setup();
       await mixer.recordings.ensure(clip.path);
       buf = mixer.recordings.buffers.get(clip.path);
     }
