@@ -42,6 +42,8 @@ export async function loadContent(mapName) {
   const spriteNames = [
     ...new Set([...Object.values(planeDefs).map((d) => d.sprite), ...Object.values(groundDefs).map((d) => d.sprite).filter(Boolean)]),
     'hangar',
+    'hangar-half',
+    'hangar-shut',
     'bomb',
   ];
   const images = Object.fromEntries(

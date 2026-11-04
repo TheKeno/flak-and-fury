@@ -20,6 +20,7 @@ export function makeGroundObject(world, type, team, x, { squad, width, mobile = 
   const def = world.groundDefs[type];
   if (!def) return null;
   const obj = { id: world.nextId++, type, def, team, x, alive: true, wreckedAt: 0, mobile };
+  if (type === 'hangar') Object.assign(obj, { door: 0, doorHold: 0 }); // doors shut until a plane rolls out
   if (width) obj.width = width;
   if (SQUADS.has(type)) {
     const n = squad ?? 4;
@@ -28,6 +29,22 @@ export function makeGroundObject(world, type, team, x, { squad, width, mobile = 
   } else obj.hp = obj.maxHp = def.hp;
   armGround(world, obj);
   return obj;
+}
+
+// Hangar doors (obj.door, 0 shut .. 1 open): open while a plane of the team is leaving or its crew are
+// out, shut again doorHold seconds after the last is in. doorTime is how long they take to move.
+export function stepHangarDoors(world, dt) {
+  for (const o of world.ground) {
+    if (o.type !== 'hangar') continue;
+    // Open while a plane of the team is waiting or on its way out, or the crew who pushed it are not home.
+    const leaving = world.planes.some((p) => p.team === o.team && p.state === 'ground' && p.exitTo != null && p.exitPhase !== 'shove')
+      || world.crew.some((c) => c.team === o.team && c.push);
+    if (leaving) o.doorHold = o.def.doorHold ?? 1.5;
+    else if (o.doorHold > 0) o.doorHold -= dt;
+    const open = leaving || o.doorHold > 0;
+    const step = dt / (o.def.doorTime || 1.2);
+    o.door = Math.min(1, Math.max(0, (o.door ?? 0) + (open ? step : -step)));
+  }
 }
 
 // Builds world.ground from the map's placed objects and the type data (data/ground.json).

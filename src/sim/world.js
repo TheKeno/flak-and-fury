@@ -8,7 +8,7 @@ import { stepBullets, stepBombs } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand, DEFAULT_BOTS, DEFAULT_RADAR } from './ai.js';
 import { DEFAULT_SERVICING, stepCrew } from './airfield.js';
-import { createGround, planesHitStructures } from './ground.js';
+import { createGround, planesHitStructures, stepHangarDoors } from './ground.js';
 import { stepDefences, stepShells } from './defences.js';
 import { DEFAULT_FIRE } from './fire.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
@@ -49,6 +49,7 @@ export function createWorld({
   weapons,
   groundDefs = {},
   rules = {},
+  hangarStart = false, // planes added at the start come out of the hangar one by one (the game); tests start them on the runway
   servicing = { ...DEFAULT_SERVICING },
   collisions = { ...DEFAULT_COLLISIONS },
   fire = { ...DEFAULT_FIRE },
@@ -70,6 +71,7 @@ export function createWorld({
     weapons,
     groundDefs,
     rules: { ...DEFAULT_RULES, ...rules },
+    hangarStart,
     servicing,
     collisions,
     fire,
@@ -110,7 +112,7 @@ export function addPlane(world, { defId, team, nation, controller }) {
   });
   p.fresh = true; // not flown yet: can still change side or plane for free (src/sim/seats.js)
   world.planes.push(p);
-  spawnAtAirfield(p, world);
+  spawnAtAirfield(p, world, world.hangarStart);
   return p;
 }
 
@@ -151,6 +153,7 @@ export function stepWorld(world, commands) {
   }
   // Wrecks are gone once they've hit the ground.
   for (let i = world.planes.length - 1; i >= 0; i--) if (world.planes[i].wreck && world.planes[i].state === 'dead') world.planes.splice(i, 1);
+  stepHangarDoors(world, DT);
   stepCrew(world, DT);
   stepArmy(world, DT);
   stepDefences(world, DT);

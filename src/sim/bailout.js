@@ -124,7 +124,7 @@ export function stepBailedPilot(world, p, cmd, dt) {
   if (allowed && fire && !b.fireHeld) b.wanted = true;
   b.fireHeld = fire;
   // A closed runway keeps him waiting; the press still counts.
-  if (b.wanted && spawnAtAirfield(p, world)) releasePilot(world, p);
+  if (b.wanted && spawnAtAirfield(p, world, true)) releasePilot(world, p);
 }
 
 function killPilot(world, c, cause, by = null, dir = 0) {

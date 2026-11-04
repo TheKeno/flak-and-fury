@@ -474,7 +474,10 @@ export function createRenderer(canvas, world, assets) {
   const spriteCache = new Map();
   // Tanks wear their nation's paint; everything else is drawn as it is.
   function spriteOf(obj) {
-    const img = assets.images[obj.def.sprite];
+    // Hangar doors: shut, half or open by the object's door (0..1).
+    const door = obj.type === 'hangar' && obj.alive && obj.door != null ? (obj.door < 0.25 ? '-shut' : obj.door < 0.75 ? '-half' : '') : '';
+    const img = assets.images[obj.def.sprite + door];
+    if (door) return [obj.def.sprite + door, img];
     if (!img || obj.type !== 'tank') return [obj.def.sprite, img];
     const key = `tank|${obj.team}`;
     if (!spriteCache.has(key)) spriteCache.set(key, paintSprite(img, assets.nations[nationOf(obj.team)]?.paint ?? assets.nations.germany.paint));
@@ -872,7 +875,7 @@ export function createRenderer(canvas, world, assets) {
   const planeX = (wx) => Math.round(toScreenX(wx) * DETAIL);
   const planeY = (wy) => Math.round(toScreenY(wy) * DETAIL);
   function drawPlane(p, focus) {
-    if (p.state === 'dead') return;
+    if (p.state === 'dead' || p.exitPhase === 'wait') return; // still inside the hangar, waiting for doors or its turn
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     drawPlaneDetail(p, radarOutline(p, focus));
     drawPlaneName(p, focus);
@@ -1026,6 +1029,7 @@ export function createRenderer(canvas, world, assets) {
     ctx.drawImage(img, x, y);
   }
 
+  const hangarOf = (p) => world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
   function drawPlaneDetail(p, outline) {
     const frames = assets.planeFrames(p);
     const shown = transientFrame(p, frames);
@@ -1035,15 +1039,25 @@ export function createRenderer(canvas, world, assets) {
       const right = Math.cos(p.angle) >= 0;
       const rot = right ? p.angle : p.angle - Math.PI;
       const at = mainWheelContact(p);
-      const cx = planeX(at.x);
+      // Head-on in the hangar door the plane is centred on the door, not on its wheels' contact point.
+      const cx = planeX(p.exitPhase === 'out' ? p.x : at.x);
       const cy = planeY(at.y);
       // One disc per propeller (a twin's frames list one per engine): those behind the model first.
       const prop = frames.meta.props[shown.row][shown.index];
       const discs = Array.isArray(prop[0]) ? prop : [prop];
+      // Pushed out of the hangar towards the camera: small at first, growing to full size.
+      const grow = p.exitPhase === 'out' ? (hangarOf(p)?.def.exitStartScale ?? 0.6) + (1 - (hangarOf(p)?.def.exitStartScale ?? 0.6)) * p.exitT : 1;
+      if (grow !== 1) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(grow, grow);
+        ctx.translate(-cx, -cy);
+      }
       for (const d of discs) if (d[6] < 0) drawPropDisc(p, cx, cy, d, rot, !right);
       const f = frames.frame(shown.row, shown.index, rot, !right);
       drawOutlined(f.canvas, cx - f.radius, cy - f.radius, outline);
       for (const d of discs) if (d[6] >= 0) drawPropDisc(p, cx, cy, d, rot, !right);
+      if (grow !== 1) ctx.restore();
       return;
     }
     const view = groundAttitude(p);
@@ -1117,7 +1131,16 @@ export function createRenderer(canvas, world, assets) {
     const gx = Math.round(toScreenX(c.x));
     const gy = Math.round(toScreenY(c.y));
     if (gx < -10 || gx > bw + 10) return;
-    const walking = c.state === 'out' || c.state === 'back';
+    const walking = c.state === 'out' || c.state === 'back' || (c.state === 'push' && c.moving);
+    // Pushing a plane out towards the camera: the men grow with it.
+    const pushed = c.push && c.state === 'push' ? world.planes.find((o) => o.id === c.pushing) : null;
+    const k = pushed?.exitPhase === 'out' ? (hangarOf(pushed)?.def.exitStartScale ?? 0.8) + (1 - (hangarOf(pushed)?.def.exitStartScale ?? 0.8)) * pushed.exitT : 1;
+    if (k !== 1) {
+      ctx.save();
+      ctx.translate(gx, gy);
+      ctx.scale(k, k);
+      ctx.translate(-gx, -gy);
+    }
     const step = Math.floor((frame + look.bob) / 6) % 2;
     const working = (c.state === 'work' || c.state === 'setup') && Math.floor((frame + look.bob) / 10) % 2; // arm moving at the job
     // legs
@@ -1136,6 +1159,7 @@ export function createRenderer(canvas, world, assets) {
     ctx.fillRect(gx - 1, gy - 10, 2, 2);
     ctx.fillStyle = '#26221e';
     ctx.fillRect(gx - 1, gy - 11, 3, 1);
+    if (k !== 1) ctx.restore();
   }
 
   // The last flight's damage report, frozen when the focused plane is lost. Shown while it's down

@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Out of the hangar:** at the start of a game and after every respawn a plane stands inside its hangar, engine idling, facing the camera. The doors open, two crew push it out (drawn from 90% size up to full: the illusion of coming closer), it turns into the runway using the ground-turn frames from head-on, and the crew push it to its place in the line; then the crew walk home and the doors shut. A human pilot can take over by opening the throttle once the turn is done. Planes leave one at a time (oldest first); an idle plane in the first place is shoved up the line, the line holds `queueSize` planes, and the first place is right at the door (`exitClear` 0). Sim: `exitTo`/`exitPhase`/`exitT`/`exitSeq` on the plane, `door`/`doorHold` on the hangar, `stepHangarExit` in `src/sim/plane.js`, `stepHangarDoors` in `src/sim/ground.js`, push crew in `src/sim/airfield.js`; snapshots need nothing extra. New `hangar-half`/`hangar-shut` sprites; Hangar tunables in the tuning panel and TUNING.md. Checked headless and in the browser, not online and not by ear. Shoved planes ahead are moved without crew (only two crew per team). The airframe creak ignores the turn out of the hangar. The "ace outflies easy" bot test margin went from 1.5 to 1.3 over 16 seeds, as the roll-out shifts bot timing.
 - **Fire sound stays with the abandoned wreck:** `updateFires` (`src/audio/soundscape.js`) stopped a plane's fire loop and then updated the stopped loop in the same pass. The player's plane keeps its `id`, which is the listener (centred, full level), so the dying fire was re-raised on the player's own plane. It now stops cleanly; the wreck (new `id`) has its own spatialised, distance-faded voice. Not checked by ear and no headless test (needs browser audio). The belly-scrape loop in `updateBellies` had the same stop-then-update bug and got the same fix. The real leak behind the carry-over: a crashed wreck leaves `world.planes`, so its fire loop was never stopped; `stopGone` now stops loops of planes no longer in the world.
 - **Plane sounds follow the plane on a side/plane switch:** a switch keeps the plane's `id` but swaps its `def`, and the engine voice and airframe layer host were cached by id only. `engineFor` and `updatePlaneLayers` in `src/audio/soundscape.js` now rebuild when `def` differs (same path on guests, whose patched `def` changes in place). Checked by test (`tests/bailout.test.mjs`) and by reading the code, not by ear.
 - **Sound Lab keeps tab and scroll on reload:** the active tab, selected sound, vehicle/design pick and both scroll positions are kept in `localStorage` (`soundLabView`, `keepView` in `src/ui/sound-lab.js`); blocked storage just starts fresh.
@@ -319,7 +320,6 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
 
 ## Backlog
 

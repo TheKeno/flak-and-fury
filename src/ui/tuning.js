@@ -179,6 +179,16 @@ const GROUND_FIELDS = [
 ];
 // Extra sliders for the ground objects that shoot.
 const DEFENCE_FIELDS = {
+  hangar: [
+    ['doorTime', 'Door time', 0.3, 5, 0.1, 'Seconds the hangar doors take to open or shut.'],
+    ['doorHold', 'Doors stay open', 0, 6, 0.1, 'Seconds the doors stay open after a respawned plane has rolled out.'],
+    ['exitSpeed', 'Push-along speed', 4, 40, 1, 'Speed a plane is pushed along the runway to its place.'],
+    ['exitClear', 'First place from wall', 0, 40, 1, 'How far past the hangar wall (world units) the first plane in the line stands.'],
+    ['outTime', 'Push-out time', 1, 8, 0.1, 'Seconds the crew take to push a plane out of the hangar towards you.'],
+    ['exitStartScale', 'Size inside', 0.3, 1, 0.05, 'Size of the plane at the hangar door, growing to full size as it comes out (the illusion of coming closer).'],
+    ['slotGap', 'Place spacing', 20, 60, 1, 'Distance between planes in the line on the runway (world units).'],
+    ['queueSize', 'Places in the line', 1, 5, 1, 'Planes that can wait on the runway before the next stays in the hangar.'],
+  ],
   flak: [
     ['range', 'Reach', 100, 1200, 10, 'How far away it can engage a plane.'],
     ['minAltitude', 'Blind below', 0, 200, 5, 'Planes lower than this above the ground are ignored. Fly low to dodge flak.'],

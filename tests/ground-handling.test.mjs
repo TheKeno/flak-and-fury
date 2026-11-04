@@ -78,7 +78,8 @@ test('planes never spawn in a crater; one stuck in a crater is recovered', () =>
   const af = world.map.airfields.find((a) => a.team === p.team);
   const start = p.x;
   world.terrain.crater(start, 12, 6); // a bomb right on the spawn point
-  spawnAtAirfield(p, world);
+  spawnAtAirfield(p, world, true);
+  for (let i = 0; i < 60 * 15 && p.exitTo != null; i++) stepWorld(world, { p1: IDLE }); // rolls out of the hangar first
   const clear = clearRunway(world, af);
   assert.ok(p.x >= clear.from && p.x <= clear.to, `spawned on the clear runway (${p.x.toFixed(0)} in ${clear.from}..${clear.to})`);
   assert.ok(Math.abs(p.x - start) > 12, 'not in the crater');
@@ -92,4 +93,63 @@ test('planes never spawn in a crater; one stuck in a crater is recovered', () =>
     recovered = world.events.some((e) => e.type === 'recovered' && e.plane === p.id);
   }
   assert.ok(recovered, 'recovered');
+});
+
+test('a respawned plane is pushed out of the hangar and turns into the runway, engine running', () => {
+  const { world, p } = makeWorld();
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
+  spawnAtAirfield(p, world, true);
+  assert.equal(p.exitPhase, 'wait');
+  assert.equal(p.x, hangar.x, 'starts inside it');
+  assert.equal(hangar.door, 0, 'doors shut');
+  assert.equal(p.engineRunning, true, 'engine running inside the hangar');
+  const phases = new Set();
+  let crewSeen = 0;
+  let moved = null;
+  for (let i = 0; i < 60 * 25 && p.exitTo != null; i++) {
+    stepWorld(world, { p1: { ...IDLE, throttle: 1, fire: true } });
+    phases.add(p.exitPhase);
+    crewSeen = Math.max(crewSeen, world.crew.filter((c) => c.push).length);
+    if (moved == null && p.exitPhase !== 'wait') moved = hangar.door;
+  }
+  assert.deepEqual([...phases].filter(Boolean), ['wait', 'out', 'turn', 'roll']);
+  assert.equal(moved, 1, 'only came out once the doors were fully open');
+  assert.equal(crewSeen, 2, 'two crew pushed it');
+  assert.equal(p.groundTurn, null);
+  assert.ok(Math.cos(p.angle) > 0 === (p.inverted === false), 'faces the take-off way, upright');
+  steps(world, 60 * 8);
+  assert.equal(hangar.door, 0, 'doors closed once the crew are home');
+  assert.equal(world.crew.filter((c) => c.push).length, 0);
+});
+
+test('planes leave the hangar one at a time; one idling in the way is shoved up the line', () => {
+  const { world, p } = makeWorld();
+  const q = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'bot:easy' });
+  spawnAtAirfield(p, world, true);
+  spawnAtAirfield(q, world, true);
+  let overlap = false;
+  for (let i = 0; i < 60 * 40 && (p.exitTo != null || q.exitTo != null); i++) {
+    stepWorld(world, { p1: IDLE });
+    const active = [p, q].filter((o) => ['out', 'turn', 'roll'].includes(o.exitPhase));
+    if (active.length > 1) overlap = true;
+  }
+  assert.ok(!overlap, 'never two on the way out together');
+  assert.equal(p.exitTo, null);
+  assert.equal(q.exitTo, null);
+  steps(world, 2);
+  const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
+  assert.ok((p.x - q.x) * dir >= 30, `first was shoved ahead of the second (${p.x.toFixed(0)} vs ${q.x.toFixed(0)})`);
+});
+
+test('a human pilot takes over once the turn is done: throttle ends the push and the crew go home', () => {
+  const { world, p } = makeWorld();
+  spawnAtAirfield(p, world, true);
+  let i = 0;
+  while (p.exitPhase !== 'roll' && i++ < 60 * 20) stepWorld(world, { p1: IDLE });
+  assert.equal(p.exitPhase, 'roll');
+  stepWorld(world, { p1: { ...IDLE, throttle: 1 } });
+  assert.equal(p.exitTo, null, 'free');
+  steps(world, 60 * 3, { ...IDLE, throttle: 1 });
+  assert.ok(p.speed > 0 && p.engineRunning, 'accelerating on its own engine');
+  assert.equal(world.crew.filter((c) => c.push).length, 0, 'crew back in the hangar');
 });

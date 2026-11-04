@@ -22,7 +22,7 @@
   "engineers": { "name": "Engineers", "hp": 3, "points": 1, "width": 3, "height": 6, "spacing": 4, "bulletFactor": 1, "solid": false, "speed": 9, "gap": 6, "engageRange": 0 },
   "depot": { "name": "Tank depot", "sprite": "depot", "hp": 200, "points": 15, "width": 34, "height": 16, "bulletFactor": 0.15, "solid": true },
   "bridge": { "name": "Bridge", "hp": 160, "points": 0, "width": 70, "height": 6, "bulletFactor": 0, "solid": false, "rebuildTime": 40 },
-  "hangar": { "name": "Hangar", "sprite": "hangar", "hp": 300, "points": 30, "width": 32, "height": 16, "bulletFactor": 0.1, "solid": false },
+  "hangar": { "name": "Hangar", "sprite": "hangar", "hp": 300, "points": 30, "width": 32, "height": 16, "bulletFactor": 0.1, "solid": false, "doorTime": 1.2, "doorHold": 1.5, "exitSpeed": 14, "exitClear": 0, "outTime": 1.5, "exitStartScale": 0.9, "slotGap": 34, "queueSize": 3 },
   "hedge": { "name": "Hedge", "sprite": "hedge", "hp": 20, "points": 0, "width": 24, "height": 5, "bulletFactor": 0.5, "solid": false, "decor": true, "obstacle": "hedge" },
   "wall": { "name": "Stone wall", "sprite": "wall", "hp": 80, "points": 0, "width": 22, "height": 4, "bulletFactor": 0.02, "solid": false, "decor": true, "obstacle": "wall" },
   "tree": { "name": "Tree", "sprite": "tree", "hp": 40, "points": 0, "width": 14, "height": 26, "bulletFactor": 0.3, "solid": true, "decor": true },

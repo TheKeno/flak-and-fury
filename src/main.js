@@ -28,6 +28,7 @@ const overlay = document.getElementById('start');
 
 const content = await loadContent('countryside');
 const world = createWorld({
+  hangarStart: true,
   map: content.map,
   planeDefs: content.planeDefs,
   weapons: content.weapons,

@@ -136,8 +136,9 @@ function bomb() {
   return g.rowsOut();
 }
 
-// Arched (Nissen-style) hangar seen from the front, door open. 64x32.
-function hangar() {
+// Arched (Nissen-style) hangar seen from the front. 64x32. open: 1 = doors slid back (the interior shows),
+// 0 = shut. The renderer picks hangar-shut / hangar-half / hangar by the object's door.
+function hangar(open = 1) {
   const g = grid(64, 32);
   const cx = 31.5;
   for (let x = 2; x <= 61; x++) {
@@ -151,6 +152,15 @@ function hangar() {
   for (let y = 14; y <= 31; y++) {
     g.span(y, 11, 14, 'h');
     g.span(y, 49, 52, 'h');
+  }
+  // Door panels sliding in from both sides to meet in the middle.
+  const cover = Math.round(15 * (1 - open));
+  for (let y = 14; y <= 31; y++) {
+    for (let i = 0; i < cover; i++) {
+      const seam = i === cover - 1 || i % 5 === 4;
+      g.set(17 + i, y, seam ? 'o' : 'h');
+      g.set(46 - i, y, seam ? 'o' : 'h');
+    }
   }
   // Windows.
   for (const x0 of [6, 54]) for (let y = 22; y <= 24; y++) g.span(y, x0, x0 + 3, 'w');
@@ -353,6 +363,8 @@ const SPRITES = {
   depot: depot(),
   bomb: bomb(),
   hangar: hangar(),
+  'hangar-half': hangar(0.5),
+  'hangar-shut': hangar(0),
   flak: flak(),
   mgnest: mgnest(),
   tent: tent(),

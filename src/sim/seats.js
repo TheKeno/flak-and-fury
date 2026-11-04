@@ -53,7 +53,7 @@ export function changeSeat(world, p, { team = p.team, defId = null }, dt) {
   if (newSide && playersOn(world, team).length >= MAX_PER_SIDE) return 'full';
   if (p.fresh && p.state === 'ground') {
     refit(world, p, def, team);
-    spawnAtAirfield(p, world);
+    spawnAtAirfield(p, world, world.hangarStart);
     return null;
   }
   if (p.switchedAt != null && (world.tick - p.switchedAt) * dt < world.bailout.switchWait) return 'wait';
@@ -73,6 +73,6 @@ export function changeSeat(world, p, { team = p.team, defId = null }, dt) {
   }
   makeWreck(world, p);
   refit(world, p, def, team);
-  spawnAtAirfield(p, world);
+  spawnAtAirfield(p, world, world.hangarStart);
   return null;
 }

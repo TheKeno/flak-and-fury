@@ -1,6 +1,6 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage, allGuns } from './weapons.js';
-import { updateServicing, ownAirfieldAt } from './airfield.js';
+import { updateServicing, ownAirfieldAt, sendPushCrew } from './airfield.js';
 import { clearRunway } from './runway.js';
 
 export { clearRunway };
@@ -145,6 +145,10 @@ export function createPlane(id, def, { team, nation, seats }) {
     prevRoll: false,
     rollAngle: 0, // visual roll, see updateRoll
     rolling: false,
+    exitTo: null, // x the plane rolls to after a respawn out of the hangar (null = not leaving it)
+    exitPhase: null, // wait (hidden, doors/queue) | out (rolls towards the camera) | turn | roll (to exitTo) | shove (pushed up the queue)
+    exitT: 0, // 0..1 through the roll-out towards the camera: the plane is drawn bigger as it comes
+    exitSeq: 0, // place in the hangar queue
     groundTurn: null, // 0..1 through turning round on the ground (pivoting on the main wheels)
     groundLoop: null, // 0..1 through a ground loop (Shift while taxiing): it ends with a wingtip in the ground
     turnDir: 0,
@@ -185,7 +189,8 @@ export function createPlane(id, def, { team, nation, seats }) {
   };
 }
 
-export function spawnAtAirfield(p, world) {
+// fromHangar: a respawn, which rolls out of the hangar (the first spawn of a game or a seat starts on the runway).
+export function spawnAtAirfield(p, world, fromHangar = false) {
   const af = world.map.airfields.find((a) => a.team === p.team) ?? world.map.airfields[0];
   const facingRight = af.x + af.width / 2 < world.map.width / 2;
   // Never in a crater: at the start (in the take-off direction) of the longest clear stretch.
@@ -237,6 +242,28 @@ export function spawnAtAirfield(p, world) {
   p.rolling = false;
   p.rollAngle = p.inverted ? Math.PI : 0;
   p.groundTurn = p.groundLoop = null;
+  // Out of the hangar (a respawn): it starts inside, facing the camera, engine idling. stepHangarExit waits for
+  // the doors and a free place, then the crew push it out; it turns into the runway and is rolled to
+  // its place in the line. Not with the hangar destroyed (no doors, no crew): it appears on the runway.
+  p.exitTo = null;
+  p.exitPhase = null;
+  p.exitT = 0;
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team && o.alive);
+  if (hangar && fromHangar) {
+    const dir = facingRight ? 1 : -1;
+    // The first place in the line: clear of the hangar, or the runway start if that is further.
+    const to = hangar.x + dir * (hangar.def.width / 2 + (hangar.def.exitClear ?? 12));
+    p.exitTo = dir > 0 ? Math.max(p.x, to) : Math.min(p.x, to);
+    p.x = hangar.x;
+    p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+    p.exitPhase = 'wait';
+    p.exitSeq = world.nextId++;
+    // Pointing away from the take-off way: the turn into the runway flips it round (stepGroundTurn).
+    p.angle = facingRight ? Math.PI : 0;
+    p.inverted = facingRight;
+    p.rollAngle = p.inverted ? Math.PI : 0;
+    p.groundTurn = 0.5; // the head-on frame, held until the turn
+  }
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
   return true;
@@ -365,6 +392,96 @@ function updateConsciousness(p, cmd, world, dt) {
     p.blackout = false;
     world.events.push({ type: 'wake', plane: p.id });
   }
+}
+
+// Leaving the hangar after a respawn (see spawnAtAirfield), one plane of a team at a time, oldest first.
+// wait: hidden inside until the doors are open, nobody else is on the way out and there is room in the
+// line. out: pushed towards the camera (drawn bigger). turn: round into the runway. roll: pushed to its
+// place in the line. A plane idling in the way is shoved up the line (phase shove) to make room.
+function stepHangarExit(p, world, dt) {
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
+  const cfg = hangar?.def ?? {};
+  const speed = cfg.exitSpeed ?? 14;
+  const early = p.exitPhase === 'wait' || p.exitPhase === 'out' || p.exitPhase === 'turn';
+  if (early && !hangar?.alive) {
+    // Hangar shelled meanwhile: the plane appears at its place on the runway.
+    const dir = Math.cos(p.angle) >= 0 ? -1 : 1;
+    p.x = p.exitTo;
+    p.angle = dir > 0 ? 0 : Math.PI;
+    p.inverted = dir < 0;
+    p.rollAngle = p.inverted ? Math.PI : 0;
+    p.groundTurn = null;
+    p.exitTo = null;
+    p.exitPhase = null;
+    p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+    return;
+  }
+  if (p.exitPhase === 'wait') {
+    if ((hangar.door ?? 1) < 1) return; // doors still opening
+    const shoves = canLeaveHangar(p, world, cfg);
+    if (!shoves) return;
+    for (const [o, to] of shoves) {
+      o.exitTo = to;
+      o.exitPhase = 'shove';
+    }
+    p.exitPhase = 'out';
+    p.exitT = 0;
+    sendPushCrew(world, p, hangar);
+    return;
+  }
+  if (p.exitPhase === 'out') {
+    p.exitT = Math.min(1, p.exitT + dt / (cfg.outTime ?? 3));
+    if (p.exitT >= 1) p.exitPhase = 'turn';
+    return;
+  }
+  if (p.exitPhase === 'turn') {
+    stepGroundTurn(p, world, dt);
+    if (p.groundTurn == null) p.exitPhase = 'roll';
+    return;
+  }
+  // roll / shove: along the runway at exitSpeed, engine off.
+  const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
+  const slope = world.terrain.slopeAngle(p.x);
+  p.angle = dir > 0 ? slope : Math.PI + slope;
+  p.speed = speed;
+  p.x += dir * speed * dt;
+  p.vx = Math.cos(p.angle) * speed;
+  p.vy = Math.sin(p.angle) * speed;
+  p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  if ((p.x - p.exitTo) * dir >= 0) {
+    p.x = p.exitTo;
+    p.exitTo = null;
+    p.exitPhase = null;
+    p.speed = p.vx = p.vy = 0;
+  }
+}
+
+// Can this waiting plane come out now? Not while a plane of its team is on the way out or waiting ahead
+// of it, nor with the line full. Returns the planes to shove up the line to make room as [plane, x]
+// (empty list = none needed), or null for "not yet".
+function canLeaveHangar(p, world, cfg) {
+  const mates = world.planes.filter((o) => o !== p && o.team === p.team && o.state === 'ground' && !o.wreck);
+  if (mates.some((o) => o.exitPhase === 'out' || o.exitPhase === 'turn' || o.exitPhase === 'roll' || (o.exitPhase === 'wait' && o.exitSeq < p.exitSeq))) return null;
+  const dir = Math.cos(p.angle) >= 0 ? -1 : 1; // the take-off way
+  const gap = cfg.slotGap ?? 34;
+  const size = cfg.queueSize ?? 3;
+  const base = p.exitTo;
+  const ahead = (o) => (o.x - base) * dir;
+  const line = mates.filter((o) => (!o.exitPhase || o.exitPhase === 'shove') && ahead(o) > -gap / 2 && ahead(o) < size * gap && Math.abs(o.speed) < 5).sort((a, b) => ahead(a) - ahead(b));
+  if (line.length >= size) return null;
+  const shoves = [];
+  let prev = base;
+  for (const o of line) {
+    const want = o.exitPhase === 'shove' ? o.exitTo : o.x;
+    if ((want - prev) * dir >= gap * 0.9) {
+      prev = want;
+      continue;
+    }
+    if (o.throttle > 0.05) return null; // the pilot has opened the throttle to go: wait behind
+    prev += dir * gap;
+    shoves.push([o, prev]);
+  }
+  return shoves;
 }
 
 function stepGround(p, cmd, world, dt) {
@@ -721,11 +838,19 @@ export function stepPlane(p, cmd, world, dt) {
   if (p.state === 'dead') {
     p.groundTurn = p.groundLoop = null;
     p.respawnTimer -= dt;
-    if (p.respawnTimer <= 0) spawnAtAirfield(p, world);
+    if (p.respawnTimer <= 0) spawnAtAirfield(p, world, true);
     return;
   }
 
   if (p.dying) cmd = { ...NO_COMMAND, throttle: -1 };
+  // Once the turn is done a human pilot can take over: opening the throttle ends the push at once (the
+  // crew let go and walk home). Bots are pushed all the way to their place.
+  if (p.exitPhase === 'roll' && cmd.throttle > 0 && !p.seats[0]?.controller?.startsWith('bot')) {
+    p.exitTo = null;
+    p.exitPhase = null;
+  }
+  // Rolling out of the hangar the plane is on rails: no guns, no throttle.
+  if (p.exitTo != null) cmd = { ...NO_COMMAND, throttle: 0 };
   // Turning round or ground-looping, the guns point nowhere useful.
   if (p.groundTurn != null || p.groundLoop != null) cmd = { ...cmd, fire: false, bomb: false };
   p.throttle = clamp(p.throttle + cmd.throttle * 0.7 * dt, 0, 1);
@@ -733,7 +858,8 @@ export function stepPlane(p, cmd, world, dt) {
   updateEngine(p, world, dt);
   updateDamage(p, world, dt);
 
-  if (p.state === 'ground') stepGround(p, cmd, world, dt);
+  if (p.state === 'ground' && p.exitTo != null) stepHangarExit(p, world, dt);
+  else if (p.state === 'ground') stepGround(p, cmd, world, dt);
   else stepAir(p, cmd, world, dt);
   updateTilt(p, dt);
   updateRoll(p, dt);

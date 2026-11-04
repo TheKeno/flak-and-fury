@@ -46,6 +46,33 @@ function sendCrew(world, p, crew) {
   return sent;
 }
 
+// The crew push a plane out of its hangar after a respawn (src/sim/plane.js, stepHangarExit): c.push is
+// set, c.pushing the plane. They stand at its wing tips while it comes out, clear of it for the turn,
+// behind its tail as it rolls to its place, then walk home (state back) and the doors shut. Whoever is
+// alive goes (a man killed is replaced after crewRespawn, and may miss this one).
+export function sendPushCrew(world, p, hangar) {
+  const n = world.crewDown[p.team] > 0 ? 1 : CREW_AT.length;
+  for (let slot = 0; slot < n; slot++) {
+    world.crew.push({
+      id: world.nextId++, team: p.team, plane: null, push: true, pushing: p.id, slot, x: hangar.x, y: world.terrain.heightAt(hangar.x),
+      state: 'push', t: 0, moving: false,
+    });
+  }
+}
+
+// Where a pushing man stands: wing tips (side by slot) while the plane comes out, a little clear for
+// the turn, behind the tail as it rolls.
+function pushSpot(p, c, hangar) {
+  const reach = p.def.hitRadius * 0.9;
+  const side = c.slot === 0 ? -1 : 1;
+  if (p.exitPhase === 'out') {
+    const k = hangar?.def?.exitStartScale ?? 0.6;
+    return p.x + side * reach * (k + (1 - k) * p.exitT);
+  }
+  if (p.exitPhase === 'turn') return p.x + side * (reach + 4);
+  return p.x - facing(p) * (p.def.hitRadius * 1.2 + 3 + c.slot * 5);
+}
+
 // linger: seconds before they set off (caught out at the job by the engine opening up).
 function sendBack(c, linger = 0) {
   c.plane = null;
@@ -61,6 +88,21 @@ export function stepCrew(world, dt) {
   for (let i = world.crew.length - 1; i >= 0; i--) {
     const c = world.crew[i];
     const p = c.plane != null ? world.planes.find((o) => o.id === c.plane) : null;
+    if (c.push && c.state === 'push') {
+      const pl = world.planes.find((o) => o.id === c.pushing);
+      const phase = pl?.exitPhase;
+      if (!pl || (phase !== 'out' && phase !== 'turn' && phase !== 'roll')) c.state = 'back';
+      else {
+        const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === c.team);
+        const target = pushSpot(pl, c, hangar);
+        const d = target - c.x;
+        c.moving = Math.abs(d) > 0.2;
+        c.x = Math.abs(d) <= speed * dt ? target : c.x + Math.sign(d) * speed * dt;
+        c.y = world.terrain.heightAt(c.x);
+        continue;
+      }
+    }
+    c.moving = c.state === 'out' || c.state === 'back';
     if (c.plane != null && !p?.service) sendBack(c, c.state === 'work' || c.state === 'setup' ? setting(world.servicing, 'crewStartle') : 0);
     if (c.state === 'wait') {
       c.t -= dt;
@@ -84,7 +126,7 @@ export function stepCrew(world, dt) {
       } else c.x += Math.sign(d) * speed * dt;
     }
     c.y = world.terrain.heightAt(c.x);
-    const by = world.planes.find((o) => o.state === 'ground' && o.speed > setting(world.servicing, 'crewKillSpeed') && underPlane(o, c.x));
+    const by = !c.push && world.planes.find((o) => o.state === 'ground' && o.speed > setting(world.servicing, 'crewKillSpeed') && underPlane(o, c.x));
     if (by) {
       killCrew(world, i, by, 'runDown');
       continue;
@@ -152,7 +194,7 @@ export function updateServicing(p, world, dt) {
   const hangar = hangarHealth(world, p.team);
   // With the engine stopped the throttle does nothing, so it needn't be at idle.
   const idle = p.throttle < 0.05 || !p.engineRunning;
-  const parked = p.state === 'ground' && !p.dying && p.speed < 2 && idle && ownAirfieldAt(world, p) && hangar > 0;
+  const parked = p.state === 'ground' && p.exitTo == null && !p.dying && p.speed < 2 && idle && ownAirfieldAt(world, p) && hangar > 0;
   // Without a service the plane's crew walk back to the hangar (stepCrew).
   if (!parked) {
     if (p.service && p.service.phase && p.service.phase !== 'done') world.events.push({ type: 'serviceAbort', plane: p.id });

@@ -313,6 +313,19 @@ above 600; weaving and changing speed throws their aim off.
 
 MG nests and infantry also shoot enemy soldiers when there's no plane in reach.
 
+**Hangar roll-out.** At the start of a game and after every respawn a plane stands inside its team's `hangar`,
+engine idling. The doors open, the ground crew push the plane out towards the camera (it is drawn small at first and
+grows), it turns into the runway and is pushed to its place in the line on the runway, and the crew walk home and
+the doors shut. Planes come out one at a time,
+oldest first; a plane standing idle in the first place is shoved up the line to make room, and when the line
+is full (or the front plane's pilot has opened the throttle) the next one waits inside with the doors open. Planes on the
+ground don't collide, so the ones behind can take off past a standing plane. With the hangar destroyed a plane
+appears on the runway. Tuning panel: Hangar → `doorTime` (seconds to open or shut, 0.5 – 2), `doorHold` (seconds
+the doors stay open after the crew are home, 1 – 3), `outTime` (seconds to push it out, 1 – 3), `exitStartScale`
+(size at the door, 0.7 – 0.9), `exitSpeed` (push-along speed, 8 – 20), `exitClear` (first place, world units past
+the hangar wall: 0 = right at the door, 0 – 20), `slotGap` (spacing in the line, about a plane length, 30 – 40), `queueSize` (planes in
+the line, 2 – 4).
+
 **The ground war.** Each side's `depot` sends out a wave of tanks with infantry behind them, which
 marches on the enemy airfield, stops to fight whatever enemy it meets and shells what it finds. At the
 airfield they shell the `hangar`: as it's damaged the ground crew work slower, and destroyed it leaves
