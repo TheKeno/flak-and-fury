@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Sound Lab keeps tab and scroll on reload:** the active tab, selected sound, vehicle/design pick and both scroll positions are kept in `localStorage` (`soundLabView`, `keepView` in `src/ui/sound-lab.js`); blocked storage just starts fresh.
 - **Rattle stops when it should:** a wreck makes no airframe layer sounds at all, and the rattle layer is silent with the engine off or the plane standing on the ground (`updatePlaneLayers` in `src/audio/soundscape.js`, `quiet` in `createLayerHost`). Checked by tests only, not by ear.
 - **Ground fire flames always rise:** every flame leaves with its own upward kick, so a burning plane that stands still no longer burns low (`emitEffects` in `src/render/renderer.js`). Visual only; the sim and snapshots are untouched. Not the same cause as "Fire effect carries over to the next plane".
 - **Gunsight preview in the options menu:** the HUD page shows a strip with the gunsight above its settings, redrawn live as style, colour, opacity and distance change (`src/render/sight.js`, shared with the HUD).
@@ -317,7 +318,6 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 - **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
-- **Sound Lab keeps scroll position and tab on refresh** (Sound): reloading returns to the same tab and scroll. Session: `Sound — Sound Lab refresh`.
 
 ## Backlog
 

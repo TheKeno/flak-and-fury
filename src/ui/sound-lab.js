@@ -1990,7 +1990,31 @@ addEventListener('beforeunload', (e) => {
 });
 showMute();
 updateCount();
-setTab('design');
+// Reload returns to the same tab, sound and scroll. Storage can be blocked: then it starts fresh.
+const KEEP = 'soundLabView';
+function keepView() {
+  try {
+    localStorage.setItem(KEEP, JSON.stringify({ tab, selected, design, vehicleSel, main: $('main').scrollTop, list: $('list').scrollTop }));
+  } catch { /* blocked storage: nothing to keep */ }
+}
+let keepTimer = 0;
+const keepSoon = () => { clearTimeout(keepTimer); keepTimer = setTimeout(keepView, 150); };
+let kept = null;
+try { kept = JSON.parse(localStorage.getItem(KEEP)); } catch { /* blocked or broken */ }
+if (kept && typeof kept === 'object') {
+  if (typeof kept.selected === 'string') selected = kept.selected;
+  if (kept.design && typeof kept.design.type === 'string') design = kept.design;
+  if (typeof kept.vehicleSel === 'string' || kept.vehicleSel === null) vehicleSel = kept.vehicleSel;
+}
+setTab(kept && ['design', 'sounds', 'vehicles', 'mix', 'guide'].includes(kept.tab) ? kept.tab : 'design');
+if (kept) {
+  $('main').scrollTop = Number(kept.main) || 0;
+  $('list').scrollTop = Number(kept.list) || 0;
+}
+$('main').addEventListener('scroll', keepSoon);
+$('list').addEventListener('scroll', keepSoon);
+addEventListener('pagehide', keepView);
+addEventListener('click', keepSoon, true);
 
 // The running engine under auditions. It has its own life: changing page leaves it on.
 let bed = null;
