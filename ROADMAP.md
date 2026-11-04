@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Ground fire flames always rise:** every flame leaves with its own upward kick, so a burning plane that stands still no longer burns low (`emitEffects` in `src/render/renderer.js`). Visual only; the sim and snapshots are untouched. Not the same cause as "Fire effect carries over to the next plane".
 - **Gunsight preview in the options menu:** the HUD page shows a strip with the gunsight above its settings, redrawn live as style, colour, opacity and distance change (`src/render/sight.js`, shared with the HUD).
 - **M key works in the menus:** mute toggles on the title, options and setup screens too (`src/main.js`).
 - **1. Flight:** throttle, A/D absolute rotation with fine-aim taps, roll, stalls, slow-speed turn bonus,
@@ -310,10 +311,6 @@ later.
 15. **Polish:** balance.
 
 Then: more themes, co-op missions, matchmaking.
-
-## In progress
-
-- **Ground fire flames don't always rise** (Gameplay): session "Gameplay — ground fire flames".
 
 ## Backlog
 

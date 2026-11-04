@@ -1245,7 +1245,11 @@ export function createRenderer(canvas, world, assets) {
     const stage = p.dying ? 1 : fireStage(world, p);
     if (p.burning && Math.random() < (0.5 + 1.3 * stage) * dt * 60) {
       const size = 1.2 + stage * 1.6;
-      particles.spawn('fire', wx + (Math.random() - 0.5) * (3 + stage * 5), wy, p.vx * 0.3, p.vy * 0.3, 0.15 + Math.random() * (0.25 + stage * 0.3), size);
+      // A flame always leaves with its own upward kick: a parked plane has no speed to carry it, and
+      // gravity alone lifts it barely a unit before it dies, so on the ground the fire lay low.
+      const lift = 14 + Math.random() * 10 + stage * 12;
+      const life = 0.25 + Math.random() * (0.3 + stage * 0.3);
+      particles.spawn('fire', wx + (Math.random() - 0.5) * (3 + stage * 5), wy, p.vx * 0.3, p.vy * 0.3 + lift, life, size);
     }
     if (p.state === 'ground' && p.belly && p.speed > 3) {
       for (let i = 0; i < 3; i++) particles.spawn('spark', p.x - c * (2 + Math.random() * 8), p.y - 2.5, -c * p.speed * (0.2 + Math.random() * 0.4), 10 + Math.random() * 30, 0.15 + Math.random() * 0.25, 0.5);
