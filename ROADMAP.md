@@ -309,6 +309,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
+  and dismount there, instead of appearing or walking all the way.
 - **Respawn out of the hangar** (Gameplay): on respawn the plane leaves the hangar with the runway roll animation, and the hangar doors open and close.
 - **Smooth turn at the map edge** (Planes): use the runway roll animation to turn the plane smoothly when it bounces off the map edge.
 - **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
