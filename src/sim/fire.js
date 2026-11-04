@@ -3,7 +3,7 @@
 // fire takes hold the engine coughs and loses power, and near the end it quits.
 // Rolled to a stop, the pilot beats the fire out himself (pilotTime); on your own airstrip the
 // ground crew have it out fast (crewTime). The time keeps running out while they work.
-import { ownAirfieldAt } from './airfield.js';
+import { ownAirfieldAt, CREW_SIZE } from './airfield.js';
 import { hangarHealth } from './ground.js';
 
 export const DEFAULT_FIRE = {
@@ -34,6 +34,12 @@ export function fireHit(world, p, amount) {
 
 // How far the fire has got, 0 (just caught) to 1 (about to finish the plane). For effects too.
 export const fireStage = (world, p) => (p.burning ? 1 - Math.max(0, p.fireLeft) / world.fire.burnTime : 0);
+
+// The whole crew are at the plane and working (src/sim/airfield.js).
+const crewAtPlane = (world, p) => {
+  const here = world.crew.filter((c) => c.plane === p.id);
+  return here.length >= CREW_SIZE && here.every((c) => c.state === 'work');
+};
 
 function putOut(world, p, crew) {
   p.burning = false;
@@ -67,9 +73,11 @@ export function stepFire(p, world, dt, shootDown) {
 
   if (p.state === 'ground' && p.speed < 2) {
     // The ground crew, if their hangar still stands (slower as it's damaged); otherwise the pilot alone.
+    // Once the crew are sent for (plane parked, p.service) nothing is put out until they all stand at
+    // the plane; a throttle held open sends no crew, so the pilot does it then.
     const hangar = hangarHealth(world, p.team);
-    const crew = Boolean(ownAirfieldAt(world, p)) && hangar > 0;
-    p.fireOut += dt;
+    const crew = Boolean(ownAirfieldAt(world, p)) && hangar > 0 && Boolean(p.service);
+    if (!crew || crewAtPlane(world, p)) p.fireOut += dt;
     if (p.fireOut >= (crew ? Math.min(cfg.pilotTime, cfg.crewTime / hangar) : cfg.pilotTime)) {
       putOut(world, p, crew);
       return;

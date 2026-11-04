@@ -98,13 +98,22 @@ test('on your own airstrip the ground crew put it out fast', () => {
   ignite(world, player);
   park(world, player, 400);
   let out = null;
-  for (let i = 0; i < 5 * 60 && out === null; i++) {
+  let arrived = null; // when both men first stood at the plane
+  let earlyOut = false;
+  for (let i = 0; i < 15 * 60 && out === null; i++) {
     stepWorld(world, {});
+    const here = world.crew.filter((c) => c.plane === player.id);
+    if (arrived === null && here.length === 2 && here.every((c) => c.state === 'work')) arrived = world.tick / 60;
     const e = world.events.find((ev) => ev.type === 'fireOut');
-    if (e) out = { t: world.tick / 60, crew: e.crew };
+    if (e) {
+      out = { t: world.tick / 60, crew: e.crew };
+      earlyOut = arrived === null;
+    }
   }
   assert.ok(out?.crew, 'the crew did it');
-  assert.ok(Math.abs(out.t - settings.fire.crewTime) < 0.1, `took ${out.t} s`);
+  assert.ok(!earlyOut && arrived !== null, 'not put out before the crew reached the plane');
+  assert.ok(arrived > 1, `crew need time to walk out (${arrived} s)`);
+  assert.ok(Math.abs(out.t - arrived - settings.fire.crewTime) < 0.15, `took ${out.t - arrived} s after they arrived`);
 });
 
 test('too little time left to put it out: the plane is lost on the ground', () => {

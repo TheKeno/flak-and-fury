@@ -216,8 +216,8 @@ function groundMessage(ctx, world, plane, centre) {
 // Putting a fire out, once the plane has stopped: the pilot alone in a field, the crew at home.
 function fireBar(ctx, world, plane, W) {
   if (!plane.burning || plane.dying || plane.state !== 'ground' || plane.speed >= 2) return;
-  const crew = Boolean(ownAirfieldAt(world, plane));
-  const label = crew ? 'GROUND CREW PUTTING OUT THE FIRE' : 'PUTTING OUT THE FIRE';
+  const crew = Boolean(ownAirfieldAt(world, plane)) && Boolean(plane.service);
+  const label = crew ? (plane.service.wait > 0 ? 'GROUND CREW COMING' : 'GROUND CREW PUTTING OUT THE FIRE') : 'PUTTING OUT THE FIRE';
   const y = 72;
   drawText(ctx, label, (W - textWidth(label)) / 2, y, '#ffc0a0');
   const w = 80;

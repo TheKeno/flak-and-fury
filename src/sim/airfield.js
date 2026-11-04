@@ -19,6 +19,7 @@ export const DEFAULT_SERVICING = {
 // the plane), setup (at the plane, getting their equipment ready), work (at their job), back (walking
 // home). Slot 0 works at the nose, slot 1 at the wing.
 const CREW_AT = [9, -3]; // where along the plane each slot works, ahead of its centre
+export const CREW_SIZE = CREW_AT.length;
 const CREW_LAG = 0.25; // seconds the second man sets off after the first
 // Crew numbers live in settings.servicing (crewSetup, crewStartle, crewKillSpeed, crewTurnKill*):
 // crewStartle is the time the crew stand frozen at the job when the engine opens up, long enough for a

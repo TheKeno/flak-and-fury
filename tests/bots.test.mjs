@@ -176,6 +176,7 @@ test('set on fire, a bot puts the plane down and the fire goes out', () => {
     launch(world, p, 1500, 200);
     run(world, 1);
     ignite(world, p);
+    p.fireLeft += 15; // the crew only start once the plane has stopped at home, so give the landing and their walk room
     const events = run(world, 40, { until: () => !p.burning });
     if (!p.burning && p.state !== 'dead' && !events.some((e) => e.type === 'crash' && e.plane === p.id)) saved++;
   }

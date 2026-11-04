@@ -127,7 +127,8 @@ your plane meanwhile.
 damage taken while burning takes `hitShortens` seconds off. Once less than `roughAt` of the time is left the
 engine coughs and loses power, and it fails with `quitAt` seconds left. Land and stop: the pilot puts the
 fire out in `pilotTime` seconds in a field (the engine can be started again, with `engineHarm` damage
-left), the ground crew in `crewTime` on your own airstrip. The time keeps running while they work. All in
+left), the ground crew in `crewTime` on your own airstrip, counted from when both men stand at the plane
+(not from when it stopped). The time keeps running while they walk out and work. All in
 the tuning panel's Fire section.
 
 `landing` (tuning panel: Landing): touchdowns are graded. Clean: speed under the plane's
