@@ -7,6 +7,18 @@ later.
 
 ## Decisions
 
+- **Sound Lab rpm finder (decided, not built):** a button on each engine clip in the Sound Design tab
+  that analyses the clip and *suggests* its `rpm`. Detect and suggest only: an Apply button sets the
+  field, nothing is written automatically, and the owner's ear decides. Method: windowed (about 0.25 s,
+  overlapping) fundamental-frequency tracking by autocorrelation or harmonic product spectrum, firing
+  frequency = rpm / 60 × cylinders / 2 (four-stroke), so it needs the cylinder count (check the plane
+  data, else add it to `data/sound.json`). Shows the suggested rpm (median of the steady part), a
+  confidence per window, an rpm-over-time plot (flat = steady and loopable, slope = sweep, spike to
+  double or half = wrong harmonic, gap = unreliable) and the half/double candidates; an optional
+  rough rpm typed by ear picks the right octave. Pure analysis code kept apart from the UI so it can be
+  tested headless on a synthetic pulse train in `tests/`. Why: the crossfade in
+  `src/audio/recordings.js` pitches each clip by `rpm / clip.rpm`, so a wrong or drifting number
+  detunes the engine at part throttle.
 - **Stack:** HTML5 canvas, plain JavaScript ES modules, no build step, a tiny local server
   (`node tools/serve.mjs 8080`). Chosen over Godot because Godot's web export lacks audio bus effects,
   and Web Audio suits the sound design.
