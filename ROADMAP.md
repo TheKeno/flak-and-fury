@@ -310,14 +310,16 @@ later.
 
 Then: more themes, co-op missions, matchmaking.
 
+## In progress
+
+- **Show the crosshair while editing it in the menu** (UI): session "UI — crosshair in menu".
+
 ## Backlog
 
 - **Screeching tires when bouncing on the runway** (Sound): add a tire screech effect (sound, maybe smoke puff)
   when a plane touches down hard or bounces on the runway.
 - **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
   can't take off however fast it goes; find out why and let it lift off when it has the speed.
-- **Show the crosshair while editing it in the menu** (UI): when the player changes the crosshair in the options
-  menu, the crosshair should be visible so the change can be seen as it is made.
 - **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
   engine and other plane sounds stay those of the old plane; they should follow the new plane.
 - **Plane crash shockwave hits infantry** (Gameplay): a crashing plane sends a shockwave that hurts or knocks down
