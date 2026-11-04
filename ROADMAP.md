@@ -309,6 +309,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
 - **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
   cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
   review the evidence (see its Done entry), the numbers and how it plays before it stays. Original ask:
