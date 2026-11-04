@@ -316,6 +316,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Show the crosshair while editing it in the menu** (UI): when the player changes the crosshair in the options
+  menu, the crosshair should be visible so the change can be seen as it is made.
 - **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
   engine and other plane sounds stay those of the old plane; they should follow the new plane.
 - **Plane crash shockwave hits infantry** (Gameplay): a crashing plane sends a shockwave that hurts or knocks down
