@@ -309,6 +309,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Smooth turn at the map edge** (Planes): use the runway roll animation to turn the plane smoothly when it bounces off the map edge.
 - **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
 - **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
   cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
