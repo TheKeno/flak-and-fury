@@ -332,8 +332,9 @@ Then: more themes, co-op missions, matchmaking.
   variant (A6M5 fits 1943) first.
 - **Add the Stuka (Ju 87 D-3)** (Planes): the German dive bomber, from a 3-view like every plane. Blocked until the
   Outline Lab is finished; ask the owner for the 3-view first.
-- **Long load after pressing start engine** (Sound): there is a long wait after pressing start engine before
-  anything happens; find what is loading (likely the start-up sound) and make it start at once.
+- **Game freezes a second or two after Start engine from the menu** (Gameplay): pressing start engine in the menu
+  froze the game for a second or two while it loaded. Probably gone with the new hangar animations; recheck, and
+  drop this line if it no longer happens.
 - **Screeching tires when bouncing on the runway** (Sound): add a tire screech effect (sound, maybe smoke puff)
   when a plane touches down hard or bounces on the runway.
 - **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
