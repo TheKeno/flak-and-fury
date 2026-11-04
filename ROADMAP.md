@@ -311,6 +311,10 @@ later.
 
 Then: more themes, co-op missions, matchmaking.
 
+## In progress
+
+- **Ground fire flames don't always rise** (Gameplay): session "Gameplay — ground fire flames".
+
 ## Backlog
 
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
@@ -334,8 +338,6 @@ Then: more themes, co-op missions, matchmaking.
   drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
 - **Fire effect carries over to the next plane** (Gameplay): after abandoning a burning plane, the fire effect
   continues on the player's next plane; it should stay with the abandoned wreck.
-- **Ground fire flames don't always rise** (Gameplay): when a plane catches fire on the ground the flames
-  sometimes don't rise up; they should always flare up the same way.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
   (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
 - **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;
