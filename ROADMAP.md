@@ -315,6 +315,8 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 - **Respawn out of the hangar** (Gameplay): plane rolls out of the hangar on respawn, doors open and close. Session: `Gameplay — respawn out of hangar`.
+- **Name set mid-game not shown to the host** (UI): a friend joined without a name and set it during the game, but the
+  host never saw it; a name changed after joining should reach the host and show in the HUD and logs. Session: `UI — mid-game name`.
 
 ## Backlog
 
@@ -347,8 +349,6 @@ Then: more themes, co-op missions, matchmaking.
   running to it; it should only be put out once they have reached the plane.
 - **Rattle sound stays when it shouldn't** (Sound): the rattle (airframe/engine) keeps playing after the plane has
   crashed, and also with the engine off or the plane standing still; it should stop in all three cases.
-- **Name set mid-game not shown to the host** (UI): a friend joined without a name and set it during the game, but the
-  host never saw it; a name changed after joining should reach the host and show in the HUD and logs.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
 - **Smooth turn at the map edge** (Planes): use the runway roll animation to turn the plane smoothly when it bounces off the map edge.
