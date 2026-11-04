@@ -25,6 +25,8 @@ nose line, rear down at 3.9 m). Use 1943 RAF markings, not the drawings' post-wa
 
 ## Resume order
 
+0. First build the **Outline Lab** (ROADMAP Decisions, 2026-11-04) in its own session and move
+   the seven finished planes onto outline files; the remaining planes are then outlined in it.
 1. Mosquito FB.VI
 2. P-38J (owner changed from H)
 3. Pe-3

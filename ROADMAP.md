@@ -7,6 +7,24 @@ later.
 
 ## Decisions
 
+- **Outline Lab (decided 2026-11-04, not built):** a browser editor for plane (and later tank) outlines,
+  `outline-lab.html` next to the Sound Lab, so outline work runs on the owner's screen instead of costing
+  tokens on screenshots and re-measuring. Only the outline is edited; everything inside it (shading,
+  glass, markings, canopy frames, guns, exhausts, paint keys) stays per-plane code in
+  `tools/plane-models.mjs` as now. Flow: load a blueprint (kept in the private notes repo, never this
+  repo, which GitHub Pages publishes); calibrate each view by clicking nose and tail (side) or the
+  wingtips (plan), the editor knowing the real length and span, so tilted and rotated drawings work;
+  **pre-fill the first trace automatically**: a type template (single-engine fighter, twin, later tank)
+  laid over the calibrated drawing with each part's edges snapped to the nearest drawn lines, plus a
+  brush to mask clutter (aerial wires, labels, other views); the owner corrects by dragging points (they
+  snap to lines); Claude only helps where the auto-trace is stuck. Live preview: the real renderer
+  (`plane-models.mjs` runs in the browser) shows the finished sprite at game size and x4 over the
+  blueprint while dragging. Save to `data/outlines/<plane>.json` (the same edge/station tables the
+  models use: fuselage top/bottom/width, canopy, fin and rudder edges, wing and tailplane edges, nacelles,
+  wheel centres and radii); the gear goes into `planes.json` `wheels`. A **Build sprites** button has
+  the local server run `tools/make-sprites.mjs` (no tokens); Claude commits and pushes when the owner
+  calls an outline done. **The seven finished planes move onto outline files** (look unchanged), and the
+  tanks use the same editor later. Details (markings positions etc.) stay in code in the first version.
 - **Scroll-wheel camera zoom (built, owner happy with the feel 2026-11-04; in-fight tightening still a trial of option C to tune):** the wheel scales the camera's zoom through a
   player zoom factor (default 1, reset to 1 at each take-off and each respawn, not saved). `src/render/renderer.js`
   `updateZoom` multiplies the automatic target (speed zoom, dogfight zoom, look-around) by it.
