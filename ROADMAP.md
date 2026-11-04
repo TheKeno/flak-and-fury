@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Belly scrape when gear is raised on the runway** (Planes): pressing G (landing gear) while on the runway should
+  drop the plane onto its belly and scrape (sparks, sound, drag), as a belly landing does.
 - **M key works in the menus** (UI): the M key (its in-game action, e.g. mute) should also work while a menu is open
   (title, options, pause).
 - **Fire effect carries over to the next plane** (Gameplay): after abandoning a burning plane, the fire effect
