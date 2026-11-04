@@ -312,6 +312,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
+  can't take off however fast it goes; find out why and let it lift off when it has the speed.
 - **Show the crosshair while editing it in the menu** (UI): when the player changes the crosshair in the options
   menu, the crosshair should be visible so the change can be seen as it is made.
 - **Plane sounds don't change when switching sides** (Sound): after the player switches side (and so plane), the
