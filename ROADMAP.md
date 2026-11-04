@@ -337,8 +337,6 @@ Then: more themes, co-op missions, matchmaking.
   Outline Lab is finished; ask the owner for the 3-view first.
 - **Screeching tires when bouncing on the runway** (Sound): add a tire screech effect (sound, maybe smoke puff)
   when a plane touches down hard or bounces on the runway.
-- **Planes sometimes can't lift off from the ground** (Planes): off the runway, on plain ground, a plane sometimes
-  can't take off however fast it goes; find out why and let it lift off when it has the speed.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
   (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
 - **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;
