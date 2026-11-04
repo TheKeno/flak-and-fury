@@ -127,6 +127,7 @@ later.
 
 ## Done
 
+- **Gunsight preview in the options menu:** the HUD page shows a strip with the gunsight above its settings, redrawn live as style, colour, opacity and distance change (`src/render/sight.js`, shared with the HUD).
 - **M key works in the menus:** mute toggles on the title, options and setup screens too (`src/main.js`).
 - **1. Flight:** throttle, A/D absolute rotation with fine-aim taps, roll, stalls, slow-speed turn bonus,
   ceiling blackout, take-off and landing, look-ahead camera with speed zoom and vertical lead.
@@ -309,10 +310,6 @@ later.
 15. **Polish:** balance.
 
 Then: more themes, co-op missions, matchmaking.
-
-## In progress
-
-- **Show the crosshair while editing it in the menu** (UI): session "UI — crosshair in menu".
 
 ## Backlog
 
