@@ -310,6 +310,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Fire effect carries over to the next plane** (Gameplay): after abandoning a burning plane, the fire effect
+  continues on the player's next plane; it should stay with the abandoned wreck.
 - **Ground fire flames don't always rise** (Gameplay): when a plane catches fire on the ground the flames
   sometimes don't rise up; they should always flare up the same way.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
