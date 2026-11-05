@@ -151,7 +151,8 @@ export function createPlane(id, def, { team, nation, seats }) {
     exitPhase: null, // wait (hidden, doors/queue) | out (rolls towards the camera) | turn | roll (to exitTo) | shove (pushed up the queue)
     exitT: 0, // 0..1 through the roll-out towards the camera: the plane is drawn bigger as it comes
     exitSeq: 0, // place in the hangar queue
-    edgeTurn: null, // 0..1 through the drawn swing round at a map edge (visual only; the flip itself is instant)
+    edgeTurn: null, // 0..1 through the swing round at a map edge (see stepAir)
+    edgeDir: 0, // which edge: -1 left, 1 right
     groundTurn: null, // 0..1 through turning round on the ground (pivoting on the main wheels)
     groundLoop: null, // 0..1 through a ground loop (Shift while taxiing): it ends with a wingtip in the ground
     turnDir: 0,
@@ -619,6 +620,8 @@ function stepGroundTurn(p, world, dt) {
 
 function stepAir(p, cmd, world, dt) {
   const d = p.def;
+  // Swinging round at a map edge: steering and rolling are locked until it is done (guns still work).
+  if (p.edgeTurn != null) cmd = { ...cmd, turn: 0, roll: false };
 
   if (cmd.roll && !p.prevRoll && !p.blackout) {
     p.inverted = !p.inverted;
@@ -691,21 +694,33 @@ function stepAir(p, cmd, world, dt) {
 
   p.vx = Math.cos(p.angle) * p.speed;
   p.vy = Math.sin(p.angle) * p.speed - p.sink;
+  // Map edges: the plane doesn't bounce. The swing round (edgeTurn 0..1, drawn with the runway turn-round
+  // frames) keeps some forward drift that slows to a stop at the half way mark, where the plane flips
+  // (angle mirrored, pilot kept upright), then speeds up the other way: the outward speed follows
+  // cos(PI t), so it starts and ends at the normal flying speed and the plane ends where it began.
+  if (p.edgeTurn != null) {
+    const before = p.edgeTurn;
+    p.edgeTurn += dt / ((world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime);
+    if (before < 0.5 && p.edgeTurn >= 0.5) {
+      p.angle = wrapAngle(Math.PI - p.angle);
+      p.inverted = !p.inverted;
+    }
+    p.vx = p.edgeDir * Math.abs(Math.cos(p.angle)) * p.speed * Math.cos(Math.PI * Math.min(1, p.edgeTurn));
+    if (p.edgeTurn >= 1) {
+      p.edgeTurn = null;
+      p.edgeDir = 0;
+    }
+  }
   p.x += p.vx * dt;
   p.y += p.vy * dt;
-
-  // Map edges turn the plane back, keeping the pilot upright. The flip is instant (flight is unchanged);
-  // edgeTurn only times the swing round the renderer draws over it, from the old facing to the new.
-  if (p.x < EDGE_MARGIN || p.x > world.map.width - EDGE_MARGIN) {
+  if (p.edgeTurn == null && (p.x < EDGE_MARGIN || p.x > world.map.width - EDGE_MARGIN)) {
+    const out = p.x < EDGE_MARGIN ? -1 : 1;
     p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
-    p.angle = wrapAngle(Math.PI - p.angle);
-    p.inverted = !p.inverted;
-    p.rolling = false;
-    p.edgeTurn = 0;
-  }
-  if (p.edgeTurn != null) {
-    p.edgeTurn += dt / ((world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime);
-    if (p.edgeTurn >= 1) p.edgeTurn = null;
+    if (p.vx * out > 0) { // heading outwards (a swing that ends a hair outside just stays put)
+      p.edgeTurn = 0;
+      p.edgeDir = out;
+      p.rolling = false;
+    }
   }
 
   const gearReady = p.gear >= 0.9;
@@ -719,7 +734,7 @@ function stepAir(p, cmd, world, dt) {
 // may fold; stallSink and plopDamage: a stall this slow sinking (units/s) is a tail-first plop.
 // rotateRate: how fast the nose comes up on the wheels at take-off (rad/s); liftoffPitch: the pitch it
 // leaves the ground at (rad); blendTime: seconds the turn rate takes to ease up to the flying rate.
-export const DEFAULT_TAKEOFF = { rotateRate: 0.4, liftoffPitch: 0.14, blendTime: 0.8, edgeTurnTime: 0.7 };
+export const DEFAULT_TAKEOFF = { rotateRate: 0.4, liftoffPitch: 0.14, blendTime: 0.8, edgeTurnTime: 1.2 };
 export const DEFAULT_LANDING ={ cleanAngle: 0.35, hardSpeed: 1.15, hardAngle: 0.6, hardDamage: 30, collapseFrom: 0.5, stallSink: 35, plopDamage: 6 };
 
 // How a landing here would go right now, for the HUD's approach cues: speed and nose angle against the

@@ -10,7 +10,7 @@ const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta
 const settings = load('data/settings.json');
 const IDLE = { turn: 0, throttle: 1, roll: false, fire: false, bomb: false, gear: false, abandon: false };
 
-test('reaching the map edge flips the plane at once and times a swing round that then ends', () => {
+function setup() {
   const world = createWorld({
     map: importLdtk(load('maps/countryside.ldtk')),
     planeDefs: load('data/planes.json'),
@@ -27,18 +27,41 @@ test('reaching the map edge flips the plane at once and times a swing round that
   p.speed = 120;
   p.x = world.map.width - 60;
   p.y = world.terrain.heightAt(p.x) + 600;
-  let flipped = -1;
-  let ended = -1;
+  return { world, p };
+}
+
+test('at a map edge the plane drifts on, stops at the half way mark, flips and comes back', () => {
+  const { world, p } = setup();
+  const edge = world.map.width - 12;
+  let start = -1, ended = -1, flip = -1, farthest = 0, stopAt = null;
   for (let i = 0; i < 60 * 4; i++) {
-    stepWorld(world, { p1: IDLE });
-    if (flipped < 0 && p.edgeTurn != null) {
-      flipped = i;
-      assert.ok(Math.cos(p.angle) < 0, 'now flying left');
-      assert.ok(p.inverted, 'pilot kept upright by the flip');
+    stepWorld(world, { p1: { ...IDLE, turn: p.edgeTurn != null ? 1 : 0 } }); // steering is locked during the swing
+    if (start < 0 && p.edgeTurn != null) start = i;
+    if (start >= 0 && p.edgeTurn != null) {
+      farthest = Math.max(farthest, p.x - edge);
+      if (flip < 0 && Math.cos(p.angle) < 0) {
+        flip = i;
+        assert.ok(p.edgeTurn >= 0.5 && p.edgeTurn < 0.55, 'flips at the half way mark');
+        assert.ok(Math.abs(p.vx) < 15, `almost stopped there (${p.vx})`);
+        assert.ok(p.inverted, 'pilot kept upright by the flip');
+        stopAt = p.x;
+      }
     }
-    if (flipped >= 0 && p.edgeTurn == null) { ended = i; break; }
+    if (start >= 0 && p.edgeTurn == null) { ended = i; break; }
   }
-  assert.ok(flipped >= 0, 'it hit the edge');
-  const secs = (ended - flipped) / 60;
-  assert.ok(ended > 0 && Math.abs(secs - settings.takeoff.edgeTurnTime) < 0.1, `swing took ${secs}s`);
+  assert.ok(start >= 0, 'it reached the edge');
+  const secs = (ended - start) / 60;
+  assert.ok(Math.abs(secs - settings.takeoff.edgeTurnTime) < 0.1, `swing took ${secs}s`);
+  assert.ok(farthest > 15, `drifted ${farthest} past the edge`);
+  assert.ok(Math.abs(stopAt - edge - farthest) < 3, 'the farthest point is where it stops');
+  assert.ok(p.vx < -80, 'leaving at flying speed the other way');
+  assert.ok(p.x <= edge + 2, `back inside (${p.x - edge})`);
+});
+
+test('steering is locked during the swing, so a held turn does not fight it', () => {
+  const { world, p } = setup();
+  for (let i = 0; i < 60 * 4 && !(p.edgeTurn != null); i++) stepWorld(world, { p1: IDLE });
+  const a = p.angle;
+  stepWorld(world, { p1: { ...IDLE, turn: 1 } });
+  assert.ok(Math.abs(Math.sin(p.angle) - Math.sin(a)) < 1e-6, 'nose pitch unchanged');
 });
