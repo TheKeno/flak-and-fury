@@ -773,6 +773,9 @@ export function createRenderer(canvas, world, assets) {
     const rows = frames.meta.rows;
     if (p.groundLoop != null) return { row: 'loop', index: Math.min(rows.loop.count - 1, Math.round(p.groundLoop * (rows.loop.count - 1))) };
     // Leaving the hangar: the head-on frames (the plain turn row would show the tail).
+    // At the map edge: the turn-round frames played backwards, since the sim has already flipped the plane
+    // (frame 0 faces the way it now flies, the last frame the way it came).
+    if (p.edgeTurn != null && p.state === 'air' && rows.turn) return { row: 'turn', index: Math.round((1 - smooth(Math.min(1, p.edgeTurn))) * (rows.turn.count - 1)) };
     if (p.groundTurn != null && p.exitPhase && rows.exit) return { row: 'exit', index: Math.round(smooth(Math.min(1, Math.max(0, (p.groundTurn - 0.5) * 2))) * (rows.exit.count - 1)) };
     if (p.groundTurn != null) return { row: 'turn', index: Math.round(smooth(Math.min(1, p.groundTurn)) * (rows.turn.count - 1)) };
     if (p.rolling) {

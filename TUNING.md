@@ -447,4 +447,6 @@ the plane leaves the ground, carrying on from the angle and height it was drawn 
 settles back. For `blendTime` seconds after lift-off (or after flying off a crest) the turn rate eases
 from `rotateRate` up to the plane's full flying turn rate. Rotation adds about `liftoffPitch / rotateRate`
 seconds (0.35 s at the defaults) to the roll, about 20 units more runway; the `runwayNeeded` values were
-measured before this and have not been re-measured.
+measured before this and have not been re-measured. `edgeTurnTime` (seconds, drawing only) is how long the
+plane takes to swing round, using the runway turn-round frames, when it meets the invisible map edge; the
+turn back itself is instant, as before.

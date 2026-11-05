@@ -111,6 +111,7 @@ const TAKEOFF_FIELDS = [
   ['rotateRate', 'Rotation rate', 0.1, 1.5, 0.05, 'How fast the nose comes up on the wheels (rad/s) when you pull back at take-off speed. Lower = a slower, longer rotation.'],
   ['liftoffPitch', 'Lift-off pitch', 0.05, 0.4, 0.01, 'The nose angle (rad) the plane has rotated to when it leaves the ground. 0.14 is about 8 degrees.'],
   ['blendTime', 'Climb-out blend', 0, 2, 0.05, 'Seconds after lift-off in which the turn rate eases up from the rotation rate to the full flying turn rate. 0 = no easing.'],
+  ['edgeTurnTime', 'Map-edge turn time', 0.2, 2, 0.05, 'Seconds the plane takes to swing round (the runway turn-round frames, drawing only) when it reaches the invisible wall and heads back into the fight.'],
 ];
 const RUNWAY_FIELDS = [
   ['concreteRadius', 'Crater size on concrete', 0.1, 1.5, 0.05, 'How wide a crater is dug in a runway, as a share (1 = as on grass). Smaller = more hits needed to close it.'],

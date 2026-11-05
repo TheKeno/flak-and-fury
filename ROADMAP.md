@@ -132,6 +132,7 @@ later.
 
 ## Done
 
+- **Smooth turn at the map edge (2026-11-05):** reaching the invisible wall still flips the plane at once (angle and `inverted`, flight unchanged), but now the renderer plays the runway turn-round frames backwards over it, so the plane swings round sideways instead of snapping. `edgeTurn` (0..1, visual only) in `src/sim/plane.js`, timed by new `takeoff.edgeTurnTime` (0.7 s; tuning panel: Take-off, TUNING.md), drawn from `transientFrame` in `src/render/renderer.js`. `tests/edge-turn.test.mjs`; seen in the browser pane (head-on frame mid-turn). The frames are the gear-down ground ones, so the wheels show during the swing; the plane flies on while it plays. Please fly into the wall once and say if the speed or look is right.
 - **Camera zoom no longer snaps at take-off or respawn:** the scroll-wheel zoom factor was set back to 1 in one step at each take-off and respawn, so a zoomed view jumped. Only its target is reset now (`updateZoom` in `src/render/renderer.js`) and the existing spring (`wheelSmooth`) eases the view home. Tests pass; no test for the easing (it lives in the renderer) and not tried in the browser, so please zoom with the wheel, take off and respawn once.
 - **Outline Lab, side view (first part):** `outline-lab.html` + `src/ui/outline-lab.js`: load a blueprint from disk (kept in this browser only), calibrate by nose and tail, drag the outline points over a pixel grid (one step = one sprite pixel), live preview at game size and x4, Save to `data/outlines/<plane>.json`, gear into `planes.json` `wheels`, a Build sprites button (the dev server runs `tools/make-sprites.mjs`), and New plane... (a scaled copy of a finished plane as the starting point). The 8 finished planes now build from outline files with byte-identical sprites; the Mosquito FB.VI side view is traced (`data/outlines/mosquito.json`, no model code yet). `tests/outlines.test.mjs`. Tried by the owner on the B-239 and the Mosquito; fin editing, the tail-point fit and the sprite area were fixed along the way. Notes: `notes/outline-lab.md`.
 - **Outline Lab, plan view (2026-11-05):** Side view / Plan view switch in the editor, with its own picture and wingtip calibration (nose + both tips, span = the plane's span), draggable half widths for every body part and `le`/`te` [z, d] edge tables for wing and tailplane (formula wings convert to points; `tools/planform.mjs`), a top-view preview rendered by the real model. The finished planes' outlines and sprites are unchanged. Not yet tried on the real Czech Mosquito sheet. Notes: `notes/outline-lab.md`.
@@ -337,8 +338,6 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-
-- **Smooth turn at the map edge** (Planes; session "Planes — smooth turn at the map edge"): at the invisible wall the plane uses the runway roll animation to turn sideways back into the combat; the flight direction logic stays as it is (owner, 2026-11-05).
 
 ## Backlog
 

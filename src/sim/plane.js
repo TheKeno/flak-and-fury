@@ -151,6 +151,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     exitPhase: null, // wait (hidden, doors/queue) | out (rolls towards the camera) | turn | roll (to exitTo) | shove (pushed up the queue)
     exitT: 0, // 0..1 through the roll-out towards the camera: the plane is drawn bigger as it comes
     exitSeq: 0, // place in the hangar queue
+    edgeTurn: null, // 0..1 through the drawn swing round at a map edge (visual only; the flip itself is instant)
     groundTurn: null, // 0..1 through turning round on the ground (pivoting on the main wheels)
     groundLoop: null, // 0..1 through a ground loop (Shift while taxiing): it ends with a wingtip in the ground
     turnDir: 0,
@@ -243,7 +244,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.propBent = false;
   p.rolling = false;
   p.rollAngle = p.inverted ? Math.PI : 0;
-  p.groundTurn = p.groundLoop = null;
+  p.groundTurn = p.groundLoop = p.edgeTurn = null;
   // Out of the hangar (a respawn): it starts inside, facing the camera, engine idling. stepHangarExit waits for
   // the doors and a free place, then the crew push it out; it turns into the runway and is rolled to
   // its place in the line. Not with the hangar destroyed (no doors, no crew): it appears on the runway.
@@ -693,12 +694,18 @@ function stepAir(p, cmd, world, dt) {
   p.x += p.vx * dt;
   p.y += p.vy * dt;
 
-  // Map edges turn the plane back, keeping the pilot upright.
+  // Map edges turn the plane back, keeping the pilot upright. The flip is instant (flight is unchanged);
+  // edgeTurn only times the swing round the renderer draws over it, from the old facing to the new.
   if (p.x < EDGE_MARGIN || p.x > world.map.width - EDGE_MARGIN) {
     p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
     p.angle = wrapAngle(Math.PI - p.angle);
     p.inverted = !p.inverted;
     p.rolling = false;
+    p.edgeTurn = 0;
+  }
+  if (p.edgeTurn != null) {
+    p.edgeTurn += dt / ((world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime);
+    if (p.edgeTurn >= 1) p.edgeTurn = null;
   }
 
   const gearReady = p.gear >= 0.9;
@@ -712,7 +719,7 @@ function stepAir(p, cmd, world, dt) {
 // may fold; stallSink and plopDamage: a stall this slow sinking (units/s) is a tail-first plop.
 // rotateRate: how fast the nose comes up on the wheels at take-off (rad/s); liftoffPitch: the pitch it
 // leaves the ground at (rad); blendTime: seconds the turn rate takes to ease up to the flying rate.
-export const DEFAULT_TAKEOFF = { rotateRate: 0.4, liftoffPitch: 0.14, blendTime: 0.8 };
+export const DEFAULT_TAKEOFF = { rotateRate: 0.4, liftoffPitch: 0.14, blendTime: 0.8, edgeTurnTime: 0.7 };
 export const DEFAULT_LANDING ={ cleanAngle: 0.35, hardSpeed: 1.15, hardAngle: 0.6, hardDamage: 30, collapseFrom: 0.5, stallSink: 35, plopDamage: 6 };
 
 // How a landing here would go right now, for the HUD's approach cues: speed and nose angle against the
@@ -731,6 +738,7 @@ export function approach(p, world) {
 // back up, damaged (nose-down bends the propeller; a bad one can fold the gear). A stall in the last
 // metre is a heavy tail-first plop. Worse is a crash, and the report says which limit was broken.
 function touchDown(p, world, ground, gearReady) {
+  p.edgeTurn = null;
   const d = p.def;
   const cfg = world.landing;
   const facingRight = Math.cos(p.angle) >= 0;
@@ -851,7 +859,7 @@ function abandon(p, world) {
 
 export function stepPlane(p, cmd, world, dt) {
   if (p.state === 'dead') {
-    p.groundTurn = p.groundLoop = null;
+    p.groundTurn = p.groundLoop = p.edgeTurn = null;
     p.respawnTimer -= dt;
     if (p.respawnTimer <= 0) spawnAtAirfield(p, world, true);
     return;

@@ -171,7 +171,8 @@
   "takeoff": {
     "rotateRate": 0.4,
     "liftoffPitch": 0.14,
-    "blendTime": 0.8
+    "blendTime": 0.8,
+    "edgeTurnTime": 0.7
   },
   "runway": {
     "concreteRadius": 0.6,
