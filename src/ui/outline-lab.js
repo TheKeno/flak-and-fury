@@ -17,17 +17,17 @@ const round025 = (v) => Math.round(v / 0.025) * 0.025;
 
 const COLOURS = {
   fuselage: '#e0c070', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
-  gunTray: '#b0b0b0', radiators: '#90d090', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff',
+  gunTray: '#b0b0b0', radiators: '#90d090', bump: '#d0d0ff', bump2: '#d0d0ff', bump3: '#d0d0ff', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff',
 };
 const LABELS = {
   fuselage: 'Fuselage', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
-  radiators: 'Radiators', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear',
+  radiators: 'Radiators', bump: 'Bump', bump2: 'Bump 2', bump3: 'Bump 3', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear',
 };
 const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
 // The plan view (from above) and the underside view (from below) edit the same points, each over its own picture.
 const isPlan = () => S.mode !== 'side';
 const label = (key) => (S.mode === 'side' && (key === 'wing' || key === 'tailplane') ? `${LABELS[key]} root` : LABELS[key]);
-const BODY_KEYS = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators'];
+const BODY_KEYS = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', 'bump', 'bump2', 'bump3'];
 
 const S = window.outlineLab = {
   name: null,
@@ -1276,10 +1276,11 @@ const PART_STARTERS = {
   radiators: { label: 'Radiators (chin)', span: [0.1, 0.3], at: 'bottom', depth: 0.3, up: 0.08, hw: 0.22, n: 3 },
   gunTray: { label: 'Gun tray', span: [0.15, 0.4], at: 'bottom', depth: 0.15, up: 0.05, hw: 0.12, n: 2.5 },
   nacelle: { label: 'Nacelle (pair)', span: [0.05, 0.4], at: 'middle', depth: 0.45, up: 0.4, hw: 0.5, n: 2.3, z: true },
+  bump: { label: 'Bump (small detail, e.g. gun sight)', span: [0.12, 0.17], at: 'onTop', depth: 0.05, up: 0.12, hw: 0.1, n: 2 },
   spine: { label: 'Spine', span: [0.35, 0.95], at: 'top', depth: 0.1, up: 0.05, hw: 0.1, n: 2 },
 };
 function makePart(key) {
-  const st = PART_STARTERS[key];
+  const st = PART_STARTERS[key.replace(/\d+$/, '')];
   const rows = S.o.fuselage.stations;
   const lerpCol = (d, col) => {
     if (d <= rows[0][0]) return rows[0][col];
@@ -1302,6 +1303,9 @@ function makePart(key) {
     if (st.at === 'bottom') {
       t = bot + st.up;
       b = bot - st.depth * k;
+    } else if (st.at === 'onTop') {
+      t = top + st.up * k;
+      b = top - st.depth;
     } else if (st.at === 'top') {
       t = top + st.depth * k * 0.5;
       b = top - st.depth;
@@ -1314,7 +1318,8 @@ function makePart(key) {
   return part;
 }
 function addPart(key) {
-  if (!PART_STARTERS[key] || S.o[key]) return;
+  if (key === 'bump') key = ['bump', 'bump2', 'bump3'].find((k) => !S.o[k]); // a general small detail: the first free slot
+  if (!key || !PART_STARTERS[key.replace(/\d+$/, '')] || S.o[key]) return;
   pushUndo();
   S.o[key] = makePart(key);
   S.part = key;
@@ -1338,7 +1343,8 @@ function rebuildPanel() {
     };
     parts.append(b);
   }
-  const missing = BODY_KEYS.filter((k) => !S.o[k] && PART_STARTERS[k]);
+  // 'bump' stays on offer while one of its three slots is free
+  const missing = BODY_KEYS.filter((k) => PART_STARTERS[k] && (k === 'bump' ? ['bump', 'bump2', 'bump3'].some((b) => !S.o[b]) : !S.o[k]));
   if (missing.length) {
     const sel = document.createElement('select');
     sel.title = 'This plane lacks these parts (its template had none): add one as a starting shape, then drag its points onto the drawing';

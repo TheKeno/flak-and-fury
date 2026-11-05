@@ -87,6 +87,10 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   nacelle pair or spine (`PART_STARTERS` / `makePart` in `src/ui/outline-lab.js`: five stations placed by the fuselage line);
   drag them onto the drawing or Fit part. Only the outline file gets the part: the sprite shows it once the plane's model
   code reads that key (a new plane has none yet).
+- **Bumps** (2026-11-05): a general small detail (gun sight, antenna housing, a hump): "+ add part…" > Bump adds `bump`,
+  then `bump2`, `bump3` (body-part stations; optional `kind`, default `dark`; placed on top of the fuselage near the nose).
+  `withBumps` in `tools/plane-models.mjs` wraps every builder and draws them as plain solids, so they show in the sprite
+  and the Lab preview for any plane; planes without them build exactly as before (sprites unchanged, checked).
 - Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
   in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
 

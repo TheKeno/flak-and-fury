@@ -9,7 +9,7 @@
 import { fitPlanform, convertPlanform, convertFin, fitFin, splitFin } from './planform.mjs';
 
 const r4 = (v) => Math.round(v * 1e4) / 1e4;
-const BODY = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators'];
+const BODY = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', 'bump', 'bump2', 'bump3'];
 // What "Fit all parts" does: the parts the decision calls automatable or medium. Radiators, gun tray and
 // the gear stay manual (nothing to see in the drawing, or hidden by other parts).
 export const FIT_ALL = ['fuselage', 'spinner', 'canopy', 'nacelle', 'wing', 'tailplane', 'fin', 'fins'];

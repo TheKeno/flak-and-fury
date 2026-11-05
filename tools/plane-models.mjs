@@ -1288,7 +1288,17 @@ function mosquito(o) {
 }
 
 // Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
-export const BUILDERS = { bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito };
+// Small details on any plane: an outline may carry `bump`, `bump2`, `bump3` (body-part stations like the radiators:
+// gun sight, antenna housing, a hump). Each is drawn as a plain solid of the outline's `kind` (default 'dark')
+// next to the plane's own parts. A plane without them is built exactly as before.
+const BUMPS = ['bump', 'bump2', 'bump3'];
+const withBumps = (build) => (o) => {
+  const model = build(o);
+  const { bodyOf } = kit(o);
+  for (const key of BUMPS) if (o[key]) model.parts.push({ ...bodyOf(o[key]), material: () => ({ kind: o[key].kind ?? 'dark' }) });
+  return model;
+};
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito }).map(([k, f]) => [k, withBumps(f)]));
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
 // model code through outline.template, so its outline can be traced and previewed.
 export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);
