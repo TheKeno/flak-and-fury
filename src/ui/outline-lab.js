@@ -132,6 +132,7 @@ const toScreen = (T, d, h) => {
   const [x, y] = toImg(T, d, h);
   return [x * S.view.k + S.view.x, y * S.view.k + S.view.y];
 };
+S.geo = { matT: () => matT(), toScreen: (...a) => toScreen(matT(), ...a) }; // for tests in the browser
 const fromScreen = (T, sx, sy) => fromImg(T, (sx - S.view.x) / S.view.k, (sy - S.view.y) / S.view.k);
 
 // The sprite's pixel grid in metres: pixel (col, row) is at d = A0 + A1 * col, h = B0 + B1 * row.
@@ -208,26 +209,29 @@ function planHandles(key) {
     for (const edge of ['le', 'te']) {
       const rows = s[edge];
       const other = edge === 'le' ? 'te' : 'le';
-      rows.forEach((row, i) => {
-        const last = i === rows.length - 1;
+      for (const row of rows) {
+        // First and last are worked out when the point is used, not when it was made: the table is kept in
+        // order of z while a point is dragged, so a point passed over its neighbour changes place.
         hs.push({
           ref: row,
           which: edge,
           pos: () => [row[1], row[0]],
           set: (d, z) => {
+            const i = rows.indexOf(row);
             row[1] = d;
             row[0] = i === 0 ? 0 : Math.max(0, z);
-            if (last) s[other].at(-1)[0] = row[0]; // both edges end at the same z
+            if (i === rows.length - 1) s[other].at(-1)[0] = row[0]; // both edges end at the same z
             fitPlanform(s, false);
           },
           remove: () => {
-            if (rows.length > 2 && !last && i > 0) {
-              rows.splice(rows.indexOf(row), 1);
+            const i = rows.indexOf(row);
+            if (rows.length > 2 && i > 0 && i < rows.length - 1) {
+              rows.splice(i, 1);
               fitPlanform(s, false);
             }
           },
         });
-      });
+      }
     }
   }
   return hs;
@@ -928,8 +932,9 @@ cv.addEventListener('pointermove', (e) => {
     drag.h.set(d, h);
     // Body stations are drawn and rendered in list order: keep them in order of d while dragging, so a point
     // passed over its neighbour does not zigzag the outline and then jump when it is let go. (The handles hold
-    // the row objects, so sorting the list does not disturb the drag.)
+    // the row objects, so sorting the list does not disturb the drag.) Wing and tailplane tables the same way.
     if (BODY_KEYS.includes(S.part)) S.o[S.part].stations.sort((a, b) => a[0] - b[0]);
+    if (isPlan() && planned(S.part) && S.o[S.part]?.le) fitPlanform(S.o[S.part]); // wing tables: in order of z, tip shared
     changed();
   } else if (drag?.pan) {
     S.view.x = drag.view.x + p[0] - drag.from[0];
