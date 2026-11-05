@@ -1287,6 +1287,94 @@ function mosquito(o) {
   };
 }
 
+// Junkers Ju 87 D-5 Stuka (11.5 m long, 15 m span; 5 model units to the metre, d back from the spinner tip).
+// Inverted gull wing (the outline's edge tables carry the crank; the dive brakes show as dark slats under
+// the outer wing), long glazed canopy over pilot and rear gunner with the MG 81Z on the rear mount, deep
+// chin radiator, fixed gear in wheel spats, single tall fin with the rudder. Two MG 151/20 in the outer
+// wings. 1943 Luftwaffe scheme: RLM 70 / 71 splinter on top over RLM 65 underneath, dark spinner,
+// Balkenkreuze on fuselage and wings (a white-bordered black cross, `cross`), optional fin swastika.
+function ju87(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
+  const split = Y(-0.12); // demarcation down the fuselage side
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const fuselage = bodyOf(o.fuselage);
+  const line = (d, w = 0.04) => (p) => Math.abs(p[0] - X(d)) < w * M;
+  const fuselageDecals = [
+    // Panel lines: cowling joint, firewall, rear of the canopy, rear fuselage joint.
+    (p, n) => (side(n) && [line(1.45), line(2.7), line(6.75), line(8.6)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
+    // Exhaust stubs along the cowling side.
+    (p, n) => (side(n) && Math.abs(p[1] - Y(0.1)) < 0.06 * M && p[0] < X(0.9) && p[0] > X(1.55) ? { kind: 'dark' } : null),
+    // Balkenkreuz between the canopy and the tail.
+    (p, n) => {
+      const k = side(n) && cross(p[0] - X(8.0), p[1] - Y(0.12), 0.42);
+      return k ? { kind: k } : null;
+    },
+  ];
+  const wing = surfaceOf(o.wing);
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && cross(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 5.2 * M, 0.34);
+    if (k) return { kind: k };
+    const hinge = s.k > 0.25 && Math.abs(s.u - 0.72) < 0.03; // flap and aileron line
+    const brake = under && s.k > 0.3 && s.k < 0.8 && Math.abs(s.u - 0.42) < 0.05; // dive brake slat
+    return { kind: under ? 'under' : 'paint', dark: hinge || brake ? 1 : 0 };
+  };
+  const tailplane = surfaceOf(o.tailplane);
+  const fin = surfaceOf(o.fin, true);
+  const finMat = (p, n) => {
+    const k = side(n) && hakenkreuz(p[0] - X(10.25), p[1] - Y(1.15), 0.3 * M);
+    return { kind: k || 'paint', dark: !k && Math.abs(p[0] - X(10.65)) < 0.04 * M && p[1] > Y(0.6) ? 1 : 0 }; // rudder hinge
+  };
+  const canopy = bodyOf(o.canopy);
+  const canopyMat = (p) => ({ kind: [4.0, 4.7, 5.35, 6.0].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
+  const spinner = bodyOf(o.spinner);
+  const radiators = bodyOf(o.radiators);
+  const spat = bodyOf(o.spat);
+  const bump = bodyOf(o.bump);
+  const plain = (kind) => () => ({ kind });
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const wz = 3.4 * M; // MG 151/20 muzzles in the wing leading edge
+  const wy = Y(o.wing.at + 3.4 * o.wing.rise * 0 + 0.1);
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...spinner, material: plain('dark') },
+    { ...radiators, material: (p) => ({ kind: p[0] > X(1.9) ? 'dark' : 'under' }) },
+    { ...wing, material: wingMat },
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fin, material: finMat },
+    { ...canopy, glass: true, material: canopyMat },
+    { ...sphere([X(4.5), Y(0.88), 0], 0.17 * M), pilot: true, material: plain('pilot') },
+    { ...sphere([X(5.55), Y(0.86), 0], 0.17 * M), pilot: true, material: plain('pilot') }, // rear gunner, facing aft
+    // Rear gunner's MG 81Z on its pivot mount, barrels poking aft out of the canopy.
+    { ...strut([X(6.2), Y(0.95), 0.06 * M], [X(7.1), Y(1.02), 0.06 * M], 0.025 * M), material: plain('dark') },
+    // Two MG 151/20 in the wings.
+    { ...strut([X(3.25), wy, wz], [X(2.8), wy, wz], 0.04 * M), material: plain('dark') },
+    { ...spat, material: plain('paint') },
+    { ...bump, material: plain('metal') }, // leg fairing above the spat
+    { ...strut([X(3.2), Y(-0.9), 1.5 * M], main, 0.07 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.12 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(10.55), Y(-0.3), 0], tailW, 0.04 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.05 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  return {
+    parts,
+    attach: {
+      exhaust: [X(1.0), Y(0.1), 0.45 * M],
+      wingRootL: [X(3.9), Y(-0.45), 0.6 * M],
+      wingRootR: [X(3.9), Y(-0.45), -0.6 * M],
+      wingTipL: [X(3.4), Y(o.wing.at) + o.wing.span * M * o.wing.rise, o.wing.span * M],
+      wingTipR: [X(3.4), Y(o.wing.at) + o.wing.span * M * o.wing.rise, -o.wing.span * M],
+      propHub: [X(0.4), Y(0), 0],
+      propRadius: 1.7 * M,
+      mainContact: [main[0], -10, 0],
+      track: main[2],
+    },
+  };
+}
+
 // Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
 // Parts any plane can carry although its model code does not know them (a plane built from a template in the
 // Outline Lab): `bump`, `bump2`, `bump3` (small details: gun sight, antenna housing), `spat` (a mirrored pair
@@ -1304,7 +1392,7 @@ const withBumps = (build) => (o) => {
   }
   return model;
 };
-export const BUILDERS = Object.fromEntries(Object.entries({ bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito }).map(([k, f]) => [k, withBumps(f)]));
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87 }).map(([k, f]) => [k, withBumps(f)]));
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
 // model code through outline.template, so its outline can be traced and previewed.
 export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);
