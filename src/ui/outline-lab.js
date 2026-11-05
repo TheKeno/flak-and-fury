@@ -1267,6 +1267,62 @@ function planPanel(o, row, note, button, panel) {
   });
   note('Trace the outline as if the engine nacelles were not there (they are their own part: Nacelle). Both edges end at the same z at the tip: a flat tip is the line between the two end points, a rounded tip needs a few points that close in. The first point of each edge sits on the centre line. Double-click a line to add a point.');
 }
+// ---------- Add part ----------
+// A plane made from a template only has the template's parts. These are rough starting shapes for the ones
+// it may lack, placed by the fuselage: [from, to] as a share of the fuselage length, how far the part reaches
+// below (or above, for the spine) the fuselage line, half width, and the squareness n. Five stations with the
+// ends slimmer; drag them onto the drawing (or Fit part to drawing). `z` makes it a mirrored pair.
+const PART_STARTERS = {
+  radiators: { label: 'Radiators (chin)', span: [0.1, 0.3], at: 'bottom', depth: 0.3, up: 0.08, hw: 0.22, n: 3 },
+  gunTray: { label: 'Gun tray', span: [0.15, 0.4], at: 'bottom', depth: 0.15, up: 0.05, hw: 0.12, n: 2.5 },
+  nacelle: { label: 'Nacelle (pair)', span: [0.05, 0.4], at: 'middle', depth: 0.45, up: 0.4, hw: 0.5, n: 2.3, z: true },
+  spine: { label: 'Spine', span: [0.35, 0.95], at: 'top', depth: 0.1, up: 0.05, hw: 0.1, n: 2 },
+};
+function makePart(key) {
+  const st = PART_STARTERS[key];
+  const rows = S.o.fuselage.stations;
+  const lerpCol = (d, col) => {
+    if (d <= rows[0][0]) return rows[0][col];
+    for (let i = 1; i < rows.length; i++) {
+      if (d <= rows[i][0]) return rows[i - 1][col] + ((rows[i][col] - rows[i - 1][col]) * (d - rows[i - 1][0])) / (rows[i][0] - rows[i - 1][0] || 1);
+    }
+    return rows.at(-1)[col];
+  };
+  const d0 = rows[0][0];
+  const len = rows.at(-1)[0] - d0;
+  const prof = [0.35, 0.8, 1, 0.8, 0.35];
+  const part = { n: st.n, stations: [] };
+  if (st.z) part.z = r4(S.o.span * 0.15);
+  prof.forEach((k, i) => {
+    const d = r4(d0 + len * (st.span[0] + ((st.span[1] - st.span[0]) * i) / (prof.length - 1)));
+    const top = lerpCol(d, 1);
+    const bot = lerpCol(d, 2);
+    let t;
+    let b;
+    if (st.at === 'bottom') {
+      t = bot + st.up;
+      b = bot - st.depth * k;
+    } else if (st.at === 'top') {
+      t = top + st.depth * k * 0.5;
+      b = top - st.depth;
+    } else {
+      t = (top + bot) / 2 + st.up * k;
+      b = (top + bot) / 2 - st.depth * k;
+    }
+    part.stations.push([d, r4(t), r4(b), r4(st.hw * k)]);
+  });
+  return part;
+}
+function addPart(key) {
+  if (!PART_STARTERS[key] || S.o[key]) return;
+  pushUndo();
+  S.o[key] = makePart(key);
+  S.part = key;
+  S.sel = null;
+  rebuildPanel();
+  changed();
+}
+
 function rebuildPanel() {
   const parts = $('parts');
   parts.textContent = '';
@@ -1281,6 +1337,15 @@ function rebuildPanel() {
       requestDraw();
     };
     parts.append(b);
+  }
+  const missing = BODY_KEYS.filter((k) => !S.o[k] && PART_STARTERS[k]);
+  if (missing.length) {
+    const sel = document.createElement('select');
+    sel.title = 'This plane lacks these parts (its template had none): add one as a starting shape, then drag its points onto the drawing';
+    sel.append(Object.assign(document.createElement('option'), { value: '', textContent: '+ add part…' }));
+    for (const k of missing) sel.append(Object.assign(document.createElement('option'), { value: k, textContent: PART_STARTERS[k].label }));
+    sel.onchange = () => addPart(sel.value);
+    parts.append(sel);
   }
   const panel = $('partPanel');
   panel.textContent = '';

@@ -82,6 +82,14 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   break points. Half widths are interpolated from the old stations. The panel reports the station counts (35→28). First and
   last station d stay.
 
+- **Add part** (2026-11-05): a plane made from a template only has the template's parts (the Ju 87 from the Bf 109 has no
+  radiators). The "+ add part…" dropdown in the Part list adds a starter shape for a missing radiators (chin), gun tray,
+  nacelle pair or spine (`PART_STARTERS` / `makePart` in `src/ui/outline-lab.js`: five stations placed by the fuselage line);
+  drag them onto the drawing or Fit part. Only the outline file gets the part: the sprite shows it once the plane's model
+  code reads that key (a new plane has none yet).
+- Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
+  in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
+
 ## Known limits
 - A fuselage station's top and bottom point share one `d` (position along the plane), so a sharp nose needs
   extra stations. Judged acceptable; revisit if the Mosquito nose or canopy fights it.
