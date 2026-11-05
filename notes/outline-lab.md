@@ -106,6 +106,7 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   `tools/plane-models.mjs` now builds the model through a proxy that notes which outline keys it reads and draws
   `radiators`, `gunTray`, `nacelle`, `spine` (plus `bump*`, `spat`) as plain solids when the model did not (surface kinds in
   `EXTRA_PARTS`). Finished planes' sprites are unchanged (checked). A model written later for the plane replaces this.
+- Defaults (2026-11-05, owner's wish): "snap to pixels" starts off and the sprite overlay slider at 0% (both are plain `outline-lab.html` attributes).
 - Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
   in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
 
