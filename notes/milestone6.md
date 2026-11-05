@@ -42,3 +42,17 @@ nose line, rear down at 3.9 m). Use 1943 RAF markings, not the drawings' post-wa
 7. Tanks
 
 Process: ask the owner for the 3-view first, overlay, outline approval, then frames/data/commit.
+
+## Blueprints uploaded (2026-11-05)
+
+All in the private notes repo `flak-and-fury-notes/milestone6/blueprints/` (not in this repo); pick them in the
+Outline Lab with "Pick from library…". File names are the plane names. Not yet checked for which views each
+sheet holds, or its scale and orientation: look when starting each plane.
+
+- **Milestone 6 planes:** P-38J Lightning, Pe-3, Ki-45 KAI Toryu, Blenheim Mk IV with gun pack, Ju-87 D-5,
+  Hurricane Mk IID, A-36A Apache, Il-2M3 Shturmovik (rear gunner position to place), D3A2 Val, Ju 88 A-4.
+- **Backlog planes:** A6M5 Zero.
+- **Heavy bombers (milestone 12):** B-17F, Lancaster B3, Heinkel 177 (`heinkel177_3v.jpg`), Pe-8, G4M1.
+- **Still missing:** Bf 109 F-4 (backlog rebuild) and all tanks (Panzer IV Ausf. H, Churchill Mk IV, M4A1 Sherman,
+  T-34/76 m1943, Shinhoto Chi-Ha, BT-42).
+- The 16 new files are not yet committed in the notes repo.
