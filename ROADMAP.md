@@ -339,10 +339,10 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Smoother hangar door and a faded exiting plane** (UI): session "UI — Smoother hangar door and faded exiting plane"; owner also wants more animation steps and a check whether the hangar must be larger for bigger planes (not bombers, which will fly in from the edge).
 
 ## Backlog
 
-- **Smoother hangar door and a faded exiting plane** (UI): the hangar door animation should run smoother, and the plane coming out should show slightly faded while the door opens (owner, 2026-11-05).
 - **Ground crew positions when pulling the plane from the hangar** (Gameplay): the crew look a bit off while they drag the plane out (owner, 2026-11-05); needs a look to say where they stand wrong (related: the ground crew pass below).
 - **Outline Lab: trace refinements** (Planes): ideas left from the automatic trace: fit the plan-view half widths of the fuselage under the wing and radiators (manual now), keep a fitted fuselage's top-line kink under the fin out of the station list, tune the search window and edge strength per plane after the next few traces, a "nearest/outermost" switch if cluttered sheets need it.
 - **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
