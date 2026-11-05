@@ -922,6 +922,23 @@ cv.addEventListener('pointerdown', (e) => {
     requestDraw();
     return;
   }
+  // Shift+drag a red calibration cross to correct it after the fact (the picture stays, the outline moves).
+  if (e.shiftKey && e.button === 0 && S.bp && calibrated(S.bp)) {
+    let best = null;
+    let bestD = 16;
+    for (const k of SEQ[S.mode]) {
+      const q = S.bp[k];
+      const dist = q ? Math.hypot(q[0] * S.view.k + S.view.x - p[0], q[1] * S.view.k + S.view.y - p[1]) : Infinity;
+      if (dist < bestD) {
+        bestD = dist;
+        best = k;
+      }
+    }
+    if (best) {
+      drag = { calib: best };
+      return;
+    }
+  }
   const h = e.button === 0 ? hitHandle(p) : null;
   if (h) {
     if (h.key !== S.part) {
@@ -941,7 +958,10 @@ cv.addEventListener('pointermove', (e) => {
   const p = mouse(e);
   S.cursor = p;
   const T = matT();
-  if (drag?.h) {
+  if (drag?.calib) {
+    S.bp[drag.calib] = [(p[0] - S.view.x) / S.view.k, (p[1] - S.view.y) / S.view.k];
+    requestDraw();
+  } else if (drag?.h) {
     const [d, h] = snap(...fromScreen(T, p[0], p[1]));
     drag.h.set(d, h);
     changed();
@@ -956,6 +976,12 @@ cv.addEventListener('pointermove', (e) => {
   }
 });
 function endDrag() {
+  if (drag?.calib) {
+    drag = null;
+    saveBlueprint();
+    requestDraw();
+    return;
+  }
   if (drag?.h && BODY_KEYS.includes(S.part)) {
     S.o[S.part].stations.sort((a, b) => a[0] - b[0]);
     rebuildPanel();
@@ -1380,7 +1406,7 @@ function updateBlueprintInfo() {
   const b = S.bp;
   const plan = isPlan();
   $('bpTitle').textContent = { side: 'Blueprint (side view)', plan: 'Blueprint (plan view, from above)', under: 'Blueprint (underside, from below)' }[S.mode];
-  $('calibInfo').textContent = !b ? 'No picture loaded (kept in this browser only).' : calibrated(b) ? `${b.name}: calibrated` : `${b.name}: click Calibrate`;
+  $('calibInfo').textContent = !b ? 'No picture loaded (kept in this browser only).' : calibrated(b) ? `${b.name}: calibrated (Shift+drag a red cross to correct it)` : `${b.name}: click Calibrate`;
   $('calib').disabled = !b;
   $('clear').disabled = !b;
   $('rowSide').hidden = plan;
