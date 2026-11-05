@@ -855,12 +855,15 @@ const SNAP_PX = 6;
 function edgeSnap(T, d, h, axis) {
   if (!$('snapEdge').checked || !S.bp?.img || !calibrated(S.bp)) return null;
   const { map, s } = edgeFor(S.bp);
-  const len = axis[0] ? Math.hypot(T.a, T.b) : Math.hypot(T.c, T.d);
-  const win = SNAP_PX / (len * S.view.k);
+  const len = axis[0] ? Math.hypot(T.a, T.b) : Math.hypot(T.c, T.d); // picture pixels per metre along the axis
+  // 6 screen pixels, but never less than 5 picture pixels: zoomed far in, a soft edge in a small picture is
+  // many screen pixels wide and its line lies further away than 6 of them.
+  const win = Math.max(SNAP_PX / (len * S.view.k), 5 / len);
   const r = rayFit(map, (t) => {
     const [x, y] = toImg(T, d + axis[0] * t, h + axis[1] * t);
     return [x * s, y * s];
-  }, win, { pen: 0.3 });
+  }, win, { pen: 0.25, thr: 0.2 });
+  S.snapMsg = r ? 'snapped to a line (hold Alt to place freely)' : `no line within ${(win * len).toFixed(1)} picture px of this point (snap to lines is on; Alt = off)`;
   return r && [d + axis[0] * r.t, h + axis[1] * r.t];
 }
 
@@ -951,10 +954,14 @@ cv.addEventListener('pointermove', (e) => {
     requestDraw();
   } else if (drag?.h) {
     let at = fromScreen(T, p[0], p[1]);
-    if (!e.altKey && drag.h.axis) at = edgeSnap(T, at[0], at[1], drag.h.axis) ?? at;
+    if (!e.altKey && drag.h.axis) {
+      const sn = edgeSnap(T, at[0], at[1], drag.h.axis);
+      if (sn) at = Object.assign(sn, { snapped: true });
+    }
     const [d, h] = snap(...at);
     drag.h.set(d, h);
     changed();
+    if (!e.altKey && drag.h.axis && $('snapEdge').checked) status(S.snapMsg, !at.snapped);
   } else if (drag?.pan) {
     S.view.x = drag.view.x + p[0] - drag.from[0];
     S.view.y = drag.view.y + p[1] - drag.from[1];
