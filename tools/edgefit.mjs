@@ -170,6 +170,110 @@ function despike(shifts, win) {
   });
 }
 
+
+// ---------- Station placement ----------
+// Douglas-Peucker on [x, y] points sorted by x: indices to keep so every dropped point lies within tol
+// (in y) of the straight line between its kept neighbours. The model interpolates stations linearly, so
+// this is exactly the error the finished outline will have.
+export function simplifyLine(pts, tol) {
+  const keep = new Set([0, pts.length - 1]);
+  const stack = [[0, pts.length - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    let worst = -1;
+    let wd = tol;
+    for (let i = a + 1; i < b; i++) {
+      const t = (pts[i][0] - pts[a][0]) / (pts[b][0] - pts[a][0] || 1);
+      const dev = Math.abs(pts[i][1] - (pts[a][1] + (pts[b][1] - pts[a][1]) * t));
+      if (dev > wd) {
+        wd = dev;
+        worst = i;
+      }
+    }
+    if (worst >= 0) {
+      keep.add(worst);
+      stack.push([a, worst], [worst, b]);
+    }
+  }
+  return [...keep].sort((x, y) => x - y);
+}
+
+const lerpRows = (rows, d, j) => {
+  if (d <= rows[0][0]) return rows[0][j];
+  for (let i = 1; i < rows.length; i++) {
+    if (d <= rows[i][0]) {
+      const t = (d - rows[i - 1][0]) / (rows[i][0] - rows[i - 1][0] || 1);
+      return rows[i - 1][j] + (rows[i][j] - rows[i - 1][j]) * t;
+    }
+  }
+  return rows.at(-1)[j];
+};
+const median = (v) => [...v].sort((a, b) => a - b)[v.length >> 1];
+
+// Fills the gaps in a list of shifts (null = no edge) from the nearest found ones; all null stays null.
+function fillGaps(sh) {
+  const idx = sh.map((v, i) => (v === null ? -1 : i)).filter((i) => i >= 0);
+  if (!idx.length) return null;
+  return sh.map((v, i) => {
+    if (v !== null) return v;
+    const before = idx.filter((k) => k < i).at(-1);
+    const after = idx.find((k) => k > i);
+    if (before === undefined) return sh[after];
+    if (after === undefined) return sh[before];
+    return sh[before] + ((sh[after] - sh[before]) * (i - before)) / (after - before);
+  });
+}
+
+// Side view: samples the top and bottom profile every `tol` metres between the part's first and last
+// station, fits each sample to the drawing, simplifies both profiles and puts a station at the union of
+// their break points (top and bottom share one d). Half widths are carried over from the old stations
+// (the plan view fits them later). Returns the same { hits, total } plus the station counts.
+function replaceStations(o, key, T, map, win, tol) {
+  const s = o[key];
+  const rows = s.stations;
+  const before = rows.length;
+  const d0 = rows[0][0];
+  const d1 = rows.at(-1)[0];
+  const n = Math.max(2, Math.ceil((d1 - d0) / tol));
+  const ds = Array.from({ length: n + 1 }, (_, i) => r4(d0 + ((d1 - d0) * i) / n));
+  const wantBottom = key !== 'canopy' && key !== 'spine';
+  const sym = rows.every((r) => Math.abs(r[1] + r[2]) < 1e-9);
+  let hits = 0;
+  const shifts = (col) =>
+    ds.map((d) => {
+      const h = lerpRows(rows, d, col);
+      const r = rayFit(map, (t) => apply(T, d, h + t), win);
+      if (r) hits++;
+      return r ? r.t : null;
+    });
+  const smooth = (sh) => {
+    const f = sh && fillGaps(sh);
+    if (!f) return f;
+    // Median (kills a stray edge), then a short average (picture noise of a pixel or two must not become stations).
+    const m = f.map((_, i) => median(f.slice(Math.max(0, i - 3), i + 4)));
+    return m.map((_, i) => {
+      const w = m.slice(Math.max(0, i - 2), i + 3);
+      return w.reduce((a, b) => a + b, 0) / w.length;
+    });
+  };
+  const top = smooth(shifts(1));
+  const bot = wantBottom ? smooth(shifts(2)) : null;
+  const total = ds.length * (wantBottom ? 2 : 1);
+  if (!top && !bot) return { hits: 0, total, before, after: before };
+  const tp = ds.map((d, i) => [d, lerpRows(rows, d, 1) + (top?.[i] ?? 0)]);
+  const bp = ds.map((d, i) => [d, lerpRows(rows, d, 2) + (bot?.[i] ?? 0)]);
+  if (sym) {
+    ds.forEach((_, i) => {
+      const hh = Math.max(0.01, (tp[i][1] - bp[i][1]) / 2);
+      tp[i][1] = hh;
+      bp[i][1] = -hh;
+    });
+  }
+  const idx = [...new Set([...simplifyLine(tp, tol), ...(wantBottom || sym ? simplifyLine(bp, tol) : [])])].sort((a, b) => a - b);
+  s.stations = idx.map((i) => [ds[i], r4(tp[i][1]), r4(bp[i][1]), r4(lerpRows(rows, ds[i], 3))]);
+  return { hits, total, before, after: s.stations.length };
+}
+
 // ---------- Fitting a part ----------
 // Every function returns how many points found an edge ({ hits, total }), the template-over-drawing check:
 // when hardly any point does, the calibration (or the sheet's turn) is wrong, not the template.
@@ -267,10 +371,11 @@ function fitFinPart(o, key, T, map, win) {
 
 // Fits one part of `o` (changed in place: pass a copy) to the edge map. Side view: station tops and
 // bottoms along h, fin edges along d; plan and underside view: half widths along z, wing and tailplane
-// edges along d. Parts with nothing to fit in this view do nothing. T maps model (d, h|z) to the map's pixels.
-export function fitPart(o, key, mode, T, map, { win = 0.3 } = {}) {
+// edges along d. `replace` (side view, body parts) also re-places the stations: see replaceStations; tol is
+// then the simplification tolerance in metres (half a sprite pixel). Parts with nothing to fit in this view do nothing. T maps model (d, h|z) to the map's pixels.
+export function fitPart(o, key, mode, T, map, { win = 0.3, replace = false, tol = 0.05 } = {}) {
   if (!o[key]) return { hits: 0, total: 0 };
-  if (BODY.includes(key)) return fitStations(o, key, mode, T, map, win);
+  if (BODY.includes(key)) return replace && mode === 'side' ? replaceStations(o, key, T, map, win, tol) : fitStations(o, key, mode, T, map, win);
   if (mode === 'side') return key === 'fin' || key === 'fins' ? fitFinPart(o, key, T, map, win) : { hits: 0, total: 0 };
   if (key === 'wing' || key === 'tailplane') return fitSurface(o, key, T, map, win);
   return { hits: 0, total: 0 };

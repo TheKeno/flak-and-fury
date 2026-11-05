@@ -1104,19 +1104,21 @@ function startFit(keys) {
   let hits = 0;
   let total = 0;
   const used = [];
+  const counts = [];
   for (const key of keys) {
     if (!o[key]) continue;
-    const r = fitPart(o, key, S.mode, T, map, { win });
+    const r = fitPart(o, key, S.mode, T, map, { win, replace: $('fitRe').checked, tol: 0.5 / (RES * S.o.scale) });
     if (!r.total) continue;
     hits += r.hits;
     total += r.total;
     used.push(key);
+    if (r.before !== undefined) counts.push(`${label(key)} ${r.before}→${r.after} stations`);
   }
   if (!total) return status(`Nothing to fit for ${keys.map(label).join(', ')} in this view`, true);
   S.ghost = { o, keys: used, mode: S.mode };
   $('fitGhost').hidden = false;
   const share = hits / total;
-  $('fitInfo').textContent = `${used.map(label).join(', ')}: an edge found for ${hits} of ${total} points. White dashed = the fit; Accept keeps it as one undo step, Cancel (or any edit) drops it.`
+  $('fitInfo').textContent = `${used.map(label).join(', ')}: an edge found for ${hits} of ${total} points${counts.length ? ` (${counts.join(', ')})` : ''}. White dashed = the fit; Accept keeps it as one undo step, Cancel (or any edit) drops it.`
     + (share < 0.6 ? ' Few points found an edge: check the calibration (nose and tail clicks, Turn 180°) before trusting this.' : '');
   $('fitInfo').style.color = share < 0.6 ? 'var(--warn)' : '';
   requestDraw();

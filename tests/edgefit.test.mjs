@@ -2,7 +2,7 @@
 // through an affine matrix so the same shape can be upright, rotated or mirrored.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { edgeMap, rayFit, fitPart } from '../tools/edgefit.mjs';
+import { edgeMap, rayFit, fitPart, simplifyLine } from '../tools/edgefit.mjs';
 
 const W = 360;
 const H = 300;
@@ -96,3 +96,33 @@ test('fitPart leaves points alone where the drawing has no edge (wrong calibrati
   assert.equal(r.hits, 0);
   assert.deepEqual(o.fuselage.stations, [[5, 0.9, -0.9, 0.5], [6, 0.9, -0.9, 0.5]]);
 });
+
+test('simplifyLine keeps the ends and the corners of a polyline, within the tolerance', () => {
+  const pts = [];
+  for (let i = 0; i <= 40; i++) pts.push([i * 0.1, i < 20 ? 0 : (i - 20) * 0.05]); // flat, then a slope: one corner
+  const keep = simplifyLine(pts, 0.02);
+  assert.deepEqual(keep, [0, 20, 40]);
+  assert.deepEqual(simplifyLine([[0, 0], [1, 0.5], [2, 0]], 0.6), [0, 2]);
+});
+
+for (const [name, T] of Object.entries(TS)) {
+  test(`fitPart with re-placed stations (${name} drawing): fewer stations, same profile`, () => {
+    // truth: top h = 0.5 up to d 3, then falling to 0.1 by d 5; bottom flat at -0.5
+    const top = (d) => (d < 3 ? 0.5 : Math.max(0.1, 0.5 - (d - 3) * 0.2));
+    const m = mapOf(picture(T, (d, h) => d > 1 && d < 6.5 && h > -0.5 && h < top(d)));
+    const rows = [];
+    for (let d = 1.5; d <= 6; d += 0.5) rows.push([d, top(d) + 0.1, -0.4, 0.3]);
+    const o = { fuselage: { stations: rows } };
+    const r = fitPart(o, 'fuselage', 'side', T, m, { win: 0.3, replace: true, tol: 0.05 });
+    const st = o.fuselage.stations;
+    assert.equal(r.before, 10);
+    assert.ok(st.length < 10 && st.length >= 3, `${st.length} stations`);
+    assert.equal(st[0][0], 1.5);
+    assert.equal(st.at(-1)[0], 6);
+    for (const [d, t, b, w] of st) {
+      assert.ok(Math.abs(t - top(d)) < 0.09, `top ${t} at ${d}`);
+      assert.ok(Math.abs(b - -0.5) < tol * 2, `bottom ${b}`);
+      assert.equal(w, 0.3);
+    }
+  });
+}

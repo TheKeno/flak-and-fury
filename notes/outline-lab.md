@@ -70,7 +70,13 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   are dropped (`despike`). The fit shows as a white dashed ghost; Accept = one undo step; any edit or Cancel drops it.
   The status line says how many points found an edge (under 60%: check the calibration). Edge map lives on the
   blueprint record in memory only (up to 3000 px long side). Fin helpers (`sampleVertical`, `fitFin`, `splitFin`,
-  `convertFin`) moved from the lab into `tools/planform.mjs`. Steps 2 (station placement) and 3 (snap-to-line) not built yet.
+  `convertFin`) moved from the lab into `tools/planform.mjs`. Step 3 (snap-to-line) not built yet.
+- **Automatic station placement** (step 2): the "re-place stations" checkbox (default on; side view body parts only; plan view
+  keeps the station d). `replaceStations` in `tools/edgefit.mjs` samples top and bottom every half sprite pixel between the
+  part's first and last station, fits each sample, smooths (median 7, average 5), simplifies each profile with
+  Douglas-Peucker (`simplifyLine`, tolerance half a sprite pixel, `0.5 / (RES * scale)`) and puts a station at the union of
+  break points. Half widths are interpolated from the old stations. The panel reports the station counts (35→28). First and
+  last station d stay.
 
 ## Known limits
 - A fuselage station's top and bottom point share one `d` (position along the plane), so a sharp nose needs
