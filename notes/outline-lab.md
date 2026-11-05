@@ -99,6 +99,8 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   d; wing/tailplane/fin edges: the z or h) and moves it only across; **Duplicate point** (body-part panel, select a point
   first) copies the selected station right after itself, the start of a step in the outline. Limit seen on the Stuka's
   spat: top and bottom profiles only run forward along d, so a leg fairing leaning back must be its own part (Bump).
+- **Make a mirrored pair** (body-part panel, any part but the fuselage): toggles `z` (default: the main wheel's half track), so
+  a Bump can be a leg fairing on each side. A pair is drawn at +z and -z; single parts sit on the centre line.
 - Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
   in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
 

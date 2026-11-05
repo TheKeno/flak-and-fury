@@ -1231,6 +1231,7 @@ function planPanel(o, row, note, button, panel) {
   }
   if (BODY_KEYS.includes(S.part)) {
     if (s.z !== undefined) row('z (centre of the pair)', numInput(() => s.z, (v) => (s.z = v)));
+    if (pairable(S.part)) button(s.z === undefined ? 'Make a mirrored pair' : 'Make single (centre line)', togglePair, 'A pair is drawn twice, at +z and -z; z is where the pair sits');
     panel.append(
       rowTable(s.stations, [{ title: 'd', i: 0 }, { title: 'half width', i: 3 }], (r, i, v) => (r[i] = v), (r) => {
         if (s.stations.length <= 2) return;
@@ -1292,6 +1293,17 @@ function planPanel(o, row, note, button, panel) {
   });
   note('Trace the outline as if the engine nacelles were not there (they are their own part: Nacelle). Both edges end at the same z at the tip: a flat tip is the line between the two end points, a rounded tip needs a few points that close in. The first point of each edge sits on the centre line. Double-click a line to add a point.');
 }
+// A body part is one solid on the centre line, or a mirrored pair at +-z (nacelles, spats, a leg fairing).
+function togglePair() {
+  const s = S.o[S.part];
+  if (!s) return;
+  pushUndo();
+  if (s.z === undefined) s.z = r4(S.o.gear?.main?.half ?? S.o.span * 0.1); // the wheel's half track is a good first guess
+  else delete s.z;
+  rebuildPanel();
+  changed();
+}
+const pairable = (key) => BODY_KEYS.includes(key) && key !== 'fuselage';
 // Copies the selected station right after itself (same d and sizes): the second point of a step in the outline.
 function duplicateStation() {
   const rows = BODY_KEYS.includes(S.part) ? S.o[S.part]?.stations : null;
@@ -1431,6 +1443,13 @@ function rebuildPanel() {
     const s = o[S.part];
     const nRow = row('squareness n', numInput(() => s.n, (v) => (s.n = v), 0.1));
     if (s.z !== undefined) nRow.append('z', numInput(() => s.z, (v) => (s.z = v)));
+    if (pairable(S.part)) {
+      const pb = document.createElement('button');
+      pb.textContent = s.z === undefined ? 'Make a mirrored pair' : 'Make single (centre line)';
+      pb.title = 'A pair is drawn twice, at +z and -z (wheel spats, nacelles, a leg fairing); z is where the pair sits';
+      pb.onclick = togglePair;
+      nRow.append(pb);
+    }
     const t = document.createElement('table');
     t.className = 'st';
     t.innerHTML = '<tr><th>d</th><th>top h</th><th>bottom h</th><th>half width</th><th></th></tr>';
