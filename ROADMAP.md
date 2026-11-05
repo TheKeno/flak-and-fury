@@ -332,6 +332,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
 - **Outline Lab: underside point features** (Planes): bomb racks, gun ports and similar small things that sit at a position (d, z, side) are not outlines. Settle the data first (which types; `hardpoints: [{type, d, z, side}]` in the outline file; draggable markers in the lab over the underside picture; model code to draw them; whether they show in the side sprite), then build. Ask the owner first.
 - **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); next, in this order: the auto pre-fill (type templates snapped to the drawing, mask brush, snap-to-line), then the pixel touch-up layer; see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
 - **Outline Lab: protect the calibration** (Planes): Load picture and Calibrate wipe a calibrated picture at once; ask before replacing it, or keep the old calibration so it can be restored.
