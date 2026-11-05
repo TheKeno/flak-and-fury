@@ -342,11 +342,11 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Remove the wheels from the edge turn animation** (Planes): session "Planes — Remove wheels from edge turn animation"; gear retracted in the map-edge turn frames.
 
 ## Backlog
 
 - **Stuka dive siren** (Sound): the Ju 87 D-5's Jericho siren (Jericho-Trompete) howling while it dives; a sound that rises with dive speed, needs a recording or a synthesised layer in the Sound Lab.
-- **Remove the wheels from the edge turn animation** (Planes): the map-edge turn shows the landing gear down; the wheels should be gone (retracted) in that animation (owner, 2026-11-05).
 - **Ground crew positions when pulling the plane from the hangar** (Gameplay): the crew look a bit off while they drag the plane out (owner, 2026-11-05); needs a look to say where they stand wrong (related: the ground crew pass below).
 - **Outline Lab: trace refinements** (Planes): ideas left from the automatic trace: fit the plan-view half widths of the fuselage under the wing and radiators (manual now), keep a fitted fuselage's top-line kink under the fin out of the station list, tune the search window and edge strength per plane after the next few traces, a "nearest/outermost" switch if cluttered sheets need it.
 - **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
