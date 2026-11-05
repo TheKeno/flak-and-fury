@@ -185,13 +185,11 @@ export function createRenderer(canvas, world, assets) {
     // The scroll wheel on top (not in free look). It has its own, quicker smoothing.
     zoom = autoZoom;
     if (focus) {
-      // Back to normal at a respawn (the plane was down, now it is not) and at each take-off.
+      // Back to normal at a respawn (the plane was down, now it is not) and at each take-off. Only the
+      // target moves: the spring below eases the view home, where setting the factor itself snapped it.
       const airborne = focus.state === 'air';
       const down = focus.state === 'dead';
-      if ((airborne && !cam.wasAir) || (!down && cam.wasDown)) {
-        cam.wheelTarget = cam.wheel = 1;
-        cam.wheelV = 0;
-      }
+      if ((airborne && !cam.wasAir) || (!down && cam.wasDown)) cam.wheelTarget = 1;
       cam.wasAir = airborne;
       cam.wasDown = down;
       const [lo, hi] = wheelRange(camCfg);

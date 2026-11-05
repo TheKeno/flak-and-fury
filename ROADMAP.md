@@ -336,9 +336,10 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Camera zoom snaps at take-off** (UI; session "UI — camera zoom snaps at take-off"): the scroll-wheel factor was set to 1 in one step at take-off and respawn; now only its target is, so the spring eases the view home.
+
 ## Backlog
 
-- **Camera zoom snaps at take-off** (UI): the view jumps in zoom when the plane lifts off; it should ease smoothly (owner noticed 2026-11-05).
 - **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
 - **Outline Lab: underside point features** (Planes): bomb racks, gun ports and similar small things that sit at a position (d, z, side) are not outlines. Settle the data first (which types; `hardpoints: [{type, d, z, side}]` in the outline file; draggable markers in the lab over the underside picture; model code to draw them; whether they show in the side sprite), then build. Ask the owner first.
 - **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); next, in this order: the automatic first trace (fit part to drawing, station placement, snap-to-line; see the Decisions entry "automatic first trace"), then the pixel touch-up layer; see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
