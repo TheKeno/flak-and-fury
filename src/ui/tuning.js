@@ -189,7 +189,7 @@ const DEFENCE_FIELDS = {
     ['exitSpeed', 'Push-along speed', 4, 40, 1, 'Speed a plane is pushed along the runway to its place.'],
     ['exitClear', 'First place from wall', 0, 40, 1, 'How far past the hangar wall (world units) the first plane in the line stands.'],
     ['outTime', 'Push-out time', 1, 8, 0.1, 'Seconds the crew take to push a plane out of the hangar towards you.'],
-    ['exitStartAlpha', 'Faded inside', 0.2, 1, 0.05, 'How solid the plane shows at the hangar door; it clears to full as it comes out.'],
+    ['exitStartAlpha', 'Faded inside', 0, 1, 0.05, 'How solid the plane shows at the hangar door; it clears to full as it comes out.'],
     ['exitStartScale', 'Size inside', 0.3, 1, 0.05, 'Size of the plane at the hangar door, growing to full size as it comes out (the illusion of coming closer).'],
     ['slotGap', 'Place spacing', 20, 60, 1, 'Distance between planes in the line on the runway (world units).'],
     ['queueSize', 'Places in the line', 1, 5, 1, 'Planes that can wait on the runway before the next stays in the hangar.'],

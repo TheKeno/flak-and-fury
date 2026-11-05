@@ -1046,9 +1046,10 @@ export function createRenderer(canvas, world, assets) {
       const s = silhouette(img);
       ctx.globalAlpha = alpha * planeAlpha;
       for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) ctx.drawImage(s, x + dx, y + dy);
-      ctx.globalAlpha = planeAlpha;
     }
+    ctx.globalAlpha = planeAlpha; // the outline branch above is skipped without a radar outline
     ctx.drawImage(img, x, y);
+    ctx.globalAlpha = 1;
   }
 
   const hangarOf = (p) => world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
@@ -1068,17 +1069,21 @@ export function createRenderer(canvas, world, assets) {
       const discs = Array.isArray(prop[0]) ? prop : [prop];
       // Pushed out of the hangar towards the camera: small at first, growing to full size.
       const grow = p.exitPhase === 'out' ? (hangarOf(p)?.def.exitStartScale ?? 0.6) + (1 - (hangarOf(p)?.def.exitStartScale ?? 0.6)) * p.exitT : 1;
-      planeAlpha = p.exitPhase === 'out' ? (hangarOf(p)?.def.exitStartAlpha ?? 0.55) + (1 - (hangarOf(p)?.def.exitStartAlpha ?? 0.55)) * p.exitT : 1;
+      const a0 = hangarOf(p)?.def.exitStartAlpha ?? 0;
+      planeAlpha = p.exitPhase === 'out' ? Math.min(1, (a0 + (1 - a0) * p.exitT) * 1.4) : 1; // solid by 70% of the way out
       if (grow !== 1) {
         ctx.save();
         ctx.translate(cx, cy);
         ctx.scale(grow, grow);
         ctx.translate(-cx, -cy);
       }
+      ctx.globalAlpha = planeAlpha;
       for (const d of discs) if (d[6] < 0) drawPropDisc(p, cx, cy, d, rot, !right, !isUpright(p));
       const f = frames.frame(shown.row, shown.index, rot, !right, !isUpright(p));
       drawOutlined(f.canvas, cx - f.radius, cy - f.radius, outline);
+      ctx.globalAlpha = planeAlpha;
       for (const d of discs) if (d[6] >= 0) drawPropDisc(p, cx, cy, d, rot, !right, !isUpright(p));
+      ctx.globalAlpha = 1;
       if (grow !== 1) ctx.restore();
       planeAlpha = 1;
       return;
