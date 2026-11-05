@@ -136,6 +136,18 @@ function sampleVertical(s) {
   return { le, te };
 }
 
+// A fin given as edge tables is drawn between `at` and `at + span` over the d range `root`, in height
+// order. Dragging a point can leave those behind (the preview then shows a clipped or odd fin), so keep
+// them in step with the points. For a fin that is already consistent this changes nothing.
+function fitFin(s) {
+  if (!s?.le || !s?.te) return;
+  for (const edge of [s.le, s.te]) edge.sort((a, b) => a[0] - b[0]);
+  const hs = [...s.le, ...s.te].map((r) => r[0]);
+  s.at = r4(Math.min(...hs));
+  s.span = r4(Math.max(...hs) - s.at);
+  s.root = [r4(Math.min(...s.le.map((r) => r[1]))), r4(Math.max(...s.te.map((r) => r[1])))];
+}
+
 function bodyRows(key) {
   return S.o[key].stations;
 }
@@ -206,8 +218,14 @@ function handlesFor(key) {
               other[1] = d;
               other[0] = h;
             }
+            fitFin(s);
           },
-          remove: () => rows.length > 2 && !last && rows.splice(rows.indexOf(row), 1),
+          remove: () => {
+            if (rows.length > 2 && !last) {
+              rows.splice(rows.indexOf(row), 1);
+              fitFin(s);
+            }
+          },
         });
       });
     }
@@ -1058,6 +1076,8 @@ async function openPlane(name, fresh = null) {
   S.name = name;
   S.saved = fresh ? '' : formatOutline(S.o);
   S.baseGear = JSON.stringify(S.o.gear);
+  // After S.saved, so a fin that had drifted shows as an unsaved change to save.
+  for (const k of ['fin', 'fins']) fitFin(S.o[k]);
   S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { pivot: S.o.sprite?.pivot ?? [48, 20], spriteSize: S.o.sprite?.size, nation: 'germany' };
   S.part = 'fuselage';
   S.sel = null;
