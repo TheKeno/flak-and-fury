@@ -866,8 +866,13 @@ export function createRenderer(canvas, world, assets) {
   }
 
   // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.
-  function drawPropDisc(p, cx, cy, [hx, hy, ax, ay, bx, by], rot, mirror) {
+  function drawPropDisc(p, cx, cy, [hx, hy0, ax, ay0, bx, by0], rot, mirror, flipped = false) {
     const m = mirror ? -1 : 1;
+    // A plane drawn upside down (frames flipped over): the disc's offsets flip with it.
+    const f = flipped ? -1 : 1;
+    const hy = hy0 * f;
+    const ay = ay0 * f;
+    const by = by0 * f;
     const c = Math.cos(rot);
     const s = Math.sin(rot);
     const turn = (x, y) => [x * m * c + y * s, -x * m * s + y * c];
@@ -1065,10 +1070,10 @@ export function createRenderer(canvas, world, assets) {
         ctx.scale(grow, grow);
         ctx.translate(-cx, -cy);
       }
-      for (const d of discs) if (d[6] < 0) drawPropDisc(p, cx, cy, d, rot, !right);
+      for (const d of discs) if (d[6] < 0) drawPropDisc(p, cx, cy, d, rot, !right, !isUpright(p));
       const f = frames.frame(shown.row, shown.index, rot, !right, !isUpright(p));
       drawOutlined(f.canvas, cx - f.radius, cy - f.radius, outline);
-      for (const d of discs) if (d[6] >= 0) drawPropDisc(p, cx, cy, d, rot, !right);
+      for (const d of discs) if (d[6] >= 0) drawPropDisc(p, cx, cy, d, rot, !right, !isUpright(p));
       if (grow !== 1) ctx.restore();
       return;
     }
