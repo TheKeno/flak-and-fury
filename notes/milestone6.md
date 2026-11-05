@@ -10,7 +10,14 @@ Spitfire IX, Bf 109 G-6 (F-4 kept, to be rebuilt later from a 3-view), P-47D, La
 (hakaristi), Bf 110 G-2 (AI rear gunner `armament.turrets`, twin prop discs, frame cells sized per
 plane), markings pass (optional German fin swastika setting).
 
-## Paused: Mosquito FB.VI
+## Mosquito FB.VI: sprite done (2026-11-05)
+
+Own model `mosquito()` in `tools/plane-models.mjs` from `data/outlines/mosquito.json` (1943 RAF scheme, C1/B/C
+roundels, fin flash, four .303 + two Hispano muzzles, underwing 250 lb bomb racks). Sprites built and approved.
+Not done: the `data/planes.json` entry (needs gameplay values from the owner; `make-sprites` works without it) and
+the wheels in planes.json. Old WIP model below is superseded.
+
+## (Superseded) Paused: Mosquito FB.VI
 
 The owner wants it **redone from the latest blueprint**:
 `milestone6/blueprints/mosquito-blueprint-czech-latest.png` in the notes repo (Czechoslovak B-36 /
@@ -27,7 +34,7 @@ nose line, rear down at 3.9 m). Use 1943 RAF markings, not the drawings' post-wa
 
 0. First build the **Outline Lab** (ROADMAP Decisions, 2026-11-04) in its own session and move
    the seven finished planes onto outline files; the remaining planes are then outlined in it.
-1. Mosquito FB.VI
+1. (Sprite done) Mosquito FB.VI: planes.json entry still open
 2. P-38J (owner changed from H)
 3. Pe-3
 4. Ki-45 KAI

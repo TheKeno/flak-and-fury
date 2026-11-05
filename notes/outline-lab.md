@@ -69,8 +69,9 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   and thickness are still numbers in the panel (side view); the front view of the Czech sheet is not used yet.
   A new body-part station added in the plan view copies the heights of its neighbours.
 - Load picture / Calibrate wipe a calibrated picture at once (backlog: protect the calibration).
-- The Mosquito preview still shows the Bf 110's twin fins (2.3 m off the centreline), rear gun and markings:
-  it borrows that model until it gets its own.
+- The Mosquito has its own model (`mosquito` in `BUILDERS`, 2026-11-05): single centreline `fin`, no `template`.
+  `make-sprites` takes sprite area and tail-down angle from the outline for a plane not yet in planes.json.
+  Markings and the underwing bomb racks (3.5 m out, estimated) are fixed numbers in the model code.
 
 ## Not done yet (in this order)
 1. (Done 2026-11-05, owner happy with side and plan: wing and tailplane as edge tables, widths traced; the
