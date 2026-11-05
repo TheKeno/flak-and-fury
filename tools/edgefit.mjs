@@ -138,7 +138,7 @@ export function sampleMap(map, x, y) {
 // Looks along a ray for the strongest edge near its start. `at(t)` maps t (metres from the template's
 // point) to a picture pixel; the search runs over -win..win. Returns { t, e } or null when nothing
 // is strong enough. A strong edge nearby beats a stronger one far away.
-export function rayFit(map, at, win, { thr = 0.3, outward = 0, keep = 0.85 } = {}) {
+export function rayFit(map, at, win, { thr = 0.3, outward = 0, keep = 0.85, pen = 0.9 } = {}) {
   const p0 = at(0);
   const p1 = at(win);
   const ppm = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) / win; // picture pixels per metre
@@ -155,7 +155,7 @@ export function rayFit(map, at, win, { thr = 0.3, outward = 0, keep = 0.85 } = {
   for (let i = 1; i < n - 1; i++) {
     if (es[i] < thr || es[i] < es[i - 1] || es[i] <= es[i + 1]) continue;
     const t = -win + (2 * win * i) / (n - 1);
-    const score = es[i] - (0.9 * Math.abs(t)) / win;
+    const score = es[i] - (pen * Math.abs(t)) / win;
     if (score >= thr * 0.85) found.push({ t, e: es[i], score });
   }
   if (!found.length) return null;

@@ -70,7 +70,13 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   are dropped (`despike`). The fit shows as a white dashed ghost; Accept = one undo step; any edit or Cancel drops it.
   The status line says how many points found an edge (under 60%: check the calibration). Edge map lives on the
   blueprint record in memory only (up to 3000 px long side). Fin helpers (`sampleVertical`, `fitFin`, `splitFin`,
-  `convertFin`) moved from the lab into `tools/planform.mjs`. Step 3 (snap-to-line) not built yet.
+  `convertFin`) moved from the lab into `tools/planform.mjs`. Edge choice: score = edge strength minus 0.9 x distance/window (`pen`), edges scoring under about 0.25 are not taken
+  (the point stays on the template); `outward` only breaks near-ties. The first version took the nearest or the outermost edge
+  and grabbed interior lines and a shadow smear on the Czech sheet; the distance penalty fixed it (owner: "much better").
+- **Snap to lines** (step 3): the "snap to lines" checkbox (default on). A dragged point, or one added with a double-click,
+  slides along its allowed axis (fuselage etc.: h in the side view, z in the plan view; wing/tailplane/fin edges: d) to the
+  strongest edge within 6 screen pixels (`edgeSnap`, `rayFit` with `pen` 0.3); Alt while dragging or double-clicking turns it off.
+  Arrow-key nudges never snap. `outlineLab.geo` exposes the view transform for browser tests.
 - **Automatic station placement** (step 2): the "re-place stations" checkbox (default on; side view body parts only; plan view
   keeps the station d). `replaceStations` in `tools/edgefit.mjs` samples top and bottom every half sprite pixel between the
   part's first and last station, fits each sample, smooths (median 7, average 5), simplifies each profile with

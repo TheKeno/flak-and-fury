@@ -135,3 +135,12 @@ test('an interior line far from the template does not pull a point where the rea
   fitPart(o, 'fuselage', 'side', T, m, { win: 0.3 });
   for (const r of o.fuselage.stations) assert.equal(r[1], 0.5, 'top stays on the template');
 });
+
+test('rayFit with a light distance penalty (snap-to-line) takes an edge near the end of a small window', () => {
+  const T = TS.upright;
+  const m = mapOf(picture(T, (d, h) => d > 1 && d < 8 && h > -1 && h < 1));
+  const at = (t) => [T.e + T.a * 4 + T.c * (1 + t), T.f + T.b * 4 + T.d * (1 + t)];
+  assert.equal(rayFit(m, (t) => at(t + 0.18), 0.2), null, 'the default penalty is for fitting from a template');
+  const r = rayFit(m, (t) => at(t + 0.18), 0.2, { pen: 0.3 });
+  assert.ok(r && Math.abs(r.t - -0.18) < tol, `found ${r?.t}`);
+});
