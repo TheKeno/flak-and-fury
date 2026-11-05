@@ -786,7 +786,8 @@ export function createRenderer(canvas, world, assets) {
     // the mirrored frames back down (frame 0 faces the way the plane is facing, whichever way that is).
     if (p.edgeTurn != null && p.state === 'air' && rows.turn) {
       const t = Math.min(1, p.edgeTurn);
-      return { row: 'turn', index: Math.round((t < 0.5 ? smooth(t) : 1 - smooth(t)) * (rows.turn.count - 1)) };
+      const row = rows.edge ? 'edge' : 'turn'; // 'edge' is the same swing with the gear up
+      return { row, index: Math.round((t < 0.5 ? smooth(t) : 1 - smooth(t)) * (rows[row].count - 1)) };
     }
     if (p.groundTurn != null && p.exitPhase && rows.exit) return { row: 'exit', index: Math.round(smooth(Math.min(1, Math.max(0, (p.groundTurn - 0.5) * 2))) * (rows.exit.count - 1)) };
     if (p.groundTurn != null) return { row: 'turn', index: Math.round(smooth(Math.min(1, p.groundTurn)) * (rows.turn.count - 1)) };

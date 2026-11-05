@@ -488,6 +488,8 @@ function planeSheet(model, tailDown) {
   add('roll', ROLL_ANCHOR, roll, false);
   add('rollGear', ROLL_ANCHOR, roll, true);
   add('turn', GROUND_ANCHOR, Array.from({ length: TURN_FRAMES }, (_, k) => groundPose(model, (k / (TURN_FRAMES - 1)) * Math.PI, tailDown)), true);
+  // Map-edge turn in the air: the same swing as the ground turn, gear up.
+  add('edge', GROUND_ANCHOR, Array.from({ length: TURN_FRAMES }, (_, k) => groundPose(model, (k / (TURN_FRAMES - 1)) * Math.PI, tailDown)), false);
   // Coming out of the hangar: nose towards the camera, swinging round to the runway (yaw -90 to -180). The turn
   // row passes through tail-on instead, which is right on the runway but backwards in the hangar door.
   add('exit', GROUND_ANCHOR, Array.from({ length: EXIT_FRAMES }, (_, k) => groundPose(model, -Math.PI / 2 - (k / (EXIT_FRAMES - 1)) * (Math.PI / 2), tailDown)), true);
