@@ -338,6 +338,8 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 
+- **Smooth turn at the map edge** (Planes; session "Planes — smooth turn at the map edge"): at the invisible wall the plane uses the runway roll animation to turn sideways back into the combat; the flight direction logic stays as it is (owner, 2026-11-05).
+
 ## Backlog
 
 - **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
@@ -359,7 +361,6 @@ Then: more themes, co-op missions, matchmaking.
   go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
-- **Smooth turn at the map edge** (Planes): use the runway roll animation to turn the plane smoothly when it bounces off the map edge.
 - **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
 - **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
   cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
