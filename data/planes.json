@@ -854,5 +854,118 @@
       "propBlades": 3,
       "gearRatio": 0.593
     }
+  },
+  "mosquito": {
+    "name": "Mosquito FB.VI",
+    "nation": "uk",
+    "role": "fighter-bomber",
+    "sprite": "mosquito",
+    "spriteSize": [
+      140,
+      53
+    ],
+    "pivot": [
+      70,
+      31
+    ],
+    "noseOffset": [
+      15.4,
+      0.7
+    ],
+    "propOffset": [
+      15.2,
+      0.4
+    ],
+    "exhaustOffset": [
+      12.5,
+      0.8
+    ],
+    "thrust": 88,
+    "dragCoef": 0.0034,
+    "groundFriction": 17,
+    "groundThrust": 0.48,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.2,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.5,
+    "slowTurnBonus": 0.6,
+    "slowTurnSpeed": 115,
+    "stallSpeed": 60,
+    "takeoffSpeed": 65,
+    "runwayNeeded": 165,
+    "maxLandingSpeed": 96,
+    "maxSpeed": 165,
+    "hp": 120,
+    "toughness": 1.1,
+    "rearView": 0.8,
+    "hitRadius": 9,
+    "endurance": 360,
+    "bombOffset": [
+      0,
+      -1.5
+    ],
+    "gearTime": 2.2,
+    "fixedTailWheel": false,
+    "wheels": [
+      {
+        "leg": [
+          10,
+          -0.9
+        ],
+        "wheel": [
+          10.25,
+          -2.7
+        ],
+        "stowed": [
+          8.5,
+          -1
+        ],
+        "r": 1.175
+      },
+      {
+        "leg": [
+          -11.7,
+          0.8
+        ],
+        "wheel": [
+          -11.95,
+          0.6
+        ],
+        "stowed": [
+          -11.95,
+          0.6
+        ],
+        "r": 0.575,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.65,
+    "groundTurnTime": 2,
+    "groundLoopTime": 1.2,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "hispano_20",
+          "count": 4
+        },
+        {
+          "weapon": "browning_303",
+          "count": 4
+        }
+      ],
+      "bombs": {
+        "weapon": "gp_250",
+        "count": 2
+      }
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 900,
+      "cruiseRpm": 2650,
+      "maxRpm": 3000,
+      "propBlades": 3,
+      "gearRatio": 0.42
+    }
   }
 }

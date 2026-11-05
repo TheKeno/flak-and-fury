@@ -284,7 +284,7 @@ later.
    Two-seaters get a simple AI rear gun now (mouse-aimed seats come with milestone 11). Twins get two
    prop discs and one engine sound until the sound pass. Plane choice from the tuning panel until the
    hangar. Build order: Spitfire IX, the other fighters, heavy fighters, dive bombers, tanks.
-   **Paused** after the Mosquito FB.VI sprite (own model, 2026-11-05, not in planes.json yet); resume at the P-38J, see [notes/milestone6.md](notes/milestone6.md).
+   **Paused** after the Mosquito FB.VI (own model and planes.json entry, owner-approved values, flies in the game, 2026-11-05); resume at the P-38J, see [notes/milestone6.md](notes/milestone6.md).
    Later, rare heavy tanks (Tiger, KV-1S) worth more points.
 7. **Online multiplayer** (decided): online, each player in their own browser. **Host-authoritative**:
    the host's browser runs the real sim; guests send their per-tick commands and receive world
@@ -333,7 +333,7 @@ Then: more themes, co-op missions, matchmaking.
 ## Backlog
 
 - **Outline Lab: underside point features** (Planes): bomb racks, gun ports and similar small things that sit at a position (d, z, side) are not outlines. Settle the data first (which types; `hardpoints: [{type, d, z, side}]` in the outline file; draggable markers in the lab over the underside picture; model code to draw them; whether they show in the side sprite), then build. Ask the owner first.
-- **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); next, in this order: the auto pre-fill (type templates snapped to the drawing, mask brush, snap-to-line), then the pixel touch-up layer; see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code now (sprites built; planes.json entry and gameplay values still to do).
+- **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); next, in this order: the auto pre-fill (type templates snapped to the drawing, mask brush, snap-to-line), then the pixel touch-up layer; see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
 - **Outline Lab: protect the calibration** (Planes): Load picture and Calibrate wipe a calibrated picture at once; ask before replacing it, or keep the old calibration so it can be restored.
 - **External bomb mounts and visible bombs** (Planes): planes get external racks, and undropped bombs and tanks show on them until released (needs the hangar loadout editor, model code and renderer); the Mosquito FB.VI carries bombs and tanks under the wing.
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up

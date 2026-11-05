@@ -14,8 +14,7 @@ plane), markings pass (optional German fin swastika setting).
 
 Own model `mosquito()` in `tools/plane-models.mjs` from `data/outlines/mosquito.json` (1943 RAF scheme, C1/B/C
 roundels, fin flash, four .303 + two Hispano muzzles, underwing 250 lb bomb racks). Sprites built and approved.
-Not done: the `data/planes.json` entry (needs gameplay values from the owner; `make-sprites` works without it) and
-the wheels in planes.json. Old WIP model below is superseded.
+In `data/planes.json` since 2026-11-05 (UK, fighter-bomber; thrust 88, maxSpeed 165, turnRate 1.2, hp 120, 4 Hispano + 4 .303, 2 GP 250 lb; owner approved). Headless test: lifts off after about 127 roll, level top speed about 161. Estimated by eye, still to check in a big view: leg tops, stowed wheel positions, propOffset and exhaustOffset. Visible undropped bombs on the racks stay a backlog item. Old WIP model below is superseded.
 
 ## (Superseded) Paused: Mosquito FB.VI
 
@@ -34,7 +33,7 @@ nose line, rear down at 3.9 m). Use 1943 RAF markings, not the drawings' post-wa
 
 0. First build the **Outline Lab** (ROADMAP Decisions, 2026-11-04) in its own session and move
    the seven finished planes onto outline files; the remaining planes are then outlined in it.
-1. (Sprite done) Mosquito FB.VI: planes.json entry still open
+1. (Done) Mosquito FB.VI
 2. P-38J (owner changed from H)
 3. Pe-3
 4. Ki-45 KAI
