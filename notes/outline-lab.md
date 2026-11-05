@@ -45,6 +45,9 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   The grid is the sprite's 0.1 m pixel (centre line on a pixel edge). The preview shows the model seen from
   above (`rollPose(PI/2)`, a lab-only picture, 1 pixel = the side preview's pixel; coarser while dragging)
   over the drawing and in its own figure; the side preview follows too. The game never uses the top view.
+- **Underside** (third button): the same points as the plan view over its own picture (`<plane>:under`, same
+  nose + two wingtips calibration), previewed from below (`rollPose(-PI/2)`). For what only shows from below
+  (radiators, gun tray, nacelle undersides): trace those widths here, wing/tailplane edges in the plan view.
 - Tests: `tests/outlines.test.mjs` (plan view: conversion draws nearly the same, fit keeps order).
 
 ## Known limits

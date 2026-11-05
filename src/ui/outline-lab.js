@@ -21,7 +21,9 @@ const LABELS = {
   fuselage: 'Fuselage', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
   radiators: 'Radiators', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear',
 };
-const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
+const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
+// The plan view (from above) and the underside view (from below) edit the same points, each over its own picture.
+const isPlan = () => S.mode !== 'side';
 const label = (key) => (S.mode === 'side' && (key === 'wing' || key === 'tailplane') ? `${LABELS[key]} root` : LABELS[key]);
 const BODY_KEYS = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators'];
 
@@ -36,7 +38,7 @@ const S = window.outlineLab = {
   part: 'fuselage',
   sel: null, // { ref, which } the selected point
   mode: 'side', // 'side' or 'plan' (top view)
-  bps: { side: null, plan: null }, // blueprints: { img, name, blob, nose, tail, tailH } (plan: nose, tipA, tipB)
+  bps: { side: null, plan: null, under: null }, // blueprints: { img, name, blob, nose, tail, tailH } (plan: nose, tipA, tipB)
   top: null, // the plan view's rendered sprite { canvas, res }
   calibrating: null,
   view: { x: 0, y: 0, k: 1 },
@@ -109,7 +111,7 @@ function planT() {
   return { a: sc * u[0], b: sc * u[1], c: sc * v[0], d: sc * v[1], e: O[0], f: O[1] };
 }
 function matT() {
-  if (S.mode === 'plan') return planT();
+  if (isPlan()) return planT();
   const L = S.o.length;
   const b = S.bp?.nose && S.bp?.tail ? S.bp : null;
   if (b) return solveT(b.nose, b.tail, L, tailHeight());
@@ -139,7 +141,7 @@ function topLayout(res = RES) {
 }
 function pixelGrid() {
   const M = S.o.scale;
-  if (S.mode === 'plan') {
+  if (isPlan()) {
     const t = topLayout();
     const step = 1 / (RES * M);
     return { A0: (S.o.frame.x + t.ax / RES) / M, A1: -step, B0: -t.ay / (RES * M), B1: step, step };
@@ -150,7 +152,7 @@ function pixelGrid() {
 }
 const spriteSize0 = () => S.def.spriteSize ?? [96, 36];
 const spriteSize = () => {
-  if (S.mode !== 'plan') return spriteSize0();
+  if (!isPlan()) return spriteSize0();
   const t = topLayout();
   return [t.w, t.h];
 };
@@ -338,7 +340,7 @@ function planSegments(key) {
 
 // The points of the selected part: { ref, which, pos() -> [d, h], set(d, h), remove?() }.
 function handlesFor(key) {
-  if (S.mode === 'plan') return planHandles(key);
+  if (isPlan()) return planHandles(key);
   const o = S.o;
   const hs = [];
   if (BODY_KEYS.includes(key) && o[key]) {
@@ -447,7 +449,7 @@ function handlesFor(key) {
 
 // Lines to draw for a part, in metres: [{ pts, closed }]. Fixed ones for parts without points in this view.
 function linesFor(key) {
-  if (S.mode === 'plan') return planLines(key);
+  if (isPlan()) return planLines(key);
   const o = S.o;
   if (!o[key]) return [];
   if (BODY_KEYS.includes(key)) {
@@ -480,7 +482,7 @@ function linesFor(key) {
 
 // Segments of the selected part where a double-click adds a point.
 function segmentsFor(key) {
-  if (S.mode === 'plan') return planSegments(key);
+  if (isPlan()) return planSegments(key);
   const o = S.o;
   const segs = [];
   if (BODY_KEYS.includes(key) && o[key]) {
@@ -507,7 +509,7 @@ function segmentsFor(key) {
 }
 
 function partIds() {
-  if (S.mode === 'plan') return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k])];
+  if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k])];
   return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), 'gear'];
 }
 
@@ -597,7 +599,7 @@ function renderTop() {
   try {
     const res = drag?.h ? 1 : RES;
     const t = topLayout(res);
-    const rows = render(buildModel(S.name, S.o), rollPose(Math.PI / 2), t.w, t.h, [t.ax, t.ay], { gear: $('gear').checked, res });
+    const rows = render(buildModel(S.name, S.o), rollPose((S.mode === 'under' ? -1 : 1) * Math.PI / 2), t.w, t.h, [t.ax, t.ay], { gear: $('gear').checked, res });
     S.top = { canvas: paintRows(rows, t.w, t.h), res };
     const pv = $('pvTop');
     pv.width = t.w;
@@ -659,7 +661,7 @@ function requestDraw() {
     if (S.dirtyPreview && S.o) {
       S.dirtyPreview = false;
       renderSprite();
-      if (S.mode === 'plan') renderTop();
+      if (isPlan()) renderTop();
     }
     try {
       draw();
@@ -701,6 +703,11 @@ function drawCalibMarks() {
 }
 
 const CALIB_MSG = {
+  under: {
+    nose: 'Click the NOSE TIP of the underside view (the same reference point as in the side view)',
+    tipA: 'Click ONE WINGTIP of the underside view',
+    tipB: 'Click the OTHER WINGTIP; the distance between them is the span',
+  },
   side: { nose: 'Click the NOSE TIP of the side view (zoom in with the wheel first if you like)', tail: 'Click the END OF THE TAIL (the rearmost point of the side view)' },
   plan: {
     nose: 'Click the NOSE TIP of the top view (the same reference point as in the side view)',
@@ -729,7 +736,7 @@ function draw() {
   // Until both calibration clicks are made, the plane has no place on the picture: show only the picture.
   if (S.bp && !calibrated(S.bp)) {
     drawCalibMarks();
-    const msg = S.calibrating ? CALIB_MSG[S.mode][S.calibrating] : S.mode === 'plan' ? 'Press Calibrate, then click the nose tip and both wingtips' : 'Press Calibrate, then click the nose tip and the tail end';
+    const msg = S.calibrating ? CALIB_MSG[S.mode][S.calibrating] : isPlan() ? 'Press Calibrate, then click the nose tip and both wingtips' : 'Press Calibrate, then click the nose tip and the tail end';
     ctx.font = '16px monospace';
     ctx.fillStyle = 'rgba(16,18,20,0.85)';
     ctx.fillRect(0, 0, W, 30);
@@ -746,12 +753,12 @@ function draw() {
   const g = pixelGrid();
   const [sw, sh] = spriteSize();
   // Sprite overlay.
-  const overlay = S.mode === 'plan' ? S.top?.canvas : S.sprite;
+  const overlay = isPlan() ? S.top?.canvas : S.sprite;
   if (overlay) {
     ctx.save();
     ctx.globalAlpha = $('spAlpha').value / 100;
     ctx.imageSmoothingEnabled = false;
-    if (S.mode === 'plan') {
+    if (isPlan()) {
       // Rendered at its own resolution (coarser during a drag), laid over the fine grid.
       const t = topLayout(S.top.res);
       const M = S.o.scale;
@@ -790,7 +797,7 @@ function draw() {
   ctx.beginPath();
   ctx.moveTo(-1, 0);
   ctx.lineTo(S.o.length + 1, 0);
-  if (S.mode === 'plan') {
+  if (isPlan()) {
     ctx.moveTo(0, -S.o.span / 2 - 1); // the nose point's line across the plane
     ctx.lineTo(0, S.o.span / 2 + 1);
   }
@@ -802,7 +809,7 @@ function draw() {
     ctx.globalAlpha = active ? 1 : 0.4;
     ctx.lineWidth = line(active ? 2 : 1);
     for (const ln of linesFor(key)) {
-      for (const flip of S.mode === 'plan' ? [1, -1] : [1]) {
+      for (const flip of isPlan() ? [1, -1] : [1]) {
         ctx.globalAlpha = (active ? 1 : 0.4) * (flip < 0 ? 0.5 : 1); // the other wing, mirrored
         ctx.beginPath();
         ln.pts.forEach(([d, h], i) => (i ? ctx.lineTo(d, flip * h) : ctx.moveTo(d, flip * h)));
@@ -841,7 +848,7 @@ function draw() {
     const [d, h] = fromScreen(T, S.cursor[0], S.cursor[1]);
     const col = Math.round((d - g.A0) / g.A1);
     const row = Math.round((h - g.B0) / g.B1);
-    hint = S.mode === 'plan' ? `d ${d.toFixed(2)} m   z ${h.toFixed(2)} m` : `d ${d.toFixed(2)} m   h ${h.toFixed(2)} m   pixel ${col}, ${row}`;
+    hint = isPlan() ? `d ${d.toFixed(2)} m   z ${h.toFixed(2)} m` : `d ${d.toFixed(2)} m   h ${h.toFixed(2)} m   pixel ${col}, ${row}`;
   }
   $('hint').textContent = hint;
 }
@@ -944,12 +951,12 @@ function endDrag() {
     S.o[S.part].stations.sort((a, b) => a[0] - b[0]);
     rebuildPanel();
   }
-  if (drag?.h && S.mode === 'plan' && planned(S.part) && S.o[S.part]?.le) {
+  if (drag?.h && isPlan() && planned(S.part) && S.o[S.part]?.le) {
     fitPlanform(S.o[S.part]);
     rebuildPanel();
   }
   if (drag?.h && S.part === 'gear') rebuildPanel();
-  const wasPlanDrag = !!drag?.h && S.mode === 'plan';
+  const wasPlanDrag = !!drag?.h && isPlan();
   // A fin edge must stay in height order and on its own side, or the preview shows a gap: put the
   // points right once the drag is done (doing it mid-drag swaps lines under the cursor).
   if (drag?.h && S.mode === 'side' && verticalOf(S.part) && S.o[S.part]?.le) {
@@ -1046,7 +1053,7 @@ window.addEventListener('keydown', (e) => {
   pushUndo();
   let dd = arrows[0] * right;
   let dh = arrows[1];
-  if (S.mode === 'plan') {
+  if (isPlan()) {
     // The drawing may be turned: move along whichever of d and z points most nearly the way of the key.
     const [px, py] = toScreen(T, d, hh);
     const q = fromScreen(T, px + arrows[0] * 100, py - arrows[1] * 100);
@@ -1211,7 +1218,7 @@ function rebuildPanel() {
     b.onclick = fn;
     panel.append(b);
   };
-  if (S.mode === 'plan') {
+  if (isPlan()) {
     planPanel(o, row, note, button, panel);
     refreshPanelValues();
     return;
@@ -1362,8 +1369,8 @@ async function loadBlueprint(plane, mode) {
 }
 function updateBlueprintInfo() {
   const b = S.bp;
-  const plan = S.mode === 'plan';
-  $('bpTitle').textContent = plan ? 'Blueprint (plan view, from above)' : 'Blueprint (side view)';
+  const plan = isPlan();
+  $('bpTitle').textContent = { side: 'Blueprint (side view)', plan: 'Blueprint (plan view, from above)', under: 'Blueprint (underside, from below)' }[S.mode];
   $('calibInfo').textContent = !b ? 'No picture loaded (kept in this browser only).' : calibrated(b) ? `${b.name}: calibrated` : `${b.name}: click Calibrate`;
   $('calib').disabled = !b;
   $('clear').disabled = !b;
@@ -1372,7 +1379,8 @@ function updateBlueprintInfo() {
   $('tailH').value = fmt(tailHeight());
   $('span').value = fmt(S.o?.span);
   $('modeSide').className = plan ? '' : 'on';
-  $('modePlan').className = plan ? 'on' : '';
+  $('modePlan').className = S.mode === 'plan' ? 'on' : '';
+  $('modeUnder').className = S.mode === 'under' ? 'on' : '';
 }
 function setMode(mode) {
   if (S.mode === mode || !S.o) return;
@@ -1383,11 +1391,13 @@ function setMode(mode) {
   updateBlueprintInfo();
   rebuildPanel();
   S.dirtyPreview = true;
-  $('topFig').hidden = mode !== 'plan';
+  $('topFig').hidden = mode === 'side';
+  $('topCap').textContent = mode === 'under' ? 'from below (for checking only)' : 'from above (for checking only)';
   fitView();
 }
 $('modeSide').onclick = () => setMode('side');
 $('modePlan').onclick = () => setMode('plan');
+$('modeUnder').onclick = () => setMode('under');
 $('span').onchange = () => {
   const v = parseFloat($('span').value);
   if (v > 0) {
@@ -1531,7 +1541,7 @@ async function openPlane(name, fresh = null) {
   S.calibrating = null;
   S.mode = 'side';
   $('topFig').hidden = true;
-  S.bps = { side: await loadBlueprint(name, 'side'), plan: await loadBlueprint(name, 'plan') };
+  S.bps = { side: await loadBlueprint(name, 'side'), plan: await loadBlueprint(name, 'plan'), under: await loadBlueprint(name, 'under') };
   updateBlueprintInfo();
   rebuildPanel();
   S.dirtyPreview = true;
