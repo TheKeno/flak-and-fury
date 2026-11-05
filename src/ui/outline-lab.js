@@ -310,6 +310,12 @@ function partIds() {
 
 // ---------- Undo ----------
 function pushUndo() {
+  // Until the tail point's height is typed in, it follows the last fuselage station, so editing that
+  // station would tilt the whole blueprint fit and every point would seem to move. Fix it before any edit.
+  if (S.bp && S.bp.tailH == null && S.bp.nose && S.bp.tail) {
+    S.bp.tailH = tailHeight();
+    saveBlueprint();
+  }
   S.undo.push(JSON.stringify(S.o));
   if (S.undo.length > 200) S.undo.shift();
   S.redo = [];
