@@ -21,7 +21,7 @@ import { fireStage } from '../sim/fire.js';
 import { drawSightShape } from './sight.js';
 import { surfaceAt } from '../sim/ground.js';
 import { localToWorld } from '../sim/weapons.js';
-import { attitude, mainWheelContact, DEFAULT_WHEELS } from '../sim/plane.js';
+import { attitude, mainWheelContact, isUpright, DEFAULT_WHEELS } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
@@ -1066,7 +1066,7 @@ export function createRenderer(canvas, world, assets) {
         ctx.translate(-cx, -cy);
       }
       for (const d of discs) if (d[6] < 0) drawPropDisc(p, cx, cy, d, rot, !right);
-      const f = frames.frame(shown.row, shown.index, rot, !right);
+      const f = frames.frame(shown.row, shown.index, rot, !right, !isUpright(p));
       drawOutlined(f.canvas, cx - f.radius, cy - f.radius, outline);
       for (const d of discs) if (d[6] >= 0) drawPropDisc(p, cx, cy, d, rot, !right);
       if (grow !== 1) ctx.restore();

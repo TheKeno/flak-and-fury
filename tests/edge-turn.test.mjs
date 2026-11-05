@@ -65,3 +65,44 @@ test('steering is locked during the swing, so a held turn does not fight it', ()
   stepWorld(world, { p1: { ...IDLE, turn: 1 } });
   assert.ok(Math.abs(Math.sin(p.angle) - Math.sin(a)) < 1e-6, 'nose pitch unchanged');
 });
+
+test('the flip pivots on the main wheels (they stay put) and keeps a plane upside down upside down', async () => {
+  const { mainWheelContact, isUpright } = await import('../src/sim/plane.js');
+  for (const [angle, inverted] of [[0, false], [0.7, false], [-0.6, false], [0, true], [0.5, true]]) {
+    const { world, p } = setup();
+    p.angle = angle;
+    p.inverted = inverted;
+    const up = isUpright(p);
+    let before = null;
+    let flips = 0;
+    for (let i = 0; i < 60 * 4 && p.edgeTurn !== 1; i++) {
+      const was = p.edgeFlip;
+      const w = mainWheelContact(p);
+      stepWorld(world, { p1: IDLE });
+      if (p.edgeFlip !== was) {
+        flips++;
+        const now = mainWheelContact(p);
+        // The wheels only moved with the plane's own drift this tick (well under a unit), not by the mirror.
+        assert.ok(Math.abs(now.x - w.x) < 2 && Math.abs(now.y - w.y) < 2, `wheels jumped (${angle}, ${inverted}): ${now.x - w.x}, ${now.y - w.y}`);
+        before = isUpright(p);
+      }
+      if (flips && p.edgeTurn == null) break;
+    }
+    assert.equal(flips, 1, 'flipped once');
+    assert.equal(before, up, `the plane stays ${up ? 'right way up' : 'upside down'} through the flip`);
+  }
+});
+
+test('drawing between ticks does not swing the angle through the flip', async () => {
+  const { takePoses, writePoses } = await import('../src/render/interpolate.js');
+  const { world, p } = setup();
+  p.angle = 0.7;
+  const a = takePoses(world);
+  p.angle = Math.PI - 0.7;
+  p.edgeFlip = 1;
+  p.x += 5;
+  const b = takePoses(world);
+  p.angle = 0;
+  writePoses(world, a, b, 0.5);
+  assert.ok(Math.abs(p.angle - (Math.PI - 0.7)) < 1e-9, 'angle is the new one, not the sweep between');
+});

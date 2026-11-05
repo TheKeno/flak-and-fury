@@ -153,6 +153,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     exitSeq: 0, // place in the hangar queue
     edgeTurn: null, // 0..1 through the swing round at a map edge (see stepAir)
     edgeDir: 0, // which edge: -1 left, 1 right
+    edgeFlip: 0, // counts the flips at the half way mark, so the drawing can tell
     groundTurn: null, // 0..1 through turning round on the ground (pivoting on the main wheels)
     groundLoop: null, // 0..1 through a ground loop (Shift while taxiing): it ends with a wingtip in the ground
     turnDir: 0,
@@ -704,8 +705,13 @@ function stepAir(p, cmd, world, dt) {
     const before = p.edgeTurn;
     p.edgeTurn += dt / ((world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime);
     if (before < 0.5 && p.edgeTurn >= 0.5) {
+      // The plane pivots on its main wheels, as in the ground turn: the wheels stay put and the plane
+      // moves to the other side of them (the drawn frames are anchored there, so they don't jump).
+      const wheels = mainWheelContact(p);
       p.angle = wrapAngle(Math.PI - p.angle);
       p.inverted = !p.inverted;
+      p.x += wheels.x - mainWheelContact(p).x;
+      p.edgeFlip = (p.edgeFlip ?? 0) + 1; // tells the drawing not to blend this tick's angle and position (src/render/interpolate.js)
     }
     p.vx = p.edgeDir * Math.abs(Math.cos(p.angle)) * p.speed * Math.cos(Math.PI * Math.min(1, p.edgeTurn));
     if (p.edgeTurn >= 1) {
@@ -716,7 +722,7 @@ function stepAir(p, cmd, world, dt) {
   p.x += p.vx * dt;
   p.y += p.vy * dt;
   const swing = (world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime;
-  const drift = (Math.abs(p.vx) * swing) / Math.PI;
+  const drift = (Math.abs(p.vx) * swing) / Math.PI + 2 * Math.abs(wheelGeometry(p.def).main[0]); // plus the pivot's shift
   if (p.edgeTurn == null && (p.x < EDGE_MARGIN + drift || p.x > world.map.width - EDGE_MARGIN - drift)) {
     const out = p.x < EDGE_MARGIN + drift ? -1 : 1;
     p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);

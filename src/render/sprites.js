@@ -157,9 +157,10 @@ export function buildPlaneFrames(sheetImg, meta, paint, opts) {
   };
   return {
     meta,
-    frame(row, index, angle, mirror = false) {
+    // flipped: upside down (belly up), as a plane rolled over is while it swings round at a map edge.
+    frame(row, index, angle, mirror = false, flipped = false) {
       const step = frameIndex(angle);
-      const key = `${row}|${index}|${step}|${mirror}`;
+      const key = `${row}|${index}|${step}|${mirror}|${flipped}`;
       let f = cache.get(key);
       if (!f) {
         prof.count('rollbuild');
@@ -169,7 +170,7 @@ export function buildPlaneFrames(sheetImg, meta, paint, opts) {
         }
         const anchor = meta.rows[row].anchor;
         const radius = reach(cw, ch, anchor);
-        f = { canvas: rotateOne(cell(row, index, mirror), cw, ch, anchor, step, false, radius), radius };
+        f = { canvas: rotateOne(cell(row, index, mirror), cw, ch, anchor, step, flipped, radius), radius };
         cache.set(key, f);
       }
       return f;
