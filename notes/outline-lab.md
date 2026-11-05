@@ -73,7 +73,8 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   it borrows that model until it gets its own.
 
 ## Not done yet (in this order)
-1. **Trace the Mosquito's wings and widths** from the Czech sheet (plan view, with the owner): open
+1. (Done 2026-11-05, owner happy with side and plan: wing and tailplane as edge tables, widths traced; the
+   radiators are one wide block covering both radiators beside each nacelle.) **Trace the Mosquito's wings and widths** from the Czech sheet (plan view, with the owner): open
    `outline-lab.html?mute&plane=mosquito`, Plan view, load the plan-view picture, Calibrate, Convert the wing and
    tailplane, drag, Save. Still open: the plan view has only been tried on a stand-in picture.
 2. Auto pre-fill (type templates snapped to the drawing's lines, mask brush, snap-to-line for dragged points).
