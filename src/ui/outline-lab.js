@@ -1689,16 +1689,81 @@ async function openPlane(name, fresh = null) {
 
 // A new plane starts as a scaled copy of a finished one (its template), which also supplies the model
 // code for the preview until the plane gets a model of its own.
+// The planes of milestone 6 that have no outline yet, with real length and span (m) and a sensible template
+// (single-engine: spitfire, twin: bf110). The dialog offers the ones not already in the plane list.
+const PLANNED = [
+  { id: 'p38j', label: 'P-38J Lightning (USA)', L: 11.53, W: 15.85, tmpl: 'bf110' },
+  { id: 'a36a', label: 'A-36A Apache (USA)', L: 9.83, W: 11.28, tmpl: 'p47d' },
+  { id: 'pe3', label: 'Pe-3 (USSR)', L: 12.67, W: 17.16, tmpl: 'bf110' },
+  { id: 'il2', label: 'Il-2M3 Shturmovik (USSR)', L: 11.65, W: 14.6, tmpl: 'la5fn' },
+  { id: 'ki45', label: 'Ki-45 KAI Toryu (Japan)', L: 11.0, W: 15.02, tmpl: 'bf110' },
+  { id: 'd3a2', label: 'D3A2 Val (Japan)', L: 10.2, W: 14.37, tmpl: 'ki43' },
+  { id: 'ju87', label: 'Ju 87 D-5 Stuka (Germany)', L: 11.5, W: 15.0, tmpl: 'bf109' },
+  { id: 'hurricane', label: 'Hurricane Mk IID (UK)', L: 9.81, W: 12.19, tmpl: 'spitfire' },
+  { id: 'blenheim', label: 'Blenheim Mk IV (Finland)', L: 12.98, W: 17.17, tmpl: 'bf110' },
+  { id: 'ju88', label: 'Ju 88 A-4 (Finland)', L: 14.4, W: 20.08, tmpl: 'bf110' },
+];
+// The picker for New plane...: a planned plane fills in name, size and template; "Other" lets you type them.
+function askNewPlane() {
+  const have = [...$('plane').options].map((o) => o.value);
+  const list = PLANNED.filter((p) => !have.includes(p.id));
+  return new Promise((resolve) => {
+    const dlg = document.createElement('dialog');
+    dlg.style.cssText = 'background:#1e2024;color:#ddd;border:1px solid #555;padding:14px;min-width:300px';
+    const sel = Object.assign(document.createElement('select'), { style: 'width:100%;margin-bottom:8px' });
+    for (const p of list) sel.append(new Option(p.label, p.id));
+    sel.append(new Option('Other (type the name)…', ''));
+    const field = (label, type, step) => {
+      const row = document.createElement('div');
+      row.style.margin = '4px 0';
+      const input = Object.assign(document.createElement('input'), { type, step: step ?? '' });
+      input.style.width = '8em';
+      row.append(`${label} `, input);
+      dlg.append(row);
+      return input;
+    };
+    dlg.append('Which plane?', document.createElement('br'), sel);
+    const id = field('short name', 'text');
+    const L = field('length m', 'number', '0.01');
+    const W = field('wingspan m', 'number', '0.01');
+    const tmpl = document.createElement('select');
+    for (const t of BASES) tmpl.append(new Option(t, t));
+    const trow = document.createElement('div');
+    trow.append('start from ', tmpl);
+    dlg.append(trow);
+    const fill = () => {
+      const p = list.find((x) => x.id === sel.value);
+      if (p) Object.assign(id, { value: p.id }), (L.value = p.L), (W.value = p.W), (tmpl.value = p.tmpl);
+      id.readOnly = !!p;
+    };
+    sel.onchange = fill;
+    fill();
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-top:10px;text-align:right';
+    const ok = Object.assign(document.createElement('button'), { textContent: 'Create' });
+    const cancel = Object.assign(document.createElement('button'), { textContent: 'Cancel' });
+    row.append(cancel, ' ', ok);
+    dlg.append(row);
+    const done = (v) => {
+      dlg.close();
+      dlg.remove();
+      resolve(v);
+    };
+    cancel.onclick = () => done(null);
+    dlg.oncancel = () => done(null);
+    ok.onclick = () => done({ id: id.value.trim(), L: parseFloat(L.value), W: parseFloat(W.value), tmpl: tmpl.value });
+    document.body.append(dlg);
+    dlg.showModal();
+  });
+}
 async function newPlane() {
-  const id = (prompt('Short name for the new plane (lowercase letters and digits), e.g. blenheim') ?? '').trim();
-  if (!id) return;
+  const ans = await askNewPlane();
+  if (!ans) return;
+  const { id, L, W, tmpl } = ans;
   if (!/^[a-z][a-z0-9_]*$/.test(id) || [...$('plane').options].some((o) => o.value === id)) return alert('That name is not usable or already exists.');
-  const tmpl = (prompt('Start from which plane? bf109, spitfire, p47d, la5fn, ki43, b239 are single-engine; bf110 is a twin.', 'bf110') ?? '').trim();
   if (!BASES.includes(tmpl)) return alert(`Pick one of: ${BASES.join(', ')}`);
+  if (!(L > 0 && W > 0)) return alert('Give the length and wingspan in metres.');
   const base = await (await fetch(`data/outlines/${tmpl}.json`, { cache: 'no-store' })).json();
-  const L = parseFloat(prompt('Length in metres (nose tip to tail end)', '12.9'));
-  const W = parseFloat(prompt('Wingspan in metres', '17.2'));
-  if (!(L > 0 && W > 0)) return;
   const o = scaledOutline(base, id, tmpl, L, W);
   $('plane').append(new Option(id, id));
   $('plane').value = id;
