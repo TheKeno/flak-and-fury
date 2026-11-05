@@ -70,7 +70,8 @@ kept in the browser.
 | `assets/sprites/` | Sprite PNGs, drawn at 2 pixels per world unit (planes at 4). |
 | `assets/audio/` | Sound recordings, sorted by use into `engines/`, `guns/`, `impacts/`, `destruction/`, `airframe/`, `crew/`, `ambience/`, `voice/`, `ui/` (and `inbox/` for unsorted uploads). |
 | `tests/` | Headless tests of the simulation, online snapshots and sound data: `node --test tests/`. |
-| `tools/` | Local dev server (`serve.mjs`); sprite generator (`make-sprites.mjs`) with the 3D plane models (`plane-models.mjs`) and PNG writer (`png.mjs`); map tools (`make-map.mjs`, `map-guide.mjs`). |
+| `tools/` | Local dev server (`serve.mjs`); sprite generator (`make-sprites.mjs`) with the 3D plane models (`plane-models.mjs`, shapes read from `data/outlines/`) and PNG writer (`png.mjs`); map tools (`make-map.mjs`, `map-guide.mjs`). |
+| `outline-lab.html` | The Outline Lab: trace a plane's outline over a blueprint and build its sprites. Open <http://localhost:8080/outline-lab.html>. |
 | `sound-lab.html` | The Sound Lab: audition and tune sounds, engines and recordings. Open <http://localhost:8080/sound-lab.html>. |
 
 ## Tuning
