@@ -1334,6 +1334,8 @@ function ju87(o) {
   const bump = bodyOf(o.bump);
   const plain = (kind) => () => ({ kind });
   const { wheelR, main, tailR, tailW } = gearOf(o.gear);
+  // The wheel sits inside the spat (its outer face behind the spat skin), so only the tyre below shows.
+  const inner = [main[0], main[1], 1.45 * M];
   const metal = () => ({ kind: 'metal' });
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const wz = 3.4 * M; // MG 151/20 muzzles in the wing leading edge
@@ -1349,14 +1351,14 @@ function ju87(o) {
     { ...sphere([X(4.5), Y(0.88), 0], 0.17 * M), pilot: true, material: plain('pilot') },
     { ...sphere([X(5.55), Y(0.86), 0], 0.17 * M), pilot: true, material: plain('pilot') }, // rear gunner, facing aft
     // Rear gunner's MG 81Z on its pivot mount, barrels poking aft out of the canopy.
-    { ...strut([X(6.2), Y(0.95), 0.06 * M], [X(7.1), Y(1.02), 0.06 * M], 0.025 * M), material: plain('dark') },
+    { ...strut([X(6.5), Y(0.86), 0.06 * M], [X(7.1), Y(0.7), 0.06 * M], 0.025 * M), material: plain('dark') },
     // Two MG 151/20 in the wings.
     { ...strut([X(3.25), wy, wz], [X(2.8), wy, wz], 0.04 * M), material: plain('dark') },
     { ...spat, material: plain('paint') },
     { ...bump, material: plain('metal') }, // leg fairing above the spat
-    { ...strut([X(3.2), Y(-0.9), 1.5 * M], main, 0.07 * M), material: metal, gear: true },
-    { ...wheel(main, wheelR, 0.12 * M), material: tyre(main, wheelR), gear: true },
-    { ...strut([X(10.55), Y(-0.3), 0], tailW, 0.04 * M), material: metal, gear: true },
+    { ...strut([X(3.2), Y(-0.9), 1.45 * M], inner, 0.07 * M), material: metal, gear: true },
+    { ...wheel(inner, wheelR, 0.08 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(10.75), Y(0.1), 0], tailW, 0.08 * M), material: metal, gear: true },
     { ...wheel(tailW, tailR, 0.05 * M), material: tyre(tailW, tailR), gear: true },
   ];
   return {
