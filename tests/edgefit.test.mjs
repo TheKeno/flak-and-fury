@@ -127,10 +127,11 @@ for (const [name, T] of Object.entries(TS)) {
   });
 }
 
-test('the outermost strong edge wins over a nearer interior line (a pale patch inside the body)', () => {
+test('an interior line far from the template does not pull a point where the real edge is not drawn (fuselage top under a fin)', () => {
   const T = TS.upright;
-  const m = mapOf(picture(T, (d, h) => d > 1 && d < 7 && h > -0.5 && h < 0.5 && !(h > 0.22 && h < 0.34 && d > 3 && d < 5)));
-  const o = { fuselage: { stations: [[3.5, 0.36, -0.5, 0.4], [4.5, 0.36, -0.5, 0.4]] } };
+  // a fin rising from the body between d 3 and 5 hides the top line; a pale patch lies inside the body
+  const m = mapOf(picture(T, (d, h) => d > 1 && d < 7 && h > -0.5 && h < (d > 3 && d < 5 ? 1.5 : 0.5) && !(h > 0.12 && h < 0.22 && d > 3 && d < 5)));
+  const o = { fuselage: { stations: [[3.5, 0.5, -0.5, 0.4], [4.5, 0.5, -0.5, 0.4]] } };
   fitPart(o, 'fuselage', 'side', T, m, { win: 0.3 });
-  for (const r of o.fuselage.stations) assert.ok(Math.abs(r[1] - 0.5) < tol, `top ${r[1]} should be the silhouette, not the patch`);
+  for (const r of o.fuselage.stations) assert.equal(r[1], 0.5, 'top stays on the template');
 });

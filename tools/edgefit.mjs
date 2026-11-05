@@ -138,7 +138,7 @@ export function sampleMap(map, x, y) {
 // Looks along a ray for the strongest edge near its start. `at(t)` maps t (metres from the template's
 // point) to a picture pixel; the search runs over -win..win. Returns { t, e } or null when nothing
 // is strong enough. A strong edge nearby beats a stronger one far away.
-export function rayFit(map, at, win, { thr = 0.3, outward = 0, keep = 0.5 } = {}) {
+export function rayFit(map, at, win, { thr = 0.3, outward = 0, keep = 0.85 } = {}) {
   const p0 = at(0);
   const p1 = at(win);
   const ppm = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) / win; // picture pixels per metre
@@ -148,19 +148,22 @@ export function rayFit(map, at, win, { thr = 0.3, outward = 0, keep = 0.5 } = {}
     const p = at(-win + (2 * win * i) / (n - 1));
     es.push(sampleMap(map, p[0], p[1]));
   }
+  // Strength minus a penalty for how far the edge lies from the template's point: a drawing's interior
+  // lines (a pale patch, a roundel, a shadow) must not beat the template when the real edge is not drawn
+  // (the fuselage top under the fin). Edges that score under `thr` are not taken: the point stays.
   const found = [];
   for (let i = 1; i < n - 1; i++) {
     if (es[i] < thr || es[i] < es[i - 1] || es[i] <= es[i + 1]) continue;
     const t = -win + (2 * win * i) / (n - 1);
-    found.push({ t, e: es[i], score: es[i] * (1 - 0.6 * Math.abs(t) / win) });
+    const score = es[i] - (0.9 * Math.abs(t)) / win;
+    if (score >= thr * 0.85) found.push({ t, e: es[i], score });
   }
   if (!found.length) return null;
   let best = found.reduce((a, b) => (b.score > a.score ? b : a));
-  // A silhouette is the outermost edge: interior lines (panel lines, roundels, camouflage borders, a pale
-  // patch) lie inside it. With `outward` (+1 or -1: the sign of t that leads away from the part's middle),
-  // an edge further out wins if it is nearly as strong as the best one.
+  // A silhouette is the outermost edge: with `outward` (+1 or -1: the sign of t leading away from the part's
+  // middle) an edge further out wins if its score is nearly as good as the best one's.
   if (outward) {
-    const strong = found.filter((f) => f.e >= keep * best.e);
+    const strong = found.filter((f) => f.score >= keep * best.score);
     best = strong.reduce((a, b) => (outward * b.t > outward * a.t ? b : a));
   }
   return { t: r4(best.t), e: best.e };
