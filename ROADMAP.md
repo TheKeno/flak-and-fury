@@ -30,6 +30,11 @@ later.
   owner paints single pixels onto the rendered side-view sprite, saved apart from the model (e.g. in the
   outline file) and applied after every rebuild. Touch-ups fit only the side view (used in normal
   flight, also rotated); the roll, ground-turn and loop frames keep the model's look.
+- **Outline Lab: automatic first trace (discussed 2026-11-05; replaces the "mask brush / type template snapped to lines" plan above):** the owner always fine-tunes by hand; the aim is a good head start and a solid base. Build in this order, each step useful alone:
+  1. **Fit part to drawing**, a button per part plus **Fit all parts**. Starts from the New plane template (a scaled copy of a finished plane) or a coarse hand sketch, and moves each point along a ray the model already defines to the nearest strong edge in the drawing: station d fixed, look up/down for top and bottom h and sideways for half width; wing and tailplane z fixed, look fore and aft for le/te; fin h fixed. The rays are cast in calibrated model space (d, h, z) and mapped to picture pixels, so tilted, rotated and mirrored sheets work (also Turn 180°, several views on one sheet: the search window is small, outermost edge wins). The model's rules hold by construction (top and bottom share d, tables sorted, shared tip z through `fitPlanform`/`fitFin`). The result shows as a ghost over the drawing and is accepted as one undo step. Before the fit, show the template over the drawing so a bad calibration is noticed first. Side view first, then the plan view reuses the same station d and only looks sideways.
+  2. **Automatic station placement:** sample the top and bottom profiles densely and simplify (Douglas-Peucker, tolerance half a sprite pixel, union of break points for the shared d), so a fit gives fewer, better-placed stations than the template.
+  3. **Snap-to-line** for dragged and added points: slide along the point's allowed axis to the strongest edge within about 6 px (Alt turns it off).
+  Edge map: plain canvas, Sobel edge strength (no direction) plus a background-colour flood for filled drawings like the camouflaged Czech Mosquito sheet; computed on load from the IndexedDB picture, never saved or committed. No new dependency. Logic as pure functions on grayscale arrays in `tools/` (like `planform.mjs`) so `node --test` checks them on synthetic images. Only outline JSON values change, only on accept; finished planes' sprites stay byte-identical. Automatable: wing, tailplane, fin, fuselage top/bottom, fuselage width outside the wing, spinner. Medium: canopy, nacelle. Manual: radiators, gun tray, wheels, hardpoints, fuselage width under the wing, pixel touch-ups. Ruled out: full contour tracing with marching squares (picks up all interior lines), ML segmentation (heavy, not deterministic), mask brush (the ray search with a small window covers it). Build in its own session. The pixel touch-up layer stays a separate later step.
 - **Scroll-wheel camera zoom (built, owner happy with the feel 2026-11-04; in-fight tightening still a trial of option C to tune):** the wheel scales the camera's zoom through a
   player zoom factor (default 1, reset to 1 at each take-off and each respawn, not saved). `src/render/renderer.js`
   `updateZoom` multiplies the automatic target (speed zoom, dogfight zoom, look-around) by it.
@@ -270,7 +275,7 @@ later.
 6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
    pattern, all 1943 types. Roster (decided):
    - **Germany** (fast climb): Bf 109 G-6 (standard; the F-4 stays as a lighter option), Bf 110 G-2,
-     Ju 87 D-3; tank Panzer IV Ausf. H.
+     Ju 87 D-5 (was D-3); tank Panzer IV Ausf. H.
    - **UK** (tight turn): Spitfire Mk IX (replaces the placeholder `fighter_v12`), Mosquito FB.VI,
      Hurricane Mk IID "tin opener" (40 mm, in the dive-bomber slot: the RAF had no real dive bomber);
      tank Churchill Mk IV.
@@ -335,14 +340,16 @@ Then: more themes, co-op missions, matchmaking.
 - **Camera zoom snaps at take-off** (UI): the view jumps in zoom when the plane lifts off; it should ease smoothly (owner noticed 2026-11-05).
 - **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
 - **Outline Lab: underside point features** (Planes): bomb racks, gun ports and similar small things that sit at a position (d, z, side) are not outlines. Settle the data first (which types; `hardpoints: [{type, d, z, side}]` in the outline file; draggable markers in the lab over the underside picture; model code to draw them; whether they show in the side sprite), then build. Ask the owner first.
-- **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); next, in this order: the auto pre-fill (type templates snapped to the drawing, mask brush, snap-to-line), then the pixel touch-up layer; see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
+- **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); next, in this order: the automatic first trace (fit part to drawing, station placement, snap-to-line; see the Decisions entry "automatic first trace"), then the pixel touch-up layer; see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
 - **Outline Lab: protect the calibration** (Planes): Load picture and Calibrate wipe a calibrated picture at once; ask before replacing it, or keep the old calibration so it can be restored.
 - **External bomb mounts and visible bombs** (Planes): planes get external racks, and undropped bombs and tanks show on them until released (needs the hangar loadout editor, model code and renderer); the Mosquito FB.VI carries bombs and tanks under the wing.
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
   (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
   variant (A6M5 fits 1943) first.
-- **Add the Stuka (Ju 87 D-3)** (Planes): the German dive bomber, from a 3-view like every plane. Blocked until the
-  Outline Lab is finished; ask the owner for the 3-view first.
+- **Add the Stuka (Ju 87 D-5)** (Planes): the German dive bomber, changed from the D-3 to the D-5 (owner, 2026-11-05: 1943 front-line
+  version with the longer wing, two wing MG 151/20; the Ju 87 G-2 anti-tank version uses the same airframe and could follow
+  with its two 37 mm pods). The owner supplies the 3-view (side, plan, underside) and uses the Outline Lab auto-fit;
+  take span and length from the sheet.
 - **Screeching tires when bouncing on the runway** (Sound): add a tire screech effect (sound, maybe smoke puff)
   when a plane touches down hard or bounces on the runway.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
