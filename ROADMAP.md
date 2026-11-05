@@ -330,6 +330,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **External bomb mounts and visible bombs** (Planes): planes get external racks, and undropped bombs and tanks show on them until released (needs the hangar loadout editor, model code and renderer); the Mosquito FB.VI carries bombs and tanks under the wing.
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
   (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
   variant (A6M5 fits 1943) first.
