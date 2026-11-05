@@ -138,7 +138,7 @@ export function sampleMap(map, x, y) {
 // Looks along a ray for the strongest edge near its start. `at(t)` maps t (metres from the template's
 // point) to a picture pixel; the search runs over -win..win. Returns { t, e } or null when nothing
 // is strong enough. A strong edge nearby beats a stronger one far away.
-export function rayFit(map, at, win, { thr = 0.3 } = {}) {
+export function rayFit(map, at, win, { thr = 0.3, outward = 0, keep = 0.5 } = {}) {
   const p0 = at(0);
   const p1 = at(win);
   const ppm = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) / win; // picture pixels per metre
@@ -148,14 +148,22 @@ export function rayFit(map, at, win, { thr = 0.3 } = {}) {
     const p = at(-win + (2 * win * i) / (n - 1));
     es.push(sampleMap(map, p[0], p[1]));
   }
-  let best = null;
+  const found = [];
   for (let i = 1; i < n - 1; i++) {
     if (es[i] < thr || es[i] < es[i - 1] || es[i] <= es[i + 1]) continue;
     const t = -win + (2 * win * i) / (n - 1);
-    const score = es[i] * (1 - 0.6 * Math.abs(t) / win);
-    if (!best || score > best.score) best = { t, e: es[i], score };
+    found.push({ t, e: es[i], score: es[i] * (1 - 0.6 * Math.abs(t) / win) });
   }
-  return best && { t: r4(best.t), e: best.e };
+  if (!found.length) return null;
+  let best = found.reduce((a, b) => (b.score > a.score ? b : a));
+  // A silhouette is the outermost edge: interior lines (panel lines, roundels, camouflage borders, a pale
+  // patch) lie inside it. With `outward` (+1 or -1: the sign of t that leads away from the part's middle),
+  // an edge further out wins if it is nearly as strong as the best one.
+  if (outward) {
+    const strong = found.filter((f) => f.e >= keep * best.e);
+    best = strong.reduce((a, b) => (outward * b.t > outward * a.t ? b : a));
+  }
+  return { t: r4(best.t), e: best.e };
 }
 
 // One edge's worth of points: shifts[i] (null where nothing was found). A single point far off from the
@@ -242,7 +250,7 @@ function replaceStations(o, key, T, map, win, tol) {
   const shifts = (col) =>
     ds.map((d) => {
       const h = lerpRows(rows, d, col);
-      const r = rayFit(map, (t) => apply(T, d, h + t), win);
+      const r = rayFit(map, (t) => apply(T, d, h + t), win, { outward: col === 1 ? 1 : -1 });
       if (r) hits++;
       return r ? r.t : null;
     });
@@ -287,16 +295,16 @@ function fitStations(o, key, mode, T, map, win) {
   const z0 = s.z ?? 0;
   let hits = 0;
   let total = 0;
-  const find = (d, h, dir) => {
+  const find = (d, h, dir, outward) => {
     total++;
-    const r = rayFit(map, (t) => apply(T, d + dir[0] * t, h + dir[1] * t), win);
+    const r = rayFit(map, (t) => apply(T, d + dir[0] * t, h + dir[1] * t), win, { outward });
     if (r) hits++;
     return r ? r.t : null;
   };
   if (side) {
     const wantBottom = key !== 'canopy' && key !== 'spine';
-    const top = despike(rows.map((r) => find(r[0], r[1], [0, 1])), win);
-    const bottom = wantBottom ? despike(rows.map((r) => find(r[0], r[2], [0, 1])), win) : rows.map(() => null);
+    const top = despike(rows.map((r) => find(r[0], r[1], [0, 1], 1)), win);
+    const bottom = wantBottom ? despike(rows.map((r) => find(r[0], r[2], [0, 1], -1)), win) : rows.map(() => null);
     rows.forEach((r, i) => {
       const nt = r[1] + (top[i] ?? 0);
       const nb = r[2] + (bottom[i] ?? 0);
@@ -310,7 +318,7 @@ function fitStations(o, key, mode, T, map, win) {
       }
     });
   } else {
-    const w = despike(rows.map((r) => find(r[0], z0 + r[3], [0, 1])), win);
+    const w = despike(rows.map((r) => find(r[0], z0 + r[3], [0, 1], 1)), win);
     rows.forEach((r, i) => {
       r[3] = r4(Math.max(0, r[3] + (w[i] ?? 0)));
     });
@@ -329,7 +337,7 @@ function fitSurface(o, key, T, map, win) {
     const found = rows.map((r, i) => {
       if (i === 0) return null;
       total++;
-      const f = rayFit(map, (t) => apply(T, r[1] + t, r[0]), win);
+      const f = rayFit(map, (t) => apply(T, r[1] + t, r[0]), win, { outward: edge === 'le' ? -1 : 1 });
       if (f) hits++;
       return f ? f.t : null;
     });
@@ -353,7 +361,7 @@ function fitFinPart(o, key, T, map, win) {
     const found = rows.map((r, i) => {
       if (i === rows.length - 1 && edge === 'te') return null; // the tip is shared: fitted with the leading edge
       total++;
-      const f = rayFit(map, (t) => apply(T, r[1] + t, r[0]), win);
+      const f = rayFit(map, (t) => apply(T, r[1] + t, r[0]), win, { outward: edge === 'le' ? -1 : 1 });
       if (f) hits++;
       return f ? f.t : null;
     });
