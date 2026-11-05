@@ -331,9 +331,14 @@ function handlesFor(key) {
       hs.push({
         ref: s.root,
         which: `root${i}`,
-        pos: () => [s.root[i], s.at],
+        // With edge tables the root chord is the first point of each edge (on the centre line, in the plan view):
+        // the front handle is the leading edge's, the back one the trailing edge's; the root range follows them.
+        pos: () => [s.le ? s[i ? 'te' : 'le'][0][1] : s.root[i], s.at],
         set: (d, h) => {
-          if (!s.le) s.root[i] = d; // with edge tables the root range follows the plan view's points
+          if (s.le) {
+            s[i ? 'te' : 'le'][0][1] = d;
+            fitPlanform(s, false);
+          } else s.root[i] = d;
           s.at = h;
         },
       }),
