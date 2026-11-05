@@ -715,6 +715,7 @@ const CALIB_MSG = {
     tipB: 'Click the OTHER WINGTIP; the distance between them is the span',
   },
 };
+const calibMsg = () => (S.bp?.rel ? 'Click the NOSE TIP in this view: the scale and direction are copied from the plan view' : CALIB_MSG[S.mode][S.calibrating]);
 function draw() {
   if (!S.o) return;
   const dpr = window.devicePixelRatio || 1;
@@ -736,7 +737,7 @@ function draw() {
   // Until both calibration clicks are made, the plane has no place on the picture: show only the picture.
   if (S.bp && !calibrated(S.bp)) {
     drawCalibMarks();
-    const msg = S.calibrating ? CALIB_MSG[S.mode][S.calibrating] : isPlan() ? 'Press Calibrate, then click the nose tip and both wingtips' : 'Press Calibrate, then click the nose tip and the tail end';
+    const msg = S.calibrating ? calibMsg() : isPlan() ? 'Press Calibrate, then click the nose tip and both wingtips' : 'Press Calibrate, then click the nose tip and the tail end';
     ctx.font = '16px monospace';
     ctx.fillStyle = 'rgba(16,18,20,0.85)';
     ctx.fillRect(0, 0, W, 30);
@@ -843,7 +844,7 @@ function draw() {
   drawCalibMarks();
   // Hint line.
   let hint = '';
-  if (S.calibrating) hint = CALIB_MSG[S.mode][S.calibrating];
+  if (S.calibrating) hint = calibMsg();
   else if (S.cursor) {
     const [d, h] = fromScreen(T, S.cursor[0], S.cursor[1]);
     const col = Math.round((d - g.A0) / g.A1);
@@ -904,7 +905,14 @@ cv.addEventListener('pointerdown', (e) => {
   if (S.calibrating && e.button === 0) {
     const pt = [(p[0] - S.view.x) / S.view.k, (p[1] - S.view.y) / S.view.k];
     S.bp[S.calibrating] = pt;
-    S.calibrating = SEQ[S.mode][SEQ[S.mode].indexOf(S.calibrating) + 1] ?? null;
+    if (S.bp.rel && S.calibrating === 'nose') {
+      // Copied from the plan view: the same sheet at the same scale and turn, so the wingtips lie where the
+      // plan view's did, relative to the nose.
+      S.bp.tipA = [pt[0] + S.bp.rel.A[0], pt[1] + S.bp.rel.A[1]];
+      S.bp.tipB = [pt[0] + S.bp.rel.B[0], pt[1] + S.bp.rel.B[1]];
+      delete S.bp.rel;
+      S.calibrating = null;
+    } else S.calibrating = SEQ[S.mode][SEQ[S.mode].indexOf(S.calibrating) + 1] ?? null;
     if (!S.calibrating) {
       saveBlueprint();
       fitView();
@@ -1378,10 +1386,24 @@ function updateBlueprintInfo() {
   $('rowPlan').hidden = !plan;
   $('tailH').value = fmt(tailHeight());
   $('span').value = fmt(S.o?.span);
+  $('copyPlan').hidden = S.mode !== 'under';
+  $('copyPlan').disabled = !calibratedPlan();
   $('modeSide').className = plan ? '' : 'on';
   $('modePlan').className = S.mode === 'plan' ? 'on' : '';
   $('modeUnder').className = S.mode === 'under' ? 'on' : '';
 }
+const calibratedPlan = () => !!S.bps.plan?.blob && ['nose', 'tipA', 'tipB'].every((k) => S.bps.plan[k]);
+// The underside is often on the same sheet as the plan view: take its picture, scale and turn, and only click
+// the nose again.
+$('copyPlan').onclick = () => {
+  const p = S.bps.plan;
+  if (!calibratedPlan()) return;
+  const rel = (q) => [q[0] - p.nose[0], q[1] - p.nose[1]];
+  S.bps.under = { img: p.img, blob: p.blob, name: p.name, nose: null, tail: null, tailH: null, tipA: null, tipB: null, rel: { A: rel(p.tipA), B: rel(p.tipB) } };
+  S.calibrating = 'nose';
+  updateBlueprintInfo();
+  fitView();
+};
 function setMode(mode) {
   if (S.mode === mode || !S.o) return;
   S.mode = mode;
