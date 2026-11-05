@@ -274,6 +274,9 @@ later.
 - **Scroll-wheel camera zoom** (`35800f9`..`7c02777`; design in Decisions): `src/render/player-zoom.js`, bindable WheelUp/WheelDown (Camera zoom in / out in the Keys tab), spring smoothing, reset at take-off and respawn, zoom-out relative to the camera's own zoom (`wheelOutMax`) so the speed zoom still shows, limited tightening in fights (`wheelFightTighten`); tests in `tests/player-zoom.test.mjs`. Checked on the ground in the browser pane; the owner has played it and is happy with the feel; the in-fight tightening amount may still be tuned.
 - **Sound Lab list shows internal ids:** the Sounds list has two aligned columns, name and a muted id (`gun:`, `sfx:`, `loop:`, `build:`, `layer:`), so sounds can be matched to `soundscape.js` and `data/sound.json`. Long names truncate with the full name on hover. Sound Design tab unchanged (no sound ids there).
 - **Friendly collision no longer logged as enemy:** the "shot down" line is now built by `shotDownMessage` in `src/ui/shotdown-text.js`; downing a plane on your own team (e.g. ramming a friend) reads "YOU DOWNED A FRIEND: <callsign>" instead of "ENEMY SHOT DOWN!". Tests in `tests/shotdown-text.test.mjs`. Page loads clean in the browser pane; the in-game collision itself was not staged by eye.
+- **Ju 87 D-5 Stuka (2026-11-05):** own model `ju87()` in `tools/plane-models.mjs` from `data/outlines/ju87.json` (side and plan traced by the owner; inverted gull wing with dive-brake slats, long canopy with the rear gunner and MG 81Z, chin radiator, spatted gear, 1943 Luftwaffe splinter scheme, Balkenkreuze, optional fin swastika), sprites built, in `data/planes.json` (Germany, dive bomber; two wing MG 151/20, rear gunner MG 81Z as an AI turret, one SC 500 bomb). New: `fixedGear` (the gear never retracts: sim `updateGear`, renderer `drawGear`; G does nothing, drag stays with the gear down) and the `sc_500` bomb. Level top speed about 103 (410 km/h real), take-off roll about 114. Values estimated from the real type, to review in flight. The 4 x 50 kg wing bombs are not in yet: a plane has one bomb slot until the loadout editor (see the external bomb mounts item). Tests: `tests/ju87.test.mjs`. Notes: `notes/milestone6.md`.
+
+
 ## Milestones ahead
 
 6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
@@ -352,10 +355,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
   (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
   variant (A6M5 fits 1943) first.
-- **Add the Stuka (Ju 87 D-5)** (Planes): the German dive bomber, changed from the D-3 to the D-5 (owner, 2026-11-05: 1943 front-line
-  version with the longer wing, two wing MG 151/20; the Ju 87 G-2 anti-tank version uses the same airframe and could follow
-  with its two 37 mm pods). The owner supplies the 3-view (side, plan, underside) and uses the Outline Lab auto-fit;
-  take span and length from the sheet.
 - **Screeching tires when bouncing on the runway** (Sound): add a tire screech effect (sound, maybe smoke puff)
   when a plane touches down hard or bounces on the runway.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together

@@ -967,5 +967,129 @@
       "propBlades": 3,
       "gearRatio": 0.42
     }
+  },
+  "ju87": {
+    "name": "Ju 87 D-5 Stuka",
+    "nation": "germany",
+    "role": "dive bomber",
+    "sprite": "ju87",
+    "spriteSize": [
+      131,
+      54
+    ],
+    "pivot": [
+      66,
+      26
+    ],
+    "noseOffset": [
+      14.38,
+      -0.06
+    ],
+    "propOffset": [
+      13.38,
+      0.19
+    ],
+    "exhaustOffset": [
+      11.88,
+      0.44
+    ],
+    "thrust": 72,
+    "dragCoef": 0.0052,
+    "groundFriction": 17,
+    "groundThrust": 0.55,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.5,
+    "slowTurnBonus": 0.5,
+    "slowTurnSpeed": 88,
+    "stallSpeed": 48,
+    "takeoffSpeed": 52,
+    "runwayNeeded": 130,
+    "maxLandingSpeed": 84,
+    "maxSpeed": 108,
+    "hp": 110,
+    "toughness": 1.2,
+    "rearView": 0.7,
+    "hitRadius": 8.5,
+    "endurance": 300,
+    "bombOffset": [
+      6.38,
+      -3.06
+    ],
+    "gearTime": 1.6,
+    "fixedGear": true,
+    "fixedTailWheel": true,
+    "wheels": [
+      {
+        "leg": [
+          6.38,
+          -2.06
+        ],
+        "wheel": [
+          6.25,
+          -4.41
+        ],
+        "stowed": [
+          6.25,
+          -4.41
+        ],
+        "r": 1.06
+      },
+      {
+        "leg": [
+          -12.5,
+          0.44
+        ],
+        "wheel": [
+          -12.21,
+          -1.06
+        ],
+        "stowed": [
+          -12.21,
+          -1.06
+        ],
+        "r": 0.42,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.8,
+    "groundTurnTime": 2.4,
+    "groundLoopTime": 1.2,
+    "armament": {
+      "guns": [
+        {
+          "weapon": "mg151_20",
+          "count": 2
+        }
+      ],
+      "bombs": {
+        "weapon": "sc_500",
+        "count": 1
+      },
+      "turrets": [
+        {
+          "weapon": "mg81z",
+          "count": 1,
+          "offset": [
+            0.5,
+            2.34
+          ],
+          "arc": [
+            100,
+            230
+          ]
+        }
+      ]
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 700,
+      "cruiseRpm": 2200,
+      "maxRpm": 2600,
+      "propBlades": 3,
+      "gearRatio": 0.645
+    }
   }
 }

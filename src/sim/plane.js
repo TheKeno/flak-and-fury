@@ -338,6 +338,13 @@ function updateGear(p, cmd, world, dt) {
     p.gearWarning = false;
     return;
   }
+  // Fixed gear (the Stuka): always down, no G, no warning horn, no belly landing by choice.
+  if (p.def.fixedGear) {
+    p.gearDown = true;
+    p.gear = 1;
+    p.gearWarning = false;
+    return;
+  }
   const alt = p.y - world.terrain.heightAt(p.x) - GEAR_HEIGHT;
   let want = p.gearDown;
   if (p.state === 'ground') {

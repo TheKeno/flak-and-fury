@@ -1130,7 +1130,7 @@ export function createRenderer(canvas, world, assets) {
     const f = p.inverted ? -1 : 1;
     const at = ([lx, ly]) => [sx + (c * lx - s * ly * f) * PLANE_SCALE, sy - (s * lx + c * ly * f) * PLANE_SCALE];
     for (const g of p.def.wheels ?? DEFAULT_WHEELS) {
-      const out = g.tail && p.def.fixedTailWheel ? 1 : p.gear;
+      const out = p.def.fixedGear || (g.tail && p.def.fixedTailWheel) ? 1 : p.gear;
       if (out <= 0.02) continue;
       const e = out * out * (3 - 2 * out); // ease in and out
       const [ax, ay] = at(g.leg);

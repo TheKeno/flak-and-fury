@@ -10,6 +10,10 @@ Spitfire IX, Bf 109 G-6 (F-4 kept, to be rebuilt later from a 3-view), P-47D, La
 (hakaristi), Bf 110 G-2 (AI rear gunner `armament.turrets`, twin prop discs, frame cells sized per
 plane), markings pass (optional German fin swastika setting).
 
+## Ju 87 D-5 Stuka: done (2026-11-05)
+
+Own model `ju87()` (`tools/plane-models.mjs`) reading `data/outlines/ju87.json` through `kit(o)` incl. radiators, spat and bump; rebuild sprites with `node tools/make-sprites.mjs ju87` after any outline edit. In `data/planes.json` with `fixedGear`, `sc_500` bomb, sound id `ju87` (was `ju87d3`). Estimated values (to check in flight): thrust 72, drag 0.0052 (level top about 103 with the gear drag), maxSpeed 108, turnRate 1.0, hp 110, toughness 1.2, stall 48, takeoff 52, roll about 114, runwayNeeded 130, `sc_500` blast 50 / 200 (extrapolated from sc_250). Wheel, tail leg, propOffset, exhaustOffset, bombOffset and gunner offset computed from the outline; look at them in a big view. Open: 4 x 50 kg wing bombs (one bomb slot per plane), visible bombs, the Ju 87 G-2 (two 37 mm pods) on the same airframe, dive brakes could animate.
+
 ## Mosquito FB.VI: sprite done (2026-11-05)
 
 Own model `mosquito()` in `tools/plane-models.mjs` from `data/outlines/mosquito.json` (1943 RAF scheme, C1/B/C

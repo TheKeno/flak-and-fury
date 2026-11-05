@@ -196,6 +196,15 @@
     "craterDepth": 8,
     "drag": 0.1
   },
+  "sc_500": {
+    "name": "SC 500 bomb",
+    "type": "bomb",
+    "blastRadius": 50,
+    "blastDamage": 200,
+    "craterRadius": 21,
+    "craterDepth": 9,
+    "drag": 0.09
+  },
   "sc_250": {
     "name": "SC 250 bomb",
     "type": "bomb",

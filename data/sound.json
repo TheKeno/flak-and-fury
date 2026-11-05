@@ -373,8 +373,8 @@
       "count": 2
     },
     {
-      "id": "ju87d3",
-      "name": "Ju 87 D-3",
+      "id": "ju87",
+      "name": "Ju 87 D-5 Stuka",
       "nation": "Germany",
       "kind": "plane",
       "engine": "jumo211",
