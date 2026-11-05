@@ -698,6 +698,8 @@ function stepAir(p, cmd, world, dt) {
   // frames) keeps some forward drift that slows to a stop at the half way mark, where the plane flips
   // (angle mirrored, pilot kept upright), then speeds up the other way: the outward speed follows
   // cos(PI t), so it starts and ends at the normal flying speed and the plane ends where it began.
+  // The drift is speed x time / PI, so the swing starts that far before the wall and the plane stops at
+  // the wall, never out of the world.
   if (p.edgeTurn != null) {
     const before = p.edgeTurn;
     p.edgeTurn += dt / ((world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime);
@@ -713,8 +715,10 @@ function stepAir(p, cmd, world, dt) {
   }
   p.x += p.vx * dt;
   p.y += p.vy * dt;
-  if (p.edgeTurn == null && (p.x < EDGE_MARGIN || p.x > world.map.width - EDGE_MARGIN)) {
-    const out = p.x < EDGE_MARGIN ? -1 : 1;
+  const swing = (world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime;
+  const drift = (Math.abs(p.vx) * swing) / Math.PI;
+  if (p.edgeTurn == null && (p.x < EDGE_MARGIN + drift || p.x > world.map.width - EDGE_MARGIN - drift)) {
+    const out = p.x < EDGE_MARGIN + drift ? -1 : 1;
     p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
     if (p.vx * out > 0) { // heading outwards (a swing that ends a hair outside just stays put)
       p.edgeTurn = 0;

@@ -162,10 +162,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, room: 0 };
-  // How far the view may reach past either map edge while a plane swings round there (the plane drifts on
-  // past the edge, see edgeTurn in src/sim/plane.js); the sky, hills and ground simply carry on.
-  const EDGE_ROOM = 120;
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, rest: 0, restX: 0 };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -255,6 +252,12 @@ export function createRenderer(canvas, world, assets) {
 
   // free: free look, { x, y, zoom } for the centre of the view; the camera goes where it's sent.
   function updateCamera(focus, dt, look, free) {
+    // While a plane swings round at a map edge the view rests where it was (the follow and look-ahead would
+    // swing with the flip), eased in when the turn starts and eased back out to following when it ends.
+    const turning = !free && focus && focus.state === 'air' && focus.edgeTurn != null;
+    if (turning && cam.rest <= 0.001) cam.restX = cam.x;
+    cam.rest += ((turning ? 1 : 0) - cam.rest) * (1 - Math.exp(-Math.min(dt, 0.1) * (turning ? 7 : 2.5)));
+    if (cam.rest < 0.001) cam.rest = 0;
     if (free) {
       updateZoom(null, dt, free.zoom - 1);
       cam.x = free.x - vw / 2;
@@ -304,12 +307,8 @@ export function createRenderer(canvas, world, assets) {
         cam.back.k *= Math.exp(-dt * 4);
       }
     }
-    // The view opens up past the edge as a plane nears it heading out, or swings round there, and closes
-    // again afterwards.
-    const out = !free && focus && focus.state === 'air' && (focus.edgeTurn != null || (focus.x < 90 && focus.vx < 0) || (focus.x > map.width - 90 && focus.vx > 0));
-    cam.room += ((out ? EDGE_ROOM : 0) - cam.room) * (1 - Math.exp(-Math.min(dt, 0.1) * 6));
-    if (cam.room < 0.5) cam.room = 0;
-    cam.x = clamp(cam.x, -cam.room, map.width - vw + cam.room);
+    if (cam.rest > 0) cam.x += (cam.restX - cam.x) * cam.rest;
+    cam.x = clamp(cam.x, 0, map.width - vw);
     cam.y = clamp(cam.y, 0, Math.max(0, map.ceiling + 160 - vh));
     // Snap to whole buffer pixels so the scenery doesn't shimmer.
     cam.x = Math.round(cam.x * SCALE) / SCALE;
@@ -332,7 +331,7 @@ export function createRenderer(canvas, world, assets) {
       ctx.fillStyle = colour;
       const ox = Math.floor(cam.x * parallax * SCALE);
       for (let x = 0; x < bw; x++) {
-        const top = Math.round(bh - (heights[clamp(ox + x, 0, heights.length - 1)] - cam.y * parallax) * SCALE);
+        const top = Math.round(bh - (heights[ox + x] - cam.y * parallax) * SCALE);
         if (top < bh) ctx.fillRect(x, top, 1, bh - top);
       }
     };
@@ -398,7 +397,7 @@ export function createRenderer(canvas, world, assets) {
   const chunkSig = (t, i) => {
     let s = 0;
     for (let k = Math.floor((i * CHUNK) / SCALE), end = Math.ceil(((i + 1) * CHUNK) / SCALE) + 1; k < end; k++) {
-      s += (t.heights[clamp(k, 0, t.width)] ?? 0) * ((k & 255) + 1) + (t.scorch[k] ?? 0) * (((k * 7) & 127) + 1) * 1000;
+      s += (t.heights[k] ?? 0) * ((k & 255) + 1) + (t.scorch[k] ?? 0) * (((k * 7) & 127) + 1) * 1000;
     }
     return s;
   };
@@ -406,7 +405,7 @@ export function createRenderer(canvas, world, assets) {
     prof.count('chunkbuild');
     const k0 = Math.floor((i * CHUNK) / SCALE);
     let high = 0;
-    for (let k = k0, end = Math.ceil(((i + 1) * CHUNK) / SCALE) + 1; k < end; k++) high = Math.max(high, t.heights[clamp(k, 0, t.width)] ?? 0);
+    for (let k = k0, end = Math.ceil(((i + 1) * CHUNK) / SCALE) + 1; k < end; k++) high = Math.max(high, t.heights[k] ?? 0);
     const rows = Math.ceil((high + 4) * SCALE) + 4; // a little over the highest ground, for the tufts
     const canvas = old?.canvas ?? makeCanvas(CHUNK, rows);
     if (canvas.height !== rows) canvas.height = rows;

@@ -448,6 +448,6 @@ settles back. For `blendTime` seconds after lift-off (or after flying off a cres
 from `rotateRate` up to the plane's full flying turn rate. Rotation adds about `liftoffPitch / rotateRate`
 seconds (0.35 s at the defaults) to the roll, about 20 units more runway; the `runwayNeeded` values were
 measured before this and have not been re-measured. `edgeTurnTime` (seconds) is how long the
-plane takes at the invisible map edge: it drifts on past the edge, slowing to a stop at the half way mark
+plane takes at the invisible map edge: it drifts on towards the edge, slowing to a stop at the half way mark
 (shown head-on with the runway turn-round frames, flipping there), then accelerates back the other way.
-Steering is locked meanwhile, guns work. It drifts about speed x time / 3 units past the edge.
+Steering is locked meanwhile, guns work. The swing starts about speed x time / 3 units before the edge so the plane stops at the edge, and the camera rests meanwhile.

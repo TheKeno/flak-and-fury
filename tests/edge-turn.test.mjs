@@ -25,12 +25,12 @@ function setup() {
   p.gear = 0;
   p.angle = 0;
   p.speed = 120;
-  p.x = world.map.width - 60;
+  p.x = world.map.width - 200;
   p.y = world.terrain.heightAt(p.x) + 600;
   return { world, p };
 }
 
-test('at a map edge the plane drifts on, stops at the half way mark, flips and comes back', () => {
+test('at a map edge the plane starts early, stops at the edge at the half way mark, flips and comes back', () => {
   const { world, p } = setup();
   const edge = world.map.width - 12;
   let start = -1, ended = -1, flip = -1, farthest = 0, stopAt = null;
@@ -52,10 +52,10 @@ test('at a map edge the plane drifts on, stops at the half way mark, flips and c
   assert.ok(start >= 0, 'it reached the edge');
   const secs = (ended - start) / 60;
   assert.ok(Math.abs(secs - settings.takeoff.edgeTurnTime) < 0.1, `swing took ${secs}s`);
-  assert.ok(farthest > 15, `drifted ${farthest} past the edge`);
-  assert.ok(Math.abs(stopAt - edge - farthest) < 3, 'the farthest point is where it stops');
+  assert.ok(farthest < 4, `never out of the world (${farthest} past the edge)`);
+  assert.ok(Math.abs(stopAt - edge) < 6, `it stops at the edge (${stopAt - edge})`);
   assert.ok(p.vx < -80, 'leaving at flying speed the other way');
-  assert.ok(p.x <= edge + 2, `back inside (${p.x - edge})`);
+  assert.ok(p.x < edge - 30, `back well inside (${p.x - edge})`);
 });
 
 test('steering is locked during the swing, so a held turn does not fight it', () => {
