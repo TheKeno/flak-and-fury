@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld, DT } from '../src/sim/world.js';
+import { mainWheelContact } from '../src/sim/plane.js';
 import { placeBots, changeSeat, freeSide, playersOn, isBot } from '../src/sim/seats.js';
 import { engineSoundFor } from '../src/audio/sound-data.js';
 import { encodeWorld, diff, applyPatch, staticRefs } from '../src/net/snapshot.js';
@@ -279,7 +280,7 @@ test('a new plane mid-flight comes out of the hangar like a respawn (game worlds
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === 0);
   assert.equal(changeSeat(world, p, { defId: 'p47d' }, DT), null);
   assert.equal(p.state, 'ground');
-  assert.equal(p.x, hangar.x, 'inside the hangar, not where the old plane was');
+  assert.ok(Math.abs(mainWheelContact(p).x - hangar.x) < 0.01, 'inside the hangar, not where the old plane was');
   assert.equal(p.exitPhase, 'wait');
   run(world, 20, { p1: IDLE });
   assert.equal(p.exitTo, null, 'rolled out');

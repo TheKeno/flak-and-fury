@@ -774,6 +774,8 @@ export function createRenderer(canvas, world, assets) {
     if (!frames) return null;
     const rows = frames.meta.rows;
     if (p.groundLoop != null) return { row: 'loop', index: Math.min(rows.loop.count - 1, Math.round(p.groundLoop * (rows.loop.count - 1))) };
+    // Leaving the hangar: the head-on frames (the plain turn row would show the tail).
+    if (p.groundTurn != null && p.exitPhase && rows.exit) return { row: 'exit', index: Math.round(smooth(Math.min(1, Math.max(0, (p.groundTurn - 0.5) * 2))) * (rows.exit.count - 1)) };
     if (p.groundTurn != null) return { row: 'turn', index: Math.round(smooth(Math.min(1, p.groundTurn)) * (rows.turn.count - 1)) };
     if (p.rolling) {
       const row = p.gear > 0.5 ? 'rollGear' : 'roll';
@@ -1039,8 +1041,7 @@ export function createRenderer(canvas, world, assets) {
       const right = Math.cos(p.angle) >= 0;
       const rot = right ? p.angle : p.angle - Math.PI;
       const at = mainWheelContact(p);
-      // Head-on in the hangar door the plane is centred on the door, not on its wheels' contact point.
-      const cx = planeX(p.exitPhase === 'out' ? p.x : at.x);
+      const cx = planeX(at.x);
       const cy = planeY(at.y);
       // One disc per propeller (a twin's frames list one per engine): those behind the model first.
       const prop = frames.meta.props[shown.row][shown.index];

@@ -100,7 +100,7 @@ test('a respawned plane is pushed out of the hangar and turns into the runway, e
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
   spawnAtAirfield(p, world, true);
   assert.equal(p.exitPhase, 'wait');
-  assert.equal(p.x, hangar.x, 'starts inside it');
+  assert.ok(Math.abs(mainWheelContact(p).x - hangar.x) < 0.01, 'starts inside it, wheels in the door centre');
   assert.equal(hangar.door, 0, 'doors shut');
   assert.equal(p.engineRunning, true, 'engine running inside the hangar');
   const phases = new Set();

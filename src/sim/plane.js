@@ -256,7 +256,8 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
     // The first place in the line: clear of the hangar, or the runway start if that is further.
     const to = hangar.x + dir * (hangar.def.width / 2 + (hangar.def.exitClear ?? 12));
     p.exitTo = dir > 0 ? Math.max(p.x, to) : Math.min(p.x, to);
-    p.x = hangar.x;
+    // Its main wheels stand in the door centre (the turn pivots on them, so nothing hops when it starts).
+    p.x = hangar.x + dir * wheelGeometry(p.def).main[0];
     p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
     p.exitPhase = 'wait';
     p.exitSeq = world.nextId++;

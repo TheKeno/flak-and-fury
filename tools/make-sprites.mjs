@@ -435,6 +435,7 @@ const CELL_H = 129;
 const GROUND_BELOW = 37;
 const ROLL_FRAMES = 16; // a full roll: 8 per half roll
 const TURN_FRAMES = 13; // yaw 0..180 degrees
+const EXIT_FRAMES = 7; // hangar exit: yaw -90..-180 degrees, 15 apart
 const LOOP_FRAMES = 24;
 const LOOP_YAW = Math.PI * 2.5; // one and a quarter turns, ending nose away from the camera
 
@@ -472,6 +473,9 @@ function planeSheet(model, tailDown) {
   add('roll', ROLL_ANCHOR, roll, false);
   add('rollGear', ROLL_ANCHOR, roll, true);
   add('turn', GROUND_ANCHOR, Array.from({ length: TURN_FRAMES }, (_, k) => groundPose(model, (k / (TURN_FRAMES - 1)) * Math.PI, tailDown)), true);
+  // Coming out of the hangar: nose towards the camera, swinging round to the runway (yaw -90 to -180). The turn
+  // row passes through tail-on instead, which is right on the runway but backwards in the hangar door.
+  add('exit', GROUND_ANCHOR, Array.from({ length: EXIT_FRAMES }, (_, k) => groundPose(model, -Math.PI / 2 - (k / (EXIT_FRAMES - 1)) * (Math.PI / 2), tailDown)), true);
   const bank = tipBank(model, LOOP_YAW, tailDown);
   add('loop', GROUND_ANCHOR, Array.from({ length: LOOP_FRAMES }, (_, k) => {
     const s = k / (LOOP_FRAMES - 1);
