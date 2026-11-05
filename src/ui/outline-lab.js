@@ -1784,16 +1784,20 @@ async function newPlane() {
   if (!(L > 0 && W > 0)) return alert('Give the length and wingspan in metres.');
   await createPlane({ id, L, W, tmpl, sheet });
 }
-// The plane list also shows the planned planes that have no outline yet (data-planned); choosing one makes it.
-const realPlanes = () => [...$('plane').options].filter((o) => !o.dataset.planned).map((o) => o.value);
+const realPlanes = () => [...$('plane').options].map((o) => o.value);
+// A plane's name in the list, as in the New plane picker: "Spitfire Mk IX (UK)". Value stays the short id.
+const NATION = { germany: 'Germany', uk: 'UK', usa: 'USA', ussr: 'USSR', japan: 'Japan', finland: 'Finland' };
+function planeLabel(id) {
+  const d = Object.values(S.planes).find((x) => x && x.sprite === id && x.name);
+  if (d) return `${d.name}${NATION[d.nation] ? ` (${NATION[d.nation]})` : ''}`;
+  return PLANNED.find((p) => p.id === id)?.label ?? id;
+}
 async function createPlane({ id, L, W, tmpl, sheet }) {
   const base = await (await fetch(`data/outlines/${tmpl}.json`, { cache: 'no-store' })).json();
   const o = scaledOutline(base, id, tmpl, L, W);
   await openPlane(id, o);
   if (S.name !== id) return void ($('plane').value = S.name); // unsaved changes in the open plane were kept
-  const opt = [...$('plane').options].find((x) => x.value === id) ?? $('plane').appendChild(new Option(id, id));
-  opt.text = id;
-  delete opt.dataset.planned;
+  $('plane').append(new Option(planeLabel(id), id));
   $('plane').value = id;
   status(`${id}: new, unsaved (a copy of ${tmpl} scaled to ${L} m)`);
   await loadLibrarySheet(sheet);
@@ -1859,21 +1863,8 @@ async function start() {
   const res = await fetch('/api/outlines', { cache: 'no-store' });
   if (!res.ok) throw new Error('the dev server is the old version: stop it and start it again (node tools/serve.mjs 8080)');
   const list = await res.json();
-  for (const n of list) $('plane').append(new Option(n, n));
-  for (const p of PLANNED) {
-    if (p.rebuild || list.includes(p.id)) continue;
-    const opt = new Option(`${p.label}, new`, p.id);
-    opt.dataset.planned = '1';
-    $('plane').append(opt);
-  }
-  $('plane').onchange = () => {
-    const p = $('plane').selectedOptions[0]?.dataset.planned && PLANNED.find((x) => x.id === $('plane').value);
-    if (!p) return openPlane($('plane').value);
-    const back = S.name;
-    createPlane(p).finally(() => {
-      if (S.name !== p.id) $('plane').value = back;
-    });
-  };
+  for (const n of list) $('plane').append(new Option(planeLabel(n), n));
+  $('plane').onchange = () => openPlane($('plane').value);
   $('newPlane').onclick = newPlane;
   new ResizeObserver(resizeCanvas).observe($('stage'));
   const first = new URLSearchParams(location.search).get('plane');
