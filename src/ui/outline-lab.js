@@ -5,7 +5,8 @@ import { kit, buildModel, render, rollPose } from '../../tools/plane-models.mjs'
 import { PALETTE } from '../../tools/plane-palette.mjs';
 import { formatOutline } from '../../tools/outline-format.mjs';
 import { paintSprite } from '../render/sprites.js';
-import { samplePlanform, fitPlanform, convertPlanform } from '../../tools/planform.mjs';
+import { samplePlanform, fitPlanform, convertPlanform, sampleVertical, fitFin, splitFin, convertFin } from '../../tools/planform.mjs';
+import { edgeMap, fitPart, FIT_ALL } from '../../tools/edgefit.mjs';
 
 const $ = (id) => document.getElementById(id);
 const PVH = 110; // the preview bar's picture height in pixels
@@ -50,6 +51,7 @@ const S = window.outlineLab = {
   hover: null,
   cursor: null,
   dirtyPreview: true,
+  ghost: null, // a fit waiting to be accepted: { o, keys, mode }
 };
 
 // The blueprint of the view being edited.
@@ -169,72 +171,6 @@ function snap(d, h) {
 
 // ---------- Parts: points, lines ----------
 const verticalOf = (key) => key === 'fin' || key === 'fins';
-function sampleVertical(s) {
-  const o = S.o;
-  const { surfaceOf, Y, M } = kit(o);
-  const part = surfaceOf(s, true);
-  const y0 = Y(s.at) + (s.from ?? 0) * M;
-  const y1 = Y(s.at) + s.span * M;
-  const le = [];
-  const te = [];
-  const N = 40;
-  for (let i = 0; i <= N; i++) {
-    const y = y0 + ((y1 - y0) * i) / N;
-    const sh = part.shape([0, y, 0]);
-    const h = (y - o.frame.y) / M;
-    le.push([h, (o.frame.x - sh.le) / M]);
-    te.push([h, (o.frame.x - sh.te) / M]);
-  }
-  return { le, te };
-}
-
-// A fin given as edge tables is drawn between `at` and `at + span` over the d range `root`. Dragging a
-// point can leave those behind (the preview then shows a clipped fin), so keep them in step with the
-// points. For a fin that is already consistent this changes nothing.
-function fitFin(s) {
-  if (!s?.le || !s?.te) return;
-  const hs = [...s.le, ...s.te].map((r) => r[0]);
-  s.at = r4(Math.min(...hs));
-  s.span = r4(Math.max(...hs) - s.at);
-  s.root = [r4(Math.min(...s.le.map((r) => r[1]))), r4(Math.max(...s.te.map((r) => r[1])))];
-}
-
-// Puts a fin's points back in order: every point goes under the edge (front or back) it lies on, each edge
-// in height order, with the topmost point shared. A point keeps its edge unless it is well over the middle.
-function splitFin(s) {
-  const key = (r) => `${r[0]},${r[1]}`;
-  const inTe = new Set(s.te.map(key));
-  const shared = s.le.filter((r) => inTe.has(key(r)));
-  const sk = new Set(shared.map(key));
-  const own = new Map();
-  for (const r of s.le) if (!sk.has(key(r))) own.set(r, 'le');
-  for (const r of s.te) if (!sk.has(key(r))) own.set(r, 'te');
-  const rest = [...own.keys()];
-  const all = [...shared, ...rest];
-  const n = all.length;
-  // The fin's middle line (d against h, least squares). A point keeps the edge it is listed under
-  // unless it lies well over on the other side of that line.
-  const mh = all.reduce((a, r) => a + r[0], 0) / n;
-  const md = all.reduce((a, r) => a + r[1], 0) / n;
-  const sxx = all.reduce((a, r) => a + (r[0] - mh) ** 2, 0);
-  const b = sxx > 1e-9 ? all.reduce((a, r) => a + (r[0] - mh) * (r[1] - md), 0) / sxx : 0;
-  const side = (r) => r[1] - (md + b * (r[0] - mh));
-  const margin = 0.1 * (Math.max(...all.map((r) => r[1])) - Math.min(...all.map((r) => r[1])));
-  const sideOf = (r) => (own.get(r) === 'le' ? (side(r) > margin ? 'te' : 'le') : side(r) < -margin ? 'le' : 'te');
-  let top = shared.reduce((t, r) => (!t || r[0] > t[0] ? r : t), null);
-  const highest = all.reduce((t, r) => (r[0] > t[0] ? r : t), all[0]);
-  const base = shared.filter((r) => r !== top);
-  if (!top || highest[0] > top[0]) {
-    top = highest;
-    if (shared.includes(top)) base.splice(base.indexOf(top), 1);
-    else rest.splice(rest.indexOf(top), 1);
-  }
-  const byH = (x, y) => x[0] - y[0];
-  const le = [...base, ...rest.filter((r) => sideOf(r) === 'le')].sort(byH);
-  const te = [...base, ...rest.filter((r) => sideOf(r) === 'te')].sort(byH);
-  return { le: [...le, top], te: [...te, [...top]] };
-}
-
 function bodyRows(key) {
   return S.o[key].stations;
 }
@@ -466,7 +402,7 @@ function linesFor(key) {
   }
   if (verticalOf(key)) {
     const s = o[key];
-    const { le, te } = s.le ? { le: s.le, te: s.te } : sampleVertical(s);
+    const { le, te } = s.le ? { le: s.le, te: s.te } : sampleVertical(S.o, s);
     return [{ pts: [...le.map((r) => [r[1], r[0]]), ...te.map((r) => [r[1], r[0]]).reverse()], closed: true }];
   }
   if (key === 'gear') {
@@ -517,6 +453,7 @@ function partIds() {
 
 // ---------- Undo ----------
 function pushUndo() {
+  clearGhost();
   // Until the tail point's height is typed in, it follows the last fuselage station, so editing that
   // station would tilt the whole blueprint fit and every point would seem to move. Fix it before any edit.
   const side = S.bps.side;
@@ -529,6 +466,7 @@ function pushUndo() {
   S.redo = [];
 }
 function restore(text) {
+  clearGhost();
   S.o = JSON.parse(text);
   syncDef();
   S.sel = null;
@@ -823,6 +761,27 @@ function draw() {
       }
     }
   }
+  if (S.ghost?.mode === S.mode) {
+    // The fit waiting to be accepted, in white over the outline.
+    const real = S.o;
+    S.o = S.ghost.o;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = line(2);
+    ctx.setLineDash([line(6), line(4)]);
+    for (const key of S.ghost.keys) {
+      for (const ln of linesFor(key)) {
+        for (const flip of isPlan() ? [1, -1] : [1]) {
+          ctx.globalAlpha = flip < 0 ? 0.5 : 1;
+          ctx.beginPath();
+          ln.pts.forEach(([d, h], i) => (i ? ctx.lineTo(d, flip * h) : ctx.moveTo(d, flip * h)));
+          if (ln.closed) ctx.closePath();
+          ctx.stroke();
+        }
+      }
+    }
+    S.o = real;
+  }
+  ctx.setLineDash([]);
   ctx.globalAlpha = 1;
   ctx.restore();
   // Points, in screen pixels: the selected part's big, the others' small (click one to switch to its part).
@@ -1104,6 +1063,83 @@ window.addEventListener('keydown', (e) => {
   changed();
 });
 
+// ---------- Fit part to drawing (tools/edgefit.mjs) ----------
+// The edge map is built from the picture when first needed and kept on the blueprint record in memory only
+// (never saved: it is cheap to rebuild, and the picture itself stays out of the repo). Large sheets are
+// searched at up to 3000 px on the long side.
+function edgeFor(bp) {
+  if (bp.edge) return bp.edge;
+  const img = bp.img;
+  const s = Math.min(1, 3000 / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * s));
+  const h = Math.max(1, Math.round(img.height * s));
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const cx = c.getContext('2d', { willReadFrequently: true });
+  cx.fillStyle = '#fff'; // transparent pictures count as white paper
+  cx.fillRect(0, 0, w, h);
+  cx.drawImage(img, 0, 0, w, h);
+  const px = cx.getImageData(0, 0, w, h).data;
+  const gray = new Float32Array(w * h);
+  for (let i = 0; i < gray.length; i++) gray[i] = 0.299 * px[i * 4] + 0.587 * px[i * 4 + 1] + 0.114 * px[i * 4 + 2];
+  bp.edge = { map: edgeMap(gray, w, h), s };
+  return bp.edge;
+}
+function clearGhost() {
+  if (!S.ghost) return;
+  S.ghost = null;
+  $('fitGhost').hidden = true;
+  requestDraw();
+}
+function startFit(keys) {
+  clearGhost();
+  const b = S.bp;
+  if (!b?.img || !calibrated(b)) return status('Load and calibrate the drawing for this view first', true);
+  const win = parseFloat($('fitWin').value) > 0 ? parseFloat($('fitWin').value) : 0.3;
+  const { map, s } = edgeFor(b);
+  const T0 = matT();
+  const T = { a: T0.a * s, b: T0.b * s, c: T0.c * s, d: T0.d * s, e: T0.e * s, f: T0.f * s };
+  const o = clone(S.o);
+  let hits = 0;
+  let total = 0;
+  const used = [];
+  for (const key of keys) {
+    if (!o[key]) continue;
+    const r = fitPart(o, key, S.mode, T, map, { win });
+    if (!r.total) continue;
+    hits += r.hits;
+    total += r.total;
+    used.push(key);
+  }
+  if (!total) return status(`Nothing to fit for ${keys.map(label).join(', ')} in this view`, true);
+  S.ghost = { o, keys: used, mode: S.mode };
+  $('fitGhost').hidden = false;
+  const share = hits / total;
+  $('fitInfo').textContent = `${used.map(label).join(', ')}: an edge found for ${hits} of ${total} points. White dashed = the fit; Accept keeps it as one undo step, Cancel (or any edit) drops it.`
+    + (share < 0.6 ? ' Few points found an edge: check the calibration (nose and tail clicks, Turn 180°) before trusting this.' : '');
+  $('fitInfo').style.color = share < 0.6 ? 'var(--warn)' : '';
+  requestDraw();
+}
+function acceptFit() {
+  const g = S.ghost;
+  if (!g) return;
+  pushUndo(); // also drops the ghost
+  for (const key of g.keys) S.o[key] = g.o[key];
+  S.sel = null;
+  $('fitInfo').textContent = `Fitted ${g.keys.map(label).join(', ')} (undo with Ctrl+Z).`;
+  $('fitInfo').style.color = '';
+  rebuildPanel();
+  changed();
+}
+$('fitPart').onclick = () => startFit([S.part]);
+$('fitAll').onclick = () => startFit(FIT_ALL);
+$('fitAccept').onclick = acceptFit;
+$('fitCancel').onclick = () => {
+  clearGhost();
+  $('fitInfo').textContent = '';
+};
+
 // ---------- Side panel ----------
 function fmt(v) {
   return v === undefined || Number.isNaN(v) ? '' : String(r4(v));
@@ -1320,12 +1356,7 @@ function rebuildPanel() {
         b.title = 'Replaces the fin formula with edge points traced from its current shape';
         b.onclick = () => {
           pushUndo();
-          const { le, te } = sampleVertical(s);
-          const thin = (rows) => rows.filter((_, i) => i % 4 === 0 || i === rows.length - 1).map((r) => [r4(r[0]), r4(r[1])]);
-          s.le = thin(le);
-          s.te = thin(te);
-          s.te[s.te.length - 1] = [...s.le.at(-1)];
-          delete s.round;
+          convertFin(S.o, S.part);
           rebuildPanel();
           changed();
         };
@@ -1417,6 +1448,7 @@ function updateBlueprintInfo() {
   $('tailH').value = fmt(tailHeight());
   $('span').value = fmt(S.o?.span);
   $('turn').disabled = !S.bp;
+  $('fitPart').disabled = $('fitAll').disabled = !calibrated(b);
   $('copyPlan').hidden = S.mode !== 'under';
   $('copyPlan').disabled = !calibratedPlan();
   $('copyPlan180').hidden = S.mode !== 'under';
@@ -1443,6 +1475,7 @@ $('copyPlan').onclick = () => copyFromPlan(false);
 $('copyPlan180').onclick = () => copyFromPlan(true);
 function setMode(mode) {
   if (S.mode === mode || !S.o) return;
+  clearGhost();
   S.mode = mode;
   S.calibrating = null;
   S.sel = null;

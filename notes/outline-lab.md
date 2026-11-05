@@ -61,6 +61,17 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   previews button (remembered in the browser).
 - Tests: `tests/outlines.test.mjs` (plan view: conversion draws nearly the same, fit keeps order).
 
+- **Fit part to drawing** (automatic first trace, step 1 of ROADMAP Decisions; 2026-11-05): "Fit to drawing" in the side panel:
+  Fit part / Fit all parts (fuselage, spinner, canopy, nacelle, wing, tailplane, fin), search ± window (default 0.3 m).
+  `tools/edgefit.mjs` (pure, `tests/edgefit.test.mjs`): `edgeMap` (blurred Sobel + background-flood silhouette),
+  `rayFit` (strongest edge near the start of a ray, nearer wins), `fitPart`. Rays are cast in model space through the
+  view's calibration matrix, so tilted/rotated/mirrored sheets work. Side view: station tops/bottoms along h, fin edges
+  along d; plan/underside: half widths along z, wing/tailplane edges along d (root points stay). Single stray points
+  are dropped (`despike`). The fit shows as a white dashed ghost; Accept = one undo step; any edit or Cancel drops it.
+  The status line says how many points found an edge (under 60%: check the calibration). Edge map lives on the
+  blueprint record in memory only (up to 3000 px long side). Fin helpers (`sampleVertical`, `fitFin`, `splitFin`,
+  `convertFin`) moved from the lab into `tools/planform.mjs`. Steps 2 (station placement) and 3 (snap-to-line) not built yet.
+
 ## Known limits
 - A fuselage station's top and bottom point share one `d` (position along the plane), so a sharp nose needs
   extra stations. Judged acceptable; revisit if the Mosquito nose or canopy fights it.

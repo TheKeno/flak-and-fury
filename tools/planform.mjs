@@ -54,3 +54,80 @@ export function convertPlanform(o, key) {
   Object.assign(s, samplePlanform(o, key));
   fitPlanform(s);
 }
+
+export function sampleVertical(o, s) {
+  const { surfaceOf, Y, M } = kit(o);
+  const part = surfaceOf(s, true);
+  const y0 = Y(s.at) + (s.from ?? 0) * M;
+  const y1 = Y(s.at) + s.span * M;
+  const le = [];
+  const te = [];
+  const N = 40;
+  for (let i = 0; i <= N; i++) {
+    const y = y0 + ((y1 - y0) * i) / N;
+    const sh = part.shape([0, y, 0]);
+    const h = (y - o.frame.y) / M;
+    le.push([h, (o.frame.x - sh.le) / M]);
+    te.push([h, (o.frame.x - sh.te) / M]);
+  }
+  return { le, te };
+}
+
+// A fin given as edge tables is drawn between `at` and `at + span` over the d range `root`. Dragging a
+// point can leave those behind (the preview then shows a clipped fin), so keep them in step with the
+// points. For a fin that is already consistent this changes nothing.
+export function fitFin(s) {
+  if (!s?.le || !s?.te) return;
+  const hs = [...s.le, ...s.te].map((r) => r[0]);
+  s.at = r4(Math.min(...hs));
+  s.span = r4(Math.max(...hs) - s.at);
+  s.root = [r4(Math.min(...s.le.map((r) => r[1]))), r4(Math.max(...s.te.map((r) => r[1])))];
+}
+
+// Puts a fin's points back in order: every point goes under the edge (front or back) it lies on, each edge
+// in height order, with the topmost point shared. A point keeps its edge unless it is well over the middle.
+export function splitFin(s) {
+  const key = (r) => `${r[0]},${r[1]}`;
+  const inTe = new Set(s.te.map(key));
+  const shared = s.le.filter((r) => inTe.has(key(r)));
+  const sk = new Set(shared.map(key));
+  const own = new Map();
+  for (const r of s.le) if (!sk.has(key(r))) own.set(r, 'le');
+  for (const r of s.te) if (!sk.has(key(r))) own.set(r, 'te');
+  const rest = [...own.keys()];
+  const all = [...shared, ...rest];
+  const n = all.length;
+  // The fin's middle line (d against h, least squares). A point keeps the edge it is listed under
+  // unless it lies well over on the other side of that line.
+  const mh = all.reduce((a, r) => a + r[0], 0) / n;
+  const md = all.reduce((a, r) => a + r[1], 0) / n;
+  const sxx = all.reduce((a, r) => a + (r[0] - mh) ** 2, 0);
+  const b = sxx > 1e-9 ? all.reduce((a, r) => a + (r[0] - mh) * (r[1] - md), 0) / sxx : 0;
+  const side = (r) => r[1] - (md + b * (r[0] - mh));
+  const margin = 0.1 * (Math.max(...all.map((r) => r[1])) - Math.min(...all.map((r) => r[1])));
+  const sideOf = (r) => (own.get(r) === 'le' ? (side(r) > margin ? 'te' : 'le') : side(r) < -margin ? 'le' : 'te');
+  let top = shared.reduce((t, r) => (!t || r[0] > t[0] ? r : t), null);
+  const highest = all.reduce((t, r) => (r[0] > t[0] ? r : t), all[0]);
+  const base = shared.filter((r) => r !== top);
+  if (!top || highest[0] > top[0]) {
+    top = highest;
+    if (shared.includes(top)) base.splice(base.indexOf(top), 1);
+    else rest.splice(rest.indexOf(top), 1);
+  }
+  const byH = (x, y) => x[0] - y[0];
+  const le = [...base, ...rest.filter((r) => sideOf(r) === 'le')].sort(byH);
+  const te = [...base, ...rest.filter((r) => sideOf(r) === 'te')].sort(byH);
+  return { le: [...le, top], te: [...te, [...top]] };
+}
+
+
+// A formula fin becomes edge tables (every fourth sample), drawn almost the same; the tip point is shared.
+export function convertFin(o, key) {
+  const s = o[key];
+  const { le, te } = sampleVertical(o, s);
+  const thin = (rows) => rows.filter((_, i) => i % 4 === 0 || i === rows.length - 1).map((r) => [r4(r[0]), r4(r[1])]);
+  s.le = thin(le);
+  s.te = thin(te);
+  s.te[s.te.length - 1] = [...s.le.at(-1)];
+  delete s.round;
+}
