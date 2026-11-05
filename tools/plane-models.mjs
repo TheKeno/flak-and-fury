@@ -1351,7 +1351,7 @@ function ju87(o) {
     { ...sphere([X(4.5), Y(0.88), 0], 0.17 * M), pilot: true, material: plain('pilot') },
     { ...sphere([X(5.55), Y(0.86), 0], 0.17 * M), pilot: true, material: plain('pilot') }, // rear gunner, facing aft
     // Rear gunner's MG 81Z on its pivot mount, barrels poking aft out of the canopy.
-    { ...strut([X(6.5), Y(0.86), 0.06 * M], [X(7.1), Y(0.7), 0.06 * M], 0.025 * M), material: plain('dark') },
+    { ...strut([X(6.55), Y(0.78), 0.06 * M], [X(6.95), Y(0.62), 0.06 * M], 0.03 * M), material: plain('dark') },
     // Two MG 151/20 in the wings.
     { ...strut([X(3.25), wy, wz], [X(2.8), wy, wz], 0.04 * M), material: plain('dark') },
     { ...spat, material: plain('paint') },
