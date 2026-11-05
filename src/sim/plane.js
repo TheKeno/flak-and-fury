@@ -151,6 +151,10 @@ export function createPlane(id, def, { team, nation, seats }) {
     exitPhase: null, // wait (hidden, doors/queue) | out (rolls towards the camera) | turn | roll (to exitTo) | shove (pushed up the queue)
     exitT: 0, // 0..1 through the roll-out towards the camera: the plane is drawn bigger as it comes
     exitSeq: 0, // place in the hangar queue
+    edgeLevel: null, // seconds into levelling out before a map-edge swing (null: not doing that); see stepAir
+    edgeLevelTime: 0, // how long that levelling takes
+    edgeLevelDiff: 0, // the angle the plane started it from, relative to level
+    edgeLevelOff: 0, // what the pilot steered in meanwhile, fading out
     edgeTurn: null, // 0..1 through the swing round at a map edge (see stepAir)
     edgeDir: 0, // which edge: -1 left, 1 right
     edgeFlip: 0, // counts the flips at the half way mark, so the drawing can tell
@@ -246,7 +250,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.propBent = false;
   p.rolling = false;
   p.rollAngle = p.inverted ? Math.PI : 0;
-  p.groundTurn = p.groundLoop = p.edgeTurn = null;
+  p.groundTurn = p.groundLoop = p.edgeTurn = p.edgeLevel = null;
   // Out of the hangar (a respawn): it starts inside, facing the camera, engine idling. stepHangarExit waits for
   // the doors and a free place, then the crew push it out; it turns into the runway and is rolled to
   // its place in the line. Not with the hangar destroyed (no doors, no crew): it appears on the runway.
@@ -619,10 +623,60 @@ function stepGroundTurn(p, world, dt) {
   world.events.push({ type: 'turnedRound', plane: p.id, x: p.x, y: p.y });
 }
 
+const smooth01 = (t) => {
+  const k = clamp(t, 0, 1);
+  return k * k * (3 - 2 * k);
+};
+
+// The map-edge turn-back, worked out for a plane heading out (out: 1 right, -1 left) at its current angle
+// and position: how long it needs to level out, how far that carries it towards the wall (travel), and the
+// swing's drift plus the pivot's shift (drift), so the plane stops at the wall. The speed is held at the
+// current one, but never below flying speed. A steeper entry takes longer (levelRate: the fastest the nose
+// moves, rad/s); if the path would put it in the ground or the thin air at the top it levels faster, up to
+// about twice as fast.
+function levelPlan(p, world, out, to, swing) {
+  const d = p.def;
+  const speed = Math.max(p.speed, d.stallSpeed * STALL_RECOVERY * 1.02);
+  const target = out > 0 ? 0 : Math.PI;
+  const diff = wrapAngle(p.angle - target);
+  const base = Math.max(0.15, (1.5 * Math.abs(diff)) / (to.levelRate ?? DEFAULT_TAKEOFF.levelRate));
+  const ceiling = world.map.ceiling - 40;
+  let plan = null;
+  let normalTravel = null;
+  for (const k of [1, 1.3, 1.7, 2.2]) {
+    const time = Math.max(0.15, base / k);
+    let x = p.x;
+    let y = p.y;
+    let ok = true;
+    for (let i = 1; i <= 12; i++) {
+      const a = target + diff * (1 - smooth01(i / 12));
+      x += (Math.cos(a) * speed * time) / 12;
+      y += (Math.sin(a) * speed * time) / 12;
+      if (y < world.terrain.heightAt(x) + 40 || y > ceiling) ok = false;
+    }
+    plan = { time, travel: out * (x - p.x), speed, ok };
+    normalTravel ??= plan.travel;
+    if (ok) break;
+  }
+  // The start is always timed for the normal level-out, so a plane diving at the ground has not left it
+  // too late to level faster; if it does level faster it just stops a little short of the wall.
+  plan.travel = normalTravel;
+  plan.drift = (speed * swing) / Math.PI + 2 * Math.abs(wheelGeometry(d).main[0]) + 4; // the pivot's shift, and a little to spare
+  return plan;
+}
+
 function stepAir(p, cmd, world, dt) {
   const d = p.def;
-  // Swinging round at a map edge: steering and rolling are locked until it is done (guns still work).
-  if (p.edgeTurn != null) cmd = { ...cmd, turn: 0, roll: false };
+  // At a map edge the plane levels out, swings round and flies back level (see the edge code below): rolling
+  // is locked throughout (guns still work), steering fades out over the first moments of the levelling
+  // and stays locked through the swing.
+  // A plane that is shot down, blacks out or is knocked about is on its own: no autopilot.
+  if ((p.dying || p.blackout || p.tumble > 0) && (p.edgeLevel != null || p.edgeTurn != null)) {
+    p.edgeLevel = p.edgeTurn = null;
+    p.edgeDir = 0;
+  }
+  const edging = p.edgeLevel != null || p.edgeTurn != null;
+  if (edging) cmd = { ...cmd, turn: p.edgeTurn != null ? 0 : cmd.turn, roll: false };
 
   if (cmd.roll && !p.prevRoll && !p.blackout) {
     p.inverted = !p.inverted;
@@ -661,7 +715,7 @@ function stepAir(p, cmd, world, dt) {
   // Below stall speed the wings stop lifting: controls go soft and the nose falls.
   // The stall only clears once the plane has picked up a margin of speed again.
   const wasStalled = p.stalled;
-  p.stalled = p.speed < d.stallSpeed * (wasStalled ? STALL_RECOVERY : 1);
+  p.stalled = !edging && p.speed < d.stallSpeed * (wasStalled ? STALL_RECOVERY : 1);
   if (p.stalled) {
     const severity = clamp(1 - p.speed / d.stallSpeed, 0, 1);
     const toDown = angleDiff(-Math.PI / 2, p.angle);
@@ -680,13 +734,25 @@ function stepAir(p, cmd, world, dt) {
     turn = Math.sign(toDown) * Math.min(Math.abs(toDown), 1) * 1.6 + p.spinDir * 0.6;
   }
 
-  p.angle = wrapAngle(p.angle + turn * dt);
+  if (p.edgeLevel != null) {
+    // Levelling out: the nose follows a smooth path to level. What the pilot is still steering in during the
+    // first 0.3 s rides on top of it as an offset that dies away over the levelling, so nothing snatches
+    // the stick.
+    p.edgeLevel += dt;
+    p.edgeLevelOff += turn * dt * (1 - smooth01(p.edgeLevel / 0.3));
+    const u = p.edgeLevel / p.edgeLevelTime;
+    const target = p.edgeDir > 0 ? 0 : Math.PI;
+    p.angle = wrapAngle(target + p.edgeLevelDiff * (1 - smooth01(u)) + p.edgeLevelOff * (1 - smooth01(u)));
+  } else p.angle = wrapAngle(p.angle + turn * dt);
 
-  const thrust = d.thrust * p.throttle * p.power;
-  const drag = d.dragCoef * p.speed * p.speed * (1 + GEAR_DRAG * p.gear);
-  const induced = Math.abs(turn) * p.speed * 0.12; // hard turns bleed speed
-  p.speed += (thrust - drag - induced - GRAVITY * Math.sin(p.angle)) * dt;
-  p.speed = Math.max(0, p.speed);
+  // The autopilot holds the speed it started with (a steep climb into the wall must not stall mid-turn).
+  if (!edging) {
+    const thrust = d.thrust * p.throttle * p.power;
+    const drag = d.dragCoef * p.speed * p.speed * (1 + GEAR_DRAG * p.gear);
+    const induced = Math.abs(turn) * p.speed * 0.12; // hard turns bleed speed
+    p.speed += (thrust - drag - induced - GRAVITY * Math.sin(p.angle)) * dt;
+    p.speed = Math.max(0, p.speed);
+  }
 
   // Stalled planes mush downwards; a blacked-out pilot spirals down out of the thin air.
   let targetSink = p.stalled ? (0.3 + clamp(1 - p.speed / d.stallSpeed, 0, 1)) * 60 : 0;
@@ -695,15 +761,26 @@ function stepAir(p, cmd, world, dt) {
 
   p.vx = Math.cos(p.angle) * p.speed;
   p.vy = Math.sin(p.angle) * p.speed - p.sink;
-  // Map edges: the plane doesn't bounce. The swing round (edgeTurn 0..1, drawn with the runway turn-round
-  // frames) keeps some forward drift that slows to a stop at the half way mark, where the plane flips
-  // (angle mirrored, pilot kept upright), then speeds up the other way: the outward speed follows
-  // cos(PI t), so it starts and ends at the normal flying speed and the plane ends where it began.
-  // The drift is speed x time / PI, so the swing starts that far before the wall and the plane stops at
-  // the wall, never out of the world.
+  // Map edges: the plane doesn't bounce, it turns back in three steps. 1) It levels out (edgeLevel), the
+  // nose easing to horizontal along a smooth path; a steeper entry takes longer (takeoff.levelRate), and
+  // near the ground or the ceiling it levels faster if it has to. 2) The swing round (edgeTurn 0..1, drawn
+  // with the runway turn-round frames) keeps some forward drift that slows to a stop at the half way mark,
+  // where the plane flips (angle mirrored, pilot kept upright), then speeds up the other way: the outward
+  // speed follows cos(PI t), so it starts and ends at the normal flying speed. 3) It flies on level.
+  // Both steps are timed so the plane stops at the wall, never out of the world: they start as far from it
+  // as the levelling and the swing's drift need (levelPlan).
+  const to = world.takeoff ?? DEFAULT_TAKEOFF;
+  const swing = to.edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime;
+  if (p.edgeLevel != null && p.edgeLevel >= p.edgeLevelTime) {
+    p.edgeLevel = null;
+    p.angle = p.edgeDir > 0 ? 0 : Math.PI;
+    p.edgeTurn = 0;
+    p.rolling = false;
+    world.events.push({ type: 'edgeTurn', plane: p.id, x: p.x, y: p.y });
+  }
   if (p.edgeTurn != null) {
     const before = p.edgeTurn;
-    p.edgeTurn += dt / ((world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime);
+    p.edgeTurn += dt / swing;
     if (before < 0.5 && p.edgeTurn >= 0.5) {
       // The plane pivots on its main wheels, as in the ground turn: the wheels stay put and the plane
       // moves to the other side of them (the drawn frames are anchored there, so they don't jump).
@@ -714,6 +791,7 @@ function stepAir(p, cmd, world, dt) {
       p.edgeFlip = (p.edgeFlip ?? 0) + 1; // tells the drawing not to blend this tick's angle and position (src/render/interpolate.js)
     }
     p.vx = p.edgeDir * Math.abs(Math.cos(p.angle)) * p.speed * Math.cos(Math.PI * Math.min(1, p.edgeTurn));
+    p.vy = Math.sin(p.angle) * p.speed;
     if (p.edgeTurn >= 1) {
       p.edgeTurn = null;
       p.edgeDir = 0;
@@ -721,18 +799,33 @@ function stepAir(p, cmd, world, dt) {
   }
   p.x += p.vx * dt;
   p.y += p.vy * dt;
-  const swing = (world.takeoff ?? DEFAULT_TAKEOFF).edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime;
-  const drift = (Math.abs(p.vx) * swing) / Math.PI + 2 * Math.abs(wheelGeometry(p.def).main[0]); // plus the pivot's shift
-  if (p.edgeTurn == null && (p.x < EDGE_MARGIN + drift || p.x > world.map.width - EDGE_MARGIN - drift)) {
-    const out = p.x < EDGE_MARGIN + drift ? -1 : 1;
-    p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
-    if (p.vx * out > 0) { // heading outwards (a swing that ends a hair outside just stays put)
-      p.edgeTurn = 0;
-      p.edgeDir = out;
-      p.rolling = false;
-      world.events.push({ type: 'edgeTurn', plane: p.id, x: p.x, y: p.y });
+  if (!edging && p.vx !== 0) {
+    const out = p.vx > 0 ? 1 : -1;
+    const room = out > 0 ? world.map.width - EDGE_MARGIN - p.x : p.x - EDGE_MARGIN;
+    if (!(p.dying || p.blackout || p.tumble > 0)) {
+      // Far from the wall nothing needs working out; close enough, the plan says go.
+      if (room < 900) {
+        const plan = levelPlan(p, world, out, to, swing);
+        if (room <= plan.travel + plan.drift + plan.speed * dt) { // (plus a tick's travel, so it never starts a tick late)
+          p.edgeLevel = 0;
+          p.edgeLevelTime = plan.time;
+          p.edgeLevelDiff = wrapAngle(p.angle - (out > 0 ? 0 : Math.PI));
+          p.edgeLevelOff = 0;
+          p.edgeDir = out;
+          p.speed = plan.speed;
+          p.stalled = false;
+          p.rolling = false; // a roll still being drawn snaps to rest
+        }
+      }
+    } else if (room <= 0) {
+      // A plane that is dying, blacked out or tumbling gets no autopilot: it just bounces off, as before.
+      p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
+      p.angle = wrapAngle(Math.PI - p.angle);
+      p.inverted = !p.inverted;
+      p.edgeFlip = (p.edgeFlip ?? 0) + 1;
     }
   }
+  if (!edging) p.x = clamp(p.x, EDGE_MARGIN, world.map.width - EDGE_MARGIN);
 
   const gearReady = p.gear >= 0.9;
   const ground = world.terrain.heightAt(p.x) + (gearReady ? GEAR_HEIGHT : BELLY_HEIGHT);
@@ -745,7 +838,7 @@ function stepAir(p, cmd, world, dt) {
 // may fold; stallSink and plopDamage: a stall this slow sinking (units/s) is a tail-first plop.
 // rotateRate: how fast the nose comes up on the wheels at take-off (rad/s); liftoffPitch: the pitch it
 // leaves the ground at (rad); blendTime: seconds the turn rate takes to ease up to the flying rate.
-export const DEFAULT_TAKEOFF = { rotateRate: 0.4, liftoffPitch: 0.14, blendTime: 0.8, edgeTurnTime: 1.2 };
+export const DEFAULT_TAKEOFF = { rotateRate: 0.4, liftoffPitch: 0.14, blendTime: 0.8, edgeTurnTime: 1.2, levelRate: 1.2 };
 export const DEFAULT_LANDING ={ cleanAngle: 0.35, hardSpeed: 1.15, hardAngle: 0.6, hardDamage: 30, collapseFrom: 0.5, stallSink: 35, plopDamage: 6 };
 
 // How a landing here would go right now, for the HUD's approach cues: speed and nose angle against the
@@ -764,7 +857,7 @@ export function approach(p, world) {
 // back up, damaged (nose-down bends the propeller; a bad one can fold the gear). A stall in the last
 // metre is a heavy tail-first plop. Worse is a crash, and the report says which limit was broken.
 function touchDown(p, world, ground, gearReady) {
-  p.edgeTurn = null;
+  p.edgeTurn = p.edgeLevel = null;
   const d = p.def;
   const cfg = world.landing;
   const facingRight = Math.cos(p.angle) >= 0;
@@ -885,7 +978,7 @@ function abandon(p, world) {
 
 export function stepPlane(p, cmd, world, dt) {
   if (p.state === 'dead') {
-    p.groundTurn = p.groundLoop = p.edgeTurn = null;
+    p.groundTurn = p.groundLoop = p.edgeTurn = p.edgeLevel = null;
     p.respawnTimer -= dt;
     if (p.respawnTimer <= 0) spawnAtAirfield(p, world, true);
     return;

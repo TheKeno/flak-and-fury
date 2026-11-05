@@ -25,8 +25,8 @@ function setup() {
   p.gear = 0;
   p.angle = 0;
   p.speed = 120;
-  p.x = world.map.width - 200;
-  p.y = world.terrain.heightAt(p.x) + 600;
+  p.x = world.map.width - 260;
+  p.y = world.terrain.heightAt(p.x) + 300;
   return { world, p };
 }
 
@@ -53,7 +53,7 @@ test('at a map edge the plane starts early, stops at the edge at the half way ma
   const secs = (ended - start) / 60;
   assert.ok(Math.abs(secs - settings.takeoff.edgeTurnTime) < 0.1, `swing took ${secs}s`);
   assert.ok(farthest < 4, `never out of the world (${farthest} past the edge)`);
-  assert.ok(Math.abs(stopAt - edge) < 6, `it stops at the edge (${stopAt - edge})`);
+  assert.ok(stopAt - edge < 3 && stopAt - edge > -14, `it stops at the edge (${stopAt - edge})`);
   assert.ok(p.vx < -80, 'leaving at flying speed the other way');
   assert.ok(p.x < edge - 30, `back well inside (${p.x - edge})`);
 });
@@ -89,7 +89,7 @@ test('the flip pivots on the main wheels (they stay put) and keeps a plane upsid
       if (flips && p.edgeTurn == null) break;
     }
     assert.equal(flips, 1, 'flipped once');
-    assert.equal(before, up, `the plane stays ${up ? 'right way up' : 'upside down'} through the flip`);
+    assert.equal(before, up, `(${angle}, ${inverted}) the plane stays ${up ? "right way up" : "upside down"} through the flip`);
   }
 });
 
@@ -105,4 +105,79 @@ test('drawing between ticks does not swing the angle through the flip', async ()
   p.angle = 0;
   writePoses(world, a, b, 0.5);
   assert.ok(Math.abs(p.angle - (Math.PI - 0.7)) < 1e-9, 'angle is the new one, not the sweep between');
+});
+
+// Flies a plane at the right-hand wall at the given angle and records how the turn-back went.
+function approach(angle, { inverted = false, height = 300, speed = 120, steer = 0, from = 260 } = {}) {
+  const { world, p } = setup();
+  p.x = world.map.width - from;
+  p.angle = angle;
+  p.inverted = inverted;
+  p.speed = speed;
+  p.y = world.terrain.heightAt(p.x) + height;
+  const edge = world.map.width - 12;
+  const r = { levelStart: -1, swingStart: -1, end: -1, worstStep: 0, beyond: 0, minSpeed: Infinity, levelAtSwing: null, died: false, minClear: Infinity };
+  let last = p.angle;
+  for (let i = 0; i < 60 * 8; i++) {
+    stepWorld(world, { p1: { ...IDLE, turn: steer } });
+    if (p.state !== 'air') { r.died = true; break; }
+    if (p.edgeLevel != null && r.levelStart < 0) r.levelStart = i;
+    if (p.edgeTurn != null && r.swingStart < 0) { r.swingStart = i; r.levelAtSwing = Math.abs(Math.sin(p.angle)); }
+    if (r.levelStart >= 0 && (p.edgeLevel != null || p.edgeTurn != null)) {
+      r.minSpeed = Math.min(r.minSpeed, p.speed);
+      r.beyond = Math.max(r.beyond, p.x - edge);
+      r.minClear = Math.min(r.minClear, p.y - world.terrain.heightAt(p.x));
+    }
+    // The angle between ticks, apart from the flip itself (which mirrors it at the half way mark).
+    if (!(p.edgeFlip && Math.cos(p.angle) * Math.cos(last) < 0)) r.worstStep = Math.max(r.worstStep, Math.abs(Math.atan2(Math.sin(p.angle - last), Math.cos(p.angle - last))));
+    last = p.angle;
+    if (r.swingStart >= 0 && p.edgeTurn == null) { r.end = i; break; }
+  }
+  r.plane = p;
+  return r;
+}
+
+test('whatever the entry angle, the plane levels out first, swings round level and flies back level', () => {
+  for (const [angle, from, height] of [[0, 260, 300], [0.4, 260, 300], [0.9, 250, 250], [1.3, 205, 200], [-0.4, 260, 300], [-0.9, 260, 350], [-1.2, 300, 450]]) {
+    const r = approach(angle, { from, height });
+    assert.ok(!r.died, `entry ${angle}: still flying`);
+    assert.ok(r.swingStart >= 0 && r.end > r.swingStart, `entry ${angle}: turned back`);
+    assert.ok(r.levelAtSwing < 1e-6, `entry ${angle}: level when the swing starts (${r.levelAtSwing})`);
+    assert.ok(Math.abs(Math.sin(r.plane.angle)) < 1e-6, `entry ${angle}: leaves level`);
+    assert.ok(Math.cos(r.plane.angle) < 0, `entry ${angle}: heading back`);
+    assert.ok(r.beyond < 6, `entry ${angle}: stays in the world (${r.beyond} past the wall)`);
+    assert.ok(r.minSpeed >= load('data/planes.json').bf109.stallSpeed, `entry ${angle}: never slow enough to stall (${r.minSpeed})`);
+    assert.ok(r.worstStep < 0.05, `entry ${angle}: the nose never jumps (${r.worstStep} rad in one tick)`);
+  }
+});
+
+test('a steeper entry takes longer to level out', () => {
+  const level = approach(0.1);
+  const steep = approach(1.2, { from: 200, height: 200 });
+  const t = (r) => (r.swingStart - r.levelStart) / 60;
+  assert.ok(t(steep) > t(level) + 0.8, `level ${t(level)} s, steep ${t(steep)} s`);
+});
+
+test('a pilot pulling hard at the wall is eased out of the controls, not snatched from', () => {
+  const r = approach(0.5, { steer: 1, height: 250 });
+  assert.ok(r.worstStep < 0.05, `no jump (${r.worstStep})`);
+  assert.ok(r.levelAtSwing < 1e-6, 'level at the swing all the same');
+});
+
+test('a dive near the ground levels out faster rather than into it', () => {
+  const slow = approach(-1.0, { height: 400 });
+  const low = approach(-1.0, { height: 150 });
+  const t = (r) => (r.swingStart - r.levelStart) / 60;
+  assert.ok(!low.died, 'it did not hit the ground');
+  assert.ok(t(low) < t(slow), `faster when low (${t(low)} s against ${t(slow)} s)`);
+  assert.ok(low.minClear > 5, `clear of the ground (${low.minClear})`);
+});
+
+test('an upside-down plane stays upside down all the way through', async () => {
+  const { isUpright } = await import('../src/sim/plane.js');
+  for (const angle of [0, 0.6, -0.8]) {
+    const r = approach(angle, { inverted: true });
+    assert.ok(!r.died && r.end > 0, `entry ${angle}: turned back`);
+    assert.equal(isUpright(r.plane), false, `entry ${angle}: still upside down`);
+  }
 });

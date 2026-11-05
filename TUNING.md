@@ -451,4 +451,8 @@ seconds (0.35 s at the defaults) to the roll, about 20 units more runway; the `r
 measured before this and have not been re-measured. `edgeTurnTime` (seconds) is how long the
 plane takes at the invisible map edge: it drifts on towards the edge, slowing to a stop at the half way mark
 (shown head-on with the runway turn-round frames, flipping there), then accelerates back the other way.
-Steering is locked meanwhile, guns work. The swing starts about speed x time / 3 units before the edge so the plane stops at the edge, and the camera rests meanwhile.
+Steering is locked meanwhile, guns work.
+`levelRate` (rad/s, fastest nose movement) is how quickly the plane levels out before that swing, whatever angle it
+comes in at: about 1.5 x the angle / `levelRate` seconds (80 degrees at 1.2 takes 1.7 s), faster (up to twice)
+if the path would reach the ground or the ceiling. The pilot's steering fades out over the first 0.3 s of
+it, speed is held, rolling is locked, and an upside-down plane stays upside down. The swing starts about speed x time / 3 units before the edge so the plane stops at the edge, and the camera rests meanwhile.
