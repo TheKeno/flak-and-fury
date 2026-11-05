@@ -147,6 +147,42 @@ function fitFin(s) {
   s.root = [r4(Math.min(...s.le.map((r) => r[1]))), r4(Math.max(...s.te.map((r) => r[1])))];
 }
 
+// Puts a fin's points back in order: every point goes under the edge (front or back) it lies on, each edge
+// in height order, with the topmost point shared. A point keeps its edge unless it is well over the middle.
+function splitFin(s) {
+  const key = (r) => `${r[0]},${r[1]}`;
+  const inTe = new Set(s.te.map(key));
+  const shared = s.le.filter((r) => inTe.has(key(r)));
+  const sk = new Set(shared.map(key));
+  const own = new Map();
+  for (const r of s.le) if (!sk.has(key(r))) own.set(r, 'le');
+  for (const r of s.te) if (!sk.has(key(r))) own.set(r, 'te');
+  const rest = [...own.keys()];
+  const all = [...shared, ...rest];
+  const n = all.length;
+  // The fin's middle line (d against h, least squares). A point keeps the edge it is listed under
+  // unless it lies well over on the other side of that line.
+  const mh = all.reduce((a, r) => a + r[0], 0) / n;
+  const md = all.reduce((a, r) => a + r[1], 0) / n;
+  const sxx = all.reduce((a, r) => a + (r[0] - mh) ** 2, 0);
+  const b = sxx > 1e-9 ? all.reduce((a, r) => a + (r[0] - mh) * (r[1] - md), 0) / sxx : 0;
+  const side = (r) => r[1] - (md + b * (r[0] - mh));
+  const margin = 0.1 * (Math.max(...all.map((r) => r[1])) - Math.min(...all.map((r) => r[1])));
+  const sideOf = (r) => (own.get(r) === 'le' ? (side(r) > margin ? 'te' : 'le') : side(r) < -margin ? 'le' : 'te');
+  let top = shared.reduce((t, r) => (!t || r[0] > t[0] ? r : t), null);
+  const highest = all.reduce((t, r) => (r[0] > t[0] ? r : t), all[0]);
+  const base = shared.filter((r) => r !== top);
+  if (!top || highest[0] > top[0]) {
+    top = highest;
+    if (shared.includes(top)) base.splice(base.indexOf(top), 1);
+    else rest.splice(rest.indexOf(top), 1);
+  }
+  const byH = (x, y) => x[0] - y[0];
+  const le = [...base, ...rest.filter((r) => sideOf(r) === 'le')].sort(byH);
+  const te = [...base, ...rest.filter((r) => sideOf(r) === 'te')].sort(byH);
+  return { le: [...le, top], te: [...te, [...top]] };
+}
+
 function bodyRows(key) {
   return S.o[key].stations;
 }
@@ -886,13 +922,13 @@ function rebuildPanel() {
       } else {
         const p = document.createElement('div');
         p.className = 'dim';
-        p.textContent = 'Edge points: drag them freely; the tip point is shared by both edges. The model needs each edge in order of height, so press Sort by h when a point has passed its neighbours.';
+        p.textContent = 'Edge points: drag them freely; the tip point is shared by both edges. The model needs each edge in order of height and on its own side, so press Sort by h when a point has passed its neighbours or crossed over.';
         panel.append(p);
         const sort = document.createElement('button');
         sort.textContent = 'Sort by h';
         sort.onclick = () => {
           pushUndo();
-          for (const edge of [s.le, s.te]) edge.sort((x, y) => x[0] - y[0]);
+          Object.assign(s, splitFin(s));
           fitFin(s);
           rebuildPanel();
           changed();
