@@ -1,4 +1,4 @@
-# Outline Lab: build status (2026-11-05)
+# Outline Lab: build status (2026-11-05, plan view added)
 
 Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-lab.html?mute` (restart
 `node tools/serve.mjs 8080` first if it says the dev server is the old version: the server gained PUT for
@@ -29,20 +29,39 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
     mid-drag (lines jump) or clamp (points stick).
   - The tail point's height is frozen before the first edit (it used to follow the last fuselage station, so
     dragging that point tilted the whole blueprint fit).
-- Tests: `tests/outlines.test.mjs`.
+- **Plan view** (Side view / Plan view buttons at the top of the side panel): its own picture and calibration
+  per plane (IndexedDB keys `<plane>:side` and `<plane>:plan`). Calibrate = click the nose tip, then both
+  wingtips: the tip line gives the scale (the plane's `span`, a field in the panel) and the z axis, the d axis
+  is perpendicular to it, so tilted, rotated and mirrored drawings work. z is positive towards the first tip
+  clicked; the other half is drawn as a faint mirror. Points: every body part's half width (column 4 of its
+  stations; drag along for d, sideways for width; a nacelle/spinner pair also has an `axis` handle for its
+  `z`), and the wing and tailplane edge tables `le`/`te` as [z, d] (`tools/planform.mjs`:
+  `samplePlanform`, `fitPlanform`, `convertPlanform`). A formula wing (all the finished planes) is drawn as
+  lines but has no points until **Convert to draggable points**, which samples the formula into tables that
+  draw almost the same (the sprites of the 8 planes were not touched: their outline files are unchanged).
+  Dragging works like the fins: no sorting mid-drag, `fitPlanform` sorts by z, makes both edges end at the same
+  z and sets `span` and `root` (the model's bounding range) when the drag ends. The first point of each edge
+  stays on the centre line. Trace the wing as if the nacelles were not there (they are their own part).
+  The grid is the sprite's 0.1 m pixel (centre line on a pixel edge). The preview shows the model seen from
+  above (`rollPose(PI/2)`, a lab-only picture, 1 pixel = the side preview's pixel; coarser while dragging)
+  over the drawing and in its own figure; the side preview follows too. The game never uses the top view.
+- Tests: `tests/outlines.test.mjs` (plan view: conversion draws nearly the same, fit keeps order).
 
 ## Known limits
 - A fuselage station's top and bottom point share one `d` (position along the plane), so a sharp nose needs
   extra stations. Judged acceptable; revisit if the Mosquito nose or canopy fights it.
 - A wing/tailplane root is two points on one height (`at`), so it cannot be diagonal.
+- Plan view: wing and tailplane tables only (a fin is edited in the side view); a table wing's dihedral (`rise`)
+  and thickness are still numbers in the panel (side view); the front view of the Czech sheet is not used yet.
+  A new body-part station added in the plan view copies the heights of its neighbours.
 - Load picture / Calibrate wipe a calibrated picture at once (backlog: protect the calibration).
 - The Mosquito preview still shows the Bf 110's twin fins (2.3 m off the centreline), rear gun and markings:
   it borrows that model until it gets its own.
 
 ## Not done yet (in this order)
-1. **Plan view**: wingtip calibration, wing and tailplane edge tables `le`/`te` as [z, d], fuselage and
-   nacelle half widths. Needed before the Mosquito (and any new plane) has a real wing; the Czech Mosquito
-   sheet has a plan view and a front view.
+1. **Trace the Mosquito's wings and widths** from the Czech sheet (plan view, with the owner): open
+   `outline-lab.html?mute&plane=mosquito`, Plan view, load the plan-view picture, Calibrate, Convert the wing and
+   tailplane, drag, Save. Still open: the plan view has only been tried on a stand-in picture.
 2. Auto pre-fill (type templates snapped to the drawing's lines, mask brush, snap-to-line for dragged points).
 3. Pixel touch-up layer (`touchups` in the outline file, applied after render of the side-view sprite only).
 4. Then the Mosquito's own model function (materials, 1943 RAF markings, single fin on the centreline),

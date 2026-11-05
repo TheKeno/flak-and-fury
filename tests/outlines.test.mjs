@@ -60,3 +60,35 @@ test('a model renders from its outline, and moving a station moves the silhouett
   const wider = render(buildModel('bf109', fat), rollPose(0), 96, 36, [48, 18], { gear: false, res: 2 });
   assert.ok(count(wider) > count(base));
 });
+
+test('plan view: a formula wing converts to edge tables that draw nearly the same, and fitPlanform keeps them in order', async () => {
+  const { convertPlanform, fitPlanform } = await import('../tools/planform.mjs');
+  const o = loadOutline('bf110');
+  const count = (img) => [...img.join('')].filter((c) => c !== '.').length;
+  const top = (x) => render(buildModel('bf110', x), rollPose(Math.PI / 2), 160, 180, [80, 89.5], { gear: false, res: 2 });
+  const before = top(o);
+  const t = structuredClone(o);
+  convertPlanform(t, 'wing');
+  assert.ok(t.wing.le.length > 5 && t.wing.le.at(-1)[0] === t.wing.te.at(-1)[0]);
+  assert.ok(Math.abs(t.wing.span - o.wing.span) < 1e-3 && !t.wing.round);
+  const diff = top(t).reduce((n, row, y) => n + [...row].filter((c, x) => (c === '.') !== (before[y][x] === '.')).length, 0);
+  assert.ok(diff < count(before) * 0.03, `converted wing differs in ${diff} pixels`);
+  // Dragging a point past its neighbour is put right when the drag ends; root and span follow the points.
+  t.wing.te[2][0] = t.wing.te[4][0] + 0.1;
+  t.wing.le[3][1] -= 0.3;
+  fitPlanform(t.wing);
+  assert.ok(t.wing.te.every((r, i) => !i || r[0] >= t.wing.te[i - 1][0]));
+  assert.equal(t.wing.root[0], Math.min(...[...t.wing.le, ...t.wing.te].map((r) => r[1])));
+  const moved = top(t);
+  assert.notDeepEqual(moved, before);
+});
+
+test('plan view: widening a wing makes a bigger top silhouette, and a table wing needs no formula fields', async () => {
+  const { convertPlanform } = await import('../tools/planform.mjs');
+  const o = loadOutline('bf109');
+  convertPlanform(o, 'wing');
+  const top = (x) => [...render(buildModel('bf109', x), rollPose(Math.PI / 2), 120, 140, [60, 69.5], { gear: false, res: 2 }).join('')].filter((c) => c !== '.').length;
+  const base = top(o);
+  for (const r of o.wing.te) r[1] += 0.3;
+  assert.ok(top(o) > base);
+});
