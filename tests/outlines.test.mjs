@@ -92,3 +92,10 @@ test('plan view: widening a wing makes a bigger top silhouette, and a table wing
   for (const r of o.wing.te) r[1] += 0.3;
   assert.ok(top(o) > base);
 });
+
+test('sortNear puts rows in order but leaves rows within the tolerance where they are (a step in the outline)', async () => {
+  const { sortNear } = await import('../tools/planform.mjs');
+  const rows = [[0, 'a'], [1, 'b'], [3, 'c'], [2.99, 'd'], [2, 'e']];
+  assert.deepEqual(sortNear(rows.map((r) => [...r]), 0, 0.05).map((r) => r[1]), ['a', 'b', 'e', 'c', 'd'], 'c before d stays, e is a real inversion');
+  assert.deepEqual(sortNear(rows.map((r) => [...r]), 0, 0).map((r) => r[1]), ['a', 'b', 'e', 'd', 'c'], 'plain sort');
+});

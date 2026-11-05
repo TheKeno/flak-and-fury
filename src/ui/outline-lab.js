@@ -5,7 +5,7 @@ import { kit, buildModel, render, rollPose } from '../../tools/plane-models.mjs'
 import { PALETTE } from '../../tools/plane-palette.mjs';
 import { formatOutline } from '../../tools/outline-format.mjs';
 import { paintSprite } from '../render/sprites.js';
-import { samplePlanform, fitPlanform, convertPlanform, sampleVertical, fitFin, splitFin, convertFin } from '../../tools/planform.mjs';
+import { samplePlanform, fitPlanform, sortNear, convertPlanform, sampleVertical, fitFin, splitFin, convertFin } from '../../tools/planform.mjs';
 import { edgeMap, fitPart, FIT_ALL } from '../../tools/edgefit.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -864,6 +864,8 @@ function hitHandle(p) {
   }
   return best;
 }
+// Points closer than half a sprite pixel along the part keep the order they are listed in (a step in the outline).
+const sortTol = () => 0.5 / (RES * S.o.scale);
 let drag = null;
 cv.addEventListener('contextmenu', (e) => e.preventDefault());
 cv.addEventListener('pointerdown', (e) => {
@@ -933,8 +935,8 @@ cv.addEventListener('pointermove', (e) => {
     // Body stations are drawn and rendered in list order: keep them in order of d while dragging, so a point
     // passed over its neighbour does not zigzag the outline and then jump when it is let go. (The handles hold
     // the row objects, so sorting the list does not disturb the drag.) Wing and tailplane tables the same way.
-    if (BODY_KEYS.includes(S.part)) S.o[S.part].stations.sort((a, b) => a[0] - b[0]);
-    if (isPlan() && planned(S.part) && S.o[S.part]?.le) fitPlanform(S.o[S.part]); // wing tables: in order of z, tip shared
+    if (BODY_KEYS.includes(S.part)) sortNear(S.o[S.part].stations, 0, sortTol());
+    if (isPlan() && planned(S.part) && S.o[S.part]?.le) fitPlanform(S.o[S.part], true, sortTol()); // wing tables: in order of z, tip shared
     changed();
   } else if (drag?.pan) {
     S.view.x = drag.view.x + p[0] - drag.from[0];
@@ -954,11 +956,11 @@ function endDrag() {
     return;
   }
   if (drag?.h && BODY_KEYS.includes(S.part)) {
-    S.o[S.part].stations.sort((a, b) => a[0] - b[0]);
+    sortNear(S.o[S.part].stations, 0, sortTol());
     rebuildPanel();
   }
   if (drag?.h && isPlan() && planned(S.part) && S.o[S.part]?.le) {
-    fitPlanform(S.o[S.part]);
+    fitPlanform(S.o[S.part], true, sortTol());
     rebuildPanel();
   }
   if (drag?.h && S.part === 'gear') rebuildPanel();

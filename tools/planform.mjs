@@ -29,13 +29,30 @@ export function samplePlanform(o, key, n = 12) {
   return { le, te };
 }
 
-// Puts the tables in order of z, makes both end at the outermost z, and sets root (the model's bounding
+// Sorts rows by column `col`, but a row that is within `tol` of its neighbour is left where it is: two stations
+// at (nearly) the same position along the part make a step in the outline, and which comes first is the
+// owner's choice. Plain stable sort when tol is 0. Bubble passes: only real inversions (more than tol) swap.
+export function sortNear(rows, col, tol = 0) {
+  if (tol <= 0) return rows.sort((a, b) => a[col] - b[col]);
+  for (let swapped = true; swapped; ) {
+    swapped = false;
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i - 1][col] > rows[i][col] + tol) {
+        [rows[i - 1], rows[i]] = [rows[i], rows[i - 1]];
+        swapped = true;
+      }
+    }
+  }
+  return rows;
+}
+
+// Puts the tables in order of z (rows within tol of each other keep their places, see sortNear), makes both end at the outermost z, and sets root (the model's bounding
 // range of d) and span from them. Call when a drag ends, not during one (lines would jump).
-export function fitPlanform(s, sort = true) {
+export function fitPlanform(s, sort = true, tol = 0) {
   if (!s?.le || !s?.te) return;
   if (sort) {
-    s.le.sort((a, b) => a[0] - b[0]);
-    s.te.sort((a, b) => a[0] - b[0]);
+    sortNear(s.le, 0, tol);
+    sortNear(s.te, 0, tol);
   }
   const zmax = Math.max(s.le.at(-1)[0], s.te.at(-1)[0]);
   s.le.at(-1)[0] = zmax;
