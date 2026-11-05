@@ -265,7 +265,8 @@
     "opacity": 0.85,
     "showHelp": false,
     "showNames": true,
-    "showOwnName": false
+    "showOwnName": false,
+    "edgeMessages": ["WRONG WAY", "NICE TRY", "THE MAP HAS ENDED", "DYING LATER INSTEAD", "DENIED BY GEOGRAPHY", "FLAT EARTH CONFIRMED"]
   },
   "rules": {
     "friendlyFire": false,

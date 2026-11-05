@@ -730,6 +730,7 @@ function stepAir(p, cmd, world, dt) {
       p.edgeTurn = 0;
       p.edgeDir = out;
       p.rolling = false;
+      world.events.push({ type: 'edgeTurn', plane: p.id, x: p.x, y: p.y });
     }
   }
 

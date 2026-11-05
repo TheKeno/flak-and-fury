@@ -356,12 +356,25 @@ function causeText(e) {
   return (CAUSES[e.cause] ?? CAUSES.ground)(name, e);
 }
 
+// A snarky line on the screen while the plane swings round at the map edge (hud.edgeMessages), picked at
+// random but never the same twice running.
+let lastEdgeMessage = -1;
+function edgeMessage() {
+  const lines = content.settings.hud.edgeMessages;
+  if (!lines?.length) return;
+  let i = Math.floor(Math.random() * lines.length);
+  if (lines.length > 1 && i === lastEdgeMessage) i = (i + 1 + Math.floor(Math.random() * (lines.length - 1))) % lines.length;
+  lastEdgeMessage = i;
+  renderer.message(lines[i], '#d8c8a0');
+}
+
 let radarWarnAt = 0;
 let hangarWarnAt = 0;
 function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
     sound?.onEvent(e);
+    if (e.plane === player.id && e.type === 'edgeTurn') edgeMessage();
     if (e.plane === player.id && e.type === 'crash') renderer.recordLastFlight(player, causeText(e));
     if (e.plane === player.id && e.type === 'abandoned') renderer.recordLastFlight(player, 'ABANDONED THE PLANE');
     if (e.plane === player.id && e.type === 'bailedOut') renderer.recordLastFlight(player, e.deserter ? 'DESERTED TO THE OTHER SIDE' : 'BAILED OUT');
