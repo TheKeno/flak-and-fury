@@ -48,6 +48,8 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
 - **Underside** (third button): the same points as the plan view over its own picture (`<plane>:under`, same
   nose + two wingtips calibration), previewed from below (`rollPose(-PI/2)`). For what only shows from below
   (radiators, gun tray, nacelle undersides): trace those widths here, wing/tailplane edges in the plan view.
+  **Turn 180°** (plan and underside, stored with the picture as `flip`) swaps which way d runs when the guess
+  from the nose click (d grows from the nose away from the wingtip line) gets it wrong.
   **Copy from plan view** (for an underside on the same sheet as the plan view, same scale and turn): reuses its
   picture and scale, you click only the nose tip; the wingtips are placed relative to it. Does not fit a view
   drawn at another scale or turned half a circle: calibrate that one normally.

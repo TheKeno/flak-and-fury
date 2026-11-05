@@ -106,6 +106,7 @@ function planT() {
   let u = [-v[1], v[0]];
   const along = (M[0] - N[0]) * u[0] + (M[1] - N[1]) * u[1];
   if (along < 0) u = [-u[0], -u[1]]; // d grows from the nose towards the tail
+  if (b.flip) u = [-u[0], -u[1]]; // the owner turned it round (the guess above fails when the nose is near the tip line)
   const t = Math.abs(along);
   const O = [M[0] - u[0] * t, M[1] - u[1] * t]; // the nose point (d = 0) on the centre line
   return { a: sc * u[0], b: sc * u[1], c: sc * v[0], d: sc * v[1], e: O[0], f: O[1] };
@@ -1366,14 +1367,14 @@ async function idbDo(mode, fn) {
 async function saveBlueprint(mode = S.mode) {
   const b = S.bps[mode];
   if (!b?.blob) return;
-  const { blob, name, nose, tail, tailH, tipA, tipB } = b;
-  await idbDo('readwrite', (st) => st.put({ blob, name, nose, tail, tailH, tipA, tipB }, `${S.name}:${mode}`));
+  const { blob, name, nose, tail, tailH, tipA, tipB, flip } = b;
+  await idbDo('readwrite', (st) => st.put({ blob, name, nose, tail, tailH, tipA, tipB, flip: !!flip }, `${S.name}:${mode}`));
 }
 async function loadBlueprint(plane, mode) {
   const rec = await idbDo('readonly', (st) => st.get(`${plane}:${mode}`));
   if (!rec?.blob) return null;
   const img = await createImageBitmap(rec.blob);
-  return { img, blob: rec.blob, name: rec.name, nose: rec.nose ?? null, tail: rec.tail ?? null, tailH: rec.tailH ?? null, tipA: rec.tipA ?? null, tipB: rec.tipB ?? null };
+  return { img, blob: rec.blob, name: rec.name, nose: rec.nose ?? null, tail: rec.tail ?? null, tailH: rec.tailH ?? null, tipA: rec.tipA ?? null, tipB: rec.tipB ?? null, flip: !!rec.flip };
 }
 function updateBlueprintInfo() {
   const b = S.bp;
@@ -1386,6 +1387,7 @@ function updateBlueprintInfo() {
   $('rowPlan').hidden = !plan;
   $('tailH').value = fmt(tailHeight());
   $('span').value = fmt(S.o?.span);
+  $('turn').disabled = !S.bp;
   $('copyPlan').hidden = S.mode !== 'under';
   $('copyPlan').disabled = !calibratedPlan();
   $('modeSide').className = plan ? '' : 'on';
@@ -1399,7 +1401,7 @@ $('copyPlan').onclick = () => {
   const p = S.bps.plan;
   if (!calibratedPlan()) return;
   const rel = (q) => [q[0] - p.nose[0], q[1] - p.nose[1]];
-  S.bps.under = { img: p.img, blob: p.blob, name: p.name, nose: null, tail: null, tailH: null, tipA: null, tipB: null, rel: { A: rel(p.tipA), B: rel(p.tipB) } };
+  S.bps.under = { img: p.img, blob: p.blob, name: p.name, nose: null, tail: null, tailH: null, tipA: null, tipB: null, flip: p.flip, rel: { A: rel(p.tipA), B: rel(p.tipB) } };
   S.calibrating = 'nose';
   updateBlueprintInfo();
   fitView();
@@ -1417,6 +1419,12 @@ function setMode(mode) {
   $('topCap').textContent = mode === 'under' ? 'from below (for checking only)' : 'from above (for checking only)';
   fitView();
 }
+$('turn').onclick = () => {
+  if (!S.bp) return;
+  S.bp.flip = !S.bp.flip;
+  saveBlueprint();
+  requestDraw();
+};
 $('modeSide').onclick = () => setMode('side');
 $('modePlan').onclick = () => setMode('plan');
 $('modeUnder').onclick = () => setMode('under');
