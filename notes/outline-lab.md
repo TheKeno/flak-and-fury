@@ -73,10 +73,8 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   `convertFin`) moved from the lab into `tools/planform.mjs`. Edge choice: score = edge strength minus 0.9 x distance/window (`pen`), edges scoring under about 0.25 are not taken
   (the point stays on the template); `outward` only breaks near-ties. The first version took the nearest or the outermost edge
   and grabbed interior lines and a shadow smear on the Czech sheet; the distance penalty fixed it (owner: "much better").
-- **Snap to lines** (step 3): the "snap to lines" checkbox (default on). A dragged point, or one added with a double-click,
-  slides along its allowed axis (fuselage etc.: h in the side view, z in the plan view; wing/tailplane/fin edges: d) to the
-  strongest edge within 6 screen pixels (`edgeSnap`, `rayFit` with `pen` 0.3); Alt while dragging or double-clicking turns it off.
-  Arrow-key nudges never snap. `outlineLab.geo` exposes the view transform for browser tests.
+- **Snap to lines** (step 3) was built and removed again the same day: the owner found it not useful (the fit already
+  lands on the edges, and hand tuning wants control; pixel snapping covers the rest). Do not rebuild it unless asked.
 - **Automatic station placement** (step 2): the "re-place stations" checkbox (default on; side view body parts only; plan view
   keeps the station d). `replaceStations` in `tools/edgefit.mjs` samples top and bottom every half sprite pixel between the
   part's first and last station, fits each sample, smooths (median 7, average 5), simplifies each profile with

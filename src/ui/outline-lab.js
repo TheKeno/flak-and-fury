@@ -6,7 +6,7 @@ import { PALETTE } from '../../tools/plane-palette.mjs';
 import { formatOutline } from '../../tools/outline-format.mjs';
 import { paintSprite } from '../render/sprites.js';
 import { samplePlanform, fitPlanform, convertPlanform, sampleVertical, fitFin, splitFin, convertFin } from '../../tools/planform.mjs';
-import { edgeMap, fitPart, rayFit, FIT_ALL } from '../../tools/edgefit.mjs';
+import { edgeMap, fitPart, FIT_ALL } from '../../tools/edgefit.mjs';
 
 const $ = (id) => document.getElementById(id);
 const PVH = 110; // the preview bar's picture height in pixels
@@ -132,7 +132,6 @@ const toScreen = (T, d, h) => {
   const [x, y] = toImg(T, d, h);
   return [x * S.view.k + S.view.x, y * S.view.k + S.view.y];
 };
-S.geo = { matT: () => matT(), toScreen: (...a) => toScreen(matT(), ...a) }; // for tests in the browser
 const fromScreen = (T, sx, sy) => fromImg(T, (sx - S.view.x) / S.view.k, (sy - S.view.y) / S.view.k);
 
 // The sprite's pixel grid in metres: pixel (col, row) is at d = A0 + A1 * col, h = B0 + B1 * row.
@@ -279,16 +278,6 @@ function planSegments(key) {
 
 // The points of the selected part: { ref, which, pos() -> [d, h], set(d, h), remove?() }.
 function handlesFor(key) {
-  return handlesRaw(key).map((h) => Object.assign(h, { axis: snapAxis(key, h) }));
-}
-// The one direction a dragged point may slide to a line in the drawing, [d, h] (z in the plan view), or null.
-function snapAxis(key, h) {
-  if (BODY_KEYS.includes(key)) return h.which === 'top' || h.which === 'bottom' || h.which === 'width' ? [0, 1] : null;
-  if (planned(key) && isPlan()) return h.which === 'le' || h.which === 'te' ? [1, 0] : null;
-  if (verticalOf(key) && !isPlan()) return h.which === 'le' || h.which === 'te' ? [1, 0] : null;
-  return null;
-}
-function handlesRaw(key) {
   if (isPlan()) return planHandles(key);
   const o = S.o;
   const hs = [];
@@ -849,24 +838,6 @@ function fitView() {
   requestDraw();
 }
 
-// Snap to line: a dragged or added point slides along its allowed axis to the strongest edge within about 6
-// screen pixels of where it is (Alt while dragging turns it off). Returns the new [d, h] or null.
-const SNAP_PX = 6;
-function edgeSnap(T, d, h, axis) {
-  if (!$('snapEdge').checked || !S.bp?.img || !calibrated(S.bp)) return null;
-  const { map, s } = edgeFor(S.bp);
-  const len = axis[0] ? Math.hypot(T.a, T.b) : Math.hypot(T.c, T.d); // picture pixels per metre along the axis
-  // 6 screen pixels, but never less than 5 picture pixels: zoomed far in, a soft edge in a small picture is
-  // many screen pixels wide and its line lies further away than 6 of them.
-  const win = Math.max(SNAP_PX / (len * S.view.k), 5 / len);
-  const r = rayFit(map, (t) => {
-    const [x, y] = toImg(T, d + axis[0] * t, h + axis[1] * t);
-    return [x * s, y * s];
-  }, win, { pen: 0.25, thr: 0.2 });
-  S.snapMsg = r ? 'snapped to a line (hold Alt to place freely)' : `no line within ${(win * len).toFixed(1)} picture px of this point (snap to lines is on; Alt = off)`;
-  return r && [d + axis[0] * r.t, h + axis[1] * r.t];
-}
-
 // ---------- Mouse and keys ----------
 const mouse = (e) => {
   const r = cv.getBoundingClientRect();
@@ -953,15 +924,9 @@ cv.addEventListener('pointermove', (e) => {
     S.bp[drag.calib] = [(p[0] - S.view.x) / S.view.k, (p[1] - S.view.y) / S.view.k];
     requestDraw();
   } else if (drag?.h) {
-    let at = fromScreen(T, p[0], p[1]);
-    if (!e.altKey && drag.h.axis) {
-      const sn = edgeSnap(T, at[0], at[1], drag.h.axis);
-      if (sn) at = Object.assign(sn, { snapped: true });
-    }
-    const [d, h] = snap(...at);
+    const [d, h] = snap(...fromScreen(T, p[0], p[1]));
     drag.h.set(d, h);
     changed();
-    if (!e.altKey && drag.h.axis && $('snapEdge').checked) status(S.snapMsg, !at.snapped);
   } else if (drag?.pan) {
     S.view.x = drag.view.x + p[0] - drag.from[0];
     S.view.y = drag.view.y + p[1] - drag.from[1];
@@ -1033,17 +998,7 @@ cv.addEventListener('dblclick', (e) => {
   }
   if (best) {
     pushUndo();
-    const before = new Set(handlesFor(S.part).map((h) => h.ref));
     best.seg.insert(best.t);
-    if (!e.altKey) {
-      // the new point slides to a line in the drawing, like a dragged one
-      for (const h of handlesFor(S.part)) {
-        if (before.has(h.ref) || !h.axis) continue;
-        const [pd, ph] = h.pos();
-        const at = edgeSnap(T, pd, ph, h.axis);
-        if (at) h.set(...snap(...at));
-      }
-    }
     rebuildPanel();
     changed();
   }
