@@ -101,6 +101,11 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   spat: top and bottom profiles only run forward along d, so a leg fairing leaning back must be its own part (Bump).
 - **Make a mirrored pair** (body-part panel, any part but the fuselage): toggles `z` (default: the main wheel's half track), so
   a Bump can be a leg fairing on each side. A pair is drawn at +z and -z; single parts sit on the centre line.
+- **Parts the model does not read** (2026-11-05): a plane built from a template (the Ju 87 from the Bf 109) got no
+  radiators in the sprite or preview, because the borrowed model code never reads `radiators`. `withBumps` in
+  `tools/plane-models.mjs` now builds the model through a proxy that notes which outline keys it reads and draws
+  `radiators`, `gunTray`, `nacelle`, `spine` (plus `bump*`, `spat`) as plain solids when the model did not (surface kinds in
+  `EXTRA_PARTS`). Finished planes' sprites are unchanged (checked). A model written later for the plane replaces this.
 - Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
   in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
 

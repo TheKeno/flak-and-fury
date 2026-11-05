@@ -1288,14 +1288,20 @@ function mosquito(o) {
 }
 
 // Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
-// Small details on any plane: an outline may carry `bump`, `bump2`, `bump3` (body-part stations like the radiators:
-// gun sight, antenna housing, a hump) and `spat` (a mirrored pair, with z, round the main wheels). Each is drawn as a plain solid of the outline's `kind` (default 'dark')
-// next to the plane's own parts. A plane without them is built exactly as before.
-const BUMPS = { bump: 'dark', bump2: 'dark', bump3: 'dark', spat: 'paint' }; // key: default surface kind
+// Parts any plane can carry although its model code does not know them (a plane built from a template in the
+// Outline Lab): `bump`, `bump2`, `bump3` (small details: gun sight, antenna housing), `spat` (a mirrored pair
+// round the main wheels, with z) and, when the model never reads them, `radiators`, `gunTray`, `nacelle` and
+// `spine`. Each is a plain solid made from body-part stations; the outline may set its surface `kind`. A plane
+// whose model already draws a key is not drawn twice: the model is built through a proxy that notes what it
+// reads, so a finished plane is built exactly as before.
+const EXTRA_PARTS = { bump: 'dark', bump2: 'dark', bump3: 'dark', spat: 'paint', radiators: 'under', gunTray: 'under', nacelle: 'paint', spine: 'paint' };
 const withBumps = (build) => (o) => {
-  const model = build(o);
+  const read = new Set();
+  const model = build(new Proxy(o, { get: (t, k) => (read.add(k), t[k]) }));
   const { bodyOf } = kit(o);
-  for (const [key, kind] of Object.entries(BUMPS)) if (o[key]) model.parts.push({ ...bodyOf(o[key]), material: () => ({ kind: o[key].kind ?? kind }) });
+  for (const [key, kind] of Object.entries(EXTRA_PARTS)) {
+    if (o[key] && !read.has(key)) model.parts.push({ ...bodyOf(o[key]), material: () => ({ kind: o[key].kind ?? kind }) });
+  }
   return model;
 };
 export const BUILDERS = Object.fromEntries(Object.entries({ bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito }).map(([k, f]) => [k, withBumps(f)]));
