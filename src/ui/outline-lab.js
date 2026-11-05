@@ -375,6 +375,7 @@ function pushUndo() {
 }
 function restore(text) {
   S.o = JSON.parse(text);
+  syncDef();
   S.sel = null;
   rebuildPanel();
   changed(false);
@@ -390,7 +391,36 @@ function redo() {
   restore(S.redo.pop());
 }
 
+// A plane that is not in planes.json yet keeps its sprite area in its outline file; the finished
+// planes keep theirs in planes.json and are never resized here.
+function syncDef() {
+  if (!S.def.own) return;
+  S.def.pivot = S.o.sprite?.pivot ?? [48, 20];
+  S.def.spriteSize = S.o.sprite?.size;
+}
+// Grow that area, never shrink it, so the tallest and deepest points of the outline fit with a margin.
+function growSprite() {
+  if (!S.def.own || !S.o.sprite) return;
+  let top = 0;
+  let bottom = 0;
+  for (const k of BODY_KEYS) for (const r of S.o[k]?.stations ?? []) {
+    top = Math.max(top, r[1], r[2]);
+    bottom = Math.min(bottom, r[1], r[2]);
+  }
+  for (const k of ['fin', 'fins']) {
+    const s = S.o[k];
+    if (s) top = Math.max(top, s.at + s.span);
+  }
+  const { size, pivot } = S.o.sprite;
+  const up = Math.max(0, Math.ceil(top * 10) + 4 - pivot[1]);
+  const down = Math.max(0, Math.ceil(-bottom * 10) + 4 - (size[1] - pivot[1]));
+  if (!up && !down) return;
+  size[1] += up + down;
+  pivot[1] += up;
+  syncDef();
+}
 function changed(refreshPanel = true) {
+  growSprite();
   S.dirtyPreview = true;
   showDirty();
   if (refreshPanel) refreshPanelValues();
@@ -1123,7 +1153,9 @@ async function openPlane(name, fresh = null) {
   S.baseGear = JSON.stringify(S.o.gear);
   // After S.saved, so a fin that had drifted shows as an unsaved change to save.
   for (const k of ['fin', 'fins']) fitFin(S.o[k]);
-  S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { pivot: S.o.sprite?.pivot ?? [48, 20], spriteSize: S.o.sprite?.size, nation: 'germany' };
+  S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { own: true, nation: 'germany' };
+  syncDef();
+  growSprite();
   S.part = 'fuselage';
   S.sel = null;
   S.undo = [];
