@@ -128,7 +128,7 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
    `outline-lab.html?mute&plane=mosquito`, Plan view, load the plan-view picture, Calibrate, Convert the wing and
    tailplane, drag, Save. Still open: the plan view has only been tried on a stand-in picture.
 2. Auto pre-fill (type templates snapped to the drawing's lines, mask brush, snap-to-line for dragged points).
-3. Pixel touch-up layer (`touchups` in the outline file, applied after render of the side-view sprite only).
+3. (Dropped 2026-11-05, owner: not needed.) Pixel touch-up layer (`touchups` in the outline file).
 4. Then the Mosquito's own model function (materials, 1943 RAF markings, single fin on the centreline),
    after the owner approves the outline overlay. See `notes/milestone6.md`.
 

@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Outline Lab (decided 2026-11-04; side view and plan view built 2026-11-05, auto pre-fill and pixel touch-ups are not built yet, see Backlog):** a browser editor for plane (and later tank) outlines,
+- **Outline Lab (decided 2026-11-04; side view and plan view built 2026-11-05, auto trace built 2026-11-05; the pixel touch-up layer was dropped 2026-11-05):** a browser editor for plane (and later tank) outlines,
   `outline-lab.html` next to the Sound Lab, so outline work runs on the owner's screen instead of costing
   tokens on screenshots and re-measuring. Only the outline is edited; everything inside it (shading,
   glass, markings, canopy frames, guns, exhausts, paint keys) stays per-plane code in
@@ -26,7 +26,7 @@ later.
   calls an outline done. **The seven finished planes move onto outline files** (look unchanged), and the
   tanks use the same editor later. Details (markings positions etc.) stay in code in the first version.
   **Pixel control (both):** points move in 0.1 m steps over a visible pixel grid (one step = one
-  side-view pixel, so a 1 px change is one drag); and a **pixel touch-up layer** for final polish: the
+  side-view pixel, so a 1 px change is one drag); and (**dropped 2026-11-05, owner: not needed**) a pixel touch-up layer for final polish: the
   owner paints single pixels onto the rendered side-view sprite, saved apart from the model (e.g. in the
   outline file) and applied after every rebuild. Touch-ups fit only the side view (used in normal
   flight, also rotated); the roll, ground-turn and loop frames keep the model's look.
@@ -347,7 +347,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Outline Lab: trace refinements** (Planes): ideas left from the automatic trace: fit the plan-view half widths of the fuselage under the wing and radiators (manual now), keep a fitted fuselage's top-line kink under the fin out of the station list, tune the search window and edge strength per plane after the next few traces, a "nearest/outermost" switch if cluttered sheets need it.
 - **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
 - **Outline Lab: underside point features** (Planes): bomb racks, gun ports and similar small things that sit at a position (d, z, side) are not outlines. Settle the data first (which types; `hardpoints: [{type, d, z, side}]` in the outline file; draggable markers in the lab over the underside picture; model code to draw them; whether they show in the side sprite), then build. Ask the owner first.
-- **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); the automatic first trace is built (see Done); next: the pixel touch-up layer; see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
+- **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); the automatic first trace is built (see Done); nothing further planned (the pixel touch-up layer was dropped); see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
 - **External bomb mounts and visible bombs** (Planes): planes get external racks, and undropped bombs and tanks show on them until released (needs the hangar loadout editor, model code and renderer); the Mosquito FB.VI carries bombs and tanks under the wing.
 - **Add the Zero (A6M)** (Planes): the Japanese navy fighter, which is not in the milestone 6 Japan line-up
   (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
