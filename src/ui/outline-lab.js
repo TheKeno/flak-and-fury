@@ -927,7 +927,7 @@ cv.addEventListener('pointerdown', (e) => {
     }
     pushUndo();
     S.sel = { ref: h.ref, which: h.which };
-    drag = { h };
+    drag = { h, pos0: h.pos() };
     refreshPanelValues();
   } else {
     drag = { pan: true, from: p, view: { ...S.view } };
@@ -942,7 +942,14 @@ cv.addEventListener('pointermove', (e) => {
     S.bp[drag.calib] = [(p[0] - S.view.x) / S.view.k, (p[1] - S.view.y) / S.view.k];
     requestDraw();
   } else if (drag?.h) {
-    const [d, h] = snap(...fromScreen(T, p[0], p[1]));
+    let at = fromScreen(T, p[0], p[1]);
+    // Shift: keep the point's position along the part and move it only the other way (its width or height; for
+    // wing and fin edges the d). Makes a step possible, and a point cannot hop past its neighbour.
+    if (e.shiftKey && drag.pos0) {
+      const body = BODY_KEYS.includes(S.part);
+      at = body ? [drag.pos0[0], at[1]] : [at[0], drag.pos0[1]];
+    }
+    const [d, h] = snap(...at);
     drag.h.set(d, h);
     // Body stations are drawn and rendered in list order: keep them in order of d while dragging, so a point
     // passed over its neighbour does not zigzag the outline and then jump when it is let go. (The handles hold
@@ -1239,6 +1246,7 @@ function planPanel(o, row, note, button, panel) {
       rebuildPanel();
       changed();
     });
+    button('Duplicate point', duplicateStation, 'Copy the selected point right after itself: the start of a step in the outline (then Shift+drag one copy sideways)');
     note('Seen from above, the outline is the half width at each station (the same stations as the side view: a new point also needs its heights there). Drag a point sideways for the width, along for its d.');
     return;
   }
@@ -1283,6 +1291,16 @@ function planPanel(o, row, note, button, panel) {
     changed();
   });
   note('Trace the outline as if the engine nacelles were not there (they are their own part: Nacelle). Both edges end at the same z at the tip: a flat tip is the line between the two end points, a rounded tip needs a few points that close in. The first point of each edge sits on the centre line. Double-click a line to add a point.');
+}
+// Copies the selected station right after itself (same d and sizes): the second point of a step in the outline.
+function duplicateStation() {
+  const rows = BODY_KEYS.includes(S.part) ? S.o[S.part]?.stations : null;
+  const i = rows && S.sel ? rows.indexOf(S.sel.ref) : -1;
+  if (i < 0) return status('Select a point of this part first (click it), then press Duplicate point', true);
+  pushUndo();
+  rows.splice(i + 1, 0, [...rows[i]]);
+  rebuildPanel();
+  changed();
 }
 // ---------- Add part ----------
 // A plane made from a template only has the template's parts. These are rough starting shapes for the ones
@@ -1449,6 +1467,11 @@ function rebuildPanel() {
       changed();
     };
     panel.append(sortBtn);
+    const dupBtn = document.createElement('button');
+    dupBtn.textContent = 'Duplicate point';
+    dupBtn.title = 'Copy the selected point right after itself: the start of a step in the outline (then Shift+drag one copy up or down)';
+    dupBtn.onclick = duplicateStation;
+    panel.append(dupBtn);
   } else if (S.part === 'wing' || S.part === 'tailplane' || verticalOf(S.part)) {
     const s = o[S.part];
     if (!s.le || verticalOf(S.part)) row('root d', numInput(() => s.root[0], (v) => (s.root[0] = v)), numInput(() => s.root[1], (v) => (s.root[1] = v)));

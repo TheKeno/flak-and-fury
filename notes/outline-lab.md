@@ -95,6 +95,10 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   shows the main wheel as a flat box (diameter long) with one draggable point: d and `half` (half track). `spat` is a
   mirrored body-part pair (z = the wheel's half track; "+ add part…" > Wheel spat gives a starter shell round the main
   wheel); drawn by `withBumps` for every plane, default kind `paint`. Tail wheel is not shown in the plan view.
+- **Shift+drag and Duplicate point** (2026-11-05): Shift while dragging keeps a point's position along the part (body parts:
+  d; wing/tailplane/fin edges: the z or h) and moves it only across; **Duplicate point** (body-part panel, select a point
+  first) copies the selected station right after itself, the start of a step in the outline. Limit seen on the Stuka's
+  spat: top and bottom profiles only run forward along d, so a leg fairing leaning back must be its own part (Bump).
 - Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
   in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
 
