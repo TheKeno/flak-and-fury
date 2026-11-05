@@ -926,6 +926,10 @@ cv.addEventListener('pointermove', (e) => {
   } else if (drag?.h) {
     const [d, h] = snap(...fromScreen(T, p[0], p[1]));
     drag.h.set(d, h);
+    // Body stations are drawn and rendered in list order: keep them in order of d while dragging, so a point
+    // passed over its neighbour does not zigzag the outline and then jump when it is let go. (The handles hold
+    // the row objects, so sorting the list does not disturb the drag.)
+    if (BODY_KEYS.includes(S.part)) S.o[S.part].stations.sort((a, b) => a[0] - b[0]);
     changed();
   } else if (drag?.pan) {
     S.view.x = drag.view.x + p[0] - drag.from[0];
