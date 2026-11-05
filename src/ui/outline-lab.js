@@ -210,12 +210,6 @@ function handlesFor(key) {
           which: edge,
           pos: () => [row[1], row[0]],
           set: (d, h) => {
-            // The model reads an edge as d at a height, so its points must stay in height order: a point
-            // cannot pass its neighbours (sorting instead would swap lines around while you drag).
-            const i = rows.indexOf(row);
-            const lo = i > 0 ? rows[i - 1][0] : -Infinity;
-            const hi = i < rows.length - 1 ? rows[i + 1][0] : Infinity;
-            if (lo <= hi) h = Math.min(hi, Math.max(lo, h));
             row[1] = d;
             row[0] = h;
             if (last) {
@@ -892,8 +886,18 @@ function rebuildPanel() {
       } else {
         const p = document.createElement('div');
         p.className = 'dim';
-        p.textContent = 'Edge points: drag them; the tip point is shared by both edges.';
+        p.textContent = 'Edge points: drag them freely; the tip point is shared by both edges. The model needs each edge in order of height, so press Sort by h when a point has passed its neighbours.';
         panel.append(p);
+        const sort = document.createElement('button');
+        sort.textContent = 'Sort by h';
+        sort.onclick = () => {
+          pushUndo();
+          for (const edge of [s.le, s.te]) edge.sort((x, y) => x[0] - y[0]);
+          fitFin(s);
+          rebuildPanel();
+          changed();
+        };
+        panel.append(sort);
       }
     } else {
       const p = document.createElement('div');
