@@ -42,8 +42,8 @@ export async function loadContent(mapName) {
   const spriteNames = [
     ...new Set([...Object.values(planeDefs).map((d) => d.sprite), ...Object.values(groundDefs).map((d) => d.sprite).filter(Boolean)]),
     'hangar',
-    'hangar-half',
     'hangar-shut',
+    ...Array.from({ length: 14 }, (_, i) => `hangar-d${i + 1}`), // door steps, see hangarSteps in tools/make-sprites.mjs
     'bomb',
   ];
   const images = Object.fromEntries(

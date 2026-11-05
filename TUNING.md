@@ -325,7 +325,7 @@ is full (or the front plane's pilot has opened the throttle) the next one waits 
 ground don't collide, so the ones behind can take off past a standing plane. With the hangar destroyed a plane
 appears on the runway. Tuning panel: Hangar → `doorTime` (seconds to open or shut, 0.5 – 2), `doorHold` (seconds
 the doors stay open after the crew are home, 1 – 3), `outTime` (seconds to push it out, 1 – 3), `exitStartScale`
-(size at the door, 0.7 – 0.9), `exitSpeed` (push-along speed, 8 – 20), `exitClear` (first place, world units past
+(size at the door, 0.7 – 0.9), `exitStartAlpha` (how solid the plane shows at the door, 0.2 – 1, clears to full as it comes out), `exitSpeed` (push-along speed, 8 – 20), `exitClear` (first place, world units past
 the hangar wall: 0 = right at the door, 0 – 20), `slotGap` (spacing in the line, about a plane length, 30 – 40), `queueSize` (planes in
 the line, 2 – 4).
 

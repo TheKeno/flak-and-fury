@@ -478,9 +478,11 @@ export function createRenderer(canvas, world, assets) {
   const facingOf = (obj) => obj.dir ?? (obj.x < map.width / 2 ? 1 : -1);
   const spriteCache = new Map();
   // Tanks wear their nation's paint; everything else is drawn as it is.
+  // 15 panel steps (0 = open sprite, 15 = shut) so the doors glide instead of jumping.
+  const hangarDoorSuffix = (d) => { const k = 15 - Math.round(Math.min(1, Math.max(0, d)) * 15); return k === 0 ? '' : k === 15 ? '-shut' : `-d${k}`; };
   function spriteOf(obj) {
     // Hangar doors: shut, half or open by the object's door (0..1).
-    const door = obj.type === 'hangar' && obj.alive && obj.door != null ? (obj.door < 0.25 ? '-shut' : obj.door < 0.75 ? '-half' : '') : '';
+    const door = obj.type === 'hangar' && obj.alive && obj.door != null ? hangarDoorSuffix(obj.door) : '';
     const img = assets.images[obj.def.sprite + door];
     if (door) return [obj.def.sprite + door, img];
     if (!img || obj.type !== 'tank') return [obj.def.sprite, img];
@@ -1037,12 +1039,14 @@ export function createRenderer(canvas, world, assets) {
     return s;
   }
   // The silhouette nudged a pixel each way behind the sprite leaves a one-pixel rim around it.
+  // Rolling out of the dark hangar the plane shows faded, clearing as it comes closer.
+  let planeAlpha = 1;
   function drawOutlined(img, x, y, alpha) {
     if (alpha > 0.01) {
       const s = silhouette(img);
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = alpha * planeAlpha;
       for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) ctx.drawImage(s, x + dx, y + dy);
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = planeAlpha;
     }
     ctx.drawImage(img, x, y);
   }
@@ -1064,6 +1068,7 @@ export function createRenderer(canvas, world, assets) {
       const discs = Array.isArray(prop[0]) ? prop : [prop];
       // Pushed out of the hangar towards the camera: small at first, growing to full size.
       const grow = p.exitPhase === 'out' ? (hangarOf(p)?.def.exitStartScale ?? 0.6) + (1 - (hangarOf(p)?.def.exitStartScale ?? 0.6)) * p.exitT : 1;
+      planeAlpha = p.exitPhase === 'out' ? (hangarOf(p)?.def.exitStartAlpha ?? 0.55) + (1 - (hangarOf(p)?.def.exitStartAlpha ?? 0.55)) * p.exitT : 1;
       if (grow !== 1) {
         ctx.save();
         ctx.translate(cx, cy);
@@ -1075,6 +1080,7 @@ export function createRenderer(canvas, world, assets) {
       drawOutlined(f.canvas, cx - f.radius, cy - f.radius, outline);
       for (const d of discs) if (d[6] >= 0) drawPropDisc(p, cx, cy, d, rot, !right, !isUpright(p));
       if (grow !== 1) ctx.restore();
+      planeAlpha = 1;
       return;
     }
     const view = groundAttitude(p);

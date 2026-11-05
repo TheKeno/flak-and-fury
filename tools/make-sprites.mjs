@@ -136,34 +136,42 @@ function bomb() {
   return g.rowsOut();
 }
 
-// Arched (Nissen-style) hangar seen from the front. 64x32. open: 1 = doors slid back (the interior shows),
-// 0 = shut. The renderer picks hangar-shut / hangar-half / hangar by the object's door.
+// Arched (Nissen-style) hangar seen from the front. 88x36 (44 x 18 world units; the doorway is 22 wide, so
+// a twin like the Mosquito (16.5 m span) rolls out with room to spare; bombers fly in from the edge instead).
+// open: 1 = doors slid back (the interior shows), 0 = shut. The renderer picks hangar-shut / hangar-dN / hangar
+// by the object's door.
 function hangar(open = 1) {
-  const g = grid(64, 32);
-  const cx = 31.5;
-  for (let x = 2; x <= 61; x++) {
-    const t = (x - cx) / 29.5;
-    const top = Math.round(31 - 27 * Math.sqrt(Math.max(0, 1 - t * t)));
-    for (let y = top; y <= 31; y++) g.set(x, y, y < top + 3 ? (x % 3 === 0 ? 'R' : 'r') : 'g');
+  const W = 88;
+  const H = 36;
+  const g = grid(W, H);
+  const cx = (W - 1) / 2;
+  const half = cx - 2;
+  for (let x = 2; x <= W - 3; x++) {
+    const t = (x - cx) / half;
+    const top = Math.round(H - 1 - 31 * Math.sqrt(Math.max(0, 1 - t * t)));
+    for (let y = top; y <= H - 1; y++) g.set(x, y, y < top + 3 ? (x % 3 === 0 ? 'R' : 'r') : 'g');
   }
-  // Door frame, opening and slid-back door panels.
-  for (let y = 12; y <= 31; y++) g.span(y, 15, 48, 'h');
-  for (let y = 14; y <= 31; y++) g.span(y, 17, 46, 'd');
-  for (let y = 14; y <= 31; y++) {
-    g.span(y, 11, 14, 'h');
-    g.span(y, 49, 52, 'h');
+  // Door frame, opening and slid-back door panels: opening x 22..65, 20 high.
+  const x0 = 22;
+  const x1 = 65;
+  const yTop = H - 20;
+  for (let y = yTop - 2; y <= H - 1; y++) g.span(y, x0 - 2, x1 + 2, 'h');
+  for (let y = yTop; y <= H - 1; y++) g.span(y, x0, x1, 'd');
+  for (let y = yTop; y <= H - 1; y++) {
+    g.span(y, x0 - 6, x0 - 3, 'h');
+    g.span(y, x1 + 3, x1 + 6, 'h');
   }
   // Door panels sliding in from both sides to meet in the middle.
-  const cover = Math.round(15 * (1 - open));
-  for (let y = 14; y <= 31; y++) {
+  const cover = Math.round(((x1 - x0 + 1) / 2) * (1 - open));
+  for (let y = yTop; y <= H - 1; y++) {
     for (let i = 0; i < cover; i++) {
       const seam = i === cover - 1 || i % 5 === 4;
-      g.set(17 + i, y, seam ? 'o' : 'h');
-      g.set(46 - i, y, seam ? 'o' : 'h');
+      g.set(x0 + i, y, seam ? 'o' : 'h');
+      g.set(x1 - i, y, seam ? 'o' : 'h');
     }
   }
   // Windows.
-  for (const x0 of [6, 54]) for (let y = 22; y <= 24; y++) g.span(y, x0, x0 + 3, 'w');
+  for (const wx of [8, W - 12]) for (let y = H - 10; y <= H - 8; y++) g.span(y, wx, wx + 3, 'w');
   g.outline('d');
   return g.rowsOut();
 }
@@ -358,13 +366,20 @@ function depot() {
   return g.rowsOut();
 }
 
+// One sprite per door step: hangar-d1 (almost shut) .. hangar-d14 (almost open); hangar-shut is step 15.
+const DOOR_STEPS = 15;
+function hangarSteps() {
+  const out = { 'hangar-shut': hangar(0) };
+  for (let i = 1; i < DOOR_STEPS; i++) out[`hangar-d${i}`] = hangar(1 - i / DOOR_STEPS);
+  return out;
+}
+
 const SPRITES = {
   tank: tank(),
   depot: depot(),
   bomb: bomb(),
   hangar: hangar(),
-  'hangar-half': hangar(0.5),
-  'hangar-shut': hangar(0),
+  ...hangarSteps(),
   flak: flak(),
   mgnest: mgnest(),
   tent: tent(),

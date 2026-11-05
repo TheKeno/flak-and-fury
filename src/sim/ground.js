@@ -12,7 +12,7 @@ const GEAR_REACH = 4; // the wheels hang this far below a plane's centre
 
 const SQUADS = new Set(['infantry', 'engineers']);
 // Where an airfield's hangar stands: at the end of the runway nearest the map edge.
-export const hangarX = (world, af) => (af.x + af.width / 2 < world.map.width / 2 ? af.x + 20 : af.x + af.width - 20);
+export const hangarX = (world, af) => (af.x + af.width / 2 < world.map.width / 2 ? af.x + 24 : af.x + af.width - 24);
 
 // Makes one ground object (not yet added to the world). A squad is one object holding several
 // soldiers spread along the ground.
