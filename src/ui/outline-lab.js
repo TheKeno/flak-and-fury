@@ -136,12 +136,11 @@ function sampleVertical(s) {
   return { le, te };
 }
 
-// A fin given as edge tables is drawn between `at` and `at + span` over the d range `root`, in height
-// order. Dragging a point can leave those behind (the preview then shows a clipped or odd fin), so keep
-// them in step with the points. For a fin that is already consistent this changes nothing.
+// A fin given as edge tables is drawn between `at` and `at + span` over the d range `root`. Dragging a
+// point can leave those behind (the preview then shows a clipped fin), so keep them in step with the
+// points. For a fin that is already consistent this changes nothing.
 function fitFin(s) {
   if (!s?.le || !s?.te) return;
-  for (const edge of [s.le, s.te]) edge.sort((a, b) => a[0] - b[0]);
   const hs = [...s.le, ...s.te].map((r) => r[0]);
   s.at = r4(Math.min(...hs));
   s.span = r4(Math.max(...hs) - s.at);
@@ -211,6 +210,12 @@ function handlesFor(key) {
           which: edge,
           pos: () => [row[1], row[0]],
           set: (d, h) => {
+            // The model reads an edge as d at a height, so its points must stay in height order: a point
+            // cannot pass its neighbours (sorting instead would swap lines around while you drag).
+            const i = rows.indexOf(row);
+            const lo = i > 0 ? rows[i - 1][0] : -Infinity;
+            const hi = i < rows.length - 1 ? rows[i + 1][0] : Infinity;
+            if (lo <= hi) h = Math.min(hi, Math.max(lo, h));
             row[1] = d;
             row[0] = h;
             if (last) {
