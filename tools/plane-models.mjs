@@ -1186,8 +1186,109 @@ function spitfire(o) {
   };
 }
 
+// de Havilland Mosquito FB.VI, traced in the Outline Lab from the Czechoslovak B-36 sheet (12.34 m long,
+// 16.52 m span; 5 model units to the metre, d back from the spinner tip). Rounded solid nose with four
+// .303 above and four 20 mm Hispano in the tray below; side-by-side cockpit under a raked blister canopy;
+// slim wooden fuselage rising to a single tall fin on the centre line; two Merlin nacelles 2.48 m out with
+// the radiators in the wing leading edges beside them; two 250 lb bombs on racks under the wings outboard
+// of the nacelles. 1943 RAF day fighter scheme: Dark Green / Ocean Grey over Medium Sea Grey, Sky spinners
+// and tail band, type C1 and B roundels, fin flash. The racks are placed by hand (the sheet's underside is
+// the clean post-war airframe), 3.5 m out at mid chord.
+function mosquito(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
+  const split = Y(-0.2);
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const band = (p) => p[0] < X(10.05) && p[0] > X(10.5); // Sky band round the rear fuselage
+  const fuselage = bodyOf(o.fuselage);
+  const fuselageDecals = [
+    (p) => (band(p) ? { kind: 'nose' } : null),
+    // C1 roundel between the wing and the band.
+    (p, n) => {
+      const k = side(n) && roundelC1(p[0] - X(8.0), p[1] - Y(0.1), 0.45 * M);
+      return k ? { kind: k } : null;
+    },
+    // Panel lines: nose gun bay, cockpit bulkhead, rear fuselage joint (the Mosquito's wooden monocoque).
+    (p, n) => (side(n) && [1.0, 3.7, 7.0].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? { kind: tone(p), dark: 1 } : null),
+  ];
+  const wing = surfaceOf(o.wing);
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    const mid = p[0] - (s.le + s.te) / 2;
+    const k = vn[2] > 0.3 && ((n[1] > 0.6 && roundelB(mid, Math.abs(p[2]) - 5.6 * M, 0.6 * M)) || (n[1] < -0.6 && roundelC(mid, Math.abs(p[2]) - 5.6 * M, 0.45 * M)));
+    if (k) return { kind: k };
+    const hinge = s.k > 0.2 && Math.abs(s.u - 0.75) < 0.03; // flap and aileron line
+    return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
+  };
+  const nz = o.nacelle.z * M;
+  const nacelle = bodyOf(o.nacelle);
+  const spinner = bodyOf(o.spinner);
+  const gunTray = bodyOf(o.gunTray);
+  // One wide block for the two radiators beside each nacelle; the front is the dark intake.
+  const radiators = bodyOf(o.radiators);
+  const tailplane = surfaceOf(o.tailplane);
+  const fin = surfaceOf(o.fin, true);
+  const finMat = (p, n) => {
+    // Fin flash (red, white, blue) ahead of the rudder hinge.
+    const flash = side(n) && p[1] > Y(0.95) && p[1] < Y(1.65) && p[0] < X(10.35) && p[0] > X(10.9);
+    if (flash) return { kind: p[0] > X(10.53) ? 'red' : p[0] > X(10.72) ? 'white' : 'marking' };
+    return { kind: 'paint', dark: Math.abs(p[0] - X(10.95)) < 0.04 * M && p[1] > Y(0.9) ? 1 : 0 }; // rudder hinge
+  };
+  const canopy = bodyOf(o.canopy);
+  const canopyMat = (p) => ({ kind: [1.95, 2.55, 3.1].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
+  const plain = (kind) => () => ({ kind });
+  // Bomb rack: a pylon under the wing and a 250 lb GP bomb (about 1.2 m, 0.28 m across), 3.5 m out.
+  const rz = 3.5 * M;
+  const bomb = bodyOf({ n: 2, z: 3.5, stations: [[3.25, -0.15, -0.17, 0.01], [3.4, -0.07, -0.29, 0.1], [3.7, -0.04, -0.32, 0.14], [4.1, -0.04, -0.32, 0.14], [4.45, -0.08, -0.28, 0.1], [4.6, -0.12, -0.2, 0.05]] });
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...nacelle, material: (p) => ({ kind: tone(p) }) },
+    { ...spinner, material: plain('nose') },
+    { ...radiators, material: (p) => ({ kind: p[0] > X(1.25) ? 'dark' : 'under' }) },
+    { ...gunTray, material: (p) => ({ kind: p[0] > X(0.95) ? 'dark' : 'under' }) },
+    { ...box([X(1.5), Y(0.05), nz + 0.5 * M], [0.4 * M, 0.07 * M, 0.06 * M], { mirror: true }), material: (p) => ({ kind: Math.floor((X(1.1) - p[0]) / (0.13 * M)) % 2 ? 'metal' : 'dark' }) }, // flame-damper exhausts
+    { ...wing, material: wingMat },
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fin, material: finMat },
+    { ...canopy, glass: true, material: canopyMat },
+    { ...sphere([X(2.35), Y(0.8), 0.22 * M], 0.16 * M), pilot: true, material: plain('pilot') },
+    { ...sphere([X(2.8), Y(0.78), -0.22 * M], 0.16 * M), pilot: true, material: plain('pilot') }, // navigator, beside and behind
+    // Four .303 in the upper nose, four Hispanos from the tray below.
+    ...[[0.1, 0.12], [0.2, 0.04], [0.1, -0.04], [0.2, -0.12]].map(([zz, hh]) => ({ ...strut([X(0.35), Y(0.1 + hh * 0.5), zz * M], [X(0.12), Y(0.1 + hh * 0.5), zz * M], 0.025 * M), material: plain('dark') })),
+    ...[0.12, 0.27].map((zz) => ({ ...strut([X(0.95), Y(-0.62), zz * M], [X(0.55), Y(-0.62), zz * M], 0.04 * M), material: plain('dark') })),
+    { ...box([X(3.85), Y(0.0), rz], [0.45 * M, 0.1 * M, 0.04 * M], { mirror: true }), material: plain('under') }, // rack pylon
+    { ...bomb, material: (p) => ({ kind: p[0] < X(4.35) ? 'dark' : 'metal' }) },
+    { ...strut([X(2.7), Y(-0.7), nz], main, 0.09 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.15 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(10.85), Y(0.1), 0], tailW, 0.05 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.07 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  const hubH = Y(-0.01);
+  return {
+    parts,
+    attach: {
+      exhaust: [X(1.5), Y(0.05), nz + 0.56 * M],
+      wingRootL: [X(3.4), Y(-0.2), 0.65 * M],
+      wingRootR: [X(3.4), Y(-0.2), -0.65 * M],
+      wingTipL: [X(3.0), Y(o.wing.at) + o.wing.span * M * o.wing.rise, o.wing.span * M],
+      wingTipR: [X(3.0), Y(o.wing.at) + o.wing.span * M * o.wing.rise, -o.wing.span * M],
+      propHub: [X(0.45), hubH, nz],
+      propHubs: [
+        [X(0.45), hubH, nz],
+        [X(0.45), hubH, -nz],
+      ],
+      propRadius: 1.75 * M,
+      mainContact: [main[0], -10, 0],
+      track: main[2],
+    },
+  };
+}
+
 // Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
-export const BUILDERS = { bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110 };
+export const BUILDERS = { bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito };
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
 // model code through outline.template, so its outline can be traced and previewed.
 export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);

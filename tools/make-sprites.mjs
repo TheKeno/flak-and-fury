@@ -498,13 +498,16 @@ mkdirSync(outDir, { recursive: true });
 const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 for (const [name, build] of Object.entries(BUILDERS)) {
   if (only.length && !only.includes(name)) continue;
-  const model = build(loadOutline(name));
+  const outline = loadOutline(name);
+  const model = build(outline);
   // Side view, 96 x 36 (or the plane's spriteSize) at the pivot planes.json gives, without the gear:
   // the game draws the gear so it can retract.
-  const def = defOf(name);
+  // A plane not in planes.json yet (the Mosquito before it is added to the game) takes its sprite area
+  // from its outline file and its tail-down angle from the outline's wheels.
+  const def = defOf(name) ?? { spriteSize: outline.sprite.size, pivot: outline.sprite.pivot, outlineOnly: true };
   const [w, h] = def.spriteSize ?? [96, 36];
   SPRITES[name] = render(model, rollPose(0), w, h, def.pivot, { gear: false, res: RES });
-  const { sheet, meta } = planeSheet(model, wheelGeometry(def).tailDown);
+  const { sheet, meta } = planeSheet(model, def.outlineOnly ? Math.atan2(outline.gear.tail.h - outline.gear.tail.r - outline.gear.main.h + outline.gear.main.r, outline.gear.tail.d - outline.gear.main.d) : wheelGeometry(def).tailDown);
   writeFileSync(new URL(`${name}-frames.png`, outDir), encodePng(sheet));
   writeFileSync(new URL(`${name}.json`, outDir), JSON.stringify(meta) + '\n');
   console.log(`wrote assets/sprites/${name}-frames.png and ${name}.json`);
