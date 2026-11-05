@@ -1159,7 +1159,10 @@ async function openPlane(name, fresh = null) {
   S.saved = fresh ? '' : formatOutline(S.o);
   S.baseGear = JSON.stringify(S.o.gear);
   // After S.saved, so a fin that had drifted shows as an unsaved change to save.
-  for (const k of ['fin', 'fins']) fitFin(S.o[k]);
+  for (const k of ['fin', 'fins']) {
+    if (S.o[k]?.le) Object.assign(S.o[k], splitFin(S.o[k]));
+    fitFin(S.o[k]);
+  }
   S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { own: true, nation: 'germany' };
   syncDef();
   growSprite();
