@@ -17,17 +17,17 @@ const round025 = (v) => Math.round(v / 0.025) * 0.025;
 
 const COLOURS = {
   fuselage: '#e0c070', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
-  gunTray: '#b0b0b0', radiators: '#90d090', bump: '#d0d0ff', bump2: '#d0d0ff', bump3: '#d0d0ff', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff',
+  gunTray: '#b0b0b0', radiators: '#90d090', bump: '#d0d0ff', bump2: '#d0d0ff', bump3: '#d0d0ff', spat: '#c0b090', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff',
 };
 const LABELS = {
   fuselage: 'Fuselage', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
-  radiators: 'Radiators', bump: 'Bump', bump2: 'Bump 2', bump3: 'Bump 3', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear',
+  radiators: 'Radiators', bump: 'Bump', bump2: 'Bump 2', bump3: 'Bump 3', spat: 'Wheel spat', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear',
 };
 const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
 // The plan view (from above) and the underside view (from below) edit the same points, each over its own picture.
 const isPlan = () => S.mode !== 'side';
 const label = (key) => (S.mode === 'side' && (key === 'wing' || key === 'tailplane') ? `${LABELS[key]} root` : LABELS[key]);
-const BODY_KEYS = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', 'bump', 'bump2', 'bump3'];
+const BODY_KEYS = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', 'bump', 'bump2', 'bump3', 'spat'];
 
 const S = window.outlineLab = {
   name: null,
@@ -186,6 +186,12 @@ function planHandles(key) {
   const s = S.o[key];
   const hs = [];
   if (!s) return hs;
+  if (key === 'gear') {
+    // The main wheel seen from above: along the plane (d) and out from the centre line (half track).
+    const wh = s.main;
+    hs.push({ ref: wh, which: 'wheel', pos: () => [wh.d, wh.half ?? 0], set: (d, z) => ((wh.d = d), (wh.half = r4(Math.max(0, z)))) });
+    return hs;
+  }
   if (BODY_KEYS.includes(key)) {
     const z0 = s.z ?? 0;
     const rows = s.stations;
@@ -240,6 +246,12 @@ function planLines(key) {
   const o = S.o;
   const s = o[key];
   if (!s) return [];
+  if (key === 'gear') {
+    // the wheel as a flat box from above: its diameter long, a tyre's width wide
+    const { d, r, half = 0 } = s.main;
+    const w = Math.max(0.1, r * 0.3);
+    return [{ pts: [[d - r, half - w], [d + r, half - w], [d + r, half + w], [d - r, half + w]], closed: true }];
+  }
   if (BODY_KEYS.includes(key)) {
     const z0 = s.z ?? 0;
     const rows = s.stations;
@@ -451,7 +463,7 @@ function segmentsFor(key) {
 }
 
 function partIds() {
-  if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k])];
+  if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k]), 'gear'];
   return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), 'gear'];
 }
 
@@ -1205,6 +1217,11 @@ function rowTable(rows, cols, edit, remove) {
 function planPanel(o, row, note, button, panel) {
   const s = o[S.part];
   if (!s) return;
+  if (S.part === 'gear') {
+    row('main wheel d', numInput(() => s.main.d, (v) => (s.main.d = v)), 'half track', numInput(() => s.main.half, (v) => (s.main.half = v)));
+    note('Seen from above only the main wheel is shown (a flat box, its diameter long). Drag it along the plane and out from the centre line to set the half track. Its height and size are set in the side view. A wheel spat (fairing) is its own part: Wheel spat, under "+ add part…".');
+    return;
+  }
   if (BODY_KEYS.includes(S.part)) {
     if (s.z !== undefined) row('z (centre of the pair)', numInput(() => s.z, (v) => (s.z = v)));
     panel.append(
@@ -1277,10 +1294,21 @@ const PART_STARTERS = {
   gunTray: { label: 'Gun tray', span: [0.15, 0.4], at: 'bottom', depth: 0.15, up: 0.05, hw: 0.12, n: 2.5 },
   nacelle: { label: 'Nacelle (pair)', span: [0.05, 0.4], at: 'middle', depth: 0.45, up: 0.4, hw: 0.5, n: 2.3, z: true },
   bump: { label: 'Bump (small detail, e.g. gun sight)', span: [0.12, 0.17], at: 'onTop', depth: 0.05, up: 0.12, hw: 0.1, n: 2 },
+  spat: { label: 'Wheel spat (pair)', n: 2.3 }, // placed by the main wheel, see makePart
   spine: { label: 'Spine', span: [0.35, 0.95], at: 'top', depth: 0.1, up: 0.05, hw: 0.1, n: 2 },
 };
 function makePart(key) {
   const st = PART_STARTERS[key.replace(/\d+$/, '')];
+  if (key === 'spat') {
+    // A streamlined shell round the main wheel: a bit longer than the wheel is wide, a bit taller, a mirrored pair.
+    const { d, r, half = 0, h, bottom } = S.o.gear.main;
+    const { M, Y } = kit(S.o);
+    const c = bottom === undefined ? h : (bottom + r * M - S.o.frame.y) / M; // wheel centre height in metres
+    const prof = [0.35, 0.85, 1, 0.9, 0.4];
+    const part = { n: st.n, z: r4(half || S.o.span * 0.1), stations: [] };
+    prof.forEach((k, i) => part.stations.push([r4(d - 2.2 * r + (4.6 * r * i) / (prof.length - 1)), r4(c + 1.3 * r * k), r4(c - 1.15 * r * k), r4(0.7 * r * k)]));
+    return part;
+  }
   const rows = S.o.fuselage.stations;
   const lerpCol = (d, col) => {
     if (d <= rows[0][0]) return rows[0][col];

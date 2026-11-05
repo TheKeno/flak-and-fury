@@ -17,7 +17,7 @@ test('outline stations are sorted, in range and mirror the plane they name', () 
   for (const name of names) {
     const o = loadOutline(name);
     assert.equal(o.plane, name);
-    for (const key of ['fuselage', 'spinner', 'canopy', 'nacelle', 'gunTray', 'radiators', 'spine', 'bump', 'bump2', 'bump3']) {
+    for (const key of ['fuselage', 'spinner', 'canopy', 'nacelle', 'gunTray', 'radiators', 'spine', 'bump', 'bump2', 'bump3', 'spat']) {
       if (!o[key]) continue;
       const rows = o[key].stations;
       assert.ok(rows.length >= 2, `${name} ${key}`);

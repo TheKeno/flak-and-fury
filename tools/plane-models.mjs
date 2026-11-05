@@ -1289,13 +1289,13 @@ function mosquito(o) {
 
 // Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
 // Small details on any plane: an outline may carry `bump`, `bump2`, `bump3` (body-part stations like the radiators:
-// gun sight, antenna housing, a hump). Each is drawn as a plain solid of the outline's `kind` (default 'dark')
+// gun sight, antenna housing, a hump) and `spat` (a mirrored pair, with z, round the main wheels). Each is drawn as a plain solid of the outline's `kind` (default 'dark')
 // next to the plane's own parts. A plane without them is built exactly as before.
-const BUMPS = ['bump', 'bump2', 'bump3'];
+const BUMPS = { bump: 'dark', bump2: 'dark', bump3: 'dark', spat: 'paint' }; // key: default surface kind
 const withBumps = (build) => (o) => {
   const model = build(o);
   const { bodyOf } = kit(o);
-  for (const key of BUMPS) if (o[key]) model.parts.push({ ...bodyOf(o[key]), material: () => ({ kind: o[key].kind ?? 'dark' }) });
+  for (const [key, kind] of Object.entries(BUMPS)) if (o[key]) model.parts.push({ ...bodyOf(o[key]), material: () => ({ kind: o[key].kind ?? kind }) });
   return model;
 };
 export const BUILDERS = Object.fromEntries(Object.entries({ bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito }).map(([k, f]) => [k, withBumps(f)]));

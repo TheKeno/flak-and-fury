@@ -91,6 +91,10 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   then `bump2`, `bump3` (body-part stations; optional `kind`, default `dark`; placed on top of the fuselage near the nose).
   `withBumps` in `tools/plane-models.mjs` wraps every builder and draws them as plain solids, so they show in the sprite
   and the Lab preview for any plane; planes without them build exactly as before (sprites unchanged, checked).
+- **Wheels in the plan view and Wheel spat** (2026-11-05, for the Stuka's spats): in the plan/underside view the Gear part
+  shows the main wheel as a flat box (diameter long) with one draggable point: d and `half` (half track). `spat` is a
+  mirrored body-part pair (z = the wheel's half track; "+ add part…" > Wheel spat gives a starter shell round the main
+  wheel); drawn by `withBumps` for every plane, default kind `paint`. Tail wheel is not shown in the plan view.
 - Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
   in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
 
