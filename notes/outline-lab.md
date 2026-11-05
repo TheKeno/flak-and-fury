@@ -57,6 +57,8 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   **Copy from plan view** (for an underside on the same sheet as the plan view, same scale and turn): reuses its
   picture and scale, you click only the nose tip; the wingtips are placed relative to it. Does not fit a view
   drawn at another scale or turned half a circle: calibrate that one normally.
+- The preview bar is 110 px tall (the x4 and top-view pictures shrink to fit) and folds away with the Hide
+  previews button (remembered in the browser).
 - Tests: `tests/outlines.test.mjs` (plan view: conversion draws nearly the same, fit keeps order).
 
 ## Known limits

@@ -8,6 +8,7 @@ import { paintSprite } from '../render/sprites.js';
 import { samplePlanform, fitPlanform, convertPlanform } from '../../tools/planform.mjs';
 
 const $ = (id) => document.getElementById(id);
+const PVH = 110; // the preview bar's picture height in pixels
 const RES = 2; // the sprite generator renders planes at 2 pixels per model unit
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const r4 = (v) => Math.round(v * 1e4) / 1e4;
@@ -605,8 +606,9 @@ function renderTop() {
     const pv = $('pvTop');
     pv.width = t.w;
     pv.height = t.h;
-    pv.style.width = `${t.w * (RES / res)}px`; // the same pixel size as the side preview
-    pv.style.height = `${t.h * (RES / res)}px`;
+    const fit = Math.min(1, PVH / (t.h * (RES / res))); // the same pixel size as the side preview, shrunk to the bar
+    pv.style.width = `${t.w * (RES / res) * fit}px`;
+    pv.style.height = `${t.h * (RES / res) * fit}px`;
     const pc = pv.getContext('2d');
     pc.clearRect(0, 0, t.w, t.h);
     pc.drawImage(S.top.canvas, 0, 0);
@@ -638,8 +640,9 @@ function renderSprite() {
       const pv = $(id);
       pv.width = w;
       pv.height = h;
-      pv.style.width = `${w * scale}px`;
-      pv.style.height = `${h * scale}px`;
+      const f = Math.min(scale, PVH / h); // the x4 picture shrinks to fit the preview bar
+      pv.style.width = `${w * f}px`;
+      pv.style.height = `${h * f}px`;
       const pc = pv.getContext('2d');
       pc.clearRect(0, 0, w, h);
       pc.drawImage(S.sprite, 0, 0);
@@ -1514,6 +1517,22 @@ $('gear').onchange = () => {
   S.dirtyPreview = true;
   requestDraw();
 };
+// The preview bar can be folded away to give the drawing the whole height (remembered in this browser).
+const foldPreviews = (hide) => {
+  $('previews').hidden = hide;
+  $('pvToggle').textContent = hide ? 'Show previews' : 'Hide previews';
+  requestAnimationFrame(resizeCanvas);
+};
+$('pvToggle').onclick = () => {
+  const hide = !$('previews').hidden;
+  foldPreviews(hide);
+  try {
+    localStorage.setItem('outlineLabHidePreviews', hide ? '1' : '');
+  } catch {}
+};
+try {
+  foldPreviews(!!localStorage.getItem('outlineLabHidePreviews'));
+} catch {}
 $('undo').onclick = undo;
 $('redo').onclick = redo;
 $('fit').onclick = fitView;
