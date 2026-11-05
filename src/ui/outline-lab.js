@@ -1692,21 +1692,30 @@ async function openPlane(name, fresh = null) {
 // The planes of milestone 6 that have no outline yet, with real length and span (m) and a sensible template
 // (single-engine: spitfire, twin: bf110). The dialog offers the ones not already in the plane list.
 const PLANNED = [
-  { id: 'p38j', label: 'P-38J Lightning (USA)', L: 11.53, W: 15.85, tmpl: 'bf110' },
-  { id: 'a36a', label: 'A-36A Apache (USA)', L: 9.83, W: 11.28, tmpl: 'p47d' },
-  { id: 'pe3', label: 'Pe-3 (USSR)', L: 12.67, W: 17.16, tmpl: 'bf110' },
-  { id: 'il2', label: 'Il-2M3 Shturmovik (USSR)', L: 11.65, W: 14.6, tmpl: 'la5fn' },
-  { id: 'ki45', label: 'Ki-45 KAI Toryu (Japan)', L: 11.0, W: 15.02, tmpl: 'bf110' },
-  { id: 'd3a2', label: 'D3A2 Val (Japan)', L: 10.2, W: 14.37, tmpl: 'ki43' },
-  { id: 'ju87', label: 'Ju 87 D-5 Stuka (Germany)', L: 11.5, W: 15.0, tmpl: 'bf109' },
-  { id: 'hurricane', label: 'Hurricane Mk IID (UK)', L: 9.81, W: 12.19, tmpl: 'spitfire' },
-  { id: 'blenheim', label: 'Blenheim Mk IV (Finland)', L: 12.98, W: 17.17, tmpl: 'bf110' },
-  { id: 'ju88', label: 'Ju 88 A-4 (Finland)', L: 14.4, W: 20.08, tmpl: 'bf110' },
+  { id: 'p38j', label: 'P-38J Lightning (USA)', L: 11.53, W: 15.85, tmpl: 'bf110', sheet: 'P-38J Lightning.jpg' },
+  { id: 'a36a', label: 'A-36A Apache (USA)', L: 9.83, W: 11.28, tmpl: 'p47d', sheet: 'A-36A Apache.jpg' },
+  { id: 'pe3', label: 'Pe-3 (USSR)', L: 12.67, W: 17.16, tmpl: 'bf110', sheet: 'Pe-3.gif' },
+  { id: 'il2', label: 'Il-2M3 Shturmovik (USSR)', L: 11.65, W: 14.6, tmpl: 'la5fn', sheet: 'Il-2M3 Shturmovik.png' },
+  { id: 'ki45', label: 'Ki-45 KAI Toryu (Japan)', L: 11.0, W: 15.02, tmpl: 'bf110', sheet: 'Ki-45 KAI Toryu.gif' },
+  { id: 'd3a2', label: 'D3A2 Val (Japan)', L: 10.2, W: 14.37, tmpl: 'ki43', sheet: 'D3A2 Val.png' },
+  { id: 'ju87', label: 'Ju 87 D-5 Stuka (Germany)', L: 11.5, W: 15.0, tmpl: 'bf109', sheet: 'Ju-87 D-5.jpg' },
+  { id: 'hurricane', label: 'Hurricane Mk IID (UK)', L: 9.81, W: 12.19, tmpl: 'spitfire', sheet: 'Hurricane Mk IID.jpg' },
+  { id: 'blenheim', label: 'Blenheim Mk IV (Finland)', L: 12.98, W: 17.17, tmpl: 'bf110', sheet: 'Blenheim Mk IV with gun pack.gif' },
+  { id: 'ju88', label: 'Ju 88 A-4 (Finland)', L: 14.4, W: 20.08, tmpl: 'bf110', sheet: 'Ju 88 A-4.jpg' },
+  { id: 'a6m5', label: 'A6M5 Zero (Japan)', L: 9.12, W: 11.0, tmpl: 'ki43', sheet: 'A6M5 zero.jpg' },
+  // Heavy bombers (no 4-engine template yet: the Bf 110 is the closest). Sizes from memory: check each against its sheet.
+  { id: 'b17f', label: 'B-17F Flying Fortress (USA)', L: 22.78, W: 31.63, tmpl: 'bf110', sheet: 'B-17F.jpg' },
+  { id: 'lancaster', label: 'Lancaster B.I/III (UK)', L: 21.18, W: 31.09, tmpl: 'bf110', sheet: 'Lancaster B3.jpg' },
+  { id: 'he177', label: 'He 177 A-3 (Germany)', L: 20.4, W: 31.44, tmpl: 'bf110', sheet: 'heinkel177_3v.jpg' },
+  { id: 'pe8', label: 'Pe-8 (USSR)', L: 22.5, W: 39.1, tmpl: 'bf110', sheet: 'Pe-8.jpg' },
+  { id: 'g4m1', label: 'G4M1 Betty (Japan)', L: 19.97, W: 24.89, tmpl: 'bf110', sheet: 'G4M1.jpg' },
+  // Already has an outline from before measuring: the picker opens that plane and loads the sheet to trace it again.
+  { id: 'bf109', label: 'Bf 109 F-4 (Germany), rebuild of bf109', L: 8.85, W: 9.92, tmpl: 'bf109', sheet: 'Bf 109 F-4.jpg', rebuild: true },
 ];
 // The picker for New plane...: a planned plane fills in name, size and template; "Other" lets you type them.
 function askNewPlane() {
   const have = [...$('plane').options].map((o) => o.value);
-  const list = PLANNED.filter((p) => !have.includes(p.id));
+  const list = PLANNED.filter((p) => p.rebuild || !have.includes(p.id));
   return new Promise((resolve) => {
     const dlg = document.createElement('dialog');
     dlg.style.cssText = 'background:#1e2024;color:#ddd;border:1px solid #555;padding:14px;min-width:300px';
@@ -1731,10 +1740,12 @@ function askNewPlane() {
     const trow = document.createElement('div');
     trow.append('start from ', tmpl);
     dlg.append(trow);
+    let pending = null;
     const fill = () => {
       const p = list.find((x) => x.id === sel.value);
       if (p) Object.assign(id, { value: p.id }), (L.value = p.L), (W.value = p.W), (tmpl.value = p.tmpl);
       id.readOnly = !!p;
+      pending = p ?? null;
     };
     sel.onchange = fill;
     fill();
@@ -1751,7 +1762,7 @@ function askNewPlane() {
     };
     cancel.onclick = () => done(null);
     dlg.oncancel = () => done(null);
-    ok.onclick = () => done({ id: id.value.trim(), L: parseFloat(L.value), W: parseFloat(W.value), tmpl: tmpl.value });
+    ok.onclick = () => done({ id: id.value.trim(), L: parseFloat(L.value), W: parseFloat(W.value), tmpl: tmpl.value, sheet: pending?.sheet, rebuild: !!pending?.rebuild });
     document.body.append(dlg);
     dlg.showModal();
   });
@@ -1759,7 +1770,15 @@ function askNewPlane() {
 async function newPlane() {
   const ans = await askNewPlane();
   if (!ans) return;
-  const { id, L, W, tmpl } = ans;
+  const { id, L, W, tmpl, sheet, rebuild } = ans;
+  if (rebuild) {
+    // An existing plane: open it as it is and put the sheet under it.
+    if (!$('plane').querySelector(`option[value="${id}"]`)) return alert(`${id} has no outline to rebuild.`);
+    $('plane').value = id;
+    await openPlane(id);
+    if ($('plane').value === id && S.name === id) await loadLibrarySheet(sheet);
+    return;
+  }
   if (!/^[a-z][a-z0-9_]*$/.test(id) || [...$('plane').options].some((o) => o.value === id)) return alert('That name is not usable or already exists.');
   if (!BASES.includes(tmpl)) return alert(`Pick one of: ${BASES.join(', ')}`);
   if (!(L > 0 && W > 0)) return alert('Give the length and wingspan in metres.');
@@ -1769,6 +1788,20 @@ async function newPlane() {
   $('plane').value = id;
   await openPlane(id, o);
   status(`${id}: new, unsaved (a copy of ${tmpl} scaled to ${L} m)`);
+  await loadLibrarySheet(sheet);
+}
+// Puts a library sheet on the side view of the open plane. A missing sheet or library is only mentioned.
+async function loadLibrarySheet(name) {
+  if (!name) return;
+  try {
+    const r = await fetch(`/api/blueprints/${encodeURIComponent(name)}`);
+    if (!r.ok) return libMsg(`Sheet "${name}" is not in the library: load one by hand.`);
+    const blob = await r.blob();
+    if (S.mode !== 'side') setMode('side');
+    if (usePicture(blob, await createImageBitmap(blob), name)) libMsg(`Loaded ${name} from the library: click the nose tip, then the tail end.`);
+  } catch {
+    libMsg(`Could not load ${name} from the library.`);
+  }
 }
 const BASES = ['bf109', 'bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239', 'bf110'];
 function scaledOutline(base, id, template, L, W) {
