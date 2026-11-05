@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { IMAGE_TYPES, MAX_BYTES, libraryDir, listSheets, saveSheet, sheetPath } from './blueprints.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const port = Number(process.argv[2] || process.env.PORT || 8080);
@@ -112,7 +113,42 @@ function buildSprites(res, plane) {
   });
 }
 
+// The blueprint library (see tools/blueprints.mjs): GET /api/blueprints, GET /api/blueprints/<name>,
+// PUT /api/blueprints/<name>. Local dev server only, never part of the public game.
+async function blueprintApi(req, res) {
+  const send = (code, type, body) => {
+    res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store' });
+    res.end(body);
+  };
+  const json = (code, obj) => send(code, 'application/json', JSON.stringify(obj));
+  try {
+    const dir = await libraryDir(root);
+    const rest = decodeURIComponent(new URL(req.url, 'http://x').pathname.slice('/api/blueprints'.length)).replace(/^\//, '');
+    if (!rest && req.method === 'GET') return json(200, { configured: !!dir, dir, sheets: dir ? await listSheets(dir) : [] });
+    if (!dir) return json(409, { error: 'Library folder not set: put its path in .blueprints-path or the BLUEPRINTS variable' });
+    if (req.method === 'GET') {
+      const file = sheetPath(dir, rest);
+      if (!file) return json(400, { error: 'bad name' });
+      return send(200, IMAGE_TYPES[extname(file).toLowerCase()], await readFile(file));
+    }
+    if (req.method === 'PUT') {
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of req) {
+        size += chunk.length;
+        if (size > MAX_BYTES) return json(413, { error: 'Over 40 MB' });
+        chunks.push(chunk);
+      }
+      return json(200, { name: await saveSheet(dir, rest, Buffer.concat(chunks)) });
+    }
+    return json(405, { error: 'method' });
+  } catch (e) {
+    json(e.code === 'ENOENT' ? 404 : 400, { error: String(e.message) });
+  }
+}
+
 createServer(async (req, res) => {
+  if (req.url.split('?')[0].startsWith('/api/blueprints')) return blueprintApi(req, res);
   if (req.method === 'POST' && req.url.startsWith('/build-sprites')) {
     try {
       buildSprites(res, new URL(req.url, 'http://x').searchParams.get('plane'));

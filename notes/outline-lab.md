@@ -82,3 +82,5 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
 3. Pixel touch-up layer (`touchups` in the outline file, applied after render of the side-view sprite only).
 4. Then the Mosquito's own model function (materials, 1943 RAF markings, single fin on the centreline),
    after the owner approves the outline overlay. See `notes/milestone6.md`.
+
+- **Blueprint library**: `tools/blueprints.mjs` (helpers, tested in `tests/blueprints.test.mjs`) and `/api/blueprints` in `tools/serve.mjs` (GET list, GET `<name>`, PUT `<name>`). Flat folder of sheets outside the repo (copyrighted; GitHub Pages is public). Folder path: first line of the git-ignored `.blueprints-path`, or env `BLUEPRINTS`; on a new machine create that file (currently the notes repo's `milestone6/blueprints`). The lab's "Pick from library" copies the sheet into the browser's IndexedDB as a normal picture, so calibration is unchanged. Replacing a calibrated picture (Load, Pick, Upload, Calibrate) asks first.

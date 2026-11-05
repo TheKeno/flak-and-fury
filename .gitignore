@@ -4,3 +4,6 @@ Thumbs.db
 *.log
 .env
 .env.*
+
+# Blueprint library location (copyrighted sheets live outside this repo)
+.blueprints-path

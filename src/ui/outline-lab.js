@@ -1472,18 +1472,74 @@ $('span').onchange = () => {
   }
 };
 
+// Puts a picture on the current view. A calibrated picture is only replaced after a yes: calibrating again
+// takes a few careful clicks.
+function usePicture(blob, img, name) {
+  if (calibrated(S.bp) && !confirm(`Replace ${S.bp.name}? Its calibration for this view will be lost.`)) return false;
+  S.bp = { img, blob, name, nose: null, tail: null, tailH: null, tipA: null, tipB: null };
+  S.calibrating = 'nose';
+  updateBlueprintInfo();
+  fitView();
+  return true;
+}
 $('load').onclick = () => $('file').click();
 $('file').onchange = async () => {
   const f = $('file').files[0];
   if (!f) return;
-  S.bp = { img: await createImageBitmap(f), blob: f, name: f.name, nose: null, tail: null, tailH: null, tipA: null, tipB: null };
-  S.calibrating = 'nose';
-  updateBlueprintInfo();
-  fitView();
+  usePicture(f, await createImageBitmap(f), f.name);
   $('file').value = '';
+};
+
+// ---------- Blueprint library (folder on the dev server, outside the repo) ----------
+const lib = $('libPanel');
+const libMsg = (text) => {
+  lib.hidden = false;
+  lib.textContent = text;
+};
+async function libPick(name) {
+  const r = await fetch(`/api/blueprints/${encodeURIComponent(name)}`);
+  if (!r.ok) return libMsg(`Could not read ${name}`);
+  const blob = await r.blob();
+  if (usePicture(blob, await createImageBitmap(blob), name)) lib.hidden = true;
+}
+$('libPick').onclick = async () => {
+  if (!lib.hidden) return void (lib.hidden = true);
+  let info;
+  try {
+    info = await (await fetch('/api/blueprints')).json();
+  } catch {
+    return libMsg('The library needs the local server: node tools/serve.mjs');
+  }
+  if (!info.configured) return libMsg('Library folder not set: put its path on one line in .blueprints-path in the game folder (git-ignored), or set the BLUEPRINTS variable, then restart the server.');
+  lib.replaceChildren();
+  const head = document.createElement('div');
+  head.className = 'dim';
+  head.textContent = `${info.dir} (${info.sheets.length} sheets)`;
+  lib.append(head);
+  for (const s of info.sheets) {
+    const b = document.createElement('button');
+    b.textContent = `${s.name}  ·  ${(s.size / 1048576).toFixed(1)} MB`;
+    b.style.cssText = 'display:block;width:100%;text-align:left;margin:2px 0';
+    b.onclick = () => libPick(s.name);
+    lib.append(b);
+  }
+  lib.hidden = false;
+};
+$('libUp').onclick = () => $('fileLib').click();
+$('fileLib').onchange = async () => {
+  const f = $('fileLib').files[0];
+  $('fileLib').value = '';
+  if (!f) return;
+  const img = await createImageBitmap(f);
+  const r = await fetch(`/api/blueprints/${encodeURIComponent(f.name)}`, { method: 'PUT', body: f }).catch(() => null);
+  const out = r && (await r.json().catch(() => ({})));
+  if (!r?.ok) return libMsg(`Not saved: ${out?.error ?? 'the library needs the local server'}`);
+  if (usePicture(f, img, out.name)) libMsg(`Saved to the library as ${out.name}`);
+  else libMsg(`Saved to the library as ${out.name} (not loaded)`);
 };
 $('calib').onclick = () => {
   if (!S.bp) return;
+  if (calibrated(S.bp) && !confirm('Calibrate again? The current calibration for this view will be lost.')) return;
   for (const k of SEQ[S.mode]) S.bp[k] = null;
   S.calibrating = 'nose';
   updateBlueprintInfo();

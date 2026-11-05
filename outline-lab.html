@@ -75,13 +75,17 @@
         <h3 id="bpTitle">Blueprint (side view)</h3>
         <div class="row">
           <button id="load">Load picture…</button>
+          <button id="libPick" title="Choose a sheet from the blueprint library folder">Pick from library…</button>
+          <button id="libUp" title="Add a picture to the blueprint library folder and use it here">Upload to library…</button>
           <button id="calib">Calibrate</button>
           <button id="clear">Remove</button>
           <button id="copyPlan" hidden title="Use the plan view's picture, scale and direction; click only the nose">Copy from plan view</button>
           <button id="copyPlan180" hidden title="For an underside drawn the other way up on the sheet (plane turned half a circle): picture and scale from the plan view, wingtips on the other side of the nose; click only the nose">Copy, turned 180°</button>
           <input type="file" id="file" accept="image/*" hidden />
+          <input type="file" id="fileLib" accept="image/*" hidden />
         </div>
         <div class="row dim" id="calibInfo"></div>
+        <div id="libPanel" hidden style="max-height:220px;overflow:auto;border:1px solid #444;padding:4px;margin:4px 0"></div>
         <div class="row" id="rowSide">length <input type="number" id="length" step="0.01" /> m &nbsp; tail point h <input type="number" id="tailH" step="0.01" /> m</div>
         <div class="row" id="rowPlan" hidden>span (wingtip to wingtip) <input type="number" id="span" step="0.01" /> m <button id="turn" title="Swap which way d runs (nose and tail) if the outline sits the wrong way round on the drawing">Turn 180°</button></div>
         <h3>Part</h3>
