@@ -740,6 +740,13 @@ function endDrag() {
     rebuildPanel();
   }
   if (drag?.h && S.part === 'gear') rebuildPanel();
+  // A fin edge must stay in height order and on its own side, or the preview shows a gap: put the
+  // points right once the drag is done (doing it mid-drag swaps lines under the cursor).
+  if (drag?.h && verticalOf(S.part) && S.o[S.part]?.le) {
+    Object.assign(S.o[S.part], splitFin(S.o[S.part]));
+    fitFin(S.o[S.part]);
+    rebuildPanel();
+  }
   drag = null;
   changed();
 }
