@@ -53,6 +53,7 @@ sheet holds, or its scale and orientation: look when starting each plane.
   Hurricane Mk IID, A-36A Apache, Il-2M3 Shturmovik (rear gunner position to place), D3A2 Val, Ju 88 A-4.
 - **Backlog planes:** A6M5 Zero.
 - **Heavy bombers (milestone 12):** B-17F, Lancaster B3, Heinkel 177 (`heinkel177_3v.jpg`), Pe-8, G4M1.
-- **Still missing:** Bf 109 F-4 (backlog rebuild) and all tanks (Panzer IV Ausf. H, Churchill Mk IV, M4A1 Sherman,
-  T-34/76 m1943, Shinhoto Chi-Ha, BT-42).
-- The 16 new files are not yet committed in the notes repo.
+- **Bf 109 F-4** (backlog rebuild): `Bf 109 F-4.jpg`.
+- **Tanks:** Panzer IV (`Panzer IV.jpeg`), Churchill, Sherman, T-34-76, Chi-Ha, BT-42.
+- **Nothing missing now** (23 sheets in all, plus the two Mosquito ones).
+- The new files are not yet committed in the notes repo.
