@@ -1416,6 +1416,8 @@ function updateBlueprintInfo() {
   $('turn').disabled = !S.bp;
   $('copyPlan').hidden = S.mode !== 'under';
   $('copyPlan').disabled = !calibratedPlan();
+  $('copyPlan180').hidden = S.mode !== 'under';
+  $('copyPlan180').disabled = !calibratedPlan();
   $('modeSide').className = plan ? '' : 'on';
   $('modePlan').className = S.mode === 'plan' ? 'on' : '';
   $('modeUnder').className = S.mode === 'under' ? 'on' : '';
@@ -1423,15 +1425,19 @@ function updateBlueprintInfo() {
 const calibratedPlan = () => !!S.bps.plan?.blob && ['nose', 'tipA', 'tipB'].every((k) => S.bps.plan[k]);
 // The underside is often on the same sheet as the plan view: take its picture, scale and turn, and only click
 // the nose again.
-$('copyPlan').onclick = () => {
+function copyFromPlan(turned) {
   const p = S.bps.plan;
   if (!calibratedPlan()) return;
-  const rel = (q) => [q[0] - p.nose[0], q[1] - p.nose[1]];
+  // turned: the underside is drawn the other way up on the sheet (the plane turned half a circle), so the
+  // wingtips lie on the opposite side of the nose.
+  const rel = (q) => [(turned ? -1 : 1) * (q[0] - p.nose[0]), (turned ? -1 : 1) * (q[1] - p.nose[1])];
   S.bps.under = { img: p.img, blob: p.blob, name: p.name, nose: null, tail: null, tailH: null, tipA: null, tipB: null, flip: p.flip, rel: { A: rel(p.tipA), B: rel(p.tipB) } };
   S.calibrating = 'nose';
   updateBlueprintInfo();
   fitView();
-};
+}
+$('copyPlan').onclick = () => copyFromPlan(false);
+$('copyPlan180').onclick = () => copyFromPlan(true);
 function setMode(mode) {
   if (S.mode === mode || !S.o) return;
   S.mode = mode;

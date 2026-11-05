@@ -49,6 +49,9 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
   nose + two wingtips calibration), previewed from below (`rollPose(-PI/2)`). For what only shows from below
   (radiators, gun tray, nacelle undersides): trace those widths here, wing/tailplane edges in the plan view.
   Shift+drag a red calibration cross to correct it later (all views); the picture stays, the outline moves.
+  **Copy, turned 180°** does the same for an underside drawn the other way up on the sheet (the Czech Mosquito
+  sheet: the grey underside is the camouflaged top view turned half a circle). Turn 180° alone cannot fix a copy
+  with the wrong side: it only swaps the direction d runs, the wingtips stay where they were put.
   **Turn 180°** (plan and underside, stored with the picture as `flip`) swaps which way d runs when the guess
   from the nose click (d grows from the nose away from the wingtip line) gets it wrong.
   **Copy from plan view** (for an underside on the same sheet as the plan view, same scale and turn): reuses its
