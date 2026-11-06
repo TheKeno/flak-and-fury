@@ -6,6 +6,7 @@ import {
   hardpointChoices, buildLoadout, rowsOf, presetsOf, presetIndex, effects, describeEffects, planeIds, loadKg, hasBombs,
   gunRows, buildGuns, gunKg, standardKg, hasGunOptions, standardGuns, gunsEqual, groupPlanes, LOADOUT_EDITING,
 } from './hangar-logic.js';
+import { flagCanvas } from './flags.js';
 
 export const HANGAR_STYLE = `
 @keyframes hv-pulse { 0%, 100% { box-shadow: 0 4px 0 #3a2a10, 0 0 0 0 rgba(232,200,96,0); } 50% { box-shadow: 0 4px 0 #3a2a10, 0 0 14px 2px rgba(232,200,96,.35); } }
@@ -19,8 +20,9 @@ export const HANGAR_STYLE = `
 .hv .planes { width: 230px; flex: none; overflow: auto; border-right: 2px solid #33352a; padding-right: 8px; }
 .hv .planes h4 { margin: 8px 0 3px; font-size: 11px; color: #8f8a72; text-transform: uppercase; }
 .hv .planes h4:first-child { margin-top: 0; }
-.hv .card { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 4px; padding: 3px 6px; text-align: left; }
+.hv .card { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 4px; padding: 3px 6px; text-align: left; }
 .hv .card canvas { width: 64px; height: 28px; flex: none; object-fit: contain; image-rendering: pixelated; }
+.hv .card .flag { position: absolute; left: 3px; top: 3px; width: 22px; height: 15px; image-rendering: pixelated; border: 1px solid #000; z-index: 1; }
 .hv .card .sub { color: #8f8a72; font-size: 11px; }
 .hv .card.sel { border-color: #e8c860; background: #2a2e22; }
 .hv .opts { flex: 1; min-width: 0; overflow: auto; padding-right: 4px; }
@@ -74,7 +76,9 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
         canvas.getContext('2d').drawImage(src, 0, 0);
       });
     }
-    return el('button', { className: `card${sel ? ' sel' : ''}`, disabled: !can, onclick: () => h.pickPlane(id) }, canvas,
+    const flag = flagCanvas(def.nation);
+    if (flag) flag.className = 'flag';
+    return el('button', { className: `card${sel ? ' sel' : ''}`, disabled: !can, onclick: () => h.pickPlane(id) }, ...(flag ? [flag] : []), canvas,
       el('span', {}, def.name, el('div', { className: 'sub' }, nations[def.nation]?.name ?? def.nation)));
   }
 
