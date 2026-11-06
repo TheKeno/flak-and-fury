@@ -2,7 +2,7 @@
 // parachute in the air (a deserter holds a white flag), on foot on the ground. Once down he's a soldier
 // for his side, marching with the rest. The player's plane stays dead meanwhile, its position following
 // the man, so the camera and sound do too; after respawnDelay a fresh press of fire gets a new plane.
-import { createPlane, spawnAtAirfield, crash } from './plane.js';
+import { createPlane, spawnAtAirfield, holdForPilot, crash } from './plane.js';
 import { shootDown, armPlane } from './weapons.js';
 import { makeGroundObject, surfaceAt } from './ground.js';
 
@@ -124,7 +124,10 @@ export function stepBailedPilot(world, p, cmd, dt) {
   if (allowed && fire && !b.fireHeld) b.wanted = true;
   b.fireHeld = fire;
   // A closed runway keeps him waiting; the press still counts.
-  if (b.wanted && spawnAtAirfield(p, world, true)) releasePilot(world, p);
+  if (b.wanted && spawnAtAirfield(p, world, true)) {
+    releasePilot(world, p);
+    holdForPilot(p); // the new plane waits in the hangar for the pilot's choice, as after a crash
+  }
 }
 
 function killPilot(world, c, cause, by = null, dir = 0) {

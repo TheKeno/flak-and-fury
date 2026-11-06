@@ -92,6 +92,8 @@ test('no new plane for 3 seconds, and only on a fresh press of fire', () => {
   stepWorld(world, { p1: { ...IDLE, fire: true } });
   assert.equal(p.state, 'ground', 'a new plane at home');
   assert.equal(p.bailout, null);
+  assert.equal(p.exitPhase, 'wait');
+  assert.equal(p.hold, true, 'it waits in the hangar for the pilot, no instant roll-out');
   assert.equal(world.parachutes.length, 1, 'the pilot carries on down without you');
 });
 

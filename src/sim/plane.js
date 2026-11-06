@@ -1104,15 +1104,18 @@ function abandon(p, world) {
   p.service = null;
 }
 
+// A pilot's new plane (not a bot's) waits behind the shut doors until they have picked it in the hangar (the panel opens by itself).
+export function holdForPilot(p) {
+  if (p.seats[0].controller.startsWith('bot') || p.exitPhase !== 'wait') return;
+  p.hold = true;
+  p.holdNew = true;
+}
+
 export function stepPlane(p, cmd, world, dt) {
   if (p.state === 'dead') {
     p.groundTurn = p.groundLoop = p.edgeTurn = p.edgeLevel = null;
     p.respawnTimer -= dt;
-    if (p.respawnTimer <= 0 && spawnAtAirfield(p, world, true) && !p.seats[0].controller.startsWith('bot') && p.exitPhase === 'wait') {
-      // A pilot's new plane waits behind the shut doors until they have picked it in the hangar (the panel opens by itself).
-      p.hold = true;
-      p.holdNew = true;
-    }
+    if (p.respawnTimer <= 0 && spawnAtAirfield(p, world, true)) holdForPilot(p);
     return;
   }
 
