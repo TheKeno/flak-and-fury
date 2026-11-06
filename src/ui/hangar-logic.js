@@ -44,6 +44,24 @@ export function gunKg(def, guns, weapons) {
 }
 export const standardKg = standardGunKg;
 
+// The standard fit as an explicit gun choice (what a plane flies with when the pilot changes nothing).
+export const standardGuns = (def, weapons) => buildGuns(def, gunRows(def, weapons, null), weapons) ?? [];
+export const gunsEqual = (a, b) => JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
+// The gun choice to send/save for a plane: the saved one if it is still allowed, else the standard fit (null: no guns on the plane).
+export const gunChoiceFor = (def, weapons, mine) => (mountsOf(def).length ? (mine && validateGuns(def, mine, weapons)) || standardGuns(def, weapons) : null);
+
+// Planes by role group, sorted by nation (then name), for the hangar list: [{ group, ids }].
+const GROUPS = [['Fighters', ['fighter']], ['Heavy fighters', ['heavy fighter']], ['Fighter-bombers', ['fighter-bomber']], ['Bombers', ['dive bomber', 'bomber', 'heavy bomber', 'torpedo bomber', 'attack']]];
+export function groupPlanes(planeDefs, nation = '') {
+  const ids = planeIds(planeDefs, nation);
+  const groupOf = (id) => GROUPS.find(([, roles]) => roles.includes(planeDefs[id].role))?.[0] ?? 'Other';
+  const names = [...GROUPS.map(([n]) => n), 'Other'];
+  return names.map((group) => ({
+    group,
+    ids: ids.filter((id) => groupOf(id) === group).sort((a, b) => (planeDefs[a].nation + planeDefs[a].name).localeCompare(planeDefs[b].nation + planeDefs[b].name)),
+  })).filter((g) => g.ids.length);
+}
+
 export const loadKg = (list, weapons) => list.reduce((n, l) => n + (weapons[l.weapon]?.weight ?? 0) * (l.count ?? 1), 0);
 
 // Rows -> a list for the game: [{hardpoint, weapon|null, count}] in hardpoint order. Empty rows drop out. If
@@ -118,7 +136,7 @@ export function sanitizeChoice(planeDefs, weapons, saved, fallbackId) {
   const def = planeDefs[defId];
   const mine = saved?.loads?.[defId];
   const guns = saved?.guns?.[defId] ? validateGuns(def, saved.guns[defId], weapons) : null;
-  const extra = guns ? { guns } : {};
+  const extra = guns ? { guns } : {}; // only a changed choice is carried; the plane's standard fit needs none
   if (!hasBombs(def)) return { defId, loadout: null, ...extra };
   const loadout = (mine && validateLoadout(def, mine, weapons)) || validateLoadout(def, presetsOf(def)[0].loadout, weapons) || [];
   return { defId, loadout, ...extra };

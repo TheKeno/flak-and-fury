@@ -2,7 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { validateLoadout } from '../src/sim/weapons.js';
+import { validateLoadout, validateGuns } from '../src/sim/weapons.js';
+import { groupPlanes, standardGuns, gunChoiceFor, gunRows, buildGuns } from '../src/ui/hangar-logic.js';
 import { planeIds, hardpointChoices, buildLoadout, rowsOf, presetsOf, presetIndex, effects, describeEffects, sanitizeChoice, hasBombs, readSaved, writeSaved, loadKg } from '../src/ui/hangar-logic.js';
 
 const load = (p) => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
@@ -150,4 +151,44 @@ test('H refusals: by state, no repeats until the list is used up', () => {
   assert.match(hangarRefusal('nohangar'), /HANGAR/);
   assert.match(hangarRefusal('field'), /./);
   assert.match(hangarRefusal('busy'), /./);
+});
+
+test('plane list: every named plane once, grouped by role, sorted by nation', () => {
+  const groups = groupPlanes(planes);
+  assert.deepEqual(groups.flatMap((g) => g.ids).sort(), [...ids].sort());
+  for (const g of groups) {
+    const nations = g.ids.map((id) => planes[id].nation);
+    assert.deepEqual(nations, [...nations].sort());
+  }
+});
+
+test('standard gun choice is valid and equals the standard fit', () => {
+  for (const id of ids) {
+    const def = planes[id];
+    if (!def.armament?.guns?.length) continue;
+    const std = standardGuns(def, weapons);
+    assert.ok(validateGuns(def, std, weapons), id);
+    assert.deepEqual(gunChoiceFor(def, weapons, null), std);
+    assert.deepEqual(gunChoiceFor(def, weapons, [{ mount: 'nope', weapon: 'x', count: 1 }]), std, 'a bad saved choice falls back');
+  }
+});
+
+test('removing every gun from the rows gives a valid empty choice, and it saves per plane', () => {
+  const def = planes.bf109g6;
+  const rows = gunRows(def, weapons, null).map((r) => ({ ...r, weapon: null, count: 0 }));
+  assert.deepEqual(buildGuns(def, rows, weapons), []);
+  const mem = new Map();
+  const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v) };
+  let saved = writeSaved(storage, {}, { defId: 'spitfire', loadout: [], guns: standardGuns(planes.spitfire, weapons) });
+  saved = writeSaved(storage, saved, { defId: 'bf109g6', loadout: [], guns: [] });
+  const back = readSaved(storage);
+  assert.deepEqual(back.guns.bf109g6, []);
+  assert.deepEqual(sanitizeChoice(planes, weapons, back, 'bf109g6').guns, []);
+});
+
+test('effects with fewer guns is lighter than the standard fit', () => {
+  const def = planes.bf109g6;
+  const none = effects(def, [], weapons, settings.weight, []);
+  const std = effects(def, [], weapons, settings.weight, null);
+  assert.ok(none.find((x) => x.key === 'turnRate').now >= std.find((x) => x.key === 'turnRate').now);
 });
