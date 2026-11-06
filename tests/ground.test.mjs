@@ -61,7 +61,7 @@ test('bullets destroy an enemy tent and score its points', () => {
 });
 
 test('your own side\'s objects are safe from your rounds', () => {
-  const { world, player } = makeWorld();
+  const { world, player } = makeWorld({ friendlyFire: false });
   const tent = find(world, 'tent', 0);
   strafe(world, player, tent, 30);
   run(world, 1);

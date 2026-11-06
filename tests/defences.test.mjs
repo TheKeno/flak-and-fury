@@ -16,7 +16,7 @@ function makeWorld() {
     planeDefs: load('data/planes.json'),
     weapons: load('data/weapons.json'),
     groundDefs,
-    rules: { bots: 'off' },
+    rules: { bots: 'off', friendlyFire: false },
   });
   const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
   player.hp = player.def.hp = 100000; // survive long enough to count the damage

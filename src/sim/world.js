@@ -24,7 +24,7 @@ export const DT = 1 / TICK_RATE;
 // wingmen, enemies: how many bots fly with you and against you; wingmanSkill, enemySkill: their level
 // (easy, normal, ace). Read by the game's setup (src/main.js) and the tuning panel.
 export const DEFAULT_RULES = {
-  friendlyFire: false,
+  friendlyFire: true,
   ramming: true,
   bots: 'on',
   autoGear: true,

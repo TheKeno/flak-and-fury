@@ -16,7 +16,7 @@ function makeWorld() {
     weapons: load('data/weapons.json'),
     groundDefs,
     waves: { first: 1e6 },
-    rules: { bots: 'off' },
+    rules: { bots: 'off', friendlyFire: false },
   });
   for (const o of world.ground) if (o.team != null && o.type !== 'hangar') o.alive = false;
   const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
@@ -74,4 +74,18 @@ test('standing tail-down on the ground, the guns fire up along the fuselage', ()
     const climb = Math.atan2(b.vy, Math.abs(b.vx));
     assert.ok(climb > 0.1 && climb < 0.35, `rounds climb at about the tail-down angle (${climb.toFixed(2)} rad)`);
   }
+});
+
+test('with friendly fire on, a bomb strikes the plane that dropped it, but not at release', () => {
+  const run = (friendlyFire, age) => {
+    const { world, p } = makeWorld();
+    world.rules.friendlyFire = friendlyFire;
+    Object.assign(p, { state: 'air', x: 3000, y: world.terrain.heightAt(3000) + 400, vx: 0, vy: 0 });
+    world.bombsInFlight.push({ id: world.nextId++, owner: p.id, team: p.team, def: world.weapons.sc_250, x: p.x, y: p.y, vx: 0, vy: 0, age });
+    stepWorld(world, {});
+    return world.bombsInFlight.length === 0; // gone = it struck
+  };
+  assert.equal(run(true, 0), false, 'safe just after release');
+  assert.equal(run(true, 1), true, 'hits its own plane later');
+  assert.equal(run(false, 1), false, 'friendly fire off: own plane is safe');
 });

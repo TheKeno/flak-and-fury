@@ -7,6 +7,7 @@ import { digCrater } from './runway.js';
 
 const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
+const BOMB_SAFE_TIME = 0.6; // seconds a released bomb cannot hit the plane that dropped it
 const TRACER_EVERY = 3;
 
 // Firing rate of synchronized (through-the-propeller) guns, 0..1: full from SYNC_FULL of max RPM,
@@ -443,9 +444,14 @@ export function stepBombs(world, dt) {
     b.x += b.vx * dt;
     b.y += b.vy * dt;
 
-    // A bomb that strikes a plane destroys it outright.
+    // A bomb that strikes a plane destroys it outright. Its own plane is safe for a moment after release
+    // (the bomb starts inside the hitbox), then fair game: dive onto your own bomb and it takes you.
+    b.age = (b.age ?? 0) + dt;
     const struck = world.planes.find(
-      (p) => p.state === 'air' && p.id !== b.owner && Math.hypot(p.x - b.x, p.y - b.y) < p.def.hitRadius,
+      (p) =>
+        p.state === 'air' &&
+        (p.id === b.owner ? world.rules.friendlyFire && b.age > BOMB_SAFE_TIME : canHit(world, b.team, b.owner, p)) &&
+        Math.hypot(p.x - b.x, p.y - b.y) < p.def.hitRadius,
     );
     if (struck) shootDown(world, struck, b.owner, 'bomb');
 
