@@ -448,6 +448,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Hangar exit sprite glitch** (Planes): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns.
 - **Bomb view key** (UI): a bindable key (in the options menu, `ACTIONS` in `src/input/keyboard.js`) that looks down, camera shifted below the plane, while searching for targets to bomb.
 
 
