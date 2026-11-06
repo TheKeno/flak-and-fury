@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hangar</title>
+    <style>
+      :root { --bg: #101214; --panel: #181b1e; --line: #2c3135; --text: #c4c5bb; --dim: #7f837c; --accent: #a8905c; --good: #6f8560; --warn: #a8603f; }
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 'Courier New', monospace; }
+      body { display: flex; flex-direction: column; }
+      button, select { font: inherit; color: var(--text); background: #22262a; border: 1px solid var(--line); border-radius: 2px; padding: 3px 9px; }
+      button { cursor: pointer; }
+      button:hover { border-color: var(--accent); }
+      button.on { background: var(--accent); color: #111; }
+      header { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+      header .grow { flex: 1; }
+      #work { flex: 1; min-height: 0; display: flex; }
+      #strip { width: 300px; flex: none; overflow: auto; border-right: 1px solid var(--line); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+      .card { background: var(--panel); border: 1px solid var(--line); padding: 6px; text-align: left; }
+      .card.sel { border-color: var(--accent); }
+      .card canvas { display: block; image-rendering: pixelated; width: 100%; max-height: 90px; object-fit: contain; }
+      .card .sub { color: var(--dim); font-size: 11px; }
+      #main { flex: 1; min-width: 0; overflow: auto; padding: 12px 18px; max-width: 760px; }
+      h2 { margin: 0 0 2px; font-size: 18px; color: var(--accent); }
+      h3 { margin: 16px 0 4px; font-size: 13px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+      .dim { color: var(--dim); }
+      .row { display: flex; align-items: center; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
+      .hp { display: grid; grid-template-columns: 130px 1fr 80px; gap: 8px; align-items: center; margin: 4px 0; }
+      #bar { height: 16px; background: #22262a; border: 1px solid var(--line); position: relative; }
+      #bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+      #bar i.full { background: var(--warn); }
+      ul { margin: 4px 0; padding-left: 18px; }
+      li.bad { color: var(--warn); }
+      li.ok { color: var(--good); }
+      #out { background: #0c0e10; border: 1px solid var(--line); padding: 6px; color: var(--dim); white-space: pre-wrap; word-break: break-all; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>Hangar</strong>
+      <label>Nation <select id="nation"></select></label>
+      <span class="grow"></span>
+      <span id="status" class="dim"></span>
+    </header>
+    <div id="work">
+      <div id="strip"></div>
+      <div id="main">
+        <h2 id="name"></h2>
+        <div id="meta" class="dim"></div>
+        <h3>Presets</h3>
+        <div id="presets" class="row"></div>
+        <h3>Bomb load</h3>
+        <div id="hps"></div>
+        <div class="row"><span id="kg"></span></div>
+        <div id="bar"><i></i></div>
+        <h3>Effect</h3>
+        <ul id="fx"></ul>
+        <h3>Choice sent to the game</h3>
+        <div id="out"></div>
+      </div>
+    </div>
+    <script type="module" src="src/ui/hangar.js"></script>
+  </body>
+</html>

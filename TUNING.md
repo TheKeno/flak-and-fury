@@ -71,6 +71,10 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `craterRadius`, `craterDepth` | Size of the hole a bomb digs. |
 | `sc_50` | The 50 kg bomb (Stuka wing racks): blast radius 22, damage 70, crater 10 × 5, drag 0.12 (crater and drag are guesses). |
 
+## Hangar page: `hangar.html`
+
+No values of its own. It reads `loadoutPresets`, `hardpoints`, `loadout` (the per-hardpoint capacity), `maxLoad` in `planes.json`, bomb `weight` in `weapons.json` and `weight` in `settings.json` (the effect lines are `flyingDef`'s numbers). Choices are kept in the browser's localStorage under `flak-hangar`.
+
 ## Ground crew and camera: `data/settings.json`
 
 `servicing` (the "Ground crew" panel, in two parts). Crew on foot: `crewDelay` (seconds before the crew set
