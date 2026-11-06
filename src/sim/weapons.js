@@ -37,7 +37,7 @@ export function armPlane(p, weapons) {
     return g;
   });
   // Bomb stations: one per loadout entry. Plain data (the hardpoint is looked up by id in p.def).
-  p.stations = (p.def.loadout ?? []).map(({ hardpoint, weapon, count = 1 }) => ({ hp: hardpoint, def: weapons[weapon], loaded: count }));
+  p.stations = loadoutOf(p).map(({ hardpoint, weapon, count = 1 }) => ({ hp: hardpoint, def: weapons[weapon], loaded: count }));
   p.bombCooldown = 0;
   p.bombHeld = false;
   // Gunners' guns (a rear gunner, a turret): aimed by an AI gunner within an arc, in the plane's own
@@ -55,7 +55,7 @@ export function armPlane(p, weapons) {
 export const hardpointOf = (p, st) => p.def.hardpoints.find((h) => h.id === st.hp);
 // Bombs still carried, and carried when fully loaded.
 export const bombsLeft = (p) => (p.stations ?? []).reduce((n, s) => n + s.loaded, 0);
-export const bombsFull = (p) => (p.def.loadout ?? []).reduce((n, l) => n + (l.count ?? 1), 0);
+export const bombsFull = (p) => loadoutOf(p).reduce((n, l) => n + (l.count ?? 1), 0);
 // The station the next release uses: lowest group first (the crutch before the racks), then list order.
 export function nextStation(p) {
   let best = null;
@@ -64,7 +64,50 @@ export function nextStation(p) {
 }
 // Reload every station to the plane's loadout.
 export function rearmBombs(p) {
-  (p.def.loadout ?? []).forEach((l, i) => (p.stations[i].loaded = l.count ?? 1));
+  loadoutOf(p).forEach((l, i) => (p.stations[i].loaded = l.count ?? 1));
+}
+
+// The bombs a plane is set to carry: the pilot's choice (p.loadout, plain data, set in the hangar) or the
+// plane's default. Bots never choose, so theirs is always the default.
+export const loadoutOf = (p) => p.loadout ?? p.def.loadout ?? [];
+
+// Checks a loadout list [{hardpoint, weapon, count}] against a plane def and returns it cleaned (only
+// fields we know, in hardpoint order), or null if it is not allowed. Rules: every hardpoint exists and
+// is used once; the weapon is a bomb with a weight no heavier than the hardpoint's maxKg; the count is a
+// whole number from 1 up to what the default loadout puts on that hardpoint (its capacity); the total
+// weight stays within maxLoad. An empty list is a clean plane. Input from guests is untrusted, so
+// everything is checked, not assumed.
+export function validateLoadout(def, list, weapons) {
+  if (!def.hardpoints || !Array.isArray(list)) return null;
+  const used = new Set();
+  const out = [];
+  let kg = 0;
+  for (const l of list) {
+    if (!l || typeof l !== 'object') return null;
+    const hp = def.hardpoints.find((h) => h.id === l.hardpoint);
+    const w = Object.hasOwn(weapons, l.weapon) ? weapons[l.weapon] : null;
+    if (!hp || used.has(hp.id) || w?.type !== 'bomb' || !(w.weight > 0) || w.weight > hp.maxKg) return null;
+    const cap = (def.loadout ?? []).find((d) => d.hardpoint === hp.id)?.count ?? 1;
+    const count = l.count ?? 1;
+    if (!Number.isInteger(count) || count < 1 || count > cap) return null;
+    used.add(hp.id);
+    kg += w.weight * count;
+    out.push({ hardpoint: hp.id, weapon: l.weapon, count });
+  }
+  if (def.maxLoad && kg > def.maxLoad) return null;
+  const order = (e) => def.hardpoints.findIndex((h) => h.id === e.hardpoint);
+  return out.sort((a, b) => order(a) - order(b));
+}
+
+// Sets the pilot's chosen loadout, when the plane is still being prepared: waiting behind the hangar
+// doors, or down and about to come back. Returns true if taken; an invalid list or a plane already out
+// of the doors is refused (the choice is locked once it rolls out). The stations are rebuilt full.
+export function setLoadout(p, list, weapons) {
+  const ok = validateLoadout(p.def, list, weapons);
+  if (!ok || !(p.state === 'dead' || (p.state === 'ground' && p.exitPhase === 'wait'))) return false;
+  p.loadout = ok;
+  armPlane(p, weapons);
+  return true;
 }
 
 // Weight: bombs carried as a share of what the plane can lift (0 for a plane without `maxLoad`).

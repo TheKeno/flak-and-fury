@@ -4,7 +4,7 @@
 // those two against two bots.
 import { createPlane, spawnAtAirfield } from './plane.js';
 import { setBots } from './world.js';
-import { armPlane } from './weapons.js';
+import { armPlane, validateLoadout, setLoadout } from './weapons.js';
 import { bailOut, makeWreck } from './bailout.js';
 
 export const MAX_PLAYERS = 4;
@@ -35,24 +35,32 @@ export function freeSide(world, teams) {
 }
 
 // Turns p into a fresh plane of the given type and side, keeping who flies it and their record.
-function refit(world, p, def, team) {
+function refit(world, p, def, team, loadout = null) {
   const keep = { kills: p.kills, deaths: p.deaths, score: p.score, callsign: p.callsign, switchedAt: p.switchedAt, fresh: p.fresh, bailout: p.bailout };
   Object.assign(p, createPlane(p.id, def, { team, nation: def.nation, seats: p.seats }), keep);
+  p.loadout = loadout && validateLoadout(def, loadout, world.weapons);
   armPlane(p, world.weapons);
 }
 
-// A player changes side, plane or both. Returns null, or why not: 'full' or 'wait'.
+// A player changes side, plane, loadout or all. loadout: [{hardpoint, weapon, count}] for the plane the player ends
+// up in (checked by validateLoadout; a bad list falls back to the plane's default). Returns null, or why
+// not: 'full', 'wait', or for a loadout alone 'locked' (the plane is already out of the hangar doors) and
+// 'invalid' (not allowed on this plane).
 // - Not flown yet: simply swapped, at the airfield.
 // - Already down: takes effect for the next plane.
 // - Flying, new side: he deserts (the plane burns, he parachutes out with a white flag).
 // - Flying, new plane: the old one burns and he starts again at the airfield.
-export function changeSeat(world, p, { team = p.team, defId = null }, dt) {
+export function changeSeat(world, p, { team = p.team, defId = null, loadout = null }, dt) {
   const def = (defId && world.planeDefs[defId]) || p.def;
   const newSide = team !== p.team;
-  if (!newSide && def === p.def) return null;
+  if (!newSide && def === p.def) {
+    if (!loadout) return null;
+    if (!validateLoadout(def, loadout, world.weapons)) return 'invalid';
+    return setLoadout(p, loadout, world.weapons) ? null : 'locked';
+  }
   if (newSide && playersOn(world, team).length >= MAX_PER_SIDE) return 'full';
   if (p.fresh && p.state === 'ground') {
-    refit(world, p, def, team);
+    refit(world, p, def, team, loadout);
     spawnAtAirfield(p, world, world.hangarStart);
     return null;
   }
@@ -60,19 +68,19 @@ export function changeSeat(world, p, { team = p.team, defId = null }, dt) {
   p.switchedAt = world.tick;
   if (p.state === 'dead') {
     const { x, y, respawnTimer } = p;
-    refit(world, p, def, team);
+    refit(world, p, def, team, loadout);
     Object.assign(p, { state: 'dead', x, y, respawnTimer });
     return null;
   }
   if (newSide) {
     bailOut(world, p, { deserter: true, team });
     const { x, y } = p;
-    refit(world, p, def, team);
+    refit(world, p, def, team, loadout);
     Object.assign(p, { state: 'dead', x, y, respawnTimer: 0 });
     return null;
   }
   makeWreck(world, p);
-  refit(world, p, def, team);
+  refit(world, p, def, team, loadout);
   spawnAtAirfield(p, world, world.hangarStart);
   return null;
 }

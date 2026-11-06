@@ -13,6 +13,7 @@ import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from '.
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
 import { NO_COMMAND } from './sim/plane.js';
+import { setLoadout } from './sim/weapons.js';
 import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
 import { releasePilot } from './sim/bailout.js';
 import { clamp } from './sim/math.js';
@@ -698,7 +699,7 @@ function sidesChanged() {
   drawSetup();
   host?.broadcast({ t: 'table', table: sidesTable() });
 }
-const SEAT_ERRORS = { full: 'THAT SIDE ALREADY HAS TWO PILOTS', wait: 'WAIT A MOMENT BEFORE SWITCHING AGAIN' };
+const SEAT_ERRORS = { full: 'THAT SIDE ALREADY HAS TWO PILOTS', wait: 'WAIT A MOMENT BEFORE SWITCHING AGAIN', locked: 'TOO LATE: THE PLANE IS ALREADY OUT OF THE HANGAR', invalid: 'THAT LOAD DOES NOT FIT THIS PLANE' };
 function seatDone(reason) {
   if (reason) return setup.say(SEAT_ERRORS[reason] ?? reason, true);
   setup.say('');
@@ -706,7 +707,7 @@ function seatDone(reason) {
   if (menuOpen) closeMenu();
 }
 function askSeat(req) {
-  if (guest) return guest.net.send({ t: 'seat', team: req.team, defId: req.defId });
+  if (guest) return guest.net.send({ t: 'seat', team: req.team, defId: req.defId, loadout: req.loadout ?? null });
   const reason = changeSeat(world, player, req, DT);
   resetPoses();
   sidesChanged();
@@ -725,6 +726,7 @@ $('host').addEventListener('click', async () => {
         const defId = content.planeDefs[hello.plane]?.name ? hello.plane : choice.plane;
         const p = addPlane(world, { defId, team, nation: nationOf(defId), controller: g.controller });
         if (cleanName(hello.name)) p.callsign = cleanName(hello.name);
+        if (hello.loadout) setLoadout(p, hello.loadout, world.weapons); // checked there; a bad list keeps the default
         g.planeId = p.id;
         renderer.message(`${p.callsign ?? 'A FRIEND'} JOINED, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
         // Sent once they've had their welcome.
@@ -753,7 +755,7 @@ $('host').addEventListener('click', async () => {
         if (m?.t !== 'seat') return;
         const p = world.planes.find((o) => o.id === g.planeId);
         if (!p) return;
-        const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name ? m.defId : null }, DT);
+        const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name ? m.defId : null, loadout: m.loadout ?? null }, DT);
         resetPoses();
         g.conn.send({ t: 'seat', reason });
         sidesChanged();

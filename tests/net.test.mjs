@@ -8,6 +8,7 @@ import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, setBots, stepWorld } from '../src/sim/world.js';
 import { encodeWorld, encodeEvent, diff, applyPatch, staticRefs, STATIC } from '../src/net/snapshot.js';
 import { takePoses, writePoses } from '../src/render/interpolate.js';
+import { setLoadout } from '../src/sim/weapons.js';
 import { createGuestView } from '../src/net/guest.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
@@ -227,4 +228,18 @@ test('a name a guest sets after joining reaches the host and then every guest', 
   assert.equal(guest.planes.find((p) => p.id === mine.id).callsign, 'ACEBPILOTBLO');
   assert.equal(applyPilotName(host, mine.id, '', clean), null, 'clearing the name');
   assert.equal(applyPilotName(host, -1, 'x', clean), null, 'a plane that is gone');
+});
+
+test('a chosen loadout reaches the guest in the snapshot', () => {
+  const host = busyHost();
+  const mine = host.planes.find((p) => p.seats[0].controller === 'net1');
+  mine.exitPhase = 'wait'; // behind the hangar doors (the test world has no hangar start)
+  assert.ok(setLoadout(mine, [], host.weapons));
+  const guest = guestWorld();
+  applyPatch(guest, JSON.parse(JSON.stringify(diff({}, encodeWorld(host, staticRefs(host))))), staticRefs(guest));
+  const theirs = guest.planes.find((p) => p.id === mine.id);
+  assert.deepEqual(theirs.loadout, []);
+  assert.deepEqual(theirs.stations, []);
+  const bot = guest.planes.find((p) => p.seats[0].controller.startsWith('bot'));
+  assert.equal(bot.loadout, null);
 });

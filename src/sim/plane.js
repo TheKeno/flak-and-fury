@@ -175,6 +175,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     deaths: 0,
     score: 0, // points for destroyed ground targets
     guns: [],
+    loadout: null, // the pilot's chosen bombs [{hardpoint, weapon, count}] (null: the plane's default, loadoutOf)
     stations: [], // bomb stations (armPlane)
     bombCooldown: 0,
     bombHeld: false,

@@ -1,5 +1,5 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count}. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count} (count is also the most that hardpoint takes). loadoutPresets: 2 to 4 named loads for the hangar, each {name, loadout}; the first is the default. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -56,6 +56,32 @@
         "hardpoint": "centre",
         "weapon": "sc_250",
         "count": 1
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "SC 250",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "sc_250",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "SC 50",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "sc_50",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
       }
     ],
     "gearTime": 1.8,
@@ -177,6 +203,32 @@
         "count": 1
       }
     ],
+    "loadoutPresets": [
+      {
+        "name": "SC 250",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "sc_250",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "SC 50",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "sc_50",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
+      }
+    ],
     "gearTime": 1.8,
     "fixedTailWheel": true,
     "wheels": [
@@ -294,6 +346,32 @@
         "hardpoint": "centre",
         "weapon": "gp_250",
         "count": 2
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "2 x GP 250",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "gp_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "1 x GP 250",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "gp_250",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
       }
     ],
     "gearTime": 1.6,
@@ -418,6 +496,32 @@
         "count": 2
       }
     ],
+    "loadoutPresets": [
+      {
+        "name": "2 x GP 500",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "gp_500",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "2 x GP 250",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "gp_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
+      }
+    ],
     "gearTime": 2,
     "fixedTailWheel": false,
     "wheels": [
@@ -530,6 +634,32 @@
         "hardpoint": "centre",
         "weapon": "fab_100",
         "count": 2
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "2 x FAB 100",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "fab_100",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "1 x FAB 100",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "fab_100",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
       }
     ],
     "gearTime": 1.8,
@@ -645,6 +775,32 @@
         "hardpoint": "centre",
         "weapon": "army_100",
         "count": 2
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "2 x Army 100",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "army_100",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "1 x Army 100",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "army_100",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
       }
     ],
     "gearTime": 1.6,
@@ -868,6 +1024,32 @@
         "count": 2
       }
     ],
+    "loadoutPresets": [
+      {
+        "name": "2 x SC 250",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "sc_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "1 x SC 250",
+        "loadout": [
+          {
+            "hardpoint": "centre",
+            "weapon": "sc_250",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
+      }
+    ],
     "gearTime": 2.4,
     "fixedTailWheel": false,
     "wheels": [
@@ -1025,6 +1207,47 @@
         "count": 2
       }
     ],
+    "loadoutPresets": [
+      {
+        "name": "Bay and rack",
+        "loadout": [
+          {
+            "hardpoint": "bay",
+            "weapon": "gp_250",
+            "count": 2
+          },
+          {
+            "hardpoint": "rack",
+            "weapon": "gp_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Bay only",
+        "loadout": [
+          {
+            "hardpoint": "bay",
+            "weapon": "gp_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Rack only",
+        "loadout": [
+          {
+            "hardpoint": "rack",
+            "weapon": "gp_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
+      }
+    ],
     "gearTime": 2.2,
     "fixedTailWheel": false,
     "wheels": [
@@ -1179,6 +1402,62 @@
         "hardpoint": "rack-out",
         "weapon": "sc_50",
         "count": 2
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "Heavy",
+        "loadout": [
+          {
+            "hardpoint": "crutch",
+            "weapon": "sc_500",
+            "count": 1
+          },
+          {
+            "hardpoint": "rack-in",
+            "weapon": "sc_50",
+            "count": 2
+          },
+          {
+            "hardpoint": "rack-out",
+            "weapon": "sc_50",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Medium",
+        "loadout": [
+          {
+            "hardpoint": "crutch",
+            "weapon": "sc_250",
+            "count": 1
+          },
+          {
+            "hardpoint": "rack-in",
+            "weapon": "sc_50",
+            "count": 2
+          },
+          {
+            "hardpoint": "rack-out",
+            "weapon": "sc_50",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Light",
+        "loadout": [
+          {
+            "hardpoint": "crutch",
+            "weapon": "sc_250",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
       }
     ],
     "gearTime": 1.6,
