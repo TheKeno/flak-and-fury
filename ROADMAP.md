@@ -386,6 +386,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Odd player text when leaving the hangar** (UI) — session "UI — Odd player text when leaving the hangar".
 ## Backlog
 
 - **Infantry wave mission** (Gameplay): waves of enemy infantry advance on the player's base and the player has to mow them down with guns and bombs to stop the assault.
@@ -393,7 +394,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Stuka dive siren** (Sound): the Ju 87 D-5's Jericho siren (Jericho-Trompete) howling while it dives; a sound that rises with dive speed, needs a recording or a synthesised layer in the Sound Lab.
 - **Ground crew positions when pulling the plane from the hangar** (Gameplay): the crew look a bit off while they drag the plane out (owner, 2026-11-05); needs a look to say where they stand wrong (related: the ground crew pass below).
 - **Outline Lab: trace refinements** (Planes): ideas left from the automatic trace: fit the plan-view half widths of the fuselage under the wing and radiators (manual now), keep a fitted fuselage's top-line kink under the fin out of the station list, tune the search window and edge strength per plane after the next few traces, a "nearest/outermost" switch if cluttered sheets need it.
-- **Odd player text when leaving the hangar** (UI): the on-screen message the player sees while rolling out of the hangar looks wrong; the owner noticed it (2026-11-05); needs a look to say what is off.
 - **Outline Lab: underside point features** (Planes): bomb racks, gun ports and similar small things that sit at a position (d, z, side) are not outlines. Settle the data first (which types; `hardpoints: [{type, d, z, side}]` in the outline file; draggable markers in the lab over the underside picture; model code to draw them; whether they show in the side sprite), then build. Ask the owner first.
 - **Outline Lab part 2** (Planes): the plan view is built (see Decisions); the Mosquito's side and plan view are traced (2026-11-05); the automatic first trace is built (see Done); nothing further planned (the pixel touch-up layer was dropped); see `notes/outline-lab.md` and the Outline Lab decision. The Mosquito has its own model code and is in planes.json.
 - **External bomb mounts and visible bombs** (Planes): planes get external racks, and undropped bombs and tanks show on them until released (needs the hangar loadout editor, model code and renderer); the Mosquito FB.VI carries bombs and tanks under the wing.
