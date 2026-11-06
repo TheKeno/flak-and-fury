@@ -76,7 +76,7 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
         canvas.getContext('2d').drawImage(src, 0, 0);
       });
     }
-    const flag = flagCanvas(def.nation);
+    const flag = flagCanvas(def.nation, { swastika: Boolean(settings.markings?.historicalSwastika) });
     if (flag) flag.className = 'flag';
     return el('button', { className: `card${sel ? ' sel' : ''}`, disabled: !can, onclick: () => h.pickPlane(id) }, ...(flag ? [flag] : []), canvas,
       el('span', {}, def.name, el('div', { className: 'sub' }, nations[def.nation]?.name ?? def.nation)));

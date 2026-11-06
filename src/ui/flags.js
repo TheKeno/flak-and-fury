@@ -1,6 +1,6 @@
 // Tiny pixel-art national flags for the hangar list (15 x 10 pixels, muted for the grim look).
-// Drawn with rectangles so there are no image files; Germany gets the plain black-white-red tricolour
-// (no swastika flag, whatever the markings setting says).
+// Drawn with rectangles so there are no image files. Germany's is the 1943 flag with the swastika; with the
+// historical-markings option off (`settings.markings.historicalSwastika`) it is the plain black-white-red tricolour.
 const W = 15;
 const H = 10;
 
@@ -38,7 +38,15 @@ const DRAW = {
     g.fillStyle = '#b8b4a4';
     for (let y = 1; y < 5; y += 2) for (let x = 1; x < 7; x += 2) g.fillRect(x, y, 1, 1);
   },
-  germany: (g) => stripes(g, ['#1e1e1e', '#b8b4a4', '#8a2a2a'], true),
+  germany(g, swastika) {
+    if (!swastika) return stripes(g, ['#1e1e1e', '#b8b4a4', '#8a2a2a'], true);
+    rect(g, '#8a2a2a', 0, 0, W, H);
+    rect(g, '#b8b4a4', 4, 2, 7, 5); // white disc
+    rect(g, '#b8b4a4', 5, 1, 5, 7);
+    g.fillStyle = '#1e1e1e';
+    // a 5 x 5 swastika, arms bending clockwise
+    for (const [x, y] of [[2, 0], [3, 0], [0, 1], [2, 1], [0, 2], [1, 2], [2, 2], [3, 2], [4, 2], [2, 3], [4, 3], [1, 4], [2, 4]]) g.fillRect(5 + x, 2 + y, 1, 1);
+  },
   japan(g) {
     rect(g, '#b8b4a4', 0, 0, W, H);
     rect(g, '#9a2a2a', 5, 2, 5, 6);
@@ -51,27 +59,33 @@ const DRAW = {
   },
   ussr(g) {
     rect(g, '#8a2a2a', 0, 0, W, H);
-    rect(g, '#c0a040', 2, 2, 3, 1); // hammer and sickle, much simplified
-    rect(g, '#c0a040', 3, 3, 1, 2);
-    rect(g, '#c0a040', 2, 5, 3, 1);
+    g.fillStyle = '#c0a040';
+    // a small star in the top left, then a crossed hammer and sickle
+    for (const [x, y] of [[2, 0], [1, 1], [2, 1], [3, 1], [2, 2]]) g.fillRect(x, y, 1, 1);
+    // hammer: handle up to the right with a head
+    for (const [x, y] of [[6, 8], [7, 7], [8, 6], [9, 5], [9, 3], [10, 3], [11, 3], [10, 4], [11, 4], [10, 2]]) g.fillRect(x, y, 1, 1);
+    // sickle: a crescent opening up to the right
+    for (const [x, y] of [[6, 3], [5, 4], [5, 5], [6, 6], [7, 7], [8, 8], [9, 8], [10, 7]]) g.fillRect(x, y, 1, 1);
   },
+
 };
 
 const cache = new Map();
 // A canvas for the nation's flag (a new element each time; null if unknown).
-export function flagCanvas(nation) {
+export function flagCanvas(nation, { swastika = false } = {}) {
   const draw = DRAW[nation];
   if (!draw) return null;
-  if (!cache.has(nation)) {
+  const key = `${nation}${swastika}`;
+  if (!cache.has(key)) {
     const c = document.createElement('canvas');
     c.width = W;
     c.height = H;
-    draw(c.getContext('2d'));
-    cache.set(nation, c);
+    draw(c.getContext('2d'), swastika);
+    cache.set(key, c);
   }
   const out = document.createElement('canvas');
   out.width = W;
   out.height = H;
-  out.getContext('2d').drawImage(cache.get(nation), 0, 0);
+  out.getContext('2d').drawImage(cache.get(key), 0, 0);
   return out;
 }
