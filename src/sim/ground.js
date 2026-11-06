@@ -37,7 +37,7 @@ export function stepHangarDoors(world, dt) {
   for (const o of world.ground) {
     if (o.type !== 'hangar') continue;
     // Open while a plane of the team is waiting or on its way out, or the crew who pushed it are not home.
-    const leaving = world.planes.some((p) => p.team === o.team && p.state === 'ground' && p.exitTo != null && p.exitPhase !== 'shove')
+    const leaving = world.planes.some((p) => p.team === o.team && p.state === 'ground' && p.exitTo != null && p.exitPhase !== 'shove' && !p.hold)
       || world.crew.some((c) => c.team === o.team && c.push);
     if (leaving) o.doorHold = o.def.doorHold ?? 1.5;
     else if (o.doorHold > 0) o.doorHold -= dt;

@@ -12,6 +12,7 @@ const TOP_UP_BELOW = 0.9; // once serviced, an idling engine only brings the cre
 export const DEFAULT_SERVICING = {
   crewDelay: 1.2, crewWalkSpeed: 50, crewSetup: 1, crewRespawn: 3, crewStartle: 1.2, crewKillSpeed: 2.5, crewTurnKillNose: 0.3, crewTurnKillWing: 0.4,
   repairPerSec: 25, refuelTime: 5, rearmTime: 3, recoveryTime: 20,
+  parkPushSpeed: 60, parkInTime: 2.5,
 };
 
 // The ground crew are two mechanics in world.crew: { id, team, plane (the id they're sent to, null
@@ -26,7 +27,8 @@ const CREW_LAG = 0.25; // seconds the second man sets off after the first
 // plane opening the throttle fully to start rolling into them; crewKillSpeed is how fast a plane has to
 // roll to run down crew under its nose and wings; crewTurnKill* is how far through a turn on the spot
 // (Shift) the propeller reaches the nose man and the wing the other.
-const setting = (cfg, key) => cfg[key] ?? DEFAULT_SERVICING[key];
+const setting = (cfg, key) => cfg?.[key] ?? DEFAULT_SERVICING[key];
+export const servicingValue = (world, key) => setting(world.servicing, key);
 const DT_MIN = 1e-3; // keeps a waiting service's wait above 0
 const walkSpeed = (cfg) => setting(cfg, 'crewWalkSpeed');
 const facing = (p) => (Math.cos(p.angle) >= 0 ? 1 : -1);
@@ -61,6 +63,80 @@ export function sendPushCrew(world, p, hangar) {
   }
 }
 
+// Park-in (H on the ground, standing still): the plane's crew walk out, push it to the hangar door and in
+// (src/sim/plane.js, stepParkIn). Park crew have c.park and c.push, c.pushing the plane. state: wait (at the
+// hangar, reacting), out (walking to the plane), at (in place behind it, waiting for the other man), push
+// (following it), back (walking home, the generic crew code). Men already at the plane for a service are
+// taken over; only the missing ones come from the hangar.
+export function sendParkCrew(world, p, hangar) {
+  const want = world.crewDown[p.team] > 0 ? 1 : CREW_AT.length;
+  const mine = [];
+  for (const c of world.crew) {
+    if (c.plane !== p.id) continue;
+    Object.assign(c, { park: true, push: true, pushing: p.id, plane: null, moving: false });
+    if (c.state === 'work' || c.state === 'setup') c.state = 'out';
+    mine.push(c);
+  }
+  for (let slot = 0; mine.length < want && slot < CREW_AT.length; slot++) {
+    if (mine.some((c) => c.slot === slot)) continue;
+    const c = {
+      id: world.nextId++, team: p.team, plane: null, park: true, push: true, pushing: p.id, slot, x: hangar.x, y: world.terrain.heightAt(hangar.x),
+      state: 'wait', t: setting(world.servicing, 'crewDelay') + mine.length * CREW_LAG, moving: false,
+    };
+    world.crew.push(c);
+    mine.push(c);
+  }
+}
+
+// Where a park-in man stands: behind the plane as it is pushed towards the hangar, at the wing tips for the
+// turn and the push in (closing in as it shrinks into the hangar).
+function parkSpot(p, c, hangar) {
+  const reach = p.def.hitRadius * 0.9;
+  const side = c.slot === 0 ? -1 : 1;
+  const phase = p.park.phase;
+  if (phase === 'turn') return p.x + side * (reach + 4);
+  if (phase === 'in') {
+    const k = hangar?.def?.exitStartScale ?? 0.6;
+    return p.x + side * reach * (k + (1 - k) * (1 - p.park.t));
+  }
+  const travel = p.park.to >= p.x ? 1 : -1;
+  return p.x - travel * (p.def.hitRadius * 1.2 + 3 + c.slot * 5);
+}
+
+// A park crew man this tick. Returns false for one walking home (the generic code does that).
+function stepParkCrew(world, c, dt, speed) {
+  const pl = world.planes.find((o) => o.id === c.pushing);
+  if (c.state !== 'back' && !pl?.park) c.state = 'back'; // done, cancelled or the plane gone
+  if (c.state === 'back') return false;
+  if (c.state === 'wait') {
+    c.t -= dt;
+    if (c.t <= 0) c.state = 'out';
+    c.moving = false;
+    return true;
+  }
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === c.team);
+  const target = parkSpot(pl, c, hangar);
+  const rate = c.state === 'push' ? Math.max(speed, setting(world.servicing, 'parkPushSpeed')) * 1.5 : speed;
+  const d = target - c.x;
+  c.moving = Math.abs(d) > 0.2;
+  c.x = Math.abs(d) <= rate * dt ? target : c.x + Math.sign(d) * rate * dt;
+  c.y = world.terrain.heightAt(c.x);
+  if (c.state === 'out' && c.x === target) c.state = 'at';
+  return true;
+}
+
+// Everything done at once while the plane stands inside the hangar (no waiting for the crew).
+export function serviceFully(p) {
+  p.hp = p.def.hp;
+  p.engineDamage = p.tailDamage = p.wingPull = 0;
+  p.propBent = false;
+  p.fuel = 1;
+  p.lowFuelWarned = false;
+  p.engineRunning = true;
+  p.service = null;
+  rearmFully(p);
+}
+
 // Where a pushing man stands: wing tips (side by slot) while the plane comes out, a little clear for
 // the turn, behind the tail as it rolls.
 function pushSpot(p, c, hangar) {
@@ -89,6 +165,7 @@ export function stepCrew(world, dt) {
   for (let i = world.crew.length - 1; i >= 0; i--) {
     const c = world.crew[i];
     const p = c.plane != null ? world.planes.find((o) => o.id === c.plane) : null;
+    if (c.park && stepParkCrew(world, c, dt, speed)) continue;
     if (c.push && c.state === 'push') {
       const pl = world.planes.find((o) => o.id === c.pushing);
       const phase = pl?.exitPhase;
@@ -194,7 +271,7 @@ export function updateServicing(p, world, dt) {
   const hangar = hangarHealth(world, p.team);
   // With the engine stopped the throttle does nothing, so it needn't be at idle.
   const idle = p.throttle < 0.05 || !p.engineRunning;
-  const parked = p.state === 'ground' && p.exitTo == null && !p.dying && p.speed < 2 && idle && ownAirfieldAt(world, p) && hangar > 0;
+  const parked = p.state === 'ground' && p.exitTo == null && !p.park && !p.dying && p.speed < 2 && idle && ownAirfieldAt(world, p) && hangar > 0;
   // Without a service the plane's crew walk back to the hangar (stepCrew).
   if (!parked) {
     if (p.service && p.service.phase && p.service.phase !== 'done') world.events.push({ type: 'serviceAbort', plane: p.id });

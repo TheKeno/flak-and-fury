@@ -108,6 +108,7 @@ export function createKeyboard(bindings = defaultBindings()) {
         bomb: any(bindings.bomb),
         gear: any(bindings.gear),
         abandon: any(bindings.abandon),
+        hangar: null, // set by main.js for one tick (park in, roll out)
       };
     },
     // Arrow-key look, in the same form as mouse look: a vector of length 0..1, y down. Held keys

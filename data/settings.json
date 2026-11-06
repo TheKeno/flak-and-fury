@@ -70,7 +70,9 @@
     "repairPerSec": 25,
     "refuelTime": 5,
     "rearmTime": 3,
-    "recoveryTime": 20
+    "recoveryTime": 20,
+    "parkPushSpeed": 60,
+    "parkInTime": 2.5
   },
   "collisions": {
     "headOnSpeed": 110,

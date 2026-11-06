@@ -160,7 +160,7 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
     }
     if (!can) note = 'TOO LATE: THE PLANE IS ALREADY OUT OF THE HANGAR';
     if (note) kids.push(el('div', { className: 'note' }, note));
-    kids.push(el('div', { className: 'row' }, el('button', { onclick: () => api.close() }, `CLOSE (${keyName('hangar')})`),
+    kids.push(el('div', { className: 'row' }, el('button', { onclick: () => api.close() }, `${plane.hold ? 'ROLL OUT' : 'CLOSE'} (${keyName('hangar')})`),
       el('span', { className: 'dim' }, '◀ ▶ plane · 1-4 presets')));
     panel.replaceChildren(...kids);
   }
@@ -169,7 +169,7 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
   function render(force = false) {
     if (!plane) return;
     const l = load();
-    const key = JSON.stringify([idOf(plane.def), l, editable(), panel.hidden, nation, note, keyName('hangar')]);
+    const key = JSON.stringify([idOf(plane.def), l, editable(), panel.hidden, nation, note, keyName('hangar'), plane.hold]);
     if (!force && key === lastKey) return;
     lastKey = key;
     drawStrip();

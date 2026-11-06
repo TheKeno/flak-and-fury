@@ -1,6 +1,6 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './weapons.js';
-import { updateServicing, ownAirfieldAt, sendPushCrew } from './airfield.js';
+import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
 import { clearRunway } from './runway.js';
 import { crashShockwave } from './ground.js';
 
@@ -35,7 +35,7 @@ const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
 const GRASS_TAKEOFF_MARGIN = 1.15; // ...but never so much that full throttle tops out below take-off speed (+15% for slopes)
 const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
 
-export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false });
+export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false, hangar: null }); // hangar: 'call' (park in) | 'out' (roll out of the hangar), one tick
 
 const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 
@@ -151,6 +151,8 @@ export function createPlane(id, def, { team, nation, seats }) {
     exitPhase: null, // wait (hidden, doors/queue) | out (rolls towards the camera) | turn | roll (to exitTo) | shove (pushed up the queue)
     exitT: 0, // 0..1 through the roll-out towards the camera: the plane is drawn bigger as it comes
     exitSeq: 0, // place in the hangar queue
+    park: null, // being pushed into the hangar (H standing still): { phase: call | roll | turn | in, t, to } (stepParkIn)
+    hold: false, // inside the hangar after a park-in: stays behind the closed doors until the hangar panel is closed
     edgeLevel: null, // seconds into levelling out before a map-edge swing (null: not doing that); see stepAir
     edgeLevelTime: 0, // how long that levelling takes
     edgeLevelDiff: 0, // the angle the plane started it from, relative to level
@@ -260,26 +262,119 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.exitTo = null;
   p.exitPhase = null;
   p.exitT = 0;
+  p.park = null;
+  p.hold = false;
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team && o.alive);
-  if (hangar && fromHangar) {
-    const dir = facingRight ? 1 : -1;
-    // The first place in the line: clear of the hangar, or the runway start if that is further.
-    const to = hangar.x + dir * (hangar.def.width / 2 + (hangar.def.exitClear ?? 12));
-    p.exitTo = dir > 0 ? Math.max(p.x, to) : Math.min(p.x, to);
-    // Its main wheels stand in the door centre (the turn pivots on them, so nothing hops when it starts).
-    p.x = hangar.x + dir * wheelGeometry(p.def).main[0];
-    p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
-    p.exitPhase = 'wait';
-    p.exitSeq = world.nextId++;
-    // Pointing away from the take-off way: the turn into the runway flips it round (stepGroundTurn).
-    p.angle = facingRight ? Math.PI : 0;
-    p.inverted = facingRight;
-    p.rollAngle = p.inverted ? Math.PI : 0;
-    p.groundTurn = 0.5; // the head-on frame, held until the turn
-  }
+  if (hangar && fromHangar) placeInHangar(p, world, hangar, facingRight ? 1 : -1);
   armPlane(p, world.weapons);
   world.events.push({ type: 'spawn', plane: p.id, x: p.x, y: p.y });
   return true;
+}
+
+// Stands the plane behind the doors, waiting for its turn out (a respawn, or a park-in). dir: the take-off way.
+function placeInHangar(p, world, hangar, dir) {
+  // The first place in the line: clear of the hangar, or the runway start (where the plane is now) if that is further.
+  const to = hangar.x + dir * (hangar.def.width / 2 + (hangar.def.exitClear ?? 12));
+  p.exitTo = dir > 0 ? Math.max(p.x, to) : Math.min(p.x, to);
+  // Its main wheels stand in the door centre (the turn pivots on them, so nothing hops when it starts).
+  p.x = hangar.x + dir * wheelGeometry(p.def).main[0];
+  p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  p.exitPhase = 'wait';
+  p.exitSeq = world.nextId++;
+  // Pointing away from the take-off way: the turn into the runway flips it round (stepGroundTurn).
+  p.angle = dir > 0 ? Math.PI : 0;
+  p.inverted = dir > 0;
+  p.rollAngle = p.inverted ? Math.PI : 0;
+  p.groundTurn = 0.5; // the head-on frame, held until the turn
+}
+
+// Park-in (H on the ground, standing still, on your own airfield): why the crew cannot be called, or null.
+export function parkInBlocker(p, world) {
+  if (p.state !== 'ground' || p.wreck) return 'air';
+  if (p.exitTo != null || p.park || p.groundTurn != null || p.groundLoop != null || p.dying || p.burning || p.belly) return 'busy';
+  if (!world.ground.some((o) => o.type === 'hangar' && o.team === p.team && o.alive)) return 'nohangar';
+  if (!ownAirfieldAt(world, p)) return 'field';
+  if (Math.abs(p.speed) > 2 || (p.throttle >= 0.05 && p.engineRunning)) return 'moving';
+  return null;
+}
+
+const takeoffDir = (world, p) => {
+  const af = world.map.airfields.find((a) => a.team === p.team) ?? world.map.airfields[0];
+  return af.x + af.width / 2 < world.map.width / 2 ? 1 : -1;
+};
+
+// The crew come out (those already servicing the plane take over), push it to the door, turn it nose-first
+// into the hangar and push it in; the doors close and it holds inside (p.hold) until released. Farther from
+// the hangar means a longer walk out and a longer push.
+function startParkIn(p, world) {
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
+  // It stops with its main wheels in the door centre, where the turn pivots (as when rolling out).
+  p.park = { phase: 'call', t: 0, to: hangar.x - (Math.cos(p.angle) >= 0 ? 1 : -1) * wheelGeometry(p.def).main[0] };
+  p.service = null;
+  sendParkCrew(world, p, hangar);
+  world.events.push({ type: 'parkCall', plane: p.id, x: p.x, y: p.y });
+}
+
+// The call is dropped (throttle opened, hangar lost): the crew walk home and the plane stays where it is.
+function cancelPark(p, world) {
+  p.park = null;
+  p.groundTurn = null;
+  p.speed = p.vx = p.vy = 0;
+  world.events.push({ type: 'parkCancel', plane: p.id, x: p.x, y: p.y });
+}
+
+function stepParkIn(p, world, dt) {
+  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
+  const park = p.park;
+  if (!hangar?.alive || p.dying || p.burning) return cancelPark(p, world);
+  p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  if (park.phase === 'call') {
+    p.speed = p.vx = p.vy = 0;
+    const crew = world.crew.filter((c) => c.park && c.pushing === p.id);
+    if (!crew.length) return cancelPark(p, world);
+    if (crew.every((c) => c.state === 'at')) {
+      park.phase = 'roll';
+      for (const c of crew) c.state = 'push';
+    }
+  } else if (park.phase === 'roll') {
+    // Pushed along the runway, whichever way it faces.
+    const dir = park.to >= p.x ? 1 : -1;
+    const speed = servicingValue(world, 'parkPushSpeed');
+    const slope = world.terrain.slopeAngle(p.x);
+    p.angle = Math.cos(p.angle) >= 0 ? slope : Math.PI + slope;
+    const left = Math.abs(park.to - p.x);
+    if (left <= speed * dt) {
+      p.x = park.to;
+      p.speed = p.vx = p.vy = 0;
+      park.phase = 'turn';
+      p.groundTurn = 0;
+    } else {
+      p.x += dir * speed * dt;
+      p.speed = speed;
+      p.vx = dir * speed;
+      p.vy = 0;
+    }
+    p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+  } else if (park.phase === 'turn') {
+    // Half a turn on the main wheels: the middle frame of the turn row, nose away from the camera.
+    p.speed = p.vx = p.vy = 0;
+    p.groundTurn = Math.min(0.5, p.groundTurn + dt / (p.def.groundTurnTime ?? 1.5));
+    if (p.groundTurn >= 0.5) {
+      park.phase = 'in';
+      park.t = 0;
+    }
+  } else {
+    // In: drawn smaller and fainter as it goes into the dark (the roll-out reversed).
+    park.t = Math.min(1, park.t + dt / servicingValue(world, 'parkInTime'));
+    if (park.t >= 1) {
+      serviceFully(p);
+      p.park = null;
+      p.speed = p.vx = p.vy = p.throttle = 0;
+      placeInHangar(p, world, hangar, takeoffDir(world, p));
+      p.hold = true;
+      world.events.push({ type: 'parkedIn', plane: p.id, x: p.x, y: p.y });
+    }
+  }
 }
 
 // cause: why it went in. A plane already shot down keeps the cause of that ('guns', 'bomb', ...).
@@ -289,6 +384,8 @@ export function crash(p, world, cause, what = null) {
   world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, by: p.dying ? p.lastHitBy : null, cause: why, what });
   crashShockwave(world, p.x, p.y);
   p.state = 'dead';
+  p.park = null;
+  p.hold = false;
   p.deaths++;
   p.respawnTimer = RESPAWN_TIME;
   p.speed = p.vx = p.vy = 0;
@@ -439,10 +536,12 @@ function stepHangarExit(p, world, dt) {
     p.groundTurn = null;
     p.exitTo = null;
     p.exitPhase = null;
+    p.hold = false;
     p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
     return;
   }
   if (p.exitPhase === 'wait') {
+    if (p.hold) return; // parked in: stays inside until the pilot lets it out
     if ((hangar.door ?? 1) < 1) return; // doors still opening
     const shoves = canLeaveHangar(p, world, cfg);
     if (!shoves) return;
@@ -487,7 +586,7 @@ function stepHangarExit(p, world, dt) {
 // (empty list = none needed), or null for "not yet".
 function canLeaveHangar(p, world, cfg) {
   const mates = world.planes.filter((o) => o !== p && o.team === p.team && o.state === 'ground' && !o.wreck);
-  if (mates.some((o) => o.exitPhase === 'out' || o.exitPhase === 'turn' || o.exitPhase === 'roll' || (o.exitPhase === 'wait' && o.exitSeq < p.exitSeq))) return null;
+  if (mates.some((o) => o.exitPhase === 'out' || o.exitPhase === 'turn' || o.exitPhase === 'roll' || (o.exitPhase === 'wait' && !o.hold && o.exitSeq < p.exitSeq))) return null;
   const dir = Math.cos(p.angle) >= 0 ? -1 : 1; // the take-off way
   const gap = cfg.slotGap ?? 34;
   const size = cfg.queueSize ?? 3;
@@ -1001,8 +1100,16 @@ export function stepPlane(p, cmd, world, dt) {
     p.exitTo = null;
     p.exitPhase = null;
   }
-  // Rolling out of the hangar the plane is on rails: no guns, no throttle.
-  if (p.exitTo != null) cmd = { ...NO_COMMAND, throttle: 0 };
+  // H standing still calls the crew to park the plane in; opening the throttle before it is turned in cancels
+  // that. H in the hangar panel (closing it) lets a parked plane out.
+  if (cmd.hangar === 'call' && !parkInBlocker(p, world)) startParkIn(p, world);
+  if (cmd.hangar === 'out' && p.hold) {
+    p.hold = false;
+    p.exitSeq = world.nextId++; // a fresh place in the queue
+  }
+  if (p.park && (p.park.phase === 'call' || p.park.phase === 'roll') && cmd.throttle > 0) cancelPark(p, world);
+  // Rolling out of the hangar (or into it) the plane is on rails: no guns, no throttle.
+  if (p.exitTo != null || p.park) cmd = { ...NO_COMMAND, throttle: 0 };
   // Turning round or ground-looping, the guns point nowhere useful.
   if (p.groundTurn != null || p.groundLoop != null) cmd = { ...cmd, fire: false, bomb: false };
   p.throttle = clamp(p.throttle + cmd.throttle * 0.7 * dt, 0, 1);
@@ -1010,7 +1117,8 @@ export function stepPlane(p, cmd, world, dt) {
   updateEngine(p, world, dt);
   updateDamage(p, world, dt);
 
-  if (p.state === 'ground' && p.exitTo != null) stepHangarExit(p, world, dt);
+  if (p.state === 'ground' && p.park) stepParkIn(p, world, dt);
+  else if (p.state === 'ground' && p.exitTo != null) stepHangarExit(p, world, dt);
   else if (p.state === 'ground') stepGround(p, cmd, world, dt);
   else stepAir(p, cmd, world, dt);
   updateTilt(p, dt);

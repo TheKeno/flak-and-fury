@@ -209,10 +209,11 @@ function groundMessage(ctx, world, plane, centre) {
     centre(`LANDED IN A FIELD - OPEN THROTTLE (${up}) TO TAKE OFF`, 0, '#f0e8c0');
     centre(`OR ${abandon}: ABANDON THE PLANE`, 1, '#f0e8c0');
   } else if (plane.belly && !home) centre('BELLY LANDING!', 0, '#ff9070');
+  else if (plane.park) centre(plane.park.phase === 'call' ? `CREW ON THE WAY - THROTTLE (${up}) TO CANCEL` : plane.park.phase === 'roll' ? `PUSHING TO THE HANGAR - THROTTLE (${up}) TO CANCEL` : 'PARKING IN', 0, '#f0f0e0');
   else if (plane.exitTo != null) {
     // Hidden inside until the doors are open and the way is clear: only then is it rolling out.
     const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === plane.team);
-    const text = plane.exitPhase !== 'wait' ? 'ROLLING OUT' : (hangar?.door ?? 1) < 1 ? 'HANGAR DOORS OPENING' : 'WAITING FOR THE WAY TO CLEAR';
+    const text = plane.hold ? 'LOADING' : plane.exitPhase !== 'wait' ? 'ROLLING OUT' : (hangar?.door ?? 1) < 1 ? 'HANGAR DOORS OPENING' : 'WAITING FOR THE WAY TO CLEAR';
     centre(text, 0, '#f0f0e0');
   }
   else if (!plane.engineRunning) centre(home ? 'ENGINE STOPPED - THROTTLE TO IDLE FOR THE CREW' : 'OUT OF FUEL', 0, '#ffb090');

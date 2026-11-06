@@ -63,8 +63,10 @@ export function changeSeat(world, p, { team = p.team, defId = null, loadout = nu
   // Still behind the hangar doors (not pushed out yet): the plane standing there is swapped and the roll-out
   // starts again from the queue's end. No wreck: nothing has flown.
   if (p.state === 'ground' && p.exitPhase === 'wait') {
+    const hold = p.hold; // a parked-in plane stays inside after the swap
     refit(world, p, def, team, loadout);
     spawnAtAirfield(p, world, true);
+    p.hold = hold && p.exitPhase === 'wait';
     return null;
   }
   if (p.fresh && p.state === 'ground') {

@@ -83,7 +83,8 @@ distance to your plane), `crewSetup` (seconds they set up at the plane before wo
 (seconds after a mechanic is killed before a replacement walks out and carries on the job), `crewStartle`
 (seconds they stand at the job when the engine opens up; a plane rolling by then runs them down),
 `crewKillSpeed` (rolling speed that kills crew under the nose or wings), `crewTurnKillNose` and
-`crewTurnKillWing` (how far through a Shift turn on the spot the nose man and the wing man die, 0..1). Work: `repairPerSec` (hit points per second),
+`crewTurnKillWing` (how far through a Shift turn on the spot the nose man and the wing man die, 0..1).
+Park-in (H standing still on your airfield): `parkPushSpeed` (units per second the crew push the plane to the hangar; with `crewDelay` and `crewWalkSpeed` this makes the wait grow with the distance to the hangar) and `parkInTime` (seconds the plane takes to go in once turned; the push-out uses the hangar's `outTime`). Work: `repairPerSec` (hit points per second),
 `refuelTime` and `rearmTime` (seconds), `recoveryTime` (seconds a plane stranded away from home waits to be
 brought home, damage and all, not counted as lost; B abandons it instead for a fresh plane, counted as
 lost). `camera` and `audio` hold the camera and volume settings.

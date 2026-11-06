@@ -144,8 +144,10 @@ import { hangarRefusal } from '../src/ui/hangar-messages.js';
 test('H refusals: by state, no repeats until the list is used up', () => {
   const first = (n) => 0;
   const air = new Set();
-  for (let i = 0; i < 3; i++) air.add(hangarRefusal({ state: 'air', speed: 90 }, true, first));
+  for (let i = 0; i < 3; i++) air.add(hangarRefusal('air', first));
   assert.equal(air.size, 3);
-  assert.match(hangarRefusal({ state: 'ground', speed: 30 }, true), /./);
-  assert.match(hangarRefusal({ state: 'ground', speed: 0 }, false), /HANGAR/);
+  assert.match(hangarRefusal('moving'), /./);
+  assert.match(hangarRefusal('nohangar'), /HANGAR/);
+  assert.match(hangarRefusal('field'), /./);
+  assert.match(hangarRefusal('busy'), /./);
 });

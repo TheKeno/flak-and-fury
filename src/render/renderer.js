@@ -911,11 +911,14 @@ export function createRenderer(canvas, world, assets) {
   const nameColour = (team, focus) => (team === focus?.team ? '#d8cfa0' : '#b86050');
   // Pushed out of the hangar the plane starts small and faint.
   function exitLook(p) {
-    if (p.exitPhase !== 'out') return { grow: 1, alpha: 1 };
+    // Parking in is the roll-out reversed: the same look, run backwards.
+    const into = p.park?.phase === 'in';
+    if (p.exitPhase !== 'out' && !into) return { grow: 1, alpha: 1 };
+    const t = into ? 1 - p.park.t : p.exitT;
     const def = hangarOf(p)?.def;
     const g0 = def?.exitStartScale ?? 0.6;
     const a0 = def?.exitStartAlpha ?? 0;
-    return { grow: g0 + (1 - g0) * p.exitT, alpha: Math.min(1, (a0 + (1 - a0) * p.exitT) * 1.4) }; // solid by 70% of the way out
+    return { grow: g0 + (1 - g0) * t, alpha: Math.min(1, (a0 + (1 - a0) * t) * 1.4) }; // solid by 70% of the way out
   }
   // The pilot's name stays off while the plane is being pushed out of the hangar and fades in once the
   // pilot has the controls (exitTo cleared).
@@ -1191,7 +1194,9 @@ export function createRenderer(canvas, world, assets) {
     const walking = c.state === 'out' || c.state === 'back' || (c.state === 'push' && c.moving);
     // Pushing a plane out towards the camera: the men grow with it.
     const pushed = c.push && c.state === 'push' ? world.planes.find((o) => o.id === c.pushing) : null;
-    const k = pushed?.exitPhase === 'out' ? (hangarOf(pushed)?.def.exitStartScale ?? 0.8) + (1 - (hangarOf(pushed)?.def.exitStartScale ?? 0.8)) * pushed.exitT : 1;
+    const g0 = hangarOf(pushed ?? {})?.def.exitStartScale ?? 0.8;
+    const t = pushed?.exitPhase === 'out' ? pushed.exitT : pushed?.park?.phase === 'in' ? 1 - pushed.park.t : 1;
+    const k = g0 + (1 - g0) * t;
     if (k !== 1) {
       ctx.save();
       ctx.translate(gx, gy);
@@ -1208,8 +1213,9 @@ export function createRenderer(canvas, world, assets) {
     ctx.fillStyle = look.overalls;
     ctx.fillRect(gx - 1, gy - 8, 3, 5);
     // arm reaching towards the plane at the job, hanging forward otherwise
-    const toward = (p ? Math.sign(p.x - c.x) : 0) || 1;
-    if (c.state === 'work' || c.state === 'setup') ctx.fillRect(gx + toward * 2, gy - 7 - (working ? 1 : 0), 1, 2);
+    const at = p ?? pushed;
+    const toward = (at ? Math.sign(at.x - c.x) : 0) || 1; // park-in men push from behind: arms out towards the plane, mirrored with the way it goes
+    if (c.state === 'work' || c.state === 'setup' || (c.park && c.state === 'push')) ctx.fillRect(gx + toward * 2, gy - 7 - (working ? 1 : 0), 1, 2);
     else ctx.fillRect(gx + (walking && step ? 1 : 0), gy - 6, 1, 2);
     // head and cap
     ctx.fillStyle = '#d6a77e';

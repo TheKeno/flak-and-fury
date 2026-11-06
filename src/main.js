@@ -10,11 +10,11 @@ import { createRecordings } from './audio/recordings.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { createSetup } from './ui/setup.js';
 import { createHangarPanel } from './ui/hangar-panel.js';
-import { hangarRefusal } from './ui/hangar-messages.js';
+import { hangarRefusal, callingMessage } from './ui/hangar-messages.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
-import { NO_COMMAND } from './sim/plane.js';
+import { NO_COMMAND, parkInBlocker } from './sim/plane.js';
 import { setLoadout } from './sim/weapons.js';
 import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
 import { releasePilot } from './sim/bailout.js';
@@ -230,7 +230,13 @@ keyboard.onPress((code, e) => {
     if (act === 'help') showHelp = !showHelp;
     if (act === 'hangar' && started) {
       if (hangar.isOpen || hangar.canOpen()) hangar.toggle();
-      else renderer.message(hangarRefusal(player, world.ground.some((o) => o.type === 'hangar' && o.team === player.team && o.alive)), '#f0e8c0');
+      else {
+        const why = parkInBlocker(player, world);
+        if (!why) {
+          hangarReq = 'call'; // the sim starts the park-in on its next tick
+          renderer.message(callingMessage(), '#f0e8c0');
+        } else renderer.message(hangarRefusal(why), '#f0e8c0');
+      }
     }
     if (act === 'perf') perfStats.toggle();
     // The panel needs the cursor back.
@@ -381,6 +387,8 @@ function edgeMessage() {
 
 let radarWarnAt = 0;
 let hangarWarnAt = 0;
+let hangarReq = null; // 'call' (park in) or 'out' (roll out): rides on the next command, one tick
+let holdPanelShown = false; // the hangar panel has opened for this park-in
 function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
@@ -497,6 +505,10 @@ function advance(now) {
   while (acc >= DT) {
     const auto = free.on || (menuOpen && online());
     const cmd = auto ? autopilotCommand(world, player, freeCfg.autopilotHeight, free.autopilot) : keyboard.read();
+    if (hangarReq) {
+      cmd.hangar = hangarReq;
+      hangarReq = null;
+    }
     if (guest) guest.commands.push(cmd);
     else {
       // The frame is drawn between the last two ticks: note where things were before the last one.
@@ -525,6 +537,15 @@ function frame(now) {
   prof.begin();
   const dt = advance(now);
   hangar.update(started ? player : null, { started, blocked: menuOpen || free.on });
+  // Parked in: once the doors have shut the hangar panel opens by itself.
+  if (!started || !player.hold) holdPanelShown = false;
+  else if (!holdPanelShown && !menuOpen && !free.on) {
+    const door = world.ground.find((o) => o.type === 'hangar' && o.team === player.team)?.door ?? 0;
+    if (door <= 0.01) {
+      holdPanelShown = true;
+      hangar.open();
+    }
+  }
   prof.mark('sim');
   // Screens faster than the sim's 60 ticks a second draw most frames between two ticks: show things
   // part-way between them, then put the true values back before the sim runs again.
@@ -677,7 +698,10 @@ const hangar = createHangarPanel({
   on: {
     choose: (req) => askSeat(req),
     opened: () => mouse.release(), // the cursor is needed for the lists
-    closed: () => !menuOpen && backToFullscreen(),
+    closed: () => {
+      if (player?.hold) hangarReq = 'out'; // closing the panel lets a parked plane out
+      if (!menuOpen) backToFullscreen();
+    },
   },
 });
 // The table as everyone sees it (`me` is worked out by whoever draws it).

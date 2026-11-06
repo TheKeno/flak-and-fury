@@ -1,4 +1,5 @@
-// What H says when the hangar cannot open: the player is in the air, rolling, or has no hangar left.
+// What H says when the hangar cannot open or the crew cannot be called: in the air, rolling, away from home,
+// no hangar left.
 // Pure (tests pass `pick`); a message does not repeat until the others in its list have been shown.
 const AIR = [
   'YOU NEED TO LAND FIRST',
@@ -23,8 +24,20 @@ const NO_HANGAR = [
   'NO HANGAR LEFT TO PARK IN. PARK IT IN THE FIELD',
   'THE CREW LOOKED FOR THE HANGAR. THEY FOUND SMOKE',
 ];
-// Until the crew can fetch a stopped plane (build step 4 of the hangar decision).
-const STILL = ['THE PARK-IN CREW IS STILL IN TRAINING'];
+// Standing still, but not on your own airfield (the crew only work at home).
+const FIELD = [
+  'THE CREW ONLY PARK PLANES AT HOME',
+  'THIS IS NOT YOUR AIRFIELD. THE CREW STAY PUT',
+  'TOO FAR FROM HOME. THE CREW REFUSE TO WALK THAT FAR',
+  'NO HANGAR OUT HERE. TRY YOUR OWN AIRFIELD',
+];
+// The plane is busy: already being parked, turning round, burning or on its belly.
+const BUSY = [
+  'THE CREW ARE ALREADY ON IT',
+  'ONE THING AT A TIME, PILOT',
+  'NOT NOW. SORT THE PLANE OUT FIRST',
+];
+export const CALLING = ['CALLING THE CREW', 'CREW ON THE WAY', 'THE CREW ARE COMING'];
 
 const shown = new Map();
 function next(list, pick) {
@@ -38,9 +51,10 @@ function next(list, pick) {
   return m;
 }
 
-// p: the player's plane; hasHangar: own hangar still standing.
-export function hangarRefusal(p, hasHangar, pick = (n) => Math.floor(Math.random() * n)) {
-  if (!hasHangar) return next(NO_HANGAR, pick);
-  if (p.state === 'ground') return Math.abs(p.speed) > 2 ? next(MOVING, pick) : next(STILL, pick);
-  return next(AIR, pick);
+// reason: what parkInBlocker (src/sim/plane.js) said: air | busy | nohangar | field | moving.
+export function hangarRefusal(reason, pick = (n) => Math.floor(Math.random() * n)) {
+  const list = { nohangar: NO_HANGAR, field: FIELD, moving: MOVING, busy: BUSY }[reason] ?? AIR;
+  return next(list, pick);
 }
+
+export const callingMessage = (pick = (n) => Math.floor(Math.random() * n)) => next(CALLING, pick);

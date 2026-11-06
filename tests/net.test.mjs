@@ -243,3 +243,19 @@ test('a chosen loadout reaches the guest in the snapshot', () => {
   const bot = guest.planes.find((p) => p.seats[0].controller.startsWith('bot'));
   assert.equal(bot.loadout, null);
 });
+
+test('a park-in (plane phase, hold, crew) reaches the guest in the snapshot', () => {
+  const host = busyHost();
+  const mine = host.planes.find((p) => p.seats[0].controller === 'net1');
+  mine.park = { phase: 'roll', t: 0, to: 120 };
+  mine.hold = true;
+  host.crew.push({ id: host.nextId++, team: mine.team, plane: null, park: true, push: true, pushing: mine.id, slot: 0, x: 90, y: 0, state: 'push', t: 0, moving: true });
+  const guest = guestWorld();
+  applyPatch(guest, JSON.parse(JSON.stringify(diff({}, encodeWorld(host, staticRefs(host))))), staticRefs(guest));
+  const theirs = guest.planes.find((p) => p.id === mine.id);
+  assert.deepEqual(theirs.park, { phase: 'roll', t: 0, to: 120 });
+  assert.equal(theirs.hold, true);
+  const man = guest.crew.find((c) => c.park);
+  assert.equal(man.pushing, mine.id);
+  assert.equal(man.state, 'push');
+});
