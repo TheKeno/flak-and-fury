@@ -542,7 +542,7 @@ function renderPlaneBuild(id, buildId) {
     stopLive();
     const v = sound.vehicles.find((x) => x.id === state.vehicle);
     const spec = v ? engineOf(v) : { cylinders: 12, propBlades: 3, gearRatio: 0.6 };
-    voice = createEngineVoice(mixer, spec, build, v?.count ?? 1);
+    voice = createEngineVoice(mixer, spec, build, v?.count ?? 1, id); // id: so the recorded clips play too
     voice.start();
     playBtn.textContent = 'Stop';
     let frame = 0;
@@ -604,7 +604,7 @@ function renderTankBuild(id, buildId) {
   const play = async () => {
     await audio();
     stopLive();
-    voice = createTankEngine(mixer, build);
+    voice = createTankEngine(mixer, build, id);
     playBtn.textContent = 'Stop';
     let frame = 0;
     const tick = () => {
@@ -887,7 +887,7 @@ function renderMix() {
     el('div', { className: 'buttons' }, button('Test: explosion over engine', async () => {
       await audio();
       stopLive();
-      const v = createEngineVoice(mixer, { cylinders: 12, propBlades: 3, gearRatio: 0.6 }, sound.builds.inline);
+      const v = createEngineVoice(mixer, { cylinders: 12, propBlades: 3, gearRatio: 0.6 }, sound.builds.inline, 1, 'build:inline');
       v.start();
       v.update({ rpm: 2300, load: 0.8 });
       const again = setInterval(() => v.update({ rpm: 2300, load: 0.8 }), 200);
