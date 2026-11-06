@@ -72,6 +72,14 @@ later.
     **The farther from the hangar you stop, the longer the wait** (crew walk out, push further): a
     distance-based delay with tunables in settings.json and `TUNING.md`, so a good landing near the hangar
     is a faster turnaround. Needs the crew walk-out and push-in sprites.
+  - **Settled 2026-11-06 (discussion after the page was built):** (1) planes are not tied to sides, so the in-game
+    "strip" is just a plane picker over all planes (prev/next or a short list, optional nation filter), not a
+    side list. (2) Choosing a plane after the doors have opened is allowed: the doors **re-close with the plane
+    rolled back in** (a new roll-back animation, the roll-out reversed) and the roll-out restarts; the load stays
+    locked only once the plane has left the doors. (3) Input is mouse and keyboard. (4) **Next build (step 3, own
+    session):** the in-game compact panel (drawn over the game, using `hangar-logic.js`; `H` or a click expands to
+    the per-hardpoint rows) and removal of the Esc plane switch. The roll-back animation and the park-in (step 4)
+    come after. The owner will give opinions on the panel's design once it is built.
   - **Out of scope here:** paint editor (milestone 8), visible bombs and bay doors (steps 4 and 5), fuel weight.
   - **Build order:** (1, done 2026-11-06) sim and online: `p.loadout`, `validateLoadout`, presets, seat request, tests; (2) the
     full hangar page; (3) the roll-out overlay and plane swap in the hangar, remove the Esc plane switch;
