@@ -1,5 +1,6 @@
 import { drawText, textWidth, lineHeight } from './font.js';
 import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
+import { bombsLeft } from '../sim/weapons.js';
 import { hangarHealth } from '../sim/ground.js';
 import { homeRunway, runwayState, nextFill } from '../sim/runway.js';
 import { approach, recoveryTime } from '../sim/plane.js';
@@ -71,7 +72,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   }
   const rounds = plane.guns.reduce((n, g) => n + g.ammo, 0);
   stat('GUN', Math.floor(rounds), rounds > 0 ? VALUE : '#e05040');
-  if (plane.bombs) stat('BMB', plane.bombs.count, plane.bombs.count > 0 ? VALUE : '#808880');
+  if (plane.def.hardpoints) stat('BMB', bombsLeft(plane), bombsLeft(plane) > 0 ? VALUE : '#808880');
   // Gear lamp: green down and locked, amber moving, red up.
   const gearText = plane.belly ? 'BELLY' : plane.gear >= 1 ? 'DOWN' : plane.gear <= 0 ? 'UP' : 'MOVING';
   const gearColour = plane.belly ? '#e05040' : plane.gear >= 1 ? '#80d070' : plane.gear <= 0 ? '#d06050' : '#e0b040';

@@ -440,10 +440,9 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
       ),
     ),
   );
-  const bombId = def.armament?.bombs?.weapon;
-  const bombSection = bombId
-    ? section(`Bombs: ${weapons[bombId].name}`, false, ...BOMB_FIELDS.map((f) => add(slider(weapons[bombId], f))))
-    : '';
+  // One section per bomb type on the plane (a Stuka carries SC 500 and SC 50).
+  const bombIds = [...new Set((def.loadout ?? []).map((l) => l.weapon))];
+  const bombSection = bombIds.map((id) => section(`Bombs: ${weapons[id].name}`, false, ...BOMB_FIELDS.map((f) => add(slider(weapons[id], f)))));
   // Testing switches. world.rules is the same object as settings.rules, so these are saved too.
   const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
   const parkBots = () => {
@@ -713,7 +712,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     testSection,
     planeSection,
     ...gunSections,
-    bombSection,
+    ...bombSection,
     landingSection,
     takeoffSection,
     collisionSection,

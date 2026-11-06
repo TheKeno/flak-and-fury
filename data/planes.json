@@ -1,5 +1,5 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset, bombOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count}. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -37,9 +37,24 @@
     "rearView": 0.45,
     "hitRadius": 6.5,
     "endurance": 240,
-    "bombOffset": [
-      0,
-      -4
+    "hardpoints": [
+      {
+        "id": "centre",
+        "kind": "crutch",
+        "offset": [
+          0,
+          -4
+        ],
+        "group": 0,
+        "maxKg": 250
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "centre",
+        "weapon": "sc_250",
+        "count": 1
+      }
     ],
     "gearTime": 1.8,
     "fixedTailWheel": true,
@@ -90,11 +105,7 @@
           "weapon": "mg151_20",
           "count": 1
         }
-      ],
-      "bombs": {
-        "weapon": "sc_250",
-        "count": 1
-      }
+      ]
     },
     "engine": {
       "layout": "inline",
@@ -143,9 +154,24 @@
     "rearView": 0.45,
     "hitRadius": 6.5,
     "endurance": 240,
-    "bombOffset": [
-      0,
-      -4
+    "hardpoints": [
+      {
+        "id": "centre",
+        "kind": "crutch",
+        "offset": [
+          0,
+          -4
+        ],
+        "group": 0,
+        "maxKg": 250
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "centre",
+        "weapon": "sc_250",
+        "count": 1
+      }
     ],
     "gearTime": 1.8,
     "fixedTailWheel": true,
@@ -196,11 +222,7 @@
           "weapon": "mg151_20",
           "count": 1
         }
-      ],
-      "bombs": {
-        "weapon": "sc_250",
-        "count": 1
-      }
+      ]
     },
     "engine": {
       "layout": "inline",
@@ -249,9 +271,24 @@
     "rearView": 0.55,
     "hitRadius": 7,
     "endurance": 220,
-    "bombOffset": [
-      0,
-      -4
+    "hardpoints": [
+      {
+        "id": "centre",
+        "kind": "crutch",
+        "offset": [
+          0,
+          -4
+        ],
+        "group": 0,
+        "maxKg": 250
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "centre",
+        "weapon": "gp_250",
+        "count": 2
+      }
     ],
     "gearTime": 1.6,
     "fixedTailWheel": true,
@@ -301,11 +338,7 @@
           "weapon": "browning_303",
           "count": 4
         }
-      ],
-      "bombs": {
-        "weapon": "gp_250",
-        "count": 2
-      }
+      ]
     },
     "engine": {
       "layout": "inline",
@@ -358,9 +391,24 @@
     "rearView": 0.45,
     "hitRadius": 8.5,
     "endurance": 300,
-    "bombOffset": [
-      0,
-      -5
+    "hardpoints": [
+      {
+        "id": "centre",
+        "kind": "crutch",
+        "offset": [
+          0,
+          -5
+        ],
+        "group": 0,
+        "maxKg": 500
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "centre",
+        "weapon": "gp_500",
+        "count": 2
+      }
     ],
     "gearTime": 2,
     "fixedTailWheel": false,
@@ -406,11 +454,7 @@
           "weapon": "m2_browning",
           "count": 8
         }
-      ],
-      "bombs": {
-        "weapon": "gp_500",
-        "count": 2
-      }
+      ]
     },
     "engine": {
       "layout": "radial",
@@ -459,9 +503,24 @@
     "rearView": 0.6,
     "hitRadius": 6.8,
     "endurance": 210,
-    "bombOffset": [
-      0,
-      -4
+    "hardpoints": [
+      {
+        "id": "centre",
+        "kind": "crutch",
+        "offset": [
+          0,
+          -4
+        ],
+        "group": 0,
+        "maxKg": 100
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "centre",
+        "weapon": "fab_100",
+        "count": 2
+      }
     ],
     "gearTime": 1.8,
     "fixedTailWheel": false,
@@ -508,11 +567,7 @@
           "count": 2,
           "synced": true
         }
-      ],
-      "bombs": {
-        "weapon": "fab_100",
-        "count": 2
-      }
+      ]
     },
     "engine": {
       "layout": "radial",
@@ -561,9 +616,24 @@
     "rearView": 0.8,
     "hitRadius": 6.5,
     "endurance": 360,
-    "bombOffset": [
-      0,
-      -4
+    "hardpoints": [
+      {
+        "id": "centre",
+        "kind": "crutch",
+        "offset": [
+          0,
+          -4
+        ],
+        "group": 0,
+        "maxKg": 100
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "centre",
+        "weapon": "army_100",
+        "count": 2
+      }
     ],
     "gearTime": 1.6,
     "fixedTailWheel": true,
@@ -610,11 +680,7 @@
           "count": 2,
           "synced": true
         }
-      ],
-      "bombs": {
-        "weapon": "army_100",
-        "count": 2
-      }
+      ]
     },
     "engine": {
       "layout": "radial",
@@ -663,10 +729,6 @@
     "rearView": 0.7,
     "hitRadius": 6.5,
     "endurance": 300,
-    "bombOffset": [
-      0,
-      -4
-    ],
     "gearTime": 2.4,
     "fixedTailWheel": true,
     "wheels": [
@@ -773,9 +835,24 @@
     "rearView": 0.9,
     "hitRadius": 10,
     "endurance": 420,
-    "bombOffset": [
-      0,
-      -1.5
+    "hardpoints": [
+      {
+        "id": "centre",
+        "kind": "crutch",
+        "offset": [
+          0,
+          -1.5
+        ],
+        "group": 0,
+        "maxKg": 250
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "centre",
+        "weapon": "sc_250",
+        "count": 2
+      }
     ],
     "gearTime": 2.4,
     "fixedTailWheel": false,
@@ -826,10 +903,6 @@
           "count": 2
         }
       ],
-      "bombs": {
-        "weapon": "sc_250",
-        "count": 2
-      },
       "turrets": [
         {
           "weapon": "mg81z",
@@ -900,9 +973,41 @@
     "rearView": 0.8,
     "hitRadius": 9,
     "endurance": 360,
-    "bombOffset": [
-      0,
-      -1.5
+    "hardpoints": [
+      {
+        "id": "bay",
+        "kind": "bay",
+        "offset": [
+          0,
+          -1.5
+        ],
+        "group": 0,
+        "maxKg": 250,
+        "salvo": 2,
+        "interval": 0.2
+      },
+      {
+        "id": "rack",
+        "kind": "rack",
+        "offset": [
+          0.6,
+          -1.6
+        ],
+        "group": 1,
+        "maxKg": 250
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "bay",
+        "weapon": "gp_250",
+        "count": 2
+      },
+      {
+        "hardpoint": "rack",
+        "weapon": "gp_250",
+        "count": 2
+      }
     ],
     "gearTime": 2.2,
     "fixedTailWheel": false,
@@ -952,11 +1057,7 @@
           "weapon": "browning_303",
           "count": 4
         }
-      ],
-      "bombs": {
-        "weapon": "gp_250",
-        "count": 2
-      }
+      ]
     },
     "engine": {
       "layout": "inline",
@@ -1013,9 +1114,54 @@
     "rearView": 0.7,
     "hitRadius": 8.5,
     "endurance": 300,
-    "bombOffset": [
-      6.38,
-      -3.06
+    "hardpoints": [
+      {
+        "id": "crutch",
+        "kind": "crutch",
+        "offset": [
+          6.38,
+          -3.06
+        ],
+        "group": 0,
+        "maxKg": 500
+      },
+      {
+        "id": "rack-in",
+        "kind": "rack",
+        "offset": [
+          6.1,
+          -2.5
+        ],
+        "group": 1,
+        "maxKg": 50
+      },
+      {
+        "id": "rack-out",
+        "kind": "rack",
+        "offset": [
+          5.9,
+          -2.5
+        ],
+        "group": 2,
+        "maxKg": 50
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "crutch",
+        "weapon": "sc_500",
+        "count": 1
+      },
+      {
+        "hardpoint": "rack-in",
+        "weapon": "sc_50",
+        "count": 2
+      },
+      {
+        "hardpoint": "rack-out",
+        "weapon": "sc_50",
+        "count": 2
+      }
     ],
     "gearTime": 1.6,
     "fixedGear": true,
@@ -1063,10 +1209,6 @@
           "count": 2
         }
       ],
-      "bombs": {
-        "weapon": "sc_500",
-        "count": 1
-      },
       "turrets": [
         {
           "weapon": "mg81z",

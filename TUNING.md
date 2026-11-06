@@ -46,7 +46,8 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `wheels` | Optional: the gear in world units from the pivot (leg top, wheel centre, stowed centre, radius; `tail: true` for the tail wheel). The plane stands on these wheels, its tail-down angle comes from them, and the 3D model's gear must match (the Outline Lab writes `wheels` when it saves an outline; the outline's `gear` in `data/outlines/<plane>.json` drives the 3D model, then `node tools/make-sprites.mjs`). Without it a plane uses the default gear. | |
 | `fixedGear` | Optional, `true` for planes whose gear never retracts (the Ju 87): the wheels stay drawn and G does nothing; the gear drag stays on. | |
 | `armament.guns` | Which guns (names from `weapons.json`) and how many. `synced: true` marks guns firing through the propeller (on the cowling): they slow a little with engine RPM (full from 60% of max, 70% at idle) and can't fire with the propeller stopped (the gear is driven by the engine). WWII gears and constant-speed propellers cost a cowl gun only a little of its rate. Wing guns and hub cannon aren't synced. | |
-| `armament.bombs` | Bomb type and how many per sortie. | |
+| `hardpoints` | The bomb stations: a list of `{id, kind, offset, group, maxKg}`. `kind` is `crutch` (fuselage; drops one bomb per release), `rack` (wing; drops everything it carries together, a left and right pair) or `bay` (`salvo` bombs on a press, then one by one every `interval` seconds while the key is held). `offset` is in world units from the pivot (typed by hand until the Outline Lab marks them). `group` is the release order, lowest first (the Stuka's crutch before its racks). `interval` (optional, default 0.35 s) is the pause after a release. `maxKg` is for the hangar editor later. | |
+| `loadout` | The default bombs: `{hardpoint, weapon, count}` per station (`count` default 1; a rack's count is its pair). Rearming restores it. A plane with a single bomb slot has one `crutch` hardpoint called `centre`. | |
 | `armament.turrets` | AI gunners (a rear gunner, a turret): `weapon`, `count`, `offset` (the gun's mount in world units from the pivot) and `arc` (where it can fire, in degrees in the plane's own frame: 0 ahead, 90 up, 180 straight back). The gunner picks the nearest enemy in its arc and reach, leads it and fires; it holds fire unless the bots are on (Testing), and the crew rearm it. Shown as "Gunner" sections in the tuning panel. | |
 | `propOffset` | Optional: where the propeller line is drawn in flight, for twins whose engines aren't in the nose (world units from the pivot). | |
 | `engine.*` | Engine sound: `layout` `inline` or `radial`, cylinder count, rpm at idle/cruise/max, propeller blades and gearing. | |
@@ -65,6 +66,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `voice` | Gun sound: `rifle`, `heavy`, `cannon20`, `cannon30`. |
 | `blastRadius`, `blastDamage` | Bomb explosion size and damage at the centre. |
 | `craterRadius`, `craterDepth` | Size of the hole a bomb digs. |
+| `sc_50` | The 50 kg bomb (Stuka wing racks): blast radius 22, damage 70, crater 10 × 5, drag 0.12 (crater and drag are guesses). |
 
 ## Ground crew and camera: `data/settings.json`
 

@@ -36,7 +36,10 @@ export function armPlane(p, weapons) {
     updateGunRates(g);
     return g;
   });
-  p.bombs = arm.bombs ? { weapon: arm.bombs.weapon, def: weapons[arm.bombs.weapon], count: arm.bombs.count, cooldown: 0 } : null;
+  // Bomb stations: one per loadout entry. Plain data (the hardpoint is looked up by id in p.def).
+  p.stations = (p.def.loadout ?? []).map(({ hardpoint, weapon, count = 1 }) => ({ hp: hardpoint, def: weapons[weapon], loaded: count }));
+  p.bombCooldown = 0;
+  p.bombHeld = false;
   // Gunners' guns (a rear gunner, a turret): aimed by an AI gunner within an arc, in the plane's own
   // frame in degrees (0 = straight ahead, 90 = up over the canopy, 180 = straight back).
   p.turrets = (arm.turrets ?? []).map(({ weapon, count = 1, offset, arc }) => {
@@ -47,6 +50,21 @@ export function armPlane(p, weapons) {
     return t;
   });
   p.emptyClicked = false;
+}
+
+export const hardpointOf = (p, st) => p.def.hardpoints.find((h) => h.id === st.hp);
+// Bombs still carried, and carried when fully loaded.
+export const bombsLeft = (p) => (p.stations ?? []).reduce((n, s) => n + s.loaded, 0);
+export const bombsFull = (p) => (p.def.loadout ?? []).reduce((n, l) => n + (l.count ?? 1), 0);
+// The station the next release uses: lowest group first (the crutch before the racks), then list order.
+export function nextStation(p) {
+  let best = null;
+  for (const s of p.stations ?? []) if (s.loaded > 0 && (!best || hardpointOf(p, s).group < hardpointOf(p, best).group)) best = s;
+  return best;
+}
+// Reload every station to the plane's loadout.
+export function rearmBombs(p) {
+  (p.def.loadout ?? []).forEach((l, i) => (p.stations[i].loaded = l.count ?? 1));
 }
 
 // Every gun on the plane, the pilot's and the gunners', for ammunition checks and rearming.
@@ -102,14 +120,20 @@ export function updateWeapons(p, cmd, world, dt) {
   if (!cmd.fire) p.emptyClicked = false;
   updateTurrets(p, world, dt, canFight);
 
-  const b = p.bombs;
-  if (b) {
-    b.cooldown = Math.max(0, b.cooldown - dt);
-    if (cmd.bomb && canFight && b.count > 0 && b.cooldown === 0) {
-      b.count--;
-      b.cooldown = BOMB_INTERVAL;
-      const [x, y] = localToWorld(p, p.def.bombOffset ?? [0, -4]);
-      const bomb = { id: world.nextId++, owner: p.id, team: p.team, def: b.def, x, y, vx: p.vx, vy: p.vy - 6 };
+  p.bombCooldown = Math.max(0, p.bombCooldown - dt);
+  const fresh = cmd.bomb && !p.bombHeld; // a new press, not the key held down
+  p.bombHeld = Boolean(cmd.bomb);
+  const st = nextStation(p);
+  if (cmd.bomb && canFight && st && p.bombCooldown === 0) {
+    const hp = hardpointOf(p, st);
+    // A crutch drops one bomb; a rack all its pair at once; a bay a salvo on a press, then (key held)
+    // one by one at its interval.
+    const n = Math.min(st.loaded, hp.kind === 'rack' ? st.loaded : hp.kind === 'bay' && fresh ? hp.salvo ?? 1 : 1);
+    st.loaded -= n;
+    p.bombCooldown = hp.interval ?? BOMB_INTERVAL;
+    const [x, y] = localToWorld(p, hp.offset);
+    for (let i = 0; i < n; i++) {
+      const bomb = { id: world.nextId++, owner: p.id, team: p.team, def: st.def, x, y, vx: p.vx, vy: p.vy - 6 };
       world.bombsInFlight.push(bomb);
       world.events.push({ type: 'bombRelease', plane: p.id, bomb: bomb.id, x, y });
     }

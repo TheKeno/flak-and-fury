@@ -175,7 +175,9 @@ export function createPlane(id, def, { team, nation, seats }) {
     deaths: 0,
     score: 0, // points for destroyed ground targets
     guns: [],
-    bombs: null,
+    stations: [], // bomb stations (armPlane)
+    bombCooldown: 0,
+    bombHeld: false,
     fuel: 1, // 0..1 of a full tank
     engineRunning: true,
     starved: false, // momentary fuel starvation (coughing on the last drops)
@@ -966,11 +968,11 @@ function recover(p, world) {
     belly: p.belly, gear: p.gear, gearDown: p.gearDown, fuel: p.fuel, engineRunning: p.engineRunning,
   };
   const ammo = allGuns(p).map((g) => g.ammo);
-  const bombs = p.bombs?.count;
+  const bombs = p.stations.map((s) => s.loaded);
   if (!spawnAtAirfield(p, world)) return; // runway closed: it waits, and comes back new
   Object.assign(p, kept);
   allGuns(p).forEach((g, i) => (g.ammo = ammo[i]));
-  if (p.bombs) p.bombs.count = bombs;
+  p.stations.forEach((s, i) => (s.loaded = bombs[i]));
   p.y = world.terrain.heightAt(p.x) + (p.belly ? BELLY_HEIGHT : GEAR_HEIGHT);
 }
 

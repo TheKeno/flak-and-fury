@@ -213,5 +213,14 @@
     "craterRadius": 18,
     "craterDepth": 8,
     "drag": 0.1
+  },
+  "sc_50": {
+    "name": "SC 50 bomb",
+    "type": "bomb",
+    "blastRadius": 22,
+    "blastDamage": 70,
+    "craterRadius": 10,
+    "craterDepth": 5,
+    "drag": 0.12
   }
 }

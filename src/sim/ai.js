@@ -14,7 +14,7 @@ import { isUpright, GRAVITY } from './plane.js';
 import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { clearRunway } from './runway.js';
-import { allGuns } from './weapons.js';
+import { allGuns, bombsLeft, bombsFull, nextStation } from './weapons.js';
 
 const DT = 1 / 60;
 
@@ -110,8 +110,7 @@ function newMemory(world, p) {
 function needsService(p) {
   if (p.hp < p.def.hp || p.engineDamage > 0 || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent || p.belly) return true;
   if (p.fuel < 0.9 || !p.engineRunning) return true;
-  const fullBombs = p.def.armament?.bombs?.count ?? 0;
-  return allGuns(p).some((g) => g.ammo < g.def.ammo * g.count) || Boolean(p.bombs && p.bombs.count < fullBombs);
+  return allGuns(p).some((g) => g.ammo < g.def.ammo * g.count) || bombsLeft(p) < bombsFull(p);
 }
 
 function groundCommand(world, p, b) {
@@ -398,8 +397,7 @@ function wantsHome(world, p, skill) {
   const trip = (Math.abs(p.x - homeX) + cfg.approachLength + 400) / 120;
   if (p.fuel < trip * burn + cfg.fuelReserve) return true;
   if (p.hp < p.def.hp * skill.hpReturn || p.engineDamage > 0.5 || p.tailDamage > 0.5 || Math.abs(p.wingPull) > 0.3) return true;
-  const bombsLeft = p.bombs?.count ?? 0;
-  return ammoShare(p) < skill.ammoReturn && bombsLeft === 0;
+  return ammoShare(p) < skill.ammoReturn && bombsLeft(p) === 0;
 }
 
 function decide(world, p, b, skill) {
@@ -482,7 +480,7 @@ function pickGroundTarget(world, p, b) {
   const af = homeField(world, p.team);
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
   const homeX = hangar?.x ?? af.x + af.width / 2;
-  const bombs = p.bombs?.count ?? 0;
+  const bombs = bombsLeft(p);
   const guns = ammoShare(p) > 0.15;
   const engineers = world.ground.filter((o) => o.type === 'engineers' && o.alive && o.team === p.team);
   const bridge = world.ground.find((o) => o.type === 'bridge');
@@ -720,7 +718,7 @@ function attackWant(world, p, b, skill, cmd) {
   const run = (b.run ??= { dir: Math.sign(o.x - p.x) || 1, phase: 'in' });
   const gy = surfaceAt(world, o.x);
   const ahead = (o.x - p.x) * run.dir; // target distance along the run
-  const bombing = o.type === 'tank' && (p.bombs?.count ?? 0) > 0;
+  const bombing = o.type === 'tank' && bombsLeft(p) > 0;
   if (run.phase === 'out') {
     // Fly on, climbing, until there's room to turn back and line up.
     if (-ahead > 380) {
@@ -765,7 +763,7 @@ function attackWant(world, p, b, skill, cmd) {
 
 // Where a bomb let go now would hit the ground: { x, t }, flying it as stepBombs does.
 function bombImpact(world, p) {
-  const def = p.bombs?.def;
+  const def = nextStation(p)?.def;
   if (!def) return null;
   let x = p.x;
   let y = p.y - 4;

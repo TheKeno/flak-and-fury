@@ -23,13 +23,14 @@ function stuka() {
   return { world, p: addPlane(world, { defId: 'ju87', team: 0, nation: 'germany', controller: 'p1' }) };
 }
 
-test('the Stuka carries two wing cannon, a rear gunner and a bomb', () => {
-  const { p } = stuka();
+test('the Stuka carries two wing cannon, a rear gunner and five bombs', () => {
+  const { world, p } = stuka();
   assert.equal(p.guns[0].weapon, 'mg151_20');
   assert.equal(p.guns[0].count, 2);
   assert.equal(p.turrets[0].weapon, 'mg81z');
-  assert.equal(p.bombs.weapon, 'sc_500');
-  assert.equal(p.bombs.count, 1);
+  assert.deepEqual(p.stations.map((s) => [s.hp, s.loaded]), [['crutch', 1], ['rack-in', 2], ['rack-out', 2]]);
+  assert.equal(p.stations[0].def, world.weapons.sc_500);
+  assert.equal(p.stations[1].def, world.weapons.sc_50);
 });
 
 test('the gear stays down: G on the ground and in the air changes nothing', () => {

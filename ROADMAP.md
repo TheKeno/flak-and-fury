@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Bomb stations: hardpoints, loads and weight (decided 2026-11-06, discussion; not built):** a plane's
+- **Bomb stations: hardpoints, loads and weight (decided 2026-11-06, discussion; step 1 built 2026-11-06):** a plane's
   one bomb slot (`armament.bombs`, `bombOffset`) becomes a list of **hardpoints** plus a **load**, so the
   Stuka carries an SC 500 on the crutch and four SC 50 on wing racks, bombers get bays and mixed loads,
   and the hangar editor (milestone 8) gets slots and a weight budget.
@@ -43,7 +43,7 @@ later.
     A plane without weight data behaves exactly as today (effect zero). Watch: `runwayNeeded` must be
     calibrated for the heaviest loadout, and the take-off, bot and landing tests and the AI (`maxSpeed`,
     turn behaviour in `ai.js`) assume today's numbers. Also feeds the hangar editor's weight budget.
-  - **Build order:** (1) station system with the Stuka (SC 500 crutch + 4 SC 50 racks, new `sc_50`) and the
+  - **Build order:** (1, done 2026-11-06) station system with the Stuka (SC 500 crutch + 4 SC 50 racks, new `sc_50`) and the
     Mosquito FB.VI (bay + wing racks; currently 2 GP 250 on one offset), all other planes one hardpoint at
     their old offset, tests and TUNING.md; (2) weight; (3) hangar loadout editor; (4) visible bombs on the
     racks (the backlog item "External bomb mounts and visible bombs"); (5) bays and the heavies (Blenheim,
@@ -172,6 +172,8 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+
+- **Bomb stations (Planes, 2026-11-06, step 1 of the Decisions entry):** `bombOffset` and `armament.bombs` replaced by `hardpoints` + `loadout` in `planes.json`; the sim holds `p.stations` (`{hp, def, loaded}`, built in `armPlane`) with `bombsLeft`/`bombsFull`/`nextStation` in `src/sim/weapons.js`, and airfield rearm, AI (bomb choice, impact prediction), HUD, `recover` and the tuning panel (one section per bomb type) read through them. Release by `group` order: crutch one bomb, rack its pair together, bay a salvo on a press then one by one while held. New `sc_50`. Ju 87: SC 500 on the crutch + 2 SC 50 pairs on wing racks. Mosquito: bay (salvo of 2 GP 250) + wing rack pair (4 bombs, was 2). All others: one `crutch` hardpoint called `centre` at the old offset, same behaviour. Not yet: weight, hangar editor, visible bombs, bay doors. Tests: `tests/stations.test.mjs`.
 
 - **Edge turn without wheels (2026-11-05):** the map-edge turn now plays a new `edge` row of the plane frame sheets (the ground-turn swing drawn with the gear up) instead of the gear-down `turn` row; `transientFrame` falls back to `turn` for a sheet without it. Rebuilt for every plane except the Ju 87 (fixed gear, sheet not rebuilt, still uses `turn`). `tools/make-sprites.mjs`. Checked by comparing the rows in the browser; not flown by eye. Tests pass.
 - **Outline Lab: automatic first trace (2026-11-05):** Fit part to drawing / Fit all parts (ghost preview, one undo step, hit count as the template check), automatic station placement (Douglas-Peucker, tolerance half a sprite pixel, `re-place stations`). Snap-to-line for dragged points was built and removed again (owner: not needed, the fit does the job and hand tuning wants control). Added while tracing the Ju 87 D-5 with it: Add part (radiators, gun tray, nacelle, spine, Bump x3, Wheel spat; parts a borrowed model does not read are drawn as plain solids), Make a mirrored pair, main wheel in the plan view, Shift+drag and Duplicate point, stations in order while dragging (points within half a pixel keep their listed order), side-view wing root handles for edge-table wings, defaults snap-to-pixels off and sprite 0%. Pure logic in `tools/edgefit.mjs` with tests on synthetic images; edge map built in the browser from the stored picture, never saved. Details and limits in `notes/outline-lab.md`.
