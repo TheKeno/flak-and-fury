@@ -20,8 +20,8 @@ export const ACTIONS = [
   ['zoomIn', 'Camera zoom in', ['WheelUp', null]],
   ['zoomOut', 'Camera zoom out', ['WheelDown', null]],
   ['menu', 'Pause / menu', ['Escape', null]],
-  ['hangar', 'Hangar (plane and bombs)', ['KeyL', null]],
-  ['help', 'Show / hide help', ['KeyH', null]],
+  ['hangar', 'Hangar (plane and bombs)', ['KeyH', null]],
+  ['help', 'Show / hide help', ['F1', null]],
   ['mute', 'Mute', ['KeyM', null]],
   ['fullscreen', 'Fullscreen', ['F11', null]],
   ['freeLook', 'Free look (debug)', ['KeyV', null]],
@@ -31,7 +31,7 @@ export const ACTIONS = [
 
 export const defaultBindings = () => Object.fromEntries(ACTIONS.map(([id, , codes]) => [id, [...codes]]));
 
-const NO_SCROLL = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+const NO_SCROLL = new Set(['F1', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
 const held = new Set();
 const pressListeners = [];

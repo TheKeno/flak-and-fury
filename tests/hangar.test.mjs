@@ -139,3 +139,13 @@ test('plane swap behind the doors: no wreck, roll-out restarts, load kept; refus
 test('the hangar key is a bindable action', () => {
   assert.ok(ACTIONS.some(([id]) => id === 'hangar'));
 });
+
+import { hangarRefusal } from '../src/ui/hangar-messages.js';
+test('H refusals: by state, no repeats until the list is used up', () => {
+  const first = (n) => 0;
+  const air = new Set();
+  for (let i = 0; i < 8; i++) air.add(hangarRefusal({ state: 'air', speed: 90 }, true, first));
+  assert.equal(air.size, 8);
+  assert.match(hangarRefusal({ state: 'ground', speed: 30 }, true), /./);
+  assert.match(hangarRefusal({ state: 'ground', speed: 0 }, false), /HANGAR|SMOKE/);
+});

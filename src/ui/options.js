@@ -91,6 +91,16 @@ export function createOptions({ settings, bindings, parent, onChange }) {
   // Older saves may hold actions that no longer exist, or miss new ones.
   if (saved.bindings) {
     for (const [id] of ACTIONS) if (Array.isArray(saved.bindings[id])) bindings[id] = [saved.bindings[id][0] ?? null, saved.bindings[id][1] ?? null];
+    // An action added after the save takes its default key from any older action that saved the same key
+    // (H became the hangar, help moved to F1); that action goes back to its own default.
+    const fresh = defaultBindings();
+    for (const [id] of ACTIONS) {
+      if (Array.isArray(saved.bindings[id])) continue;
+      for (const [other] of ACTIONS) {
+        if (other === id || !Array.isArray(saved.bindings[other])) continue;
+        bindings[other] = bindings[other].map((c, i) => (c && fresh[id].includes(c) ? (fresh[other][i] !== c && !fresh[id].includes(fresh[other][i]) ? fresh[other][i] : null) : c));
+      }
+    }
   }
   for (const o of options) if (o.id in values) o.set(values[o.id]);
 

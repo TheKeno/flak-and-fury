@@ -194,6 +194,8 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
       on.closed?.();
       render(true);
     },
+    // Can the panel open now (the plane is down or behind the doors)?
+    canOpen: () => editable(),
     toggle() {
       return api.isOpen ? api.close() : api.open();
     },

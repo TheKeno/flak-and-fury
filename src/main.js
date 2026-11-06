@@ -10,6 +10,7 @@ import { createRecordings } from './audio/recordings.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { createSetup } from './ui/setup.js';
 import { createHangarPanel } from './ui/hangar-panel.js';
+import { hangarRefusal } from './ui/hangar-messages.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
@@ -227,7 +228,10 @@ keyboard.onPress((code, e) => {
       continue;
     }
     if (act === 'help') showHelp = !showHelp;
-    if (act === 'hangar' && started) hangar.toggle();
+    if (act === 'hangar' && started) {
+      if (hangar.isOpen || hangar.canOpen()) hangar.toggle();
+      else renderer.message(hangarRefusal(player, world.ground.some((o) => o.type === 'hangar' && o.team === player.team && o.alive)), '#f0e8c0');
+    }
     if (act === 'perf') perfStats.toggle();
     // The panel needs the cursor back.
     if (act === 'tuning' && tuning.toggle()) mouse.release();
