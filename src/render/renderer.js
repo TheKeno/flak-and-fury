@@ -909,7 +909,7 @@ export function createRenderer(canvas, world, assets) {
   const NAME_GAP = 25; // below the plane's centre, in the plane's own frame
   const nameShown = (name, owner, focus) => name && assets.settings.hud.showNames !== false && (owner !== focus?.id || assets.settings.hud.showOwnName);
   const nameColour = (team, focus) => (team === focus?.team ? '#d8cfa0' : '#b86050');
-  // Pushed out of the hangar the plane starts small and faint: its name follows (size and opacity).
+  // Pushed out of the hangar the plane starts small and faint.
   function exitLook(p) {
     if (p.exitPhase !== 'out') return { grow: 1, alpha: 1 };
     const def = hangarOf(p)?.def;
@@ -917,9 +917,25 @@ export function createRenderer(canvas, world, assets) {
     const a0 = def?.exitStartAlpha ?? 0;
     return { grow: g0 + (1 - g0) * p.exitT, alpha: Math.min(1, (a0 + (1 - a0) * p.exitT) * 1.4) }; // solid by 70% of the way out
   }
+  // The pilot's name stays off while the plane is being pushed out of the hangar and fades in once the
+  // pilot has the controls (exitTo cleared).
+  const NAME_FADE = 0.8; // seconds
+  const gotControl = new WeakMap(); // plane -> performance.now() when it came out (or 0 while still leaving)
+  function nameAlpha(p) {
+    if (p.exitTo != null) {
+      gotControl.set(p, 0);
+      return 0;
+    }
+    const t = gotControl.get(p);
+    if (t === undefined) return 1; // never left a hangar here
+    if (t === 0) gotControl.set(p, performance.now());
+    const a = Math.min(1, (performance.now() - (t || performance.now())) / 1000 / NAME_FADE);
+    if (a >= 1) gotControl.delete(p);
+    return a;
+  }
   function drawPlaneName(p, focus) {
     if (!nameShown(p.callsign, p.id, focus)) return;
-    const { grow, alpha } = exitLook(p);
+    const alpha = nameAlpha(p);
     if (alpha <= 0) return;
     // Head-on frames (out of the hangar, turning round) are drawn level: the tail-down tilt would slant the name.
     const view = p.groundTurn != null ? { angle: p.angle, x: p.x, y: p.y } : groundAttitude(p);
@@ -929,7 +945,7 @@ export function createRenderer(canvas, world, assets) {
     ctx.translate(planeX(view.x), planeY(view.y));
     ctx.rotate(-(Math.cos(view.angle) >= 0 ? view.angle : view.angle - Math.PI));
     if (!upright) ctx.rotate(Math.PI);
-    ctx.scale(grow, grow * Math.max(0.05, Math.abs(roll)));
+    ctx.scale(1, Math.max(0.05, Math.abs(roll)));
     ctx.globalAlpha = alpha;
     ctx.font = NAME_FONT;
     ctx.textAlign = 'center';
