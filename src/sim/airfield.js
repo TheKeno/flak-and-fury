@@ -12,7 +12,7 @@ const TOP_UP_BELOW = 0.9; // once serviced, an idling engine only brings the cre
 export const DEFAULT_SERVICING = {
   crewDelay: 1.2, crewWalkSpeed: 50, crewSetup: 1, crewRespawn: 3, crewStartle: 1.2, crewKillSpeed: 2.5, crewTurnKillNose: 0.3, crewTurnKillWing: 0.4,
   repairPerSec: 25, refuelTime: 5, rearmTime: 3, recoveryTime: 20,
-  parkPushSpeed: 60, parkInTime: 2.5,
+  parkPushSpeed: 30, parkInTime: 2.5,
 };
 
 // The ground crew are two mechanics in world.crew: { id, team, plane (the id they're sent to, null
