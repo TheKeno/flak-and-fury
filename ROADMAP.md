@@ -96,7 +96,7 @@ later.
     `notes/hangar-options.md` and `notes/hangar-options-verified.md`. **Weight idea:** guns and ammunition get a weight (kg) and can
     be removed to save weight (a plane may fly with no guns); the weight bar covers bombs and guns; a plane lighter than
     standard flies better than today (so the current numbers are no longer the best case); guns and pods add some drag
-    (speed). Engine choice only on the few planes that really had one; altitude-rated engines need an altitude power model.
+    (speed). **Build plan: `notes/hangar-build-plan.md`** (weight model, data, stages, best-guess weights and what to look up). Engine choice only on the few planes that really had one; altitude-rated engines need an altitude power model.
   - **Out of scope here:** paint editor (milestone 8), visible bombs and bay doors (steps 4 and 5), fuel weight.
   - **Build order:** (1, done 2026-11-06) sim and online: `p.loadout`, `validateLoadout`, presets, seat request, tests; (2) the
     full hangar page; (3) the roll-out overlay and plane swap in the hangar, remove the Esc plane switch;
