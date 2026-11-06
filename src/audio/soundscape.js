@@ -6,6 +6,7 @@ import { createBody } from './body.js';
 import { buildVoices, renderGun } from './gun-voices.js';
 import { createBombWhistle, createFire, createScrape, createTankEngine, createRadarStatic } from './loops.js';
 import { radarHealth } from '../sim/ground.js';
+import { runwayAt } from '../sim/runway.js';
 import { createCrew } from './crew.js';
 import { spatialize } from './spatial.js';
 import * as rawSfx from './sfx.js';
@@ -18,6 +19,8 @@ const ME = { dist: 0, pan: 0, gain: 1, cutoff: 18000, delay: 0, doppler: 1 };
 
 // cfg: the audio settings (hearRange, bangRange: how far sounds carry), read live for the tuning panel.
 // sound: data/sound.json; planeDefs: to find a plane's name in it.
+const CHIRP_MIN_SPEED = 25; // slower than this the wheels barely need to spin up
+
 export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   const planeIds = new Map(Object.entries(planeDefs).map(([id, def]) => [def, id]));
   const engines = new Map();
@@ -356,10 +359,13 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           break;
         case 'touchdown':
           sfx.touchdown(mixer, where, e.speed);
+          if (e.speed > CHIRP_MIN_SPEED && runwayAt(world, e.x)) sfx.tireScreech(mixer, where, e.speed); // tarmac only
           break;
         case 'hardLanding':
           // A jarring thump: the touchdown sound driven hard, and a crunch if the propeller bit.
           sfx.touchdown(mixer, where, 140 + 60 * e.severity);
+          // A plop also sends a touchdown event, which has chirped already.
+          if (!e.plop && runwayAt(world, e.x)) sfx.tireScreech(mixer, where, 140 + 60 * e.severity);
           if (e.noseDown) sfx.bellyCrunch(mixer, where, 40);
           break;
         case 'roll':

@@ -112,6 +112,7 @@ const ONE_SHOTS = {
   explosionFlakGun: ['Flak gun or MG nest destroyed', (w) => sfx.explosion(mixer, w, 0.6, 'FlakGun')],
   flakBurst: ['Flak burst', (w) => sfx.flakBurst(mixer, w)],
   touchdown: ['Touchdown', (w) => sfx.touchdown(mixer, w, 40)],
+  tireScreech: ['Tyre chirp (runway only)', (w) => sfx.tireScreech(mixer, w, 60)],
   gearDown: ['Gear motor', (w) => sfx.gearMotor(mixer, w, 1.2, true)],
   gearLockUp: ['Gear lock, up', (w) => sfx.play(mixer, voices.gearLockUp, w, { gain: 0.45, rate: 0.85, recordedRate: 1 })],
   gearLockDown: ['Gear lock, down', (w) => {
@@ -182,6 +183,7 @@ const USED = {
   'sfx:explosionFlakGun': 'Flak guns, MG nests and other ground targets destroyed that have no collapse sound of their own.',
   'sfx:flakBurst': 'A flak shell bursting in the air.',
   'sfx:touchdown': 'Wheels touching down, louder on a hard landing.',
+  'sfx:tireScreech': 'Tyres chirping as the wheels spin up on touchdown, on a runway only (not grass or dirt), longer and louder on a hard landing.',
   'sfx:gearDown': 'The gear moving up or down, as it travels.',
   'sfx:gearLockUp': 'The gear finishing going up: one solid clunk into the wing.',
   'sfx:gearLockDown': 'The gear finishing coming down: the clunk and the lock pins snapping home.',
@@ -1014,6 +1016,7 @@ const recOf = (id) => (sound.recordings[id] ??= { synth: 1 });
 const slug = (id) => id.replace(/^[a-z]+:/, '').replace(/([a-z])([A-Z0-9])/g, '$1-$2').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
 const KIND_FOLDER = { gun: 'guns', build: 'engines', engine: 'engines' };
 function libraryFolder(id) {
+  if (id === 'sfx:tireScreech') return 'impacts';
   if (KIND_FOLDER[id.split(':')[0]]) return KIND_FOLDER[id.split(':')[0]];
   const r = sound.recordings[id] ?? sound.layers[id.replace(/^layer:/, '')];
   const files = [...(r?.groups ?? []).flatMap((g) => g.files), ...(r?.clips ?? []), ...(r?.group?.files ?? [])];
@@ -1766,6 +1769,7 @@ function otherSlots(vehicles, locked) {
     groupSlot('loop:crewRearm', 'crewRearm', 'Rearming', 'A steady loop of ammunition belts rattling and boxes knocking, 5-15 s. No engine or speech.', locked, null, true),
     el('h3', { textContent: 'Landing: shared with all aircraft' }),
     groupSlot('sfx:touchdown', 'touchdown', 'Touchdown', '2-3 short thumps of wheels hitting the ground, under 1 s, with no engine in them.', locked),
+    groupSlot('sfx:tireScreech', 'tireScreech', 'Tyre chirp', 'One short squeal of tyres, under 0.5 s, with no engine or thump in it. Plays on runway touchdowns only, together with Touchdown.', locked),
     groupSlot('sfx:gearLockUp', 'gearLockUp', 'Gear lock, up', '2-3 short metal clunks, under 1 s, with no motor sound in them. Plays as the gear finishes going up.', locked),
     groupSlot('sfx:gearLockDown', 'gearLockDown', 'Gear lock, down', '2-3 short clunks with a snap of lock pins, under 1 s, with no motor sound in them. Plays as the gear finishes coming down.', locked)];
 }

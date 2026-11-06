@@ -98,6 +98,17 @@ export function touchdown(mixer, where, speed) {
   noiseBurst(mixer, dest, at + 0.18, 0.08, { type: 'bandpass', from: 2200, to: 1500, q: 3, vol: 0.2 * v });
 }
 
+// Tyre chirp: the main wheels spinning up on concrete. Short, a squeal over a puff of rubbery noise;
+// harder landings (more speed) are louder and last a little longer.
+export function tireScreech(mixer, where, speed) {
+  const at = mixer.now + where.delay;
+  const dest = out(mixer, where, at, 0.1);
+  const v = Math.min(1, speed / 90);
+  const dur = 0.16 + 0.14 * v;
+  tone(mixer, dest, at, dur, { from: 780 + 200 * v, to: 1150 + 300 * v, vol: 0.05 + 0.1 * v, type: 'sawtooth' });
+  noiseBurst(mixer, dest, at, dur, { type: 'bandpass', from: 2600, to: 3400, q: 6, vol: 0.12 * v + 0.03, attack: 0.02 });
+}
+
 // Landing gear moving: a hydraulic pump whine with hiss. Raising, the pump works harder and the pitch
 // climbs; lowering, gravity helps and it sags.
 export function gearMotor(mixer, where, dur, down) {
