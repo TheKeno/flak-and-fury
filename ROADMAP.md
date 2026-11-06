@@ -448,6 +448,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Sound Design tab plays synths, not clips** (Sound): the Sound Lab's Sound Design tab auditions the synthesised sounds instead of the recorded clips in the slots; it should play the clips.
 - **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass.
 - **Weird sound from Jonatan's video** (Sound): look into the odd sound Jonatan sent the owner in a video; find out what it is and whether the game should have it.
 - **Hangar exit sprite glitch** (Planes): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns.
