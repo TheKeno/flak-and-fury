@@ -13,6 +13,7 @@ export const ACTIONS = [
   ['bomb', 'Bombs', ['KeyE', 'Mouse2']],
   ['gear', 'Landing gear', ['KeyG', null]],
   ['abandon', 'Bail out', ['KeyB', null]],
+  ['bombView', 'Bomb view (hold: look straight down)', ['KeyC', null]],
   ['lookUp', 'Look up', ['ArrowUp', null]],
   ['lookDown', 'Look down', ['ArrowDown', null]],
   ['lookLeft', 'Look left', ['ArrowLeft', null]],
@@ -116,6 +117,11 @@ export function createKeyboard(bindings = defaultBindings()) {
     readLook() {
       let x = (any(bindings.lookRight) ? 1 : 0) - (any(bindings.lookLeft) ? 1 : 0);
       let y = (any(bindings.lookDown) ? 1 : 0) - (any(bindings.lookUp) ? 1 : 0);
+      // Bomb view: held, the camera drops straight below the plane, whatever else is held.
+      if (any(bindings.bombView)) {
+        x = 0;
+        y = 1;
+      }
       if (x && y) {
         x *= Math.SQRT1_2;
         y *= Math.SQRT1_2;
