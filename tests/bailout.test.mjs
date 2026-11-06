@@ -284,6 +284,10 @@ test('a new plane mid-flight comes out of the hangar like a respawn (game worlds
   assert.equal(p.state, 'ground');
   assert.ok(Math.abs(mainWheelContact(p).x - hangar.x) < 0.01, 'inside the hangar, not where the old plane was');
   assert.equal(p.exitPhase, 'wait');
+  assert.equal(p.hold, true, 'held for the pilot in the hangar');
+  run(world, 20, { p1: IDLE });
+  assert.equal(p.exitPhase, 'wait', 'still inside until released');
+  stepWorld(world, { p1: { ...IDLE, hangar: 'out' } });
   run(world, 20, { p1: IDLE });
   assert.equal(p.exitTo, null, 'rolled out');
   assert.ok(Math.abs(p.x - world.map.airfields[0].x) < world.map.airfields[0].width, 'on its own airfield');

@@ -2,7 +2,7 @@
 // so bots move when a player changes side. A side never has more than MAX_PER_SIDE players, and if
 // players outnumber a side's planes both sides grow to match: 1 v 1 with both players together is
 // those two against two bots.
-import { createPlane, spawnAtAirfield } from './plane.js';
+import { createPlane, spawnAtAirfield, holdForPilot } from './plane.js';
 import { setBots } from './world.js';
 import { armPlane, validateLoadout, setLoadout, validateGuns, setGuns, canPrepare } from './weapons.js';
 import { bailOut, makeWreck } from './bailout.js';
@@ -78,6 +78,7 @@ export function changeSeat(world, p, { team = p.team, defId = null, loadout = nu
   if (p.fresh && p.state === 'ground') {
     refit(world, p, def, team, loadout, guns);
     spawnAtAirfield(p, world, world.hangarStart);
+    holdForPilot(p); // a new plane waits in the hangar for the pilot's choice
     return null;
   }
   if (p.switchedAt != null && (world.tick - p.switchedAt) * dt < world.bailout.switchWait) return 'wait';
@@ -98,5 +99,6 @@ export function changeSeat(world, p, { team = p.team, defId = null, loadout = nu
   makeWreck(world, p);
   refit(world, p, def, team, loadout, guns);
   spawnAtAirfield(p, world, world.hangarStart);
+  holdForPilot(p);
   return null;
 }

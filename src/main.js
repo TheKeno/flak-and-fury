@@ -14,7 +14,7 @@ import { hangarRefusal, callingMessage } from './ui/hangar-messages.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
-import { NO_COMMAND, parkInBlocker } from './sim/plane.js';
+import { NO_COMMAND, parkInBlocker, holdForPilot } from './sim/plane.js';
 import { setLoadout, setGuns } from './sim/weapons.js';
 import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
 import { releasePilot } from './sim/bailout.js';
@@ -776,6 +776,7 @@ $('host').addEventListener('click', async () => {
         if (hello.loadout) setLoadout(p, hello.loadout, world.weapons); // checked there; a bad list keeps the default
         if (hello.guns) setGuns(p, hello.guns, world.weapons);
         g.planeId = p.id;
+        if (started) holdForPilot(p); // joining a running game: the hangar panel opens for the new pilot
         renderer.message(`${p.callsign ?? 'A FRIEND'} JOINED, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
         // Sent once they've had their welcome.
         setTimeout(sidesChanged);
