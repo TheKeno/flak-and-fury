@@ -453,13 +453,12 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
+- **Friendly fire on by default, own bombs hurt own plane** (Gameplay): friendly fire should default to on, and a plane's own bombs should be able to destroy that same plane. Session: Gameplay — friendly fire default, own bombs.
 
 ## Backlog
 - **Enemy names hard to read** (UI): the names drawn along enemy planes are hard to read.
 - **Objective map features** (Gameplay): towns, bases and other interesting places on the map to fight for, giving matches objectives beyond kills.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
-- **Friendly fire on by default, own bombs hurt own plane** (Gameplay): friendly fire should default to on, and a plane's own bombs should be able to destroy that same plane.
-- **Hangar key timing and respawn behaviour** (UI): pressing H for the hangar has timing issues, and the hangar screen misbehaves on respawn.
 - **Sound Design tab plays synths, not clips** (Sound): the Sound Lab's Sound Design tab auditions the synthesised sounds instead of the recorded clips in the slots; it should play the clips.
 - **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass.
 - **Weird sound from Jonatan's video** (Sound): look into the odd sound Jonatan sent the owner in a video; find out what it is and whether the game should have it.
