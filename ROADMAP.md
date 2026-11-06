@@ -345,6 +345,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Bomber escort mission** (Gameplay): AI bombers fly across the map to the other side and the player protects them, or the player's side is the raiders and the enemy defends; needs the crewed and heavy bombers (milestones 11 and 12) and bomber AI that follows a route.
 - **Stuka dive siren** (Sound): the Ju 87 D-5's Jericho siren (Jericho-Trompete) howling while it dives; a sound that rises with dive speed, needs a recording or a synthesised layer in the Sound Lab.
 - **Ground crew positions when pulling the plane from the hangar** (Gameplay): the crew look a bit off while they drag the plane out (owner, 2026-11-05); needs a look to say where they stand wrong (related: the ground crew pass below).
 - **Outline Lab: trace refinements** (Planes): ideas left from the automatic trace: fit the plan-view half widths of the fuselage under the wing and radiators (manual now), keep a fitted fuselage's top-line kink under the fin out of the station list, tune the search window and edge strength per plane after the next few traces, a "nearest/outermost" switch if cluttered sheets need it.
