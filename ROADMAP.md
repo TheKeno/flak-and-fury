@@ -173,6 +173,7 @@ later.
 
 ## Done
 
+- **Hangar rollout text (UI, 2026-11-06):** the HUD said "ROLLING OUT" from respawn, while the plane was still hidden behind closed doors. Now `groundMessage` in `src/render/hud.js` follows the exit phase: "HANGAR DOORS OPENING", then "WAITING FOR THE WAY TO CLEAR", then "ROLLING OUT" once the crew push it out. Noticed, not changed: the title screen's key-hint line renders in odd mixed case ("SwaCe/L.mOuSe") at small size.
 - **Bomb stations (Planes, 2026-11-06, step 1 of the Decisions entry):** `bombOffset` and `armament.bombs` replaced by `hardpoints` + `loadout` in `planes.json`; the sim holds `p.stations` (`{hp, def, loaded}`, built in `armPlane`) with `bombsLeft`/`bombsFull`/`nextStation` in `src/sim/weapons.js`, and airfield rearm, AI (bomb choice, impact prediction), HUD, `recover` and the tuning panel (one section per bomb type) read through them. Release by `group` order: crutch one bomb, rack its pair together, bay a salvo on a press then one by one while held. New `sc_50`. Ju 87: SC 500 on the crutch + 2 SC 50 pairs on wing racks. Mosquito: bay (salvo of 2 GP 250) + wing rack pair (4 bombs, was 2). All others: one `crutch` hardpoint called `centre` at the old offset, same behaviour. Not yet: weight, hangar editor, visible bombs, bay doors. Tests: `tests/stations.test.mjs`.
 
 - **Edge turn without wheels (2026-11-05):** the map-edge turn now plays a new `edge` row of the plane frame sheets (the ground-turn swing drawn with the gear up) instead of the gear-down `turn` row; `transientFrame` falls back to `turn` for a sheet without it. Rebuilt for every plane except the Ju 87 (fixed gear, sheet not rebuilt, still uses `turn`). `tools/make-sprites.mjs`. Checked by comparing the rows in the browser; not flown by eye. Tests pass.
@@ -386,7 +387,6 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Odd player text when leaving the hangar** (UI) — session "UI — Odd player text when leaving the hangar".
 ## Backlog
 
 - **Infantry wave mission** (Gameplay): waves of enemy infantry advance on the player's base and the player has to mow them down with guns and bombs to stop the assault.
