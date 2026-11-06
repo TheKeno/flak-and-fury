@@ -2175,24 +2175,7 @@
       "synth": 0,
       "groups": [
         {
-          "files": [
-            {
-              "path": "assets/audio/ui/click-02.wav",
-              "size": 24486,
-              "start": 0,
-              "end": 0.179875,
-              "licence": "",
-              "source": ""
-            },
-            {
-              "path": "assets/audio/ui/click-04.wav",
-              "size": 31954,
-              "start": 0,
-              "end": 0.2363125,
-              "licence": "",
-              "source": ""
-            }
-          ],
+          "files": [],
           "gain": 1.25,
           "pitch": 0,
           "fadeIn": 0,
