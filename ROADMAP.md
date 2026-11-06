@@ -345,6 +345,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## Backlog
 
+- **Infantry wave mission** (Gameplay): waves of enemy infantry advance on the player's base and the player has to mow them down with guns and bombs to stop the assault.
 - **Bomber escort mission** (Gameplay): AI bombers fly across the map to the other side and the player protects them, or the player's side is the raiders and the enemy defends; needs the crewed and heavy bombers (milestones 11 and 12) and bomber AI that follows a route.
 - **Stuka dive siren** (Sound): the Ju 87 D-5's Jericho siren (Jericho-Trompete) howling while it dives; a sound that rises with dive speed, needs a recording or a synthesised layer in the Sound Lab.
 - **Ground crew positions when pulling the plane from the hangar** (Gameplay): the crew look a bit off while they drag the plane out (owner, 2026-11-05); needs a look to say where they stand wrong (related: the ground crew pass below).
