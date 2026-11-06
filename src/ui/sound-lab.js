@@ -381,14 +381,20 @@ function slider(obj, [path, label, min, max, step, tip], onChange, locked) {
   return el('label', { className: 'field', title: tip }, el('span', { textContent: label }), input, out);
 }
 
-const testSlider = (state, key, label, min, max, step) => {
+// extra: optional text drawn after the value (the rpm a throttle gives), redrawn when the slider moves
+// and through the label's `refresh` when something else changes it.
+const testSlider = (state, key, label, min, max, step, extra) => {
   const out = el('output', { textContent: state[key] });
+  const side = extra ? el('span', { className: 'dim', textContent: extra() }) : null;
   const input = el('input', { type: 'range', min, max, step, value: state[key] });
   input.oninput = () => {
     state[key] = Number(input.value);
     out.textContent = state[key];
+    if (side) side.textContent = extra();
   };
-  return el('label', { className: 'field' }, el('span', { textContent: label }), input, out);
+  const row = el('label', { className: 'field' }, el('span', { textContent: label }), input, out, side);
+  row.refresh = () => { if (side) side.textContent = extra(); };
+  return row;
 };
 
 const distanceControl = () => testSlider(listen, 'distance', 'Listen from, distance', 0, 1500, 10);
@@ -1859,6 +1865,7 @@ function testFlight(buildId, vehicles, kind) {
   const box = el('div', {}, el('h3', { textContent: 'Test Flight' }));
   let running = null;
   let flyby = 0;
+  let throttleRow = null; // shows the rpm; redrawn when another vehicle (engine) is picked
   const run = async () => {
     await audio();
     stopLive();
@@ -1903,14 +1910,22 @@ function testFlight(buildId, vehicles, kind) {
     };
   };
   const runBtn = button('Run', () => (running ? stopLive() : run()));
-  const pick = el('select', { onchange: () => { state.vehicle = pick.value; if (running) run(); } },
+  const pick = el('select', { onchange: () => { state.vehicle = pick.value; throttleRow?.refresh(); if (running) run(); } },
     ...usable.map((v) => el('option', { value: v.id, textContent: `${v.name}${v.count > 1 ? ` × ${v.count}` : ''}`, selected: v.id === state.vehicle })));
   box.append(el('div', { className: 'buttons' }, runBtn, 'as', pick,
     kind === 'plane' ? button('Start-up', () => running?.start(), 'Plays the start again') : null,
     button('Flyby', () => { if (mixer) flyby = mixer.now; }, 'Passes by over 6 seconds. Cockpit-only layers go quiet, as they would outside.')));
   box.append(slider(settings.audio, LEVEL_FIELDS[0], () => mixer?.applyLevels(), false));
   if (kind === 'tank') box.append(testSlider(state, 'moving', 'Moving', 0, 1, 1));
-  else box.append(testSlider(state, 'throttle', 'Throttle', 0, 1, 0.01), testSlider(state, 'speed', 'Airspeed', 0, 250, 1), testSlider(state, 'turn', 'Turn strength', 0, 4, 0.05), testSlider(state, 'damage', 'Damage', 0, 1, 0.01));
+  else {
+    // The rpm the throttle gives on the chosen engine, as the run loop works it out.
+    const rpmNow = () => {
+      const s = engineOf(sound.vehicles.find((x) => x.id === state.vehicle) ?? {});
+      return s?.idleRpm ? `${Math.round(s.idleRpm + (s.maxRpm - s.idleRpm) * state.throttle)} rpm` : '';
+    };
+    throttleRow = testSlider(state, 'throttle', 'Throttle', 0, 1, 0.01, rpmNow);
+    box.append(throttleRow, testSlider(state, 'speed', 'Airspeed', 0, 250, 1), testSlider(state, 'turn', 'Turn strength', 0, 4, 0.05), testSlider(state, 'damage', 'Damage', 0, 1, 0.01));
+  }
   return box;
 }
 

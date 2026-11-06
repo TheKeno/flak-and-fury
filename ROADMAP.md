@@ -225,6 +225,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Sound Design Test Flight shows the rpm (Sound, 2026-11-06):** the number of revolutions per minute the throttle gives on the chosen engine is drawn to the right of the Throttle slider and follows the vehicle pick (`testSlider` in `src/ui/sound-lab.js`).
 - **Sound Lab Sounds-tab Play plays the clips (Sound, 2026-11-06):** the Play button on an engine build page (and the tank build page and the Mix tab's explosion-over-engine test) made the engine voice without the sound's recording id, so only the synth played; it now passes `build:<id>`, so the recorded clips and start-up play like in Test Flight and the game. Fix in `src/ui/sound-lab.js`.
 - **Friendly fire on by default, own bombs hurt own plane (Gameplay, 2026-11-06):** `friendlyFire` now defaults to true (`data/settings.json`, `DEFAULT_RULES` in `src/sim/world.js`). A bomb striking a plane now follows the friendly-fire rule, and with it on can hit the plane that dropped it once `BOMB_SAFE_TIME` (0.6 s, `src/sim/weapons.js`) has passed (its blast already hurt the owner). Tests that relied on the old default set `friendlyFire: false` explicitly; new test in `tests/weapons.test.mjs`. Not tried in play; bots will now hit their own side too, so watch how that feels.
 - **Crew push-out matches push-in (Planes, 2026-11-06):** push-out uses `parkPushSpeed` (now 30, in and out) and `parkInTime`; hangar `exitSpeed` and `outTime` removed. Crew now follow shoved planes too (`shove` phase) until they stop. Hangar `doorTime` 1.2 -> 0.8.
