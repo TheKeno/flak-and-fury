@@ -45,9 +45,37 @@ later.
     turn behaviour in `ai.js`) assume today's numbers. Also feeds the hangar editor's weight budget.
   - **Build order:** (1, done 2026-11-06) station system with the Stuka (SC 500 crutch + 4 SC 50 racks, new `sc_50`) and the
     Mosquito FB.VI (bay + wing racks; currently 2 GP 250 on one offset), all other planes one hardpoint at
-    their old offset, tests and TUNING.md; (2, done 2026-11-06) weight; (3) hangar loadout editor; (4) visible bombs on the
+    their old offset, tests and TUNING.md; (2, done 2026-11-06) weight; (3) hangar loadout editor, now the Hangar entry below; (4) visible bombs on the
     racks (the backlog item "External bomb mounts and visible bombs"); (5) bays and the heavies (Blenheim,
     Ju 88, B-17F, Lancaster, He 177, Pe-8).
+- **Hangar: plane, loadout and parking (decided 2026-11-06, discussion; not built):** the hangar becomes the one place
+  where you choose your **plane and its bomb load**; it replaces the Esc-menu "switch plane" option (step 3 of the
+  bomb stations entry above). Side switching stays in the Esc menu for now.
+  - **When it opens:** on death or bail-out, and when you **land and park at your own hangar**. It never blocks:
+    the respawn roll-out runs as today and opens the throttle as soon as it is done. The hangar opens on your
+    **last plane and last loadout** (remembered per plane in localStorage), so a quick player never touches it.
+  - **Shape:** a compact panel over the world during the roll-out (plane strip for the side, presets, a
+    `H` key or click to open the full page: per-hardpoint rows limited by `maxKg`, weight bar against
+    `maxLoad`, the effect read from `flyingDef`). Full page is `hangar.html` + `src/ui/hangar.js`, grim dark
+    style like the labs. Choosing another plane swaps the plane standing in the hangar (like `changeSeat`) and
+    restarts the roll-out; best before the doors open (open question: allowed after, re-closing the doors?).
+    A plane parked and waiting holds in the queue with a "LOADING" message until the page is closed.
+  - **Loadout data:** `loadoutPresets` per plane in `planes.json` (2 to 4 named, preset 0 = today's `loadout`,
+    fighters get "Bomb"/"Clean"); `p.loadout` is plain data (`[{hardpoint, weapon, count}]`) used by
+    `armPlane` and `rearmBombs` in place of `def.loadout` when set; one `validateLoadout(def, list, weapons)`
+    (hardpoint exists, bomb, weight <= `maxKg`, total <= `maxLoad`; invalid falls back to the default). Bots
+    keep the default. Online: a guest sends plane + loadout in one seat request, the host validates both
+    (plane allowed for the side) and locks the load when the plane leaves the hangar doors; this replaces
+    the guest's current switch-plane request. `tests/net.test.mjs` must keep passing.
+  - **Parking in (new animation):** land, taxi to your hangar, stop; ground crew grab the plane and **roll it
+    in** (the roll-out reversed, `stepHangarExit` mirror, crew from `airfield.js`), then the hangar opens.
+    **The farther from the hangar you stop, the longer the wait** (crew walk out, push further): a
+    distance-based delay with tunables in settings.json and `TUNING.md`, so a good landing near the hangar
+    is a faster turnaround. Needs the crew walk-out and push-in sprites.
+  - **Out of scope here:** paint editor (milestone 8), visible bombs and bay doors (steps 4 and 5), fuel weight.
+  - **Build order:** (1) sim and online: `p.loadout`, `validateLoadout`, presets, seat request, tests; (2) the
+    full hangar page; (3) the roll-out overlay and plane swap in the hangar, remove the Esc plane switch;
+    (4) park-in animation and distance delay.
 - **Outline Lab (decided 2026-11-04; side view and plan view built 2026-11-05, auto trace built 2026-11-05; the pixel touch-up layer was dropped 2026-11-05):** a browser editor for plane (and later tank) outlines,
   `outline-lab.html` next to the Sound Lab, so outline work runs on the owner's screen instead of costing
   tokens on screenshots and re-measuring. Only the outline is edited; everything inside it (shading,
