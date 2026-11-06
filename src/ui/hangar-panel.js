@@ -1,15 +1,11 @@
-// The in-game hangar: a compact strip while your plane waits (dead, or behind the hangar doors), and a panel
-// over the game (L) to choose plane and bombs. The rules are in hangar-logic.js (shared with hangar.html);
+// The in-game hangar: a panel over the game (H) to choose plane and bombs. The rules are in hangar-logic.js (shared with hangar.html);
 // this only draws and reports: on.choose({ defId, loadout }) goes to changeSeat (or the seat message online).
 // All the look is in STYLE below, so it is easy to change.
 import { hardpointChoices, buildLoadout, rowsOf, presetsOf, presetIndex, effects, describeEffects, planeIds, readSaved, writeSaved, loadKg, hasBombs } from './hangar-logic.js';
 import { validateLoadout } from '../sim/weapons.js';
 
 const STYLE = `
-.hangar-strip, .hangar-panel { position: absolute; font: 13px/1.35 'Courier New', monospace; color: #c4c5bb; user-select: none; }
-.hangar-strip { left: 50%; bottom: 4%; transform: translateX(-50%); background: rgba(16,18,20,.88); border: 1px solid #2c3135; padding: 5px 14px; cursor: pointer; white-space: nowrap; }
-.hangar-strip b { color: #a8905c; font-weight: normal; }
-.hangar-strip.locked { opacity: .6; cursor: default; }
+.hangar-panel { position: absolute; font: 13px/1.35 'Courier New', monospace; color: #c4c5bb; user-select: none; }
 .hangar-panel { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92%, 620px); max-height: 92%; overflow: auto; background: rgba(16,18,20,.94); border: 1px solid #2c3135; padding: 12px 16px; }
 .hangar-panel h2 { margin: 0 0 2px; font-size: 17px; color: #a8905c; font-weight: normal; }
 .hangar-panel h3 { margin: 12px 0 4px; font-size: 12px; color: #a8905c; font-weight: normal; border-bottom: 1px solid #2c3135; }
@@ -41,10 +37,9 @@ const num = (v) => (v < 10 ? v.toFixed(2) : Math.round(v)); // turn rate is in r
 // opened(), closed() }.
 export function createHangarPanel({ parent, planeDefs, weapons, nations, settings, keyName, on }) {
   parent.append(el('style', {}, STYLE));
-  const strip = el('div', { className: 'hangar-strip' });
   const panel = el('div', { className: 'hangar-panel' });
-  strip.hidden = panel.hidden = true;
-  parent.append(strip, panel);
+  panel.hidden = true;
+  parent.append(panel);
 
   let storage;
   try {
@@ -101,14 +96,6 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
     const at = ids.indexOf(idOf(plane.def));
     pickPlane(ids[(at + dir + ids.length) % ids.length] ?? ids[0]);
   };
-
-  function drawStrip() {
-    const can = editable();
-    strip.className = `hangar-strip${can ? '' : ' locked'}`;
-    const l = load();
-    const kg = l ? Math.round(loadKg(l, weapons)) : 0;
-    strip.replaceChildren(el('b', {}, `${keyName('hangar')} `), `HANGAR: ${plane.def.name}${l ? ` · ${kg} kg` : ''}`);
-  }
 
   function drawPanel() {
     const def = plane.def;
@@ -172,11 +159,8 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
     const key = JSON.stringify([idOf(plane.def), l, editable(), panel.hidden, nation, note, keyName('hangar'), plane.hold]);
     if (!force && key === lastKey) return;
     lastKey = key;
-    drawStrip();
     if (!panel.hidden) drawPanel();
   }
-
-  strip.addEventListener('click', () => api.open());
 
   const api = {
     get isOpen() {
@@ -214,7 +198,6 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
     update(p, { started = true, blocked = false } = {}) {
       plane = p;
       const show = Boolean(p) && started && !blocked && (editable() || !panel.hidden);
-      strip.hidden = !show || !panel.hidden;
       if (!p) return;
       // A new wait behind the doors (or the first one): the load saved for this plane goes on it.
       const can = editable();
