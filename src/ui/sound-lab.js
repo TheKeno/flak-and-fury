@@ -155,14 +155,13 @@ const ONE_SHOTS = {
   radarTick: ['Radar sweep tick', (w) => sfx.play(mixer, voices.radarTick, w, { gain: 0.12, rate: 0.6 })],
 };
 // Tracked here so they can be ticked and noted; their audition comes with the recording stage.
-const LOOPS = { wind: 'Wind, dive scream, stall, wheels', bombWhistle: 'Bomb whistle', scrape: 'Belly scrape', fire: 'Burning fire', radarStatic: 'Radar static', crewPush: 'Crew pushing the plane out', crewRepair: 'Crew repairing', crewRefuel: 'Crew refuelling', crewRearm: 'Crew rearming' };
+const LOOPS = { wind: 'Wind, dive scream, stall, wheels', bombWhistle: 'Bomb whistle', scrape: 'Belly scrape', fire: 'Burning fire', radarStatic: 'Radar static', crewRepair: 'Crew repairing', crewRefuel: 'Crew refuelling', crewRearm: 'Crew rearming' };
 // Loops that can be auditioned here, with the value the game drives them by.
 const LOOP_TEST = {
   fire: ['Intensity', 0, 1, 0.7, (m) => createFire(m)],
   bombWhistle: ['Fall speed', 0, 300, 150, (m) => createBombWhistle(m)],
   scrape: ['Speed', 0, 100, 40, (m) => createScrape(m)],
   radarStatic: ['Level', 0, 1, 0.5, (m) => createRadarStatic(m)],
-  crewPush: [null, 0, 1, 1, (m) => crewAtWork(m, 'push')],
   crewRepair: [null, 0, 1, 1, (m) => crewAtWork(m, 'repair')],
   crewRefuel: [null, 0, 1, 1, (m) => crewAtWork(m, 'refuel')],
   crewRearm: [null, 0, 1, 1, (m) => crewAtWork(m, 'rearm')],
@@ -226,7 +225,6 @@ const USED = {
   'sfx:gasp': 'Your own plane: the gasp when the pilot comes round.',
   'loop:crewRepair': 'Any plane near you being repaired by its ground crew. Loops while the job lasts.',
   'loop:crewRefuel': 'Any plane near you being refuelled by its ground crew. Loops while the job lasts.',
-  'loop:crewPush': 'Any plane near you being pushed out of its hangar by the ground crew, until it has turned into the runway and the engine starts. Loops while they push.',
   'loop:crewRearm': 'Any plane near you being rearmed by its ground crew. Loops while the job lasts.',
 };
 const BUILD_USE = { plane: 'The running engine of the planes on this build, from start-up on. Doppler and distance apply.', tank: 'The generic tank in the game today, if this is its default build. The nearest 4 tanks play. Other builds wait until those tanks exist.' };
@@ -1411,7 +1409,7 @@ const AIRFRAME_SLOTS = {
   creak: ['Creak', 'triggered', 'turn', null, '3-4 short creaks or groans of 1-2 s, each different. One plays at random in hard turns, so they need to sound good alone and not be too loud.'],
   damage: ['Damage', 'continuous', 'damage', m(0.1, 0.8, 0, 1, 1, 1), 'A steady loop of knocking or rough rattling, 5-10 s. It fades in as the plane takes damage, so it should sound like something is broken.'],
 };
-const LOOPING = new Set(['idle', 'cruise', 'full', 'move', 'tracks', 'airflow', 'rattle', 'damage', 'crewPush', 'crewRepair', 'crewRefuel', 'crewRearm']);
+const LOOPING = new Set(['idle', 'cruise', 'full', 'move', 'tracks', 'airflow', 'rattle', 'damage', 'crewRepair', 'crewRefuel', 'crewRearm']);
 
 const pageBuild = () => {
   if (design.type === 'build') return design.id;
@@ -1772,7 +1770,6 @@ function otherSlots(vehicles, locked) {
     groupSlot('sfx:breathing', 'breathing', 'Breathing', 'One whole breath, in and out, about 2 s, close to the mic. It repeats while the pilot is close to blacking out.', locked),
     groupSlot('sfx:gasp', 'gasp', 'Gasp', '2-3 short, sharp gasps, under 1 s, for the pilot coming round.', locked),
     el('h3', { textContent: 'Ground crew: shared with all aircraft' }),
-    groupSlot('loop:crewPush', 'crewPush', 'Pushing out', 'A steady loop of two or three men pushing a heavy plane over gravel: boots, grunts of effort, a wheel or strut creaking, 5-15 s. No engine and no speech.', locked, null, true),
     groupSlot('loop:crewRepair', 'crewRepair', 'Repairing', 'A steady loop of ratchets and hammer blows, 5-15 s, recorded a little away. No engine or speech.', locked, null, true),
     groupSlot('loop:crewRefuel', 'crewRefuel', 'Refuelling', 'A steady loop of fuel gurgling through a hose, 5-15 s. No engine or speech.', locked, null, true),
     groupSlot('loop:crewRearm', 'crewRearm', 'Rearming', 'A steady loop of ammunition belts rattling and boxes knocking, 5-15 s. No engine or speech.', locked, null, true),

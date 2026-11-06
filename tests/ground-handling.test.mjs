@@ -174,6 +174,7 @@ test('a pilot who died gets the hangar: the new plane waits inside until release
   assert.equal(p.engineRunning, false);
   assert.notEqual(b.exitPhase, 'wait', 'the bot came out');
   stepWorld(world, { p1: { ...IDLE, hangar: 'out' } });
+  assert.equal(p.engineRunning, true, 'START ENGINE: the engine starts the moment the pilot releases the plane');
   steps(world, 60 * 20);
   assert.notEqual(p.exitPhase, 'wait', 'released, it rolls out');
 });

@@ -1,4 +1,4 @@
-// Ground crew at work: boots and creaks pushing a plane out of the hangar, ratchet and hammer for repairs, a glugging fuel hose, ammunition belts and
+// Ground crew at work: ratchet and hammer for repairs, a glugging fuel hose, ammunition belts and
 // boxes for rearming. One per plane being serviced; update() each frame with the current job.
 import * as sfx from './sfx.js';
 
@@ -57,11 +57,6 @@ export function createCrew(mixer, voices) {
         for (let i = 0; i < n; i++) sfx.play(mixer, click, where, { gain: 0.35, rate: 0.55, offset: i * 0.07 });
         if (Math.random() < 0.4) sfx.play(mixer, clank, where, { gain: 0.5, rate: 0.55, offset: n * 0.07 + 0.2 });
         next = now + n * 0.07 + 0.5 + Math.random() * 0.6;
-      } else if (job === 'push') {
-        // Two men leaning on a cold plane: boots on the gravel, now and then a wheel or strut creaking.
-        for (let i = 0; i < 2; i++) sfx.play(mixer, thunk, where, { gain: 0.16, rate: 0.75 + Math.random() * 0.2, offset: i * 0.23 + Math.random() * 0.05 });
-        if (Math.random() < 0.3) sfx.play(mixer, clank, where, { gain: 0.12, rate: 0.45 + Math.random() * 0.15, offset: 0.1 });
-        next = now + 0.5 + Math.random() * 0.12;
       } else if (job === 'rearm') {
         // Belts rattling into the ammunition bays, then a box knocked shut.
         for (let i = 0; i < 6; i++) sfx.play(mixer, clank, where, { gain: 0.18, rate: 1.6 + Math.random() * 0.3, offset: i * 0.05 });

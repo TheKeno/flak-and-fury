@@ -97,7 +97,7 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
     panel.replaceChildren(view.draw(state, {
       pickPlane, change,
       close: () => api.close(),
-      closeLabel: `${plane.hold ? 'ROLL OUT' : 'CLOSE'} (${keyName('hangar')})`,
+      closeLabel: `${plane.hold ? 'START ENGINE' : 'CLOSE'} (${keyName('hangar')})`,
       hint: '◀ ▶ plane · 1-4 presets',
     }));
   }

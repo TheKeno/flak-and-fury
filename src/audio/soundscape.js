@@ -147,9 +147,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   // Ground crew sounds, placed beside the plane.
   function updateCrews() {
     for (const p of world.planes) {
-      // Pushed out of the hangar (not under the engine's own power yet), or at work on the plane.
-      const pushed = p.state === 'ground' && (p.exitPhase === 'out' || p.exitPhase === 'turn' || p.exitPhase === 'roll' || p.exitPhase === 'shove');
-      const job = p.service && p.service.wait <= 0 ? p.service.phase : pushed ? 'push' : null;
+      const job = p.service && p.service.wait <= 0 ? p.service.phase : null;
       let c = crews.get(p.id);
       if (job && job !== 'done') {
         // Each job is a sound of its own, with its recording.

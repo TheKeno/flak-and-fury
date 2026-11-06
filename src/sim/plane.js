@@ -1132,6 +1132,7 @@ export function stepPlane(p, cmd, world, dt) {
   if (cmd.hangar === 'out' && p.hold) {
     p.hold = false;
     p.holdNew = false;
+    startEngine(p, world); // START ENGINE in the hangar panel: the engine starts here, then the crew push it out
     p.exitSeq = world.nextId++; // a fresh place in the queue
   }
   if (p.park && (p.park.phase === 'call' || p.park.phase === 'roll') && cmd.throttle > 0) cancelPark(p, world);
