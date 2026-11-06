@@ -21,6 +21,7 @@ const DT = 1 / 60;
 // Shared numbers, then one block per difficulty level. Kept as the caller's object (settings.bots) so
 // the tuning panel edits them live.
 export const DEFAULT_BOTS = {
+  names: [], // callsigns bots draw from (settings.bots.names)
   cruiseHeight: 220, // patrol height above the ground
   terrainClear: 55, // ground clearance kept in ordinary flight
   patrolSpan: 500, // length of the patrol beat behind the front

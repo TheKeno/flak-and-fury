@@ -406,6 +406,7 @@ The rest of `hud` is the read-outs:
 | `showHelp` | Show the key help at start (H toggles it). | false |
 | `showNames` | Other players' names along their planes. | true |
 | `showOwnName` | Your own name too. | false |
+| `showBotNames` | Computer pilots' names too (they draw from `bots.names`). | true |
 | `lastFlightTime` | Seconds the LAST FLIGHT report stays after you respawn. | 5 – 12 |
 | `edgeMessages` | The list of lines, one picked at random (never the same twice running) when your plane swings round at the map edge. Edit in the file; an empty list shows nothing. | |
 

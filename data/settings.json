@@ -193,6 +193,7 @@
     "closePoints": 100
   },
   "bots": {
+    "names": ["NEWMAN", "MAJSMANNEN", "LIQUIDE", "LOW-LIFE", "TOTTI", "SVETT", "HACKBARD", "HEINER", "RAIDEN", "ODEE", "THRASHER", "SNAKEY", "SAKAI", "TAGG", "SPADES", "DEMAN", "KENO", "IREAPER", "ZLAXZZOR", "ZATARRA"],
     "cruiseHeight": 220,
     "terrainClear": 55,
     "patrolSpan": 500,
@@ -277,6 +278,7 @@
     "showHelp": false,
     "showNames": true,
     "showOwnName": false,
+    "showBotNames": true,
     "edgeMessages": [
       "WRONG WAY",
       "NICE TRY",

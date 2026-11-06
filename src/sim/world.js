@@ -103,6 +103,20 @@ export function createWorld({
   return world;
 }
 
+// A bot's callsign: a pseudo-random pick from settings.bots.names, skipping names already in use while any
+// are free. Hashed from the plane id, not world.rng, so it doesn't shift the sim's random sequence.
+function botName(world, id) {
+  const names = world.bots.names ?? [];
+  if (!names.length) return null;
+  const used = new Set(world.planes.map((o) => o.callsign));
+  const start = (Math.imul(id + world.map.seed, 2654435761) >>> 0) % names.length;
+  for (let i = 0; i < names.length; i++) {
+    const n = names[(start + i) % names.length];
+    if (!used.has(n)) return n;
+  }
+  return names[start];
+}
+
 // controller: an input name ("p1") or "bot:<skill>" for a computer pilot.
 export function addPlane(world, { defId, team, nation, controller }) {
   const def = world.planeDefs[defId];
@@ -112,6 +126,7 @@ export function addPlane(world, { defId, team, nation, controller }) {
     nation,
     seats: [{ role: 'pilot', controller }],
   });
+  if (controller.startsWith('bot')) p.callsign = botName(world, p.id);
   p.fresh = true; // not flown yet: can still change side or plane for free (src/sim/seats.js)
   world.planes.push(p);
   spawnAtAirfield(p, world, world.hangarStart);

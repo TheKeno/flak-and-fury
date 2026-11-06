@@ -903,7 +903,7 @@ export function createRenderer(canvas, world, assets) {
     ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
   }
 
-  // Pilot names (bots have none). A plane's is like paint: it tilts with the plane, reads normally when
+  // Pilot names (bots too, if the option is on). A plane's is like paint: it tilts with the plane, reads normally when
   // the pilot is upright whichever way he flies, turns upside down with him and squashes through a roll.
   const NAME_FONT = "600 11px Consolas, 'Lucida Console', 'DejaVu Sans Mono', monospace";
   const NAME_GAP = 25; // below the plane's centre, in the plane's own frame
@@ -938,6 +938,7 @@ export function createRenderer(canvas, world, assets) {
   }
   function drawPlaneName(p, focus) {
     if (!nameShown(p.callsign, p.id, focus)) return;
+    if (p.seats?.[0]?.controller?.startsWith('bot') && assets.settings.hud.showBotNames === false) return;
     const alpha = nameAlpha(p);
     if (alpha <= 0) return;
     // Head-on frames (out of the hangar, turning round) are drawn level: the tail-down tilt would slant the name.

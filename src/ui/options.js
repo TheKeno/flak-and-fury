@@ -37,6 +37,7 @@ function optionList(settings, defaults) {
     ['hud', 'hud.crosshairRange', 'Gunsight distance ahead', 'slider', { min: 40, max: 300, step: 5, fmt: plain, needs: 'hud.crosshair', help: 'How far ahead of the guns the sight sits (no lead, like a 1943 reflector sight).' }],
     ['hud', 'hud.showNames', 'Pilot names on planes', 'toggle', { help: "Other players' names along their planes." }],
     ['hud', 'hud.showOwnName', 'Your own name too', 'toggle', { needs: 'hud.showNames' }],
+    ['hud', 'hud.showBotNames', 'Bot names', 'toggle', { needs: 'hud.showNames', help: "Computer pilots' names along their planes." }],
   ].map(([tab, id, label, kind, d]) => {
     const path = id.includes('.') ? id : null;
     return { tab, id, label, kind, ...d, initial: d.initial ?? def(path), set: d.set ?? ((v) => set(path, v)) };
