@@ -75,6 +75,8 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 
 ## Hangar page: `hangar.html`
 
+Loadout editing is off for now: `LOADOUT_EDITING` in `src/ui/hangar-logic.js` (false: every plane gets its standard load and the screen only lists it; true: the bomb, gun and ammunition choices described below).
+
 No values of its own. It reads `loadoutPresets`, `hardpoints`, `loadout` (the per-hardpoint capacity), `maxLoad` in `planes.json`, bomb `weight` in `weapons.json` and `weight` in `settings.json` (the effect lines are `flyingDef`'s numbers). The layout is `src/ui/hangar-view.js` (its `HANGAR_STYLE` string holds the look; `AMMO_STEPS` there are the ammunition choices 100/75/50/25 %), drawn by both the page and the panel. A preset in `loadoutPresets` may also carry `guns` (a gun choice as in `p.gunChoice`; default the standard fit). Choices (plane, bombs and guns per plane) are kept in the browser's localStorage under `flak-hangar`. The in-game panel (`src/ui/hangar-panel.js`, key L) has no values of its own either; its look is the `STYLE` string at the top of that file.
 
 ## Ground crew and camera: `data/settings.json`

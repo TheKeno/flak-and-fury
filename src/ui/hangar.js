@@ -2,7 +2,7 @@
 // window.hangarChoice and a 'hangar-choice' event). The layout is hangar-view.js (shared with the in-game panel), the
 // rules hangar-logic.js.
 import { loadImage, paintSprite } from '../render/sprites.js';
-import { planeIds, sanitizeChoice, readSaved, writeSaved, hasBombs, gunChoiceFor } from './hangar-logic.js';
+import { planeIds, sanitizeChoice, readSaved, writeSaved, hasBombs, gunChoiceFor, LOADOUT_EDITING } from './hangar-logic.js';
 import { createHangarView, HANGAR_STYLE } from './hangar-view.js';
 
 const $ = (id) => document.getElementById(id);
@@ -35,8 +35,9 @@ function spriteOf(id) {
 document.head.append(Object.assign(document.createElement('style'), { textContent: HANGAR_STYLE }));
 const view = createHangarView({ planeDefs, weapons, nations, settings, spriteOf });
 
-const first = sanitizeChoice(planeDefs, weapons, saved, planeIds(planeDefs)[0]);
-let state = { defId: first.defId, loadout: first.loadout, guns: gunChoiceFor(planeDefs[first.defId], weapons, first.guns), editable: true, note: '' };
+// Without loadout editing every plane gets its standard load (saved loads are ignored).
+const first = sanitizeChoice(planeDefs, weapons, LOADOUT_EDITING ? saved : { defId: saved.defId }, planeIds(planeDefs)[0]);
+let state = { defId: first.defId, loadout: first.loadout, guns: LOADOUT_EDITING ? gunChoiceFor(planeDefs[first.defId], weapons, first.guns) : null, editable: true, note: '' };
 
 function commit(change = {}) {
   state = { ...state, ...change };
@@ -51,8 +52,8 @@ function commit(change = {}) {
 }
 const h = {
   pickPlane(id) {
-    const c = sanitizeChoice(planeDefs, weapons, saved, id);
-    commit({ defId: id, loadout: hasBombs(planeDefs[id]) ? c.loadout : null, guns: gunChoiceFor(planeDefs[id], weapons, c.guns) });
+    const c = sanitizeChoice(planeDefs, weapons, LOADOUT_EDITING ? saved : {}, id);
+    commit({ defId: id, loadout: hasBombs(planeDefs[id]) ? c.loadout : null, guns: LOADOUT_EDITING ? gunChoiceFor(planeDefs[id], weapons, c.guns) : null });
   },
   change: (c) => commit(c),
 };

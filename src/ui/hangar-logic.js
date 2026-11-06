@@ -4,6 +4,10 @@ import { validateLoadout, validateGuns, flyingDef, gunsOf, standardGunKg, mounts
 
 export const STORAGE_KEY = 'flak-hangar';
 
+// Choosing bombs, guns and ammunition in the hangar is switched off for now: every plane gets its standard
+// load (the default preset and the standard guns, full ammunition). The editing code stays; set this true to bring it back.
+export const LOADOUT_EDITING = false;
+
 // A plane without hardpoints carries nothing and sends no loadout (null).
 export const hasBombs = (def) => (def.hardpoints?.length ?? 0) > 0;
 

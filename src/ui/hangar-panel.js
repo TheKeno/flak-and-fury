@@ -2,13 +2,13 @@
 // with hangar.html), the rules hangar-logic.js; this only holds the game state and reports:
 // on.choose({ defId, loadout, guns }) goes to changeSeat (or the seat message online).
 import { loadImage, paintSprite } from '../render/sprites.js';
-import { buildLoadout, rowsOf, presetsOf, planeIds, readSaved, writeSaved, hasBombs, gunChoiceFor, standardGuns, gunsEqual } from './hangar-logic.js';
+import { buildLoadout, rowsOf, presetsOf, planeIds, readSaved, writeSaved, hasBombs, gunChoiceFor, standardGuns, gunsEqual, LOADOUT_EDITING } from './hangar-logic.js';
 import { validateLoadout } from '../sim/weapons.js';
 import { createHangarView, HANGAR_STYLE, el } from './hangar-view.js';
 
 const STYLE = `
 .hangar-panel[hidden] { display: none; }
-.hangar-panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(96%, 820px); height: min(94%, 640px); background: rgba(16,18,20,.94); border: 1px solid #2c3135; padding: 12px 16px; display: flex; flex-direction: column; }
+.hangar-panel { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(96%, 820px); height: min(94%, 640px); background: rgba(16,18,20,.94); border: 2px solid #4a4a36; box-shadow: 6px 6px 0 #000; padding: 12px 16px; display: flex; flex-direction: column; }
 ` + HANGAR_STYLE;
 
 // opts: parent, planeDefs, weapons, nations, settings (the weight shares), keyName(action), on: { choose(req),
@@ -78,6 +78,11 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
   }
   function pickPlane(id) {
     if (id === idOf(plane.def) || !editable()) return;
+    if (!LOADOUT_EDITING) {
+      // Standard load only (changeSeat falls back to the plane's defaults).
+      saved = writeSaved(storage, saved, { defId: id, loadout: null });
+      return choose({ defId: id });
+    }
     const def = planeDefs[id];
     const mine = savedFor(id);
     const loadout = hasBombs(def) ? mine.loadout ?? validateLoadout(def, presetsOf(def)[0].loadout, weapons) ?? [] : null;
@@ -97,8 +102,8 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
     panel.replaceChildren(view.draw(state, {
       pickPlane, change,
       close: () => api.close(),
-      closeLabel: `${plane.hold ? 'START ENGINE' : 'CLOSE'} (${keyName('hangar')})`,
-      hint: '◀ ▶ plane · 1-4 presets',
+      closeLabel: LOADOUT_EDITING ? `${plane.hold ? 'START ENGINE' : 'CLOSE'} (${keyName('hangar')})` : plane.hold ? 'START ENGINE' : 'CLOSE',
+      hint: `◀ ▶ choose plane · ${keyName('hangar')} ${plane.hold ? 'start engine' : 'close'}${LOADOUT_EDITING ? ' · 1-4 presets' : ''}`,
     }));
   }
 
@@ -137,7 +142,7 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
       if (panel.hidden) return false;
       if (code === 'ArrowLeft') step(-1);
       else if (code === 'ArrowRight') step(1);
-      else if (/^Digit[1-4]$/.test(code) && editable()) {
+      else if (LOADOUT_EDITING && /^Digit[1-4]$/.test(code) && editable()) {
         const p = presetsOf(plane.def)[Number(code.slice(5)) - 1];
         if (p) change(view.presetChange(plane.def, p));
       } else return false;
@@ -150,7 +155,7 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
       if (!p) return;
       // A new wait behind the doors (or the first one): the load saved for this plane goes on it.
       const can = editable();
-      if (can && !wasEditable) {
+      if (LOADOUT_EDITING && can && !wasEditable) {
         const id = idOf(p.def);
         const mine = savedFor(id);
         const loadoutDiffers = mine.loadout && !same(mine.loadout, p.loadout ?? p.def.loadout);

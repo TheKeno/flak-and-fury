@@ -4,40 +4,46 @@
 // All the look is in HANGAR_STYLE, so it is easy to change.
 import {
   hardpointChoices, buildLoadout, rowsOf, presetsOf, presetIndex, effects, describeEffects, planeIds, loadKg, hasBombs,
-  gunRows, buildGuns, gunKg, standardKg, hasGunOptions, standardGuns, gunsEqual, groupPlanes,
+  gunRows, buildGuns, gunKg, standardKg, hasGunOptions, standardGuns, gunsEqual, groupPlanes, LOADOUT_EDITING,
 } from './hangar-logic.js';
 
 export const HANGAR_STYLE = `
-.hv { display: flex; flex-direction: column; min-height: 0; height: 100%; font: 13px/1.35 'Courier New', monospace; color: #c4c5bb; user-select: none; }
+@keyframes hv-pulse { 0%, 100% { box-shadow: 0 4px 0 #3a2a10, 0 0 0 0 rgba(232,200,96,0); } 50% { box-shadow: 0 4px 0 #3a2a10, 0 0 14px 2px rgba(232,200,96,.35); } }
+.hv { display: flex; flex-direction: column; min-height: 0; height: 100%; font: bold 13px/1.4 'Courier New', monospace; color: #d8d0b0; user-select: none; letter-spacing: .04em; }
 .hv .head { padding: 0 0 6px; }
-.hv h2 { margin: 0 0 2px; font-size: 17px; color: #a8905c; font-weight: normal; }
-.hv h3 { margin: 12px 0 4px; font-size: 12px; color: #a8905c; font-weight: normal; border-bottom: 1px solid #2c3135; }
-.hv .dim { color: #7f837c; }
+.hv h2 { margin: 0 0 2px; font-size: 20px; color: #e8c860; text-shadow: 2px 2px 0 #3a2a10; }
+.hv h3 { margin: 12px 0 4px; font-size: 12px; color: #e8c860; border-bottom: 2px solid #33352a; }
+.hv .dim { color: #8f8a72; }
 .hv .body { flex: 1; min-height: 0; display: flex; gap: 12px; }
-.hv * { scrollbar-color: #3a4046 #181b1e; scrollbar-width: thin; }
-.hv .planes { width: 230px; flex: none; overflow: auto; border-right: 1px solid #2c3135; padding-right: 8px; }
-.hv .planes h4 { margin: 8px 0 3px; font-size: 11px; color: #7f837c; font-weight: normal; text-transform: uppercase; }
+.hv * { scrollbar-color: #4a4a36 #14171a; scrollbar-width: thin; }
+.hv .planes { width: 230px; flex: none; overflow: auto; border-right: 2px solid #33352a; padding-right: 8px; }
+.hv .planes h4 { margin: 8px 0 3px; font-size: 11px; color: #8f8a72; text-transform: uppercase; }
 .hv .planes h4:first-child { margin-top: 0; }
-.hv .card { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 3px; padding: 3px 6px; text-align: left; }
+.hv .card { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 4px; padding: 3px 6px; text-align: left; }
 .hv .card canvas { width: 64px; height: 28px; flex: none; object-fit: contain; image-rendering: pixelated; }
-.hv .card .sub { color: #7f837c; font-size: 11px; }
-.hv .card.sel { border-color: #a8905c; }
+.hv .card .sub { color: #8f8a72; font-size: 11px; }
+.hv .card.sel { border-color: #e8c860; background: #2a2e22; }
 .hv .opts { flex: 1; min-width: 0; overflow: auto; padding-right: 4px; }
+.hv .show { display: flex; align-items: center; justify-content: center; background: #14171a; border: 2px solid #33352a; padding: 12px; margin-bottom: 8px; min-height: 150px; }
+.hv .show canvas { width: 100%; max-height: 190px; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; }
 .hv .row { display: flex; align-items: center; gap: 6px; margin: 4px 0; flex-wrap: wrap; }
 .hv .hp { display: grid; grid-template-columns: 100px 1fr 64px 100px; gap: 6px; align-items: center; margin: 3px 0; }
-.hv button, .hv select { font: inherit; color: #c4c5bb; background: #22262a; border: 1px solid #2c3135; border-radius: 2px; padding: 2px 8px; }
+.hv button, .hv select { font: inherit; color: #d8d0b0; background: #1c201a; border: 2px solid #4a4a36; border-radius: 0; padding: 2px 8px; }
 .hv button { cursor: pointer; }
-.hv button:hover:not(:disabled) { border-color: #a8905c; }
-.hv button:disabled, .hv select:disabled { opacity: .45; cursor: default; }
-.hv button.on { background: #a8905c; color: #111; }
-.hv .foot { border-top: 1px solid #2c3135; margin-top: 8px; padding-top: 6px; }
-.hv .bar { height: 12px; background: #22262a; border: 1px solid #2c3135; position: relative; }
+.hv button:hover:not(:disabled) { background: #2a2e22; border-color: #8a7a48; color: #f2ead2; }
+.hv button:disabled, .hv select:disabled { opacity: .4; cursor: default; }
+.hv button.on { background: #3a3420; border-color: #8a7a48; color: #f2ead2; }
+.hv .foot { border-top: 2px solid #33352a; margin-top: 8px; padding-top: 8px; }
+.hv .start { display: block; margin: 4px auto 0; min-width: 20rem; padding: .7rem 2rem; font-size: 1.4em; letter-spacing: .12em; color: #e8c860; background: #2a2610; border-color: #e8c860; box-shadow: 0 4px 0 #3a2a10; animation: hv-pulse 1.4s ease-in-out infinite; }
+.hv .start:hover:not(:disabled) { background: #3a3420; color: #fff2b8; border-color: #fff2b8; }
+.hv .hint { text-align: center; margin-top: 8px; }
+.hv .bar { height: 12px; background: #14171a; border: 2px solid #33352a; position: relative; }
 .hv .bar i { position: absolute; inset: 0 auto 0 0; background: #a8905c; }
 .hv .bar i.full { background: #a8603f; }
 .hv .fx { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; margin: 4px 0 0; padding: 0; list-style: none; }
-.hv li.bad { color: #a8603f; }
-.hv li.ok { color: #6f8560; }
-.hv .note { color: #a8603f; margin-top: 4px; }
+.hv li.bad { color: #b8693f; }
+.hv li.ok { color: #7f9468; }
+.hv .note { color: #b8693f; margin-top: 4px; text-align: center; }
 `;
 
 export const el = (tag, props = {}, ...kids) => {
@@ -158,8 +164,35 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
     return kids;
   }
 
+  // With loadout editing off: the plane picture, what it carries as standard, and one big START ENGINE button.
+  function drawFixed(state, h) {
+    const def = planeDefs[state.defId];
+    const canvas = el('canvas');
+    spriteOf?.(state.defId).then((src) => {
+      if (!src) return;
+      canvas.width = src.width;
+      canvas.height = src.height;
+      canvas.getContext('2d').drawImage(src, 0, 0);
+    });
+    const bombs = (def.loadout ?? []).filter((l) => l.weapon).map((l) => `${l.count ?? 1} × ${weapons[l.weapon]?.name ?? l.weapon}`);
+    const guns = gunRows(def, weapons, null).filter((r) => r.weapon && r.count > 0).map((r) => `${r.count} × ${weapons[r.weapon]?.name ?? r.weapon}`);
+    const opts = el('div', { className: 'opts' }, el('div', { className: 'show' }, canvas), el('h3', {}, 'STANDARD LOAD'),
+      ...guns.map((g) => el('div', {}, g)), ...bombs.map((b) => el('div', {}, b)),
+      ...(guns.length || bombs.length ? [] : [el('div', { className: 'dim' }, 'Unarmed')]));
+    const foot = el('div', { className: 'foot' });
+    if (state.note) foot.append(el('div', { className: 'note' }, state.note));
+    if (h.close) {
+      foot.append(el('button', { className: 'start', onclick: h.close }, h.closeLabel ?? 'START ENGINE'));
+      if (h.hint) foot.append(el('div', { className: 'hint dim' }, h.hint));
+    }
+    const head = el('div', { className: 'head' }, el('h2', {}, def.name),
+      el('div', { className: 'dim' }, `${nations[def.nation]?.name ?? def.nation} · ${def.role ?? ''}${def.emptyWeight ? ` · empty ${def.emptyWeight} kg` : ''}`));
+    return el('div', { className: 'hv' }, head, el('div', { className: 'body' }, planeList(state, h), opts), foot);
+  }
+
   // Rebuilds the layout from the state. Cheap enough to call on every change.
   function draw(state, h) {
+    if (!LOADOUT_EDITING) return drawFixed(state, h);
     const def = planeDefs[state.defId];
     const withBombs = hasBombs(def) && state.loadout;
     const s = { ...state, presetIndex: presetState(def, state) };
