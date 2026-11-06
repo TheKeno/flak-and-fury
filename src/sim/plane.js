@@ -526,7 +526,7 @@ function updateConsciousness(p, cmd, world, dt) {
 function stepHangarExit(p, world, dt) {
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
   const cfg = hangar?.def ?? {};
-  const speed = cfg.exitSpeed ?? 14;
+  const speed = servicingValue(world, 'parkPushSpeed'); // the crew push out as fast as they push in
   const early = p.exitPhase === 'wait' || p.exitPhase === 'out' || p.exitPhase === 'turn';
   if (early && !hangar?.alive) {
     // Hangar shelled meanwhile: the plane appears at its place on the runway.
@@ -557,7 +557,7 @@ function stepHangarExit(p, world, dt) {
     return;
   }
   if (p.exitPhase === 'out') {
-    p.exitT = Math.min(1, p.exitT + dt / (cfg.outTime ?? 3));
+    p.exitT = Math.min(1, p.exitT + dt / servicingValue(world, 'parkInTime'));
     if (p.exitT >= 1) p.exitPhase = 'turn';
     return;
   }
@@ -566,7 +566,7 @@ function stepHangarExit(p, world, dt) {
     if (p.groundTurn == null) p.exitPhase = 'roll';
     return;
   }
-  // roll / shove: along the runway at exitSpeed, engine off.
+  // roll / shove: along the runway at parkPushSpeed, engine off.
   const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
   const slope = world.terrain.slopeAngle(p.x);
   p.angle = dir > 0 ? slope : Math.PI + slope;

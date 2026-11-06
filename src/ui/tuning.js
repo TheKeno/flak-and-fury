@@ -96,8 +96,8 @@ const CREW_FIELDS = [
   ['crewKillSpeed', 'Run down from', 0.5, 20, 0.5, 'Speed (units per second) above which a rolling plane runs down crew under its nose and wings.'],
   ['crewTurnKillNose', 'Turn on the spot: nose man dies at', 0, 1, 0.05, 'How far through a Shift turn on the spot the propeller reaches the man at the nose (0 = at once, 1 = end of the turn).'],
   ['crewTurnKillWing', 'Turn on the spot: wing man dies at', 0, 1, 0.05, 'How far through a Shift turn on the spot the wing reaches the man beside it.'],
-  ['parkPushSpeed', 'Park-in: push speed', 10, 200, 1, 'World units per second the crew push your plane along the runway to the hangar (H standing still). With the walk out, a plane stopped far from the hangar waits longer.'],
-  ['parkInTime', 'Park-in: time into the hangar', 0.5, 8, 0.1, 'Seconds the plane takes to go into the dark of the hangar after the turn, before the doors close.'],
+  ['parkPushSpeed', 'Park-in: push speed', 10, 200, 1, 'World units per second the crew push your plane along the runway to the hangar (H standing still), and out of it again to the plane's place. With the walk out, a plane stopped far from the hangar waits longer.'],
+  ['parkInTime', 'Park-in: time into the hangar', 0.5, 8, 0.1, 'Seconds the plane takes to go into the dark of the hangar after the turn, before the doors close. The push-out from the hangar takes the same time.'],
 ];
 const SERVICING_FIELDS = [
   ['repairPerSec', 'Repair speed', 1, 100, 1, 'Hit points repaired per second.'],
@@ -201,9 +201,7 @@ const DEFENCE_FIELDS = {
   hangar: [
     ['doorTime', 'Door time', 0.3, 5, 0.1, 'Seconds the hangar doors take to open or shut.'],
     ['doorHold', 'Doors stay open', 0, 6, 0.1, 'Seconds the doors stay open after a respawned plane has rolled out.'],
-    ['exitSpeed', 'Push-along speed', 4, 40, 1, 'Speed a plane is pushed along the runway to its place.'],
     ['exitClear', 'First place from wall', 0, 40, 1, 'How far past the hangar wall (world units) the first plane in the line stands.'],
-    ['outTime', 'Push-out time', 1, 8, 0.1, 'Seconds the crew take to push a plane out of the hangar towards you.'],
     ['exitStartAlpha', 'Faded inside', 0, 1, 0.05, 'How solid the plane shows at the hangar door; it clears to full as it comes out.'],
     ['exitStartScale', 'Size inside', 0.3, 1, 0.05, 'Size of the plane at the hangar door, growing to full size as it comes out (the illusion of coming closer).'],
     ['slotGap', 'Place spacing', 20, 60, 1, 'Distance between planes in the line on the runway (world units).'],

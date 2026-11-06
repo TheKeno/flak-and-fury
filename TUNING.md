@@ -86,7 +86,7 @@ distance to your plane), `crewSetup` (seconds they set up at the plane before wo
 (seconds they stand at the job when the engine opens up; a plane rolling by then runs them down),
 `crewKillSpeed` (rolling speed that kills crew under the nose or wings), `crewTurnKillNose` and
 `crewTurnKillWing` (how far through a Shift turn on the spot the nose man and the wing man die, 0..1).
-Park-in (H standing still on your airfield): `parkPushSpeed` (units per second the crew push the plane to the hangar; with `crewDelay` and `crewWalkSpeed` this makes the wait grow with the distance to the hangar) and `parkInTime` (seconds the plane takes to go in once turned; the push-out uses the hangar's `outTime`). Work: `repairPerSec` (hit points per second),
+Park-in (H standing still on your airfield): `parkPushSpeed` (units per second the crew push the plane to the hangar; with `crewDelay` and `crewWalkSpeed` this makes the wait grow with the distance to the hangar) and `parkInTime` (seconds the plane takes to go in once turned; the push-out from the hangar uses the same `parkPushSpeed` and `parkInTime`). Work: `repairPerSec` (hit points per second),
 `refuelTime` and `rearmTime` (seconds), `recoveryTime` (seconds a plane stranded away from home waits to be
 brought home, damage and all, not counted as lost; B abandons it instead for a fresh plane, counted as
 lost). `camera` and `audio` hold the camera and volume settings.
@@ -337,8 +337,8 @@ oldest first; a plane standing idle in the first place is shoved up the line to 
 is full (or the front plane's pilot has opened the throttle) the next one waits inside with the doors open. Planes on the
 ground don't collide, so the ones behind can take off past a standing plane. With the hangar destroyed a plane
 appears on the runway. Tuning panel: Hangar → `doorTime` (seconds to open or shut, 0.5 – 2), `doorHold` (seconds
-the doors stay open after the crew are home, 1 – 3), `outTime` (seconds to push it out, 1 – 3), `exitStartScale`
-(size at the door, 0.7 – 0.9), `exitStartAlpha` (how solid the plane shows at the door, 0 – 1; 0 = fades in from nothing, solid by 70% of the way out), `exitSpeed` (push-along speed, 8 – 20), `exitClear` (first place, world units past
+the doors stay open after the crew are home, 1 – 3), `exitStartScale`
+(size at the door, 0.7 – 0.9), `exitStartAlpha` (how solid the plane shows at the door, 0 – 1; 0 = fades in from nothing, solid by 70% of the way out), `exitClear` (first place, world units past
 the hangar wall: 0 = right at the door, 0 – 20), `slotGap` (spacing in the line, about a plane length, 30 – 40), `queueSize` (planes in
 the line, 2 – 4).
 

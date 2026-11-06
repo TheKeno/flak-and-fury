@@ -448,7 +448,6 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-- **Crew push-out speed matches push-in** (Planes): the crew should push the plane out of the hangar at the same speed as they push it in.
 
 ## Backlog
 - **Objective map features** (Gameplay): towns, bases and other interesting places on the map to fight for, giving matches objectives beyond kills.
