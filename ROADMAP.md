@@ -24,9 +24,9 @@ later.
     `plane.js` line 969, the tuning panel's bomb section). The AI keeps heavy bombs for tanks, small ones
     for soldiers. Stations are plain data, so online snapshots carry them without changes
     (`tests/net.test.mjs` checks).
-  - **Release:** still the one `bomb` key. A press drops the next station in `group` order (the Stuka's
+  - **Release:** still the one `bomb` key. Holding it shows the bomb view (camera straight down); letting go drops the next station in `group` order (the Stuka's
     crutch first, so the bomb clears the propeller, then the racks); a bay releases as a salvo or ripple
-    (interval per hardpoint, bay doors open briefly), and holding the key rips the whole bay.
+    (interval per hardpoint, bay doors open briefly). Holding no longer rips the whole bay; only the release counts, once.
   - **Bomb aimer:** milestone 11 makes it a seat with its own control and the bomb indicator; until then
     the pilot drops the bombs and AI fills empty seats. The system needs no change for it: `cmd.bomb` just
     comes from another seat.
@@ -225,6 +225,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Bomb view on the bomb key (UI, 2026-11-06):** holding the bomb key (E / right mouse) looks straight down (`readLook` in `src/input/keyboard.js`); releasing it drops the bomb for one tick. Not tried in play. Known: a release during the bomb cooldown drops nothing, and the window losing focus counts as a release.
 - **Engine rpm checked against references (Sound, 2026-11-06):** idle, cruise, max and gear checked for every plane engine (Wikipedia, airpages.ru, Grace's Guide, Warbirds Resource Group, the Smithsonian). Corrected: He 177 gear 0.413, Pe-8 gear 0.5625 (bomber ASh-82FN 9:16), Bf 109 F-4 cruise 2300, G4M1 max 2450, B-239 max 2200. Idle was found for one engine only (AM-38F, 450); all others are estimated as 0.20 × max rpm and tagged `idleSource: 'estimated'` in `data/planes.json` / `data/sound.json`. Engines ticked checked in the Lab: DB 605A, DB 610, V-1710, AM-38F, R-1820, ASh-82FN, M-105, Merlin 61. Still unverified: Ha-115 (no data found), gear ratios of Ha-102, Kinsei 54, Kasei 11, DB 601E and the Merlin 61 (0.42 or 0.477 conflict). The Lab's Test Flight throttle slider now matches the sim (idle to cruise rpm, shown beside it) and has an Emergency power switch (max rpm, full load).
 - **Sound Design Test Flight shows the rpm (Sound, 2026-11-06):** the number of revolutions per minute the throttle gives on the chosen engine is drawn to the right of the Throttle slider and follows the vehicle pick (`testSlider` in `src/ui/sound-lab.js`).
 - **Sound Lab Sounds-tab Play plays the clips (Sound, 2026-11-06):** the Play button on an engine build page (and the tank build page and the Mix tab's explosion-over-engine test) made the engine voice without the sound's recording id, so only the synth played; it now passes `build:<id>`, so the recorded clips and start-up play like in Test Flight and the game. Fix in `src/ui/sound-lab.js`.
