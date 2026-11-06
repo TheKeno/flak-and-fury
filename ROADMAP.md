@@ -420,6 +420,8 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Bomb view key** (UI): a bindable key (in the options menu, `ACTIONS` in `src/input/keyboard.js`) that looks down, camera shifted below the plane, while searching for targets to bomb.
+
 
 - **Infantry wave mission** (Gameplay): waves of enemy infantry advance on the player's base and the player has to mow them down with guns and bombs to stop the assault.
 - **Bomber escort mission** (Gameplay): AI bombers fly across the map to the other side and the player protects them, or the player's side is the raiders and the enemy defends; needs the crewed and heavy bombers (milestones 11 and 12) and bomber AI that follows a route.
