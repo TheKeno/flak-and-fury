@@ -225,6 +225,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Friendly fire on by default, own bombs hurt own plane (Gameplay, 2026-11-06):** `friendlyFire` now defaults to true (`data/settings.json`, `DEFAULT_RULES` in `src/sim/world.js`). A bomb striking a plane now follows the friendly-fire rule, and with it on can hit the plane that dropped it once `BOMB_SAFE_TIME` (0.6 s, `src/sim/weapons.js`) has passed (its blast already hurt the owner). Tests that relied on the old default set `friendlyFire: false` explicitly; new test in `tests/weapons.test.mjs`. Not tried in play; bots will now hit their own side too, so watch how that feels.
 - **Crew push-out matches push-in (Planes, 2026-11-06):** push-out uses `parkPushSpeed` (now 30, in and out) and `parkInTime`; hangar `exitSpeed` and `outTime` removed. Crew now follow shoved planes too (`shove` phase) until they stop. Hangar `doorTime` 1.2 -> 0.8.
 - **Hangar queue: players first (Gameplay, 2026-11-06):** `canLeaveHangar` in `src/sim/plane.js` now lets a human pilot's waiting plane leave before any bot's on its team, whatever the arrival order; planes of the same kind still go first come, first out. Tests pass; no new test, not tried in play.
 - **Crew pushing sound (Sound, 2026-11-06):** while the crew push a plane out of the hangar (`exitPhase` out, turn, roll, shove) a new loop `crewPush` plays beside it (`updateCrews` in `src/audio/soundscape.js`, job `push` in `src/audio/crew.js`): synth fallback of boots on gravel and the odd wheel creak, and a Sound Lab slot `loop:crewPush` ("Pushing out", under Ground crew) for the owner's recording, not ticked done. Not yet heard by the owner (tested muted); the sizes and balance of the synth steps are a first guess. Still open from the same discussion: a "clear!" shout and starter spin-up just before the engine catches, and a muffled hangar ambience.
@@ -453,7 +454,6 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-- **Friendly fire on by default, own bombs hurt own plane** (Gameplay): friendly fire should default to on, and a plane's own bombs should be able to destroy that same plane. Session: Gameplay — friendly fire default, own bombs.
 
 ## Backlog
 - **Enemy names hard to read** (UI): the names drawn along enemy planes are hard to read.
