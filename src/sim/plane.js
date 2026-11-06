@@ -588,7 +588,10 @@ function stepHangarExit(p, world, dt) {
 // (empty list = none needed), or null for "not yet".
 function canLeaveHangar(p, world, cfg) {
   const mates = world.planes.filter((o) => o !== p && o.team === p.team && o.state === 'ground' && !o.wreck);
-  if (mates.some((o) => o.exitPhase === 'out' || o.exitPhase === 'turn' || o.exitPhase === 'roll' || (o.exitPhase === 'wait' && !o.hold && o.exitSeq < p.exitSeq))) return null;
+  // A human pilot goes before any bot, whatever the order they arrived in; otherwise first come, first out.
+  const human = (o) => Boolean(o.seats?.[0]?.controller) && !o.seats[0].controller.startsWith('bot');
+  const before = (o) => (human(o) !== human(p) ? human(o) : o.exitSeq < p.exitSeq);
+  if (mates.some((o) => o.exitPhase === 'out' || o.exitPhase === 'turn' || o.exitPhase === 'roll' || (o.exitPhase === 'wait' && !o.hold && before(o)))) return null;
   const dir = Math.cos(p.angle) >= 0 ? -1 : 1; // the take-off way
   const gap = cfg.slotGap ?? 34;
   const size = cfg.queueSize ?? 3;
