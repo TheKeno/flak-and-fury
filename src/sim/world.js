@@ -64,6 +64,7 @@ export function createWorld({
   bots = structuredClone(DEFAULT_BOTS),
   radar = { ...DEFAULT_RADAR },
   bailout = { ...DEFAULT_BAILOUT },
+  seed = map.seed ^ 0x5eed, // the game passes a fresh one per match so bot planes differ; tests keep this fixed
 }) {
   const world = {
     tick: 0,
@@ -86,7 +87,7 @@ export function createWorld({
     radar,
     bailout,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
-    rng: createRng(map.seed ^ 0x5eed),
+    rng: createRng(seed),
     planes: [],
     bullets: [],
     bombsInFlight: [],

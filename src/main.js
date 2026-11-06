@@ -32,6 +32,7 @@ const overlay = document.getElementById('start');
 const content = await loadContent('countryside');
 const world = createWorld({
   hangarStart: true,
+  seed: (Math.random() * 0x100000000) >>> 0, // new match, new random bot planes
   map: content.map,
   planeDefs: content.planeDefs,
   weapons: content.weapons,
