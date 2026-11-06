@@ -448,6 +448,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Friendly fire on by default, own bombs hurt own plane** (Gameplay): friendly fire should default to on, and a plane's own bombs should be able to destroy that same plane.
 - **Hangar key timing and respawn behaviour** (UI): pressing H for the hangar has timing issues, and the hangar screen misbehaves on respawn.
 - **Sound Design tab plays synths, not clips** (Sound): the Sound Lab's Sound Design tab auditions the synthesised sounds instead of the recorded clips in the slots; it should play the clips.
 - **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass.
