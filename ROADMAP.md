@@ -454,6 +454,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Enemy names hard to read** (UI): the names drawn along enemy planes are hard to read.
 - **Objective map features** (Gameplay): towns, bases and other interesting places on the map to fight for, giving matches objectives beyond kills.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 - **Friendly fire on by default, own bombs hurt own plane** (Gameplay): friendly fire should default to on, and a plane's own bombs should be able to destroy that same plane.
