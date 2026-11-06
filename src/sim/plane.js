@@ -550,6 +550,7 @@ function stepHangarExit(p, world, dt) {
     for (const [o, to] of shoves) {
       o.exitTo = to;
       o.exitPhase = 'shove';
+      if (!world.crew.some((c) => c.push && c.pushing === o.id && c.state === 'push')) sendPushCrew(world, o, hangar); // a shoved plane is pushed too, until it stops
     }
     p.exitPhase = 'out';
     p.exitT = 0;

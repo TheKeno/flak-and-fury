@@ -169,7 +169,7 @@ export function stepCrew(world, dt) {
     if (c.push && c.state === 'push') {
       const pl = world.planes.find((o) => o.id === c.pushing);
       const phase = pl?.exitPhase;
-      if (!pl || (phase !== 'out' && phase !== 'turn' && phase !== 'roll')) c.state = 'back';
+      if (!pl || (phase !== 'out' && phase !== 'turn' && phase !== 'roll' && phase !== 'shove')) c.state = 'back';
       else {
         const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === c.team);
         const target = pushSpot(pl, c, hangar);
