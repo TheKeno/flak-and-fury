@@ -30,12 +30,14 @@ export function updateGunRates(g) {
 
 export function armPlane(p, weapons) {
   const arm = p.def.armament ?? { guns: [] };
-  p.guns = arm.guns.map(({ weapon, count, synced = false }) => {
+  // The pilot's guns: standard, or his choice (p.gunChoice). `full` is the ammunition when rearmed.
+  p.guns = gunsOf(p, weapons).map(({ mount, weapon, count, synced, ammoPer, mountKg, drag }) => {
     const w = weapons[weapon];
-    const g = { weapon, def: w, count, synced, ammo: w.ammo * count, cooldown: 0, fired: 0 }; // ammo in rounds
+    const g = { mount, weapon, def: w, count, synced, ammo: ammoPer * count, full: ammoPer * count, mountKg, drag, cooldown: 0, fired: 0 }; // ammo in rounds
     updateGunRates(g);
     return g;
   });
+  p.stdGunKg = standardGunKg(p.def, weapons);
   // Bomb stations: one per loadout entry. Plain data (the hardpoint is looked up by id in p.def).
   p.stations = loadoutOf(p).map(({ hardpoint, weapon, count = 1 }) => ({ hp: hardpoint, def: weapons[weapon], loaded: count }));
   p.bombCooldown = 0;
@@ -45,7 +47,7 @@ export function armPlane(p, weapons) {
   p.turrets = (arm.turrets ?? []).map(({ weapon, count = 1, offset, arc }) => {
     const w = weapons[weapon];
     const [a0, a1] = arc.map((deg) => (deg * Math.PI) / 180);
-    const t = { weapon, def: w, count, offset, arc: [a0, a1], aim: (a0 + a1) / 2, ammo: w.ammo * count, cooldown: 0, fired: 0 };
+    const t = { weapon, def: w, count, offset, arc: [a0, a1], aim: (a0 + a1) / 2, ammo: w.ammo * count, full: w.ammo * count, cooldown: 0, fired: 0 };
     updateGunRates(t);
     return t;
   });
@@ -110,27 +112,112 @@ export function setLoadout(p, list, weapons) {
   return true;
 }
 
-// Weight: bombs carried as a share of what the plane can lift (0 for a plane without `maxLoad`).
-export function loadFraction(p) {
-  if (!p.def.maxLoad) return 0;
-  const kg = (p.stations ?? []).reduce((n, s) => n + s.loaded * (s.def.weight ?? 0), 0);
-  return clamp(kg / p.def.maxLoad, 0, 1);
+// ---- Guns: mounts, the pilot's choice and their weight ----
+// A mount is an entry of armament.guns: { id, weapon, count, synced?, options? }. `count` is the standard fit
+// (0 = an empty external mount, a gondola); `options` are the guns that fit and the most each takes:
+// [{ weapon, max, mountKg?, drag? }] (default: the standard weapon, up to `count`). mountKg is the pod's own
+// weight and drag the share of the plane's drag it adds, both only while it carries guns.
+export const mountsOf = (def) => (def.armament?.guns ?? []).map((m, i) => ({ ...m, id: m.id ?? `gun${i}` }));
+const optionsOf = (m) => m.options ?? [{ weapon: m.weapon, max: m.count }];
+
+// What the plane is armed with: the pilot's choice (p.gunChoice, plain data) or the standard fit. Bots
+// never choose.
+export function gunsOf(p, weapons) {
+  const mounts = mountsOf(p.def);
+  const fit = (m, weapon, count, ammoPer) => {
+    const o = optionsOf(m).find((x) => x.weapon === weapon) ?? {};
+    return { mount: m.id, weapon, count, synced: Boolean(m.synced), ammoPer, mountKg: o.mountKg ?? 0, drag: o.drag ?? 0 };
+  };
+  if (!p.gunChoice) return mounts.filter((m) => m.count > 0).map((m) => fit(m, m.weapon, m.count, weapons[m.weapon].ammo));
+  return p.gunChoice.map((c) => fit(mounts.find((x) => x.id === c.mount), c.weapon, c.count, c.ammo));
+}
+
+// Weight of a battery: guns, their ammunition and the pod round them.
+export const batteryKg = (w, count, rounds, mountKg = 0) => count * (w.weight ?? 0) + rounds * (w.roundKg ?? 0) + (count > 0 ? mountKg : 0);
+
+// The standard fit (guns, full ammunition, no pods): the zero point of the weight model.
+export function standardGunKg(def, weapons) {
+  return mountsOf(def).filter((m) => m.count > 0).reduce((n, m) => n + batteryKg(weapons[m.weapon], m.count, weapons[m.weapon].ammo * m.count), 0);
+}
+
+// Checks a gun choice [{mount, weapon, count, ammo}] against a plane def and returns it cleaned (only fields
+// we know, in mount order), or null if it is not allowed. Rules: every mount exists and is used once; the
+// weapon is one of the mount's options; count is a whole number from 1 to the option's max; ammo is the
+// rounds per gun, a whole number from 1 to the weapon's full load (default full). A mount left out carries
+// nothing, so [] is a plane with no guns. Untrusted guest input: everything is checked.
+export function validateGuns(def, list, weapons) {
+  if (!def.armament?.guns?.length || !Array.isArray(list)) return null;
+  const mounts = mountsOf(def);
+  const used = new Set();
+  const out = [];
+  for (const c of list) {
+    if (!c || typeof c !== 'object') return null;
+    const m = mounts.find((x) => x.id === c.mount);
+    if (!m || used.has(m.id)) return null;
+    const opt = typeof c.weapon === 'string' ? optionsOf(m).find((x) => x.weapon === c.weapon) : null;
+    const w = opt && Object.hasOwn(weapons, opt.weapon) ? weapons[opt.weapon] : null;
+    if (!w || w.type !== 'gun') return null;
+    const count = c.count ?? m.count;
+    const ammo = c.ammo ?? w.ammo;
+    if (!Number.isInteger(count) || count < 1 || count > opt.max) return null;
+    if (!Number.isInteger(ammo) || ammo < 1 || ammo > w.ammo) return null;
+    used.add(m.id);
+    out.push({ mount: m.id, weapon: c.weapon, count, ammo });
+  }
+  const order = (e) => mounts.findIndex((m) => m.id === e.mount);
+  return out.sort((a, b) => order(a) - order(b));
+}
+
+// Can the pilot still change what the plane carries? Behind the hangar doors, or down and coming back.
+export const canPrepare = (p) => p.state === 'dead' || (p.state === 'ground' && p.exitPhase === 'wait');
+
+// Sets the pilot's gun choice like setLoadout: true if taken, false if invalid or locked.
+export function setGuns(p, list, weapons) {
+  const ok = validateGuns(p.def, list, weapons);
+  if (!ok || !canPrepare(p)) return false;
+  p.gunChoice = ok;
+  armPlane(p, weapons);
+  return true;
+}
+
+// ---- Weight ----
+// Equipment weight against the clean standard plane (standard guns, full ammunition, nothing on the racks):
+// bombs carried + guns, ammunition and pods now - the standard guns and ammunition. Negative when guns or
+// ammunition are removed or spent.
+export function equipKg(p) {
+  const bombs = (p.stations ?? []).reduce((n, s) => n + s.loaded * (s.def.weight ?? 0), 0);
+  const guns = (p.guns ?? []).reduce((n, g) => n + batteryKg(g.def, g.count, g.ammo, g.mountKg), 0);
+  return bombs + guns - (p.stdGunKg ?? guns);
 }
 // How much a full load costs (world.weight, data/settings.json): thrust and turn rate fall, stall and
-// take-off speed rise, in proportion to the load carried.
-export const DEFAULT_WEIGHT = { thrust: 0.06, stall: 0.05, takeoff: 0.04, turn: 0.06 };
-// The plane's performance numbers as it is loaded now: its def when empty (so it is exactly as before),
-// else a view of the def with the four numbers changed. Never stored, so snapshots don't see it.
+// take-off speed rise, in proportion to the load carried. A negative load is a bonus of the same kind, at
+// most lightMax of the full cost. refShare: the full load of a plane with no maxLoad, as a share of its
+// empty weight.
+export const DEFAULT_WEIGHT = { thrust: 0.06, stall: 0.05, takeoff: 0.04, turn: 0.06, lightMax: 0.5, refShare: 0.15 };
+// The weight that counts as "full": maxLoad, else a share of the empty weight (0 = weight has no effect).
+export const refKg = (def, w = DEFAULT_WEIGHT) => def.maxLoad || (def.emptyWeight ? def.emptyWeight * (w.refShare ?? DEFAULT_WEIGHT.refShare) : 0);
+// Extra load as a share of that, 0..1; below 0 (lighter than the standard plane) down to -lightMax.
+export function loadFraction(p, w = DEFAULT_WEIGHT) {
+  const ref = refKg(p.def, w);
+  if (!ref) return 0;
+  return clamp(equipKg(p) / ref, -(w.lightMax ?? DEFAULT_WEIGHT.lightMax), 1);
+}
+// Added air resistance of external guns (pods), as a share of the plane's own.
+export const podDrag = (p) => (p.guns ?? []).reduce((n, g) => n + (g.count > 0 ? g.drag ?? 0 : 0), 0);
+// The plane's performance numbers as it is loaded now: its def when standard (so it is exactly as before),
+// else a view of the def with the numbers changed. Never stored, so snapshots don't see it.
 export function flyingDef(p, world) {
-  const f = loadFraction(p);
-  if (f === 0) return p.def;
   const w = world.weight ?? DEFAULT_WEIGHT;
+  const f = loadFraction(p, w);
+  const drag = podDrag(p);
+  if (f === 0 && drag === 0) return p.def;
   const d = p.def;
   return Object.assign(Object.create(d), {
     thrust: d.thrust * (1 - w.thrust * f),
     stallSpeed: d.stallSpeed * (1 + w.stall * f),
     takeoffSpeed: d.takeoffSpeed * (1 + w.takeoff * f),
     turnRate: d.turnRate * (1 - w.turn * f),
+    dragCoef: d.dragCoef * (1 + drag),
   });
 }
 

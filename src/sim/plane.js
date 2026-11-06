@@ -177,6 +177,8 @@ export function createPlane(id, def, { team, nation, seats }) {
     deaths: 0,
     score: 0, // points for destroyed ground targets
     guns: [],
+    gunChoice: null, // the pilot's chosen guns [{mount, weapon, count, ammo}] (null: the standard fit, gunsOf)
+    stdGunKg: 0, // weight of the standard guns and ammunition, the zero point of the weight model (armPlane)
     loadout: null, // the pilot's chosen bombs [{hardpoint, weapon, count}] (null: the plane's default, loadoutOf)
     stations: [], // bomb stations (armPlane)
     bombCooldown: 0,

@@ -15,6 +15,8 @@
     "drop": 0.12,
     "life": 1.4,
     "ammo": 180,
+    "weight": 10,
+    "roundKg": 0.025,
     "voice": "rifle"
   },
   "mg17": {
@@ -28,6 +30,8 @@
     "drop": 0.12,
     "life": 1.4,
     "ammo": 300,
+    "weight": 10,
+    "roundKg": 0.025,
     "voice": "rifle"
   },
   "shkas": {
@@ -41,6 +45,8 @@
     "drop": 0.12,
     "life": 1.4,
     "ammo": 450,
+    "weight": 10,
+    "roundKg": 0.025,
     "voice": "rifle"
   },
   "mg81z": {
@@ -54,6 +60,8 @@
     "drop": 0.12,
     "life": 1.4,
     "ammo": 480,
+    "weight": 13,
+    "roundKg": 0.025,
     "voice": "rifle"
   },
   "m2_browning": {
@@ -67,6 +75,8 @@
     "drop": 0.1,
     "life": 1.68,
     "ammo": 210,
+    "weight": 28,
+    "roundKg": 0.12,
     "voice": "heavy"
   },
   "mg131": {
@@ -80,6 +90,8 @@
     "drop": 0.11,
     "life": 1.5,
     "ammo": 180,
+    "weight": 17,
+    "roundKg": 0.075,
     "voice": "heavy"
   },
   "ho103": {
@@ -93,6 +105,8 @@
     "drop": 0.11,
     "life": 1.5,
     "ammo": 160,
+    "weight": 23,
+    "roundKg": 0.12,
     "voice": "heavy"
   },
   "hispano_20": {
@@ -106,6 +120,8 @@
     "drop": 0.15,
     "life": 1.54,
     "ammo": 70,
+    "weight": 45,
+    "roundKg": 0.25,
     "voice": "cannon20"
   },
   "mg151_20": {
@@ -119,6 +135,8 @@
     "drop": 0.15,
     "life": 1.54,
     "ammo": 120,
+    "weight": 43,
+    "roundKg": 0.25,
     "voice": "cannon20"
   },
   "type99_20": {
@@ -132,6 +150,8 @@
     "drop": 0.45,
     "life": 1.82,
     "ammo": 40,
+    "weight": 23,
+    "roundKg": 0.25,
     "voice": "cannon20"
   },
   "shvak_20": {
@@ -145,6 +165,8 @@
     "drop": 0.15,
     "life": 1.54,
     "ammo": 100,
+    "weight": 42,
+    "roundKg": 0.25,
     "voice": "cannon20"
   },
   "mk108_30": {
@@ -158,6 +180,8 @@
     "drop": 0.55,
     "life": 1.4,
     "ammo": 40,
+    "weight": 58,
+    "roundKg": 0.45,
     "voice": "cannon30"
   },
   "fab_100": {

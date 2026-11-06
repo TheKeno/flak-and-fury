@@ -246,12 +246,12 @@ function needs(p, serviced) {
   if (p.hp < p.def.hp || p.engineDamage > 0 || p.burning || p.belly || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent) return 'repair';
   // A stopped engine is started at the end of refuelling, even when the tank is already full.
   if (p.fuel < (serviced ? TOP_UP_BELOW : FULL_TANK) || !p.engineRunning) return 'refuel';
-  if (allGuns(p).some((g) => g.ammo < g.def.ammo * g.count) || bombsLeft(p) < bombsFull(p)) return 'rearm';
+  if (allGuns(p).some((g) => g.ammo < g.full) || bombsLeft(p) < bombsFull(p)) return 'rearm';
   return 'done';
 }
 
 export function rearmFully(p) {
-  for (const g of allGuns(p)) g.ammo = g.def.ammo * g.count;
+  for (const g of allGuns(p)) g.ammo = g.full;
   rearmBombs(p);
 }
 

@@ -43,6 +43,8 @@ const GUN_FIELDS = [
   ['drop', 'Bullet drop', 0, 1, 0.01, 'Share of gravity pulling the round down.'],
   ['life', 'Range (seconds)', 0.3, 2.5, 0.05, 'How long a round flies before it is spent.'],
   ['ammo', 'Ammo per gun', 10, 1000, 10, 'Rounds per gun. Applies on the next rearm.'],
+  ['weight', 'Gun weight (kg)', 5, 400, 1, 'The gun alone. Guns and ammunition count in the plane’s weight against the standard fit: removing them makes it lighter (some guesses, see TUNING.md).'],
+  ['roundKg', 'Weight per round (kg)', 0.01, 1.5, 0.005, 'One round with its link. Ammunition weighs too.'],
 ];
 const BOMB_FIELDS = [
   ['weight', 'Weight (kg)', 10, 1000, 5, 'What one bomb weighs; the share of the plane’s maxLoad it carries slows the plane.'],
@@ -117,6 +119,8 @@ const WEIGHT_FIELDS = [
   ['stall', 'Stall speed rise', 0, 0.2, 0.01, 'Rise in stall speed at full bomb load.'],
   ['takeoff', 'Take-off speed rise', 0, 0.2, 0.01, 'Rise in take-off speed at full bomb load.'],
   ['turn', 'Turn rate lost', 0, 0.3, 0.01, 'Share of turn rate lost at full bomb load.'],
+  ['lightMax', 'Lightness bonus', 0, 1, 0.05, 'Most bonus for a plane lighter than the standard fit (guns or ammunition off), as a share of the full-load penalties above.'],
+  ['refShare', 'Full load (no maxLoad)', 0.05, 0.4, 0.01, 'For a plane without maxLoad, the equipment weight that counts as full, as a share of its empty weight.'],
 ];
 const TAKEOFF_FIELDS = [
   ['rotateRate', 'Rotation rate', 0.1, 1.5, 0.05, 'How fast the nose comes up on the wheels (rad/s) when you pull back at take-off speed. Lower = a slower, longer rotation.'],
@@ -438,9 +442,13 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     ...PLANE_FIELDS.map((f) => add(slider(def, f, showTopSpeed))),
   );
 
-  const gunSections = [...(def.armament?.guns ?? []), ...(def.armament?.turrets ?? []).map((t) => ({ ...t, gunner: true }))].map(({ weapon, count = 1, gunner }) =>
+  // Each gun of the plane once: the standard fit, then the other guns its mounts can take (empty mounts: pods).
+  const seen = new Set();
+  const gunList = [...(def.armament?.guns ?? []).filter((m) => m.count > 0), ...(def.armament?.turrets ?? []).map((t) => ({ ...t, gunner: true }))];
+  for (const m of def.armament?.guns ?? []) for (const o of [{ weapon: m.weapon }, ...(m.options ?? [])]) if (!gunList.some((g) => g.weapon === o.weapon)) gunList.push({ weapon: o.weapon, option: true });
+  const gunSections = gunList.filter((g) => !seen.has(g.weapon + g.gunner) && seen.add(g.weapon + g.gunner)).map(({ weapon, count = 1, gunner, option }) =>
     section(
-      `${gunner ? 'Gunner' : 'Guns'}: ${count} × ${weapons[weapon].name}`,
+      `${gunner ? 'Gunner' : option ? 'Option' : 'Guns'}: ${option ? '' : `${count} × `}${weapons[weapon].name}`,
       false,
       ...GUN_FIELDS.map((f) =>
         add(
@@ -595,7 +603,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   );
   const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
   const takeoffSection = section('Take-off', false, ...TAKEOFF_FIELDS.map((f) => add(slider(settings.takeoff, f))));
-  const weightSection = section('Bomb load', false, ...WEIGHT_FIELDS.map((f) => add(slider(settings.weight, f))));
+  const weightSection = section('Bomb and gun load', false, ...WEIGHT_FIELDS.map((f) => add(slider(settings.weight, f))));
   const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
   const audioSection = section(
     'Sound',

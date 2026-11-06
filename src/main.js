@@ -15,7 +15,7 @@ import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from '.
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
 import { NO_COMMAND, parkInBlocker } from './sim/plane.js';
-import { setLoadout } from './sim/weapons.js';
+import { setLoadout, setGuns } from './sim/weapons.js';
 import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
 import { releasePilot } from './sim/bailout.js';
 import { clamp } from './sim/math.js';
@@ -760,7 +760,7 @@ function seatDone(reason) {
   if (menuOpen) closeMenu();
 }
 function askSeat(req) {
-  if (guest) return guest.net.send({ t: 'seat', team: req.team, defId: req.defId, loadout: req.loadout ?? null });
+  if (guest) return guest.net.send({ t: 'seat', team: req.team, defId: req.defId, loadout: req.loadout ?? null, guns: req.guns ?? null });
   const reason = changeSeat(world, player, req, DT);
   resetPoses();
   sidesChanged();
@@ -780,6 +780,7 @@ $('host').addEventListener('click', async () => {
         const p = addPlane(world, { defId, team, nation: nationOf(defId), controller: g.controller });
         if (cleanName(hello.name)) p.callsign = cleanName(hello.name);
         if (hello.loadout) setLoadout(p, hello.loadout, world.weapons); // checked there; a bad list keeps the default
+        if (hello.guns) setGuns(p, hello.guns, world.weapons);
         g.planeId = p.id;
         renderer.message(`${p.callsign ?? 'A FRIEND'} JOINED, ${p.team === player.team ? 'ON OUR SIDE' : 'ON THE ENEMY SIDE'}`, '#e8c860');
         // Sent once they've had their welcome.
@@ -808,7 +809,7 @@ $('host').addEventListener('click', async () => {
         if (m?.t !== 'seat') return;
         const p = world.planes.find((o) => o.id === g.planeId);
         if (!p) return;
-        const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name ? m.defId : null, loadout: m.loadout ?? null }, DT);
+        const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name ? m.defId : null, loadout: m.loadout ?? null, guns: m.guns ?? null }, DT);
         resetPoses();
         g.conn.send({ t: 'seat', reason });
         sidesChanged();

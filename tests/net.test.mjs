@@ -8,7 +8,7 @@ import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, setBots, stepWorld } from '../src/sim/world.js';
 import { encodeWorld, encodeEvent, diff, applyPatch, staticRefs, STATIC } from '../src/net/snapshot.js';
 import { takePoses, writePoses } from '../src/render/interpolate.js';
-import { setLoadout } from '../src/sim/weapons.js';
+import { setLoadout, setGuns } from '../src/sim/weapons.js';
 import { createGuestView } from '../src/net/guest.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
@@ -242,6 +242,27 @@ test('a chosen loadout reaches the guest in the snapshot', () => {
   assert.deepEqual(theirs.stations, []);
   const bot = guest.planes.find((p) => p.seats[0].controller.startsWith('bot'));
   assert.equal(bot.loadout, null);
+});
+
+test('a chosen gun set reaches the guest in the snapshot', () => {
+  const host = busyHost();
+  const mine = host.planes.find((p) => p.seats[0].controller === 'net1');
+  mine.exitPhase = 'wait';
+  const mounts = mine.def.armament.guns;
+  assert.ok(setGuns(mine, [{ mount: mounts[0].id, weapon: mounts[0].weapon, count: 1, ammo: 10 }], host.weapons));
+  const guest = guestWorld();
+  applyPatch(guest, JSON.parse(JSON.stringify(diff({}, encodeWorld(host, staticRefs(host))))), staticRefs(guest));
+  const theirs = guest.planes.find((p) => p.id === mine.id);
+  assert.deepEqual(theirs.gunChoice, mine.gunChoice);
+  assert.equal(theirs.guns.length, 1);
+  assert.equal(theirs.guns[0].ammo, 10);
+  assert.equal(theirs.guns[0].def, guest.weapons[mounts[0].weapon]);
+  assert.equal(theirs.stdGunKg, mine.stdGunKg);
+  // and a later change (no guns at all) travels as a diff
+  const before = encodeWorld(host, staticRefs(host));
+  assert.ok(setGuns(mine, [], host.weapons));
+  applyPatch(guest, JSON.parse(JSON.stringify(diff(before, encodeWorld(host, staticRefs(host))))), staticRefs(guest));
+  assert.equal(guest.planes.find((p) => p.id === mine.id).guns.length, 0);
 });
 
 test('a park-in (plane phase, hold, crew) reaches the guest in the snapshot', () => {

@@ -1,5 +1,5 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count} (count is also the most that hardpoint takes). loadoutPresets: 2 to 4 named loads for the hangar, each {name, loadout}; the first is the default. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count} (count is also the most that hardpoint takes). loadoutPresets: 2 to 4 named loads for the hangar, each {name, loadout}; the first is the default. armament.guns: the pilot's gun mounts, each {id, weapon, count, synced, options}: count is the standard fit (0 = an empty external mount such as a gondola), options the guns that fit, [{weapon, max (most guns), mountKg (the pod itself), drag (share of the plane's drag it adds)}], by default just the standard weapon up to count. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -125,13 +125,44 @@
     "armament": {
       "guns": [
         {
+          "id": "cowl",
           "weapon": "mg131",
           "count": 2,
           "synced": true
         },
         {
+          "id": "hub",
           "weapon": "mg151_20",
-          "count": 1
+          "count": 1,
+          "options": [
+            {
+              "weapon": "mg151_20",
+              "max": 1
+            },
+            {
+              "weapon": "mk108_30",
+              "max": 1
+            }
+          ]
+        },
+        {
+          "id": "gondola",
+          "weapon": "mg151_20",
+          "count": 0,
+          "options": [
+            {
+              "weapon": "mg151_20",
+              "max": 2,
+              "mountKg": 29,
+              "drag": 0.03
+            },
+            {
+              "weapon": "mk108_30",
+              "max": 2,
+              "mountKg": 29,
+              "drag": 0.03
+            }
+          ]
         }
       ]
     },
@@ -270,13 +301,28 @@
     "armament": {
       "guns": [
         {
+          "id": "cowl",
           "weapon": "mg17",
           "count": 2,
           "synced": true
         },
         {
+          "id": "hub",
           "weapon": "mg151_20",
           "count": 1
+        },
+        {
+          "id": "gondola",
+          "weapon": "mg151_20",
+          "count": 0,
+          "options": [
+            {
+              "weapon": "mg151_20",
+              "max": 2,
+              "mountKg": 29,
+              "drag": 0.03
+            }
+          ]
         }
       ]
     },
@@ -415,12 +461,38 @@
     "armament": {
       "guns": [
         {
+          "id": "wing-inner",
           "weapon": "hispano_20",
-          "count": 2
+          "count": 2,
+          "options": [
+            {
+              "weapon": "hispano_20",
+              "max": 2
+            },
+            {
+              "weapon": "browning_303",
+              "max": 4
+            }
+          ]
         },
         {
+          "id": "wing-outer",
           "weapon": "browning_303",
-          "count": 4
+          "count": 4,
+          "options": [
+            {
+              "weapon": "browning_303",
+              "max": 4
+            },
+            {
+              "weapon": "hispano_20",
+              "max": 2
+            },
+            {
+              "weapon": "m2_browning",
+              "max": 2
+            }
+          ]
         }
       ]
     },
@@ -563,6 +635,7 @@
     "armament": {
       "guns": [
         {
+          "id": "wing",
           "weapon": "m2_browning",
           "count": 8
         }
@@ -703,6 +776,7 @@
     "armament": {
       "guns": [
         {
+          "id": "cowl",
           "weapon": "shvak_20",
           "count": 2,
           "synced": true
@@ -844,6 +918,7 @@
     "armament": {
       "guns": [
         {
+          "id": "cowl",
           "weapon": "ho103",
           "count": 2,
           "synced": true
@@ -938,11 +1013,13 @@
     "armament": {
       "guns": [
         {
+          "id": "cowl",
           "weapon": "m2_browning",
           "count": 2,
           "synced": true
         },
         {
+          "id": "wing",
           "weapon": "m2_browning",
           "count": 2
         }
@@ -1091,10 +1168,22 @@
     "armament": {
       "guns": [
         {
+          "id": "nose-mg",
           "weapon": "mg17",
-          "count": 4
+          "count": 4,
+          "options": [
+            {
+              "weapon": "mg17",
+              "max": 4
+            },
+            {
+              "weapon": "mk108_30",
+              "max": 2
+            }
+          ]
         },
         {
+          "id": "nose-cannon",
           "weapon": "mg151_20",
           "count": 2
         }
@@ -1289,10 +1378,12 @@
     "armament": {
       "guns": [
         {
+          "id": "cannon",
           "weapon": "hispano_20",
           "count": 4
         },
         {
+          "id": "mg",
           "weapon": "browning_303",
           "count": 4
         }
@@ -1502,6 +1593,7 @@
     "armament": {
       "guns": [
         {
+          "id": "wing",
           "weapon": "mg151_20",
           "count": 2
         }

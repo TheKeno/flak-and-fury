@@ -181,7 +181,9 @@
     "thrust": 0.06,
     "stall": 0.05,
     "takeoff": 0.04,
-    "turn": 0.06
+    "turn": 0.06,
+    "lightMax": 0.5,
+    "refShare": 0.15
   },
   "runway": {
     "concreteRadius": 0.6,

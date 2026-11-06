@@ -110,7 +110,7 @@ function newMemory(world, p) {
 function needsService(p) {
   if (p.hp < p.def.hp || p.engineDamage > 0 || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent || p.belly) return true;
   if (p.fuel < 0.9 || !p.engineRunning) return true;
-  return allGuns(p).some((g) => g.ammo < g.def.ammo * g.count) || bombsLeft(p) < bombsFull(p);
+  return allGuns(p).some((g) => g.ammo < g.full) || bombsLeft(p) < bombsFull(p);
 }
 
 function groundCommand(world, p, b) {
@@ -373,7 +373,7 @@ const ammoShare = (p) => {
   let full = 0;
   for (const g of p.guns) {
     have += g.ammo * g.def.damage;
-    full += g.def.ammo * g.count * g.def.damage;
+    full += g.full * g.def.damage;
   }
   return full > 0 ? have / full : 0;
 };
