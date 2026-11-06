@@ -921,7 +921,8 @@ export function createRenderer(canvas, world, assets) {
     if (!nameShown(p.callsign, p.id, focus)) return;
     const { grow, alpha } = exitLook(p);
     if (alpha <= 0) return;
-    const view = groundAttitude(p);
+    // Head-on frames (out of the hangar, turning round) are drawn level: the tail-down tilt would slant the name.
+    const view = p.groundTurn != null ? { angle: p.angle, x: p.x, y: p.y } : groundAttitude(p);
     const roll = Math.cos(p.rollAngle ?? 0);
     const upright = Math.cos(view.angle) >= 0 === roll >= 0;
     ctx.save();
