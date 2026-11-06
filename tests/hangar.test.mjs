@@ -106,3 +106,36 @@ test('saved choices: last plane, per-plane load, bad data falls back', () => {
   assert.deepEqual(readSaved(boom), {});
   assert.doesNotThrow(() => writeSaved(boom, {}, { defId: 'ju87', loadout: [] }));
 });
+
+// ---- the in-game hangar: swapping the plane standing behind the doors (changeSeat) ----
+import { importLdtk } from '../src/content/ldtk.js';
+import { createWorld, addPlane, stepWorld, DT } from '../src/sim/world.js';
+import { changeSeat } from '../src/sim/seats.js';
+import { ACTIONS } from '../src/input/keyboard.js';
+
+function waiting(defId) {
+  const groundDefs = load('data/ground.json');
+  delete groundDefs._notes;
+  const world = createWorld({ hangarStart: true, map: importLdtk(load('maps/countryside.ldtk')), planeDefs: planes, weapons, groundDefs, waves: { first: 1e6 }, rules: { bots: 'off' } });
+  const p = addPlane(world, { defId, team: 0, nation: planes[defId].nation, controller: 'p1' });
+  return { world, p };
+}
+
+test('plane swap behind the doors: no wreck, roll-out restarts, load kept; refused once pushed out', () => {
+  const { world, p } = waiting('ju87');
+  assert.equal(p.exitPhase, 'wait');
+  const light = presetsOf(planes.bf109g6)[1].loadout;
+  assert.equal(changeSeat(world, p, { defId: 'bf109g6', loadout: light }, DT), null);
+  assert.equal(p.def, planes.bf109g6);
+  assert.equal(p.exitPhase, 'wait');
+  assert.equal(world.planes.filter((o) => o.wreck).length, 0);
+  assert.deepEqual(p.loadout, validateLoadout(planes.bf109g6, light, weapons));
+  // Let it roll out: the plane is then out of the doors and the load is locked.
+  for (let i = 0; i < 60 * 20 && p.exitPhase === 'wait'; i++) stepWorld(world, { p1: { turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false } });
+  assert.notEqual(p.exitPhase, 'wait');
+  assert.equal(changeSeat(world, p, { loadout: presetsOf(planes.bf109g6)[2].loadout }, DT), 'locked');
+});
+
+test('the hangar key is a bindable action', () => {
+  assert.ok(ACTIONS.some(([id]) => id === 'hangar'));
+});

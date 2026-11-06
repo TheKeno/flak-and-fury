@@ -20,6 +20,7 @@ export const ACTIONS = [
   ['zoomIn', 'Camera zoom in', ['WheelUp', null]],
   ['zoomOut', 'Camera zoom out', ['WheelDown', null]],
   ['menu', 'Pause / menu', ['Escape', null]],
+  ['hangar', 'Hangar (plane and bombs)', ['KeyL', null]],
   ['help', 'Show / hide help', ['KeyH', null]],
   ['mute', 'Mute', ['KeyM', null]],
   ['fullscreen', 'Fullscreen', ['F11', null]],

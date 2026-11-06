@@ -137,6 +137,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
       `${keyOf('gear')} GEAR   ${keyOf('abandon')} BAIL OUT`,
       `MOUSE / ${arrows === 'UP/DOWN/LEFT/RIGHT' ? 'ARROWS' : arrows}  LOOK`,
       `${keyOf('menu')} MENU   ${keyOf('mute')} MUTE   ${keyOf('help')} HIDE HELP`,
+      `${keyOf('hangar')} HANGAR (PLANE, BOMBS)`,
       `${keyOf('freeLook')} FREE LOOK   ${keyOf('tuning')} TUNING`,
     ];
     const left = W - 6 - Math.max(...lines.map((l) => textWidth(l)));

@@ -73,7 +73,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 
 ## Hangar page: `hangar.html`
 
-No values of its own. It reads `loadoutPresets`, `hardpoints`, `loadout` (the per-hardpoint capacity), `maxLoad` in `planes.json`, bomb `weight` in `weapons.json` and `weight` in `settings.json` (the effect lines are `flyingDef`'s numbers). Choices are kept in the browser's localStorage under `flak-hangar`.
+No values of its own. It reads `loadoutPresets`, `hardpoints`, `loadout` (the per-hardpoint capacity), `maxLoad` in `planes.json`, bomb `weight` in `weapons.json` and `weight` in `settings.json` (the effect lines are `flyingDef`'s numbers). Choices are kept in the browser's localStorage under `flak-hangar`. The in-game panel (`src/ui/hangar-panel.js`, key L) has no values of its own either; its look is the `STYLE` string at the top of that file.
 
 ## Ground crew and camera: `data/settings.json`
 

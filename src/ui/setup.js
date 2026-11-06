@@ -90,8 +90,7 @@ export function createSetup({ parent, planes, levels, on }) {
     const perSide = el('div', { class: 'setup-row wide' },
       el('span', { class: 'label' }, 'PLANES PER SIDE'),
       select([[1, '1'], [2, '2']], state.planes, (v) => on.planes(Number(v)), !state.canEdit),
-      el('span', { class: 'label' }, 'YOUR PLANE'),
-      select(planes, state.myPlane, (v) => on.plane(v)),
+      ...(state.canPickPlane === false ? [] : [el('span', { class: 'label' }, 'YOUR PLANE'), select(planes, state.myPlane, (v) => on.plane(v))]),
     );
     table.replaceChildren(...rows, perSide);
     startBtn.textContent = state.start;

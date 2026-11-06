@@ -9,6 +9,7 @@ import { createSoundscape } from './audio/soundscape.js';
 import { createRecordings } from './audio/recordings.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { createSetup } from './ui/setup.js';
+import { createHangarPanel } from './ui/hangar-panel.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
 import { surfaceAt } from './sim/ground.js';
@@ -217,6 +218,8 @@ keyboard.onPress((code, e) => {
     muted = !muted;
     applyMute();
   }
+  // The hangar panel takes its own keys (plane, presets) while it is open.
+  if (hangar.isOpen && hangar.key(code)) return;
   if (menuOpen) return;
   for (const act of acts) {
     if (guest && HOST_ONLY.has(act)) {
@@ -224,6 +227,7 @@ keyboard.onPress((code, e) => {
       continue;
     }
     if (act === 'help') showHelp = !showHelp;
+    if (act === 'hangar' && started) hangar.toggle();
     if (act === 'perf') perfStats.toggle();
     // The panel needs the cursor back.
     if (act === 'tuning' && tuning.toggle()) mouse.release();
@@ -304,6 +308,7 @@ function menuKey() {
     pauseScreen.classList.remove('hidden');
     return;
   }
+  if (hangar.isOpen) return hangar.close(); // Esc closes the hangar first
   if (!menuOpen) return openMenu();
   // The same press that freed the mouse (and opened the menu) mustn't close it again.
   if (performance.now() - menuAt < 300) return;
@@ -515,6 +520,7 @@ function advance(now) {
 function frame(now) {
   prof.begin();
   const dt = advance(now);
+  hangar.update(started ? player : null, { started, blocked: menuOpen || free.on });
   prof.mark('sim');
   // Screens faster than the sim's 60 ticks a second draw most frames between two ticks: show things
   // part-way between them, then put the true values back before the sim runs again.
@@ -656,6 +662,20 @@ const setup = createSetup({
     },
   },
 });
+// The in-game hangar (L): plane and bombs while the plane is down or behind the doors.
+const hangar = createHangarPanel({
+  parent: document.getElementById('wrap'),
+  planeDefs: content.planeDefs,
+  weapons: content.weapons,
+  nations: content.nations,
+  settings: content.settings,
+  keyName: keyboard.keyName,
+  on: {
+    choose: (req) => askSeat(req),
+    opened: () => mouse.release(), // the cursor is needed for the lists
+    closed: () => !menuOpen && backToFullscreen(),
+  },
+});
 // The table as everyone sees it (`me` is worked out by whoever draws it).
 function sidesTable() {
   return {
@@ -684,6 +704,7 @@ function drawSetup() {
     canEdit: !guest,
     myPlane: mine?.defId ?? choice.plane,
     canSwitch: true,
+    canPickPlane: !started, // in the game the plane is chosen in the hangar (L), not here
     start: started ? 'RESUME' : 'START ENGINE',
     canStart: ready,
   });
@@ -701,7 +722,11 @@ function sidesChanged() {
 }
 const SEAT_ERRORS = { full: 'THAT SIDE ALREADY HAS TWO PILOTS', wait: 'WAIT A MOMENT BEFORE SWITCHING AGAIN', locked: 'TOO LATE: THE PLANE IS ALREADY OUT OF THE HANGAR', invalid: 'THAT LOAD DOES NOT FIT THIS PLANE' };
 function seatDone(reason) {
-  if (reason) return setup.say(SEAT_ERRORS[reason] ?? reason, true);
+  if (reason) {
+    hangar.say(SEAT_ERRORS[reason] ?? reason);
+    return setup.say(SEAT_ERRORS[reason] ?? reason, true);
+  }
+  hangar.say('');
   setup.say('');
   // Mid-game the change is on screen at once: back to the game to watch it.
   if (menuOpen) closeMenu();

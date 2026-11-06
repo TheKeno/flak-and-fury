@@ -46,6 +46,7 @@ function refit(world, p, def, team, loadout = null) {
 // up in (checked by validateLoadout; a bad list falls back to the plane's default). Returns null, or why
 // not: 'full', 'wait', or for a loadout alone 'locked' (the plane is already out of the hangar doors) and
 // 'invalid' (not allowed on this plane).
+// - Waiting behind the hangar doors: swapped, the roll-out restarts.
 // - Not flown yet: simply swapped, at the airfield.
 // - Already down: takes effect for the next plane.
 // - Flying, new side: he deserts (the plane burns, he parachutes out with a white flag).
@@ -59,6 +60,13 @@ export function changeSeat(world, p, { team = p.team, defId = null, loadout = nu
     return setLoadout(p, loadout, world.weapons) ? null : 'locked';
   }
   if (newSide && playersOn(world, team).length >= MAX_PER_SIDE) return 'full';
+  // Still behind the hangar doors (not pushed out yet): the plane standing there is swapped and the roll-out
+  // starts again from the queue's end. No wreck: nothing has flown.
+  if (p.state === 'ground' && p.exitPhase === 'wait') {
+    refit(world, p, def, team, loadout);
+    spawnAtAirfield(p, world, true);
+    return null;
+  }
   if (p.fresh && p.state === 'ground') {
     refit(world, p, def, team, loadout);
     spawnAtAirfield(p, world, world.hangarStart);
