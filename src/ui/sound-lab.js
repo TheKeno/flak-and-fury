@@ -850,7 +850,7 @@ function renderVehicle(id) {
     choose('Engine', engId, Object.entries(sound.engines).map(([k, e]) => [k, e.name]), (k) => { v.engine = k; }),
     textField('Engines on it', v, 'count', 'number'),
     v.estimate && !planes[v.id] ? el('div', {}, el('h3', { textContent: 'Estimated numbers, until it is built' }),
-      textField('Idle rpm', v.estimate, 'idleRpm', 'number'), textField('Cruise rpm', v.estimate, 'cruiseRpm', 'number'), textField('Max rpm', v.estimate, 'maxRpm', 'number'), textField('Propeller blades', v.estimate, 'propBlades', 'number'), textField('Gear ratio', v.estimate, 'gearRatio', 'number')) : null,
+      textField('Idle rpm', v.estimate, 'idleRpm', 'number'), el('div', { className: 'dim', textContent: v.estimate.idleSource === 'sourced' ? 'Idle: from a source.' : 'Idle: estimated as 0.20 × max rpm.' }), textField('Cruise rpm', v.estimate, 'cruiseRpm', 'number'), textField('Max rpm', v.estimate, 'maxRpm', 'number'), textField('Propeller blades', v.estimate, 'propBlades', 'number'), textField('Gear ratio', v.estimate, 'gearRatio', 'number')) : null,
     eng ? el('div', {}, el('h3', { textContent: `Engine: ${eng.name}` }),
       el('div', { className: 'dim', textContent: `Used by: ${sharing}` }),
       textField('Engine name', eng, 'name'),
@@ -1861,11 +1861,14 @@ function synthToggle(id, locked) {
 // Everything on the page, together: one engine voice and the layers on it.
 function testFlight(buildId, vehicles, kind) {
   const usable = vehicles.length ? vehicles : sound.vehicles.filter((v) => v.kind === kind).slice(0, 1);
-  const state = { vehicle: usable.find(inGame)?.id ?? usable[0]?.id, throttle: 0, speed: 0, turn: 0, damage: 0, moving: 1 }; // Run: the start-up, then idle on the ground
+  const state = { vehicle: usable.find(inGame)?.id ?? usable[0]?.id, throttle: 0, speed: 0, turn: 0, damage: 0, moving: 1, emergency: 0 }; // Run: the start-up, then idle on the ground
   const box = el('div', {}, el('h3', { textContent: 'Test Flight' }));
   let running = null;
   let flyby = 0;
   let throttleRow = null; // shows the rpm; redrawn when another vehicle (engine) is picked
+  // The same rpm the sim gives (updateEngine in src/sim/plane.js): full throttle is cruise rpm; max rpm
+  // is emergency power, which in the sim also comes from over-revving in a dive.
+  const throttleRpm = (s) => (state.emergency ? s.maxRpm : s.idleRpm + (s.cruiseRpm - s.idleRpm) * state.throttle);
   const run = async () => {
     await audio();
     stopLive();
@@ -1889,9 +1892,9 @@ function testFlight(buildId, vehicles, kind) {
         voice.update(w, Boolean(state.moving));
         host.update({ moving: state.moving, speed: state.moving ? 5 : 0 }, w, false);
       } else {
-        const rpm = spec.idleRpm + (spec.maxRpm - spec.idleRpm) * state.throttle;
-        voice.update({ rpm, load: state.throttle, roughness: 0.08 + state.damage * 0.5, misfire: state.damage * 0.22, gain: w.gain, pan: w.pan, cutoff: w.cutoff, doppler: w.doppler });
-        host.update({ rpm, load: state.throttle, speed: state.speed, turn: state.turn, damage: state.damage, altitude: 200, ground: 0, inverted: 0, service: 0 }, w, !flyby && listen.distance === 0);
+        const rpm = throttleRpm(spec);
+        voice.update({ rpm, load: state.emergency ? 1 : state.throttle, roughness: 0.08 + state.damage * 0.5, misfire: state.damage * 0.22, gain: w.gain, pan: w.pan, cutoff: w.cutoff, doppler: w.doppler });
+        host.update({ rpm, load: state.emergency ? 1 : state.throttle, speed: state.speed, turn: state.turn, damage: state.damage, altitude: 200, ground: 0, inverted: 0, service: 0 }, w, !flyby && listen.distance === 0);
       }
       frame = requestAnimationFrame(tick);
     };
@@ -1921,10 +1924,11 @@ function testFlight(buildId, vehicles, kind) {
     // The rpm the throttle gives on the chosen engine, as the run loop works it out.
     const rpmNow = () => {
       const s = engineOf(sound.vehicles.find((x) => x.id === state.vehicle) ?? {});
-      return s?.idleRpm ? `${Math.round(s.idleRpm + (s.maxRpm - s.idleRpm) * state.throttle)} rpm` : '';
+      return s?.idleRpm ? `${Math.round(throttleRpm(s))} rpm${state.emergency ? ' (emergency)' : ''}` : '';
     };
     throttleRow = testSlider(state, 'throttle', 'Throttle', 0, 1, 0.01, rpmNow);
-    box.append(throttleRow, testSlider(state, 'speed', 'Airspeed', 0, 250, 1), testSlider(state, 'turn', 'Turn strength', 0, 4, 0.05), testSlider(state, 'damage', 'Damage', 0, 1, 0.01));
+    const emergency = el('input', { type: 'checkbox', onchange: () => { state.emergency = emergency.checked ? 1 : 0; throttleRow.refresh(); } });
+    box.append(throttleRow, el('label', { className: 'field', title: 'War emergency power: the engine at its max rpm and full load, for a short time, as the game will allow it.' }, el('span', { textContent: 'Emergency power' }), emergency, el('span', { className: 'dim', textContent: 'max rpm' })), testSlider(state, 'speed', 'Airspeed', 0, 250, 1), testSlider(state, 'turn', 'Turn strength', 0, 4, 0.05), testSlider(state, 'damage', 'Damage', 0, 1, 0.01));
   }
   return box;
 }

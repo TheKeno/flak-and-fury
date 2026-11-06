@@ -225,6 +225,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Engine rpm checked against references (Sound, 2026-11-06):** idle, cruise, max and gear checked for every plane engine (Wikipedia, airpages.ru, Grace's Guide, Warbirds Resource Group, the Smithsonian). Corrected: He 177 gear 0.413, Pe-8 gear 0.5625 (bomber ASh-82FN 9:16), Bf 109 F-4 cruise 2300, G4M1 max 2450, B-239 max 2200. Idle was found for one engine only (AM-38F, 450); all others are estimated as 0.20 × max rpm and tagged `idleSource: 'estimated'` in `data/planes.json` / `data/sound.json`. Engines ticked checked in the Lab: DB 605A, DB 610, V-1710, AM-38F, R-1820, ASh-82FN, M-105, Merlin 61. Still unverified: Ha-115 (no data found), gear ratios of Ha-102, Kinsei 54, Kasei 11, DB 601E and the Merlin 61 (0.42 or 0.477 conflict). The Lab's Test Flight throttle slider now matches the sim (idle to cruise rpm, shown beside it) and has an Emergency power switch (max rpm, full load).
 - **Sound Design Test Flight shows the rpm (Sound, 2026-11-06):** the number of revolutions per minute the throttle gives on the chosen engine is drawn to the right of the Throttle slider and follows the vehicle pick (`testSlider` in `src/ui/sound-lab.js`).
 - **Sound Lab Sounds-tab Play plays the clips (Sound, 2026-11-06):** the Play button on an engine build page (and the tank build page and the Mix tab's explosion-over-engine test) made the engine voice without the sound's recording id, so only the synth played; it now passes `build:<id>`, so the recorded clips and start-up play like in Test Flight and the game. Fix in `src/ui/sound-lab.js`.
 - **Friendly fire on by default, own bombs hurt own plane (Gameplay, 2026-11-06):** `friendlyFire` now defaults to true (`data/settings.json`, `DEFAULT_RULES` in `src/sim/world.js`). A bomb striking a plane now follows the friendly-fire rule, and with it on can hit the plane that dropped it once `BOMB_SAFE_TIME` (0.6 s, `src/sim/weapons.js`) has passed (its blast already hurt the owner). Tests that relied on the old default set `friendlyFire: false` explicitly; new test in `tests/weapons.test.mjs`. Not tried in play; bots will now hit their own side too, so watch how that feels.
@@ -457,6 +458,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Decide the key, the damage rate and the cool-down in a short discussion first.
 - **Enemy names hard to read** (UI): the names drawn along enemy planes are hard to read.
 - **Objective map features** (Gameplay): towns, bases and other interesting places on the map to fight for, giving matches objectives beyond kills.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.

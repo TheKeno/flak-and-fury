@@ -162,7 +162,7 @@
       "layout": "inline",
       "cylinders": 12,
       "build": "inline",
-      "checked": false
+      "checked": true
     },
     "db605b": {
       "name": "Daimler-Benz DB 605B",
@@ -176,7 +176,7 @@
       "layout": "inline",
       "cylinders": 24,
       "build": "inline",
-      "checked": false
+      "checked": true
     },
     "jumo211": {
       "name": "Junkers Jumo 211J",
@@ -190,7 +190,7 @@
       "layout": "inline",
       "cylinders": 12,
       "build": "inline",
-      "checked": false
+      "checked": true
     },
     "merlin25": {
       "name": "Rolls-Royce Merlin 25",
@@ -218,21 +218,21 @@
       "layout": "inline",
       "cylinders": 12,
       "build": "inline",
-      "checked": false
+      "checked": true
     },
     "m105": {
       "name": "Klimov M-105",
       "layout": "inline",
       "cylinders": 12,
       "build": "inline",
-      "checked": false
+      "checked": true
     },
     "am38f": {
       "name": "Mikulin AM-38F",
       "layout": "inline",
       "cylinders": 12,
       "build": "inline",
-      "checked": false
+      "checked": true
     },
     "r2800": {
       "name": "Pratt & Whitney R-2800",
@@ -246,7 +246,7 @@
       "layout": "radial",
       "cylinders": 14,
       "build": "radial",
-      "checked": false
+      "checked": true
     },
     "ha115": {
       "name": "Nakajima Ha-115",
@@ -281,7 +281,7 @@
       "layout": "radial",
       "cylinders": 9,
       "build": "radial",
-      "checked": false
+      "checked": true
     },
     "mercury": {
       "name": "Bristol Mercury XV",
@@ -418,11 +418,12 @@
       "engine": "merlinXX",
       "count": 1,
       "estimate": {
-        "idleRpm": 800,
+        "idleRpm": 600,
         "cruiseRpm": 2650,
         "maxRpm": 3000,
         "propBlades": 3,
-        "gearRatio": 0.42
+        "gearRatio": 0.42,
+        "idleSource": "estimated"
       }
     },
     {
@@ -441,11 +442,12 @@
       "engine": "v1710",
       "count": 2,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 600,
         "cruiseRpm": 2300,
         "maxRpm": 3000,
         "propBlades": 3,
-        "gearRatio": 0.5
+        "gearRatio": 0.5,
+        "idleSource": "estimated"
       }
     },
     {
@@ -456,11 +458,12 @@
       "engine": "v1710",
       "count": 1,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 600,
         "cruiseRpm": 2300,
         "maxRpm": 3000,
         "propBlades": 3,
-        "gearRatio": 0.5
+        "gearRatio": 0.5,
+        "idleSource": "estimated"
       }
     },
     {
@@ -479,11 +482,12 @@
       "engine": "m105",
       "count": 2,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 540,
         "cruiseRpm": 2200,
         "maxRpm": 2700,
         "propBlades": 3,
-        "gearRatio": 0.67
+        "gearRatio": 0.67,
+        "idleSource": "estimated"
       }
     },
     {
@@ -494,11 +498,12 @@
       "engine": "am38f",
       "count": 1,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 450,
         "cruiseRpm": 2050,
         "maxRpm": 2350,
         "propBlades": 3,
-        "gearRatio": 0.73
+        "gearRatio": 0.73,
+        "idleSource": "sourced"
       }
     },
     {
@@ -517,11 +522,12 @@
       "engine": "ha102",
       "count": 2,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 540,
         "cruiseRpm": 2300,
         "maxRpm": 2700,
         "propBlades": 3,
-        "gearRatio": 0.7
+        "gearRatio": 0.7,
+        "idleSource": "estimated"
       }
     },
     {
@@ -532,11 +538,12 @@
       "engine": "kinsei",
       "count": 1,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 520,
         "cruiseRpm": 2200,
         "maxRpm": 2600,
         "propBlades": 3,
-        "gearRatio": 0.7
+        "gearRatio": 0.7,
+        "idleSource": "estimated"
       }
     },
     {
@@ -555,11 +562,12 @@
       "engine": "mercury",
       "count": 2,
       "estimate": {
-        "idleRpm": 650,
+        "idleRpm": 550,
         "cruiseRpm": 2100,
         "maxRpm": 2750,
         "propBlades": 3,
-        "gearRatio": 0.5
+        "gearRatio": 0.5,
+        "idleSource": "estimated"
       }
     },
     {
@@ -570,11 +578,12 @@
       "engine": "jumo211",
       "count": 2,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 520,
         "cruiseRpm": 2200,
         "maxRpm": 2600,
         "propBlades": 3,
-        "gearRatio": 0.645
+        "gearRatio": 0.645,
+        "idleSource": "estimated"
       }
     },
     {
@@ -585,11 +594,12 @@
       "engine": "r1820",
       "count": 4,
       "estimate": {
-        "idleRpm": 650,
+        "idleRpm": 500,
         "cruiseRpm": 2100,
         "maxRpm": 2500,
         "propBlades": 3,
-        "gearRatio": 0.56
+        "gearRatio": 0.56,
+        "idleSource": "estimated"
       }
     },
     {
@@ -600,11 +610,12 @@
       "engine": "merlin22",
       "count": 4,
       "estimate": {
-        "idleRpm": 800,
+        "idleRpm": 600,
         "cruiseRpm": 2650,
         "maxRpm": 3000,
         "propBlades": 3,
-        "gearRatio": 0.42
+        "gearRatio": 0.42,
+        "idleSource": "estimated"
       }
     },
     {
@@ -615,11 +626,12 @@
       "engine": "db610",
       "count": 2,
       "estimate": {
-        "idleRpm": 800,
+        "idleRpm": 560,
         "cruiseRpm": 2300,
         "maxRpm": 2800,
         "propBlades": 4,
-        "gearRatio": 0.6
+        "gearRatio": 0.413,
+        "idleSource": "estimated"
       }
     },
     {
@@ -630,11 +642,12 @@
       "engine": "ash82",
       "count": 4,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 500,
         "cruiseRpm": 2200,
         "maxRpm": 2500,
         "propBlades": 3,
-        "gearRatio": 0.7
+        "gearRatio": 0.5625,
+        "idleSource": "estimated"
       }
     },
     {
@@ -645,11 +658,12 @@
       "engine": "kasei",
       "count": 2,
       "estimate": {
-        "idleRpm": 700,
+        "idleRpm": 490,
         "cruiseRpm": 2200,
-        "maxRpm": 2500,
+        "maxRpm": 2450,
         "propBlades": 3,
-        "gearRatio": 0.7
+        "gearRatio": 0.7,
+        "idleSource": "estimated"
       }
     },
     {

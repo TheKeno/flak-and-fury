@@ -169,11 +169,12 @@
     "engine": {
       "layout": "inline",
       "cylinders": 12,
-      "idleRpm": 800,
+      "idleRpm": 560,
       "cruiseRpm": 2300,
       "maxRpm": 2800,
       "propBlades": 3,
-      "gearRatio": 0.593
+      "gearRatio": 0.593,
+      "idleSource": "estimated"
     }
   },
   "bf109": {
@@ -329,11 +330,12 @@
     "engine": {
       "layout": "inline",
       "cylinders": 12,
-      "idleRpm": 800,
-      "cruiseRpm": 2400,
+      "idleRpm": 540,
+      "cruiseRpm": 2300,
       "maxRpm": 2700,
       "propBlades": 3,
-      "gearRatio": 0.645
+      "gearRatio": 0.645,
+      "idleSource": "estimated"
     }
   },
   "spitfire": {
@@ -499,11 +501,12 @@
     "engine": {
       "layout": "inline",
       "cylinders": 12,
-      "idleRpm": 900,
+      "idleRpm": 600,
       "cruiseRpm": 2650,
       "maxRpm": 3000,
       "propBlades": 4,
-      "gearRatio": 0.477
+      "gearRatio": 0.477,
+      "idleSource": "estimated"
     }
   },
   "p47d": {
@@ -644,11 +647,12 @@
     "engine": {
       "layout": "radial",
       "cylinders": 18,
-      "idleRpm": 700,
+      "idleRpm": 540,
       "cruiseRpm": 2250,
       "maxRpm": 2700,
       "propBlades": 4,
-      "gearRatio": 0.5
+      "gearRatio": 0.5,
+      "idleSource": "estimated"
     }
   },
   "la5fn": {
@@ -786,11 +790,12 @@
     "engine": {
       "layout": "radial",
       "cylinders": 14,
-      "idleRpm": 700,
+      "idleRpm": 500,
       "cruiseRpm": 2200,
       "maxRpm": 2500,
       "propBlades": 3,
-      "gearRatio": 0.7
+      "gearRatio": 0.7,
+      "idleSource": "estimated"
     }
   },
   "ki43": {
@@ -928,11 +933,12 @@
     "engine": {
       "layout": "radial",
       "cylinders": 14,
-      "idleRpm": 700,
+      "idleRpm": 560,
       "cruiseRpm": 2400,
       "maxRpm": 2800,
       "propBlades": 3,
-      "gearRatio": 0.7
+      "gearRatio": 0.7,
+      "idleSource": "estimated"
     }
   },
   "b239": {
@@ -1028,11 +1034,12 @@
     "engine": {
       "layout": "radial",
       "cylinders": 9,
-      "idleRpm": 650,
+      "idleRpm": 440,
       "cruiseRpm": 2100,
-      "maxRpm": 2500,
+      "maxRpm": 2200,
       "propBlades": 3,
-      "gearRatio": 0.6875
+      "gearRatio": 0.6875,
+      "idleSource": "estimated"
     }
   },
   "bf110": {
@@ -1206,11 +1213,12 @@
     "engine": {
       "layout": "inline",
       "cylinders": 12,
-      "idleRpm": 750,
+      "idleRpm": 560,
       "cruiseRpm": 2300,
       "maxRpm": 2800,
       "propBlades": 3,
-      "gearRatio": 0.593
+      "gearRatio": 0.593,
+      "idleSource": "estimated"
     }
   },
   "mosquito": {
@@ -1392,11 +1400,12 @@
     "engine": {
       "layout": "inline",
       "cylinders": 12,
-      "idleRpm": 900,
+      "idleRpm": 600,
       "cruiseRpm": 2650,
       "maxRpm": 3000,
       "propBlades": 3,
-      "gearRatio": 0.42
+      "gearRatio": 0.42,
+      "idleSource": "estimated"
     }
   },
   "ju87": {
@@ -1616,11 +1625,12 @@
     "engine": {
       "layout": "inline",
       "cylinders": 12,
-      "idleRpm": 700,
+      "idleRpm": 520,
       "cruiseRpm": 2200,
       "maxRpm": 2600,
       "propBlades": 3,
-      "gearRatio": 0.645
+      "gearRatio": 0.645,
+      "idleSource": "estimated"
     }
   }
 }
