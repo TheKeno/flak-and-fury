@@ -4,7 +4,7 @@
 // A group is one or more files (random variations) with one set of tweaks.
 import { out } from './sfx.js';
 import { spatialChain } from './loops.js';
-import { mapRange, DRIVERS } from './sound-data.js';
+import { mapRange, pickWeighted, DRIVERS } from './sound-data.js';
 
 const ME = { dist: 0, pan: 0, gain: 1, cutoff: 18000, delay: 0, doppler: 1 };
 const setT = (param, v, ctx, tc = 0.04) => param.setTargetAtTime(v, ctx.currentTime, tc);
@@ -92,15 +92,15 @@ export function createRecordings(mixer, sound) {
   }
 
   // A loop that follows its file's trim: moved markers are heard from the next time round. With
-  // several files to choose from, each time round picks another at random.
-  function liveSource(choices, xfadeOf, dest) {
-    const pick = () => {
-      const files = choices();
-      return files[Math.floor(Math.random() * files.length)];
-    };
+  // several files to choose from, each time round picks another at random (by weight). With
+  // perFile, each file's own gain applies, following live and when the loop swaps files.
+  function liveSource(choices, xfadeOf, dest, perFile = false) {
+    const pick = () => pickWeighted(choices());
     let file = pick();
     let src = null;
     let g = null;
+    let fg = null;
+    let fgFile = null;
     let key = '';
     let pos = 0;
     let last = ctx.currentTime;
@@ -118,7 +118,12 @@ export function createRecordings(mixer, sound) {
       const fade = ctx.createGain();
       fade.gain.setValueAtTime(0, at);
       fade.gain.linearRampToValueAtTime(1, at + 0.015);
-      s.connect(fade).connect(dest);
+      if (perFile) {
+        fg = ctx.createGain();
+        fgFile = file;
+        fg.gain.value = file.gain ?? 1;
+        s.connect(fade).connect(fg).connect(dest);
+      } else s.connect(fade).connect(dest);
       s.start(at, offset);
       src = s;
       g = fade;
@@ -134,6 +139,8 @@ export function createRecordings(mixer, sound) {
         last = now;
         rate = r;
         src.playbackRate.setTargetAtTime(r, now, tc);
+        // fgFile, not file: the next file is chosen a moment before the swap to it.
+        if (fg) fg.gain.setTargetAtTime(fgFile.gain ?? 1, now, 0.04);
         if (pos >= length) pos %= length;
         if (audible) heads.set(file, { loop: (file.start ?? 0) + Math.max(0, pos), seen: now });
         // A very short crossfade covers the join, since the two are cut from different places.
@@ -166,6 +173,7 @@ export function createRecordings(mixer, sound) {
       stop() {
         src.stop();
         g.disconnect();
+        fg?.disconnect();
       },
     };
   }
@@ -193,14 +201,14 @@ export function createRecordings(mixer, sound) {
   function playGroup(group, where, { gain = 1, rate = 1, offset = 0, reverb, bus = 'sfx', pitch = 0 } = {}) {
     const files = group.files.filter((f) => buffers.has(f.path));
     if (!files.length) return;
-    const file = files[Math.floor(Math.random() * files.length)];
+    const file = pickWeighted(files);
     const raw = buffers.get(file.path);
     const buf = group.reverse ? reversed(file.path, raw) : raw;
     const start = group.reverse ? raw.duration - (file.end ?? raw.duration) : file.start ?? 0;
     const length = Math.max(0.005, (file.end ?? raw.duration) - (file.start ?? 0));
     const at = mixer.now + where.delay + group.delay + offset;
     const speed = 2 ** ((group.pitch + pitch) / 12) * rate * (1 + (Math.random() * 2 - 1) * group.pitchVar) * (where.doppler ?? 1);
-    const level = group.gain * gain * (1 + (Math.random() * 2 - 1) * group.gainVar);
+    const level = group.gain * (file.gain ?? 1) * gain * (1 + (Math.random() * 2 - 1) * group.gainVar);
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.playbackRate.value = speed;
@@ -234,7 +242,7 @@ export function createRecordings(mixer, sound) {
     const usable = () => group.files.filter((f) => buffers.has(f.path));
     if (!usable().length) return null;
     const chain = spatialChain(chainMixer, group.reverb);
-    const src = liveSource(usable, () => group.xfade, tweaks(group, chain.input));
+    const src = liveSource(usable, () => group.xfade, tweaks(group, chain.input), true);
     return {
       update(where, value = 1, { gain = 1, pitch = 0 } = {}) {
         const m = mapRange(value, group);

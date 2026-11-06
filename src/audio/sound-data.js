@@ -8,6 +8,20 @@ export function engineSoundFor(sound, vehicleId, layout = 'inline') {
   return { build, buildId, count: vehicle?.count ?? 1 };
 }
 
+// A random file from a group, each in proportion to its weight (missing = 1). A weight of 0 is never
+// picked unless every file has 0. rand: a number in 0..1, for tests.
+export function pickWeighted(files, rand = Math.random()) {
+  const w = files.map((f) => Math.max(0, Number.isFinite(f.weight) ? f.weight : 1));
+  const total = w.reduce((a, b) => a + b, 0);
+  if (!total) return files[Math.min(files.length - 1, Math.floor(rand * files.length))];
+  let t = rand * total;
+  for (let i = 0; i < files.length; i++) {
+    if (t < w[i]) return files[i];
+    t -= w[i];
+  }
+  return files[w.findLastIndex((x) => x > 0)];
+}
+
 // A value through a layer's mapping: from mapFrom..mapTo to its gain and pitch ranges.
 export function mapRange(value, g) {
   const span = g.mapTo - g.mapFrom;

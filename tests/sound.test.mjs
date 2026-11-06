@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { engineSoundFor, mapRange, DRIVERS, syncInPlace } from '../src/audio/sound-data.js';
+import { engineSoundFor, mapRange, pickWeighted, DRIVERS, syncInPlace } from '../src/audio/sound-data.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../${f}`, import.meta.url)));
 const sound = load('data/sound.json');
@@ -147,4 +147,17 @@ test('every voice the soundscape plays exists in the voice builder', () => {
   const used = new Set([...read('soundscape.js').matchAll(/(?<![-\w])voices\.(\w+)/g)].map((m) => m[1]));
   // A voice is built by name in a list or as voices.name; guns come from the data.
   for (const v of used) if (!sound.guns[v]) assert.ok(builder.includes(`voices.${v}`) || builder.includes(`${v}:`) || builder.includes(`'${v}'`), `voices.${v} is not built`);
+});
+
+test('a weighted pick follows the weights, and a missing weight counts as 1', () => {
+  const files = [{ path: 'a', weight: 3 }, { path: 'b' }, { path: 'c', weight: 0 }];
+  const at = (r) => pickWeighted(files, r).path;
+  assert.equal(at(0), 'a');
+  assert.equal(at(0.74), 'a'); // a owns 0..0.75
+  assert.equal(at(0.76), 'b');
+  assert.equal(at(0.999999), 'b'); // c, weight 0, is never picked
+  const counts = { a: 0, b: 0 };
+  for (let i = 0; i < 4000; i++) counts[pickWeighted(files).path]++;
+  assert.ok(counts.a > counts.b * 2, `${counts.a} vs ${counts.b}`);
+  assert.equal(pickWeighted([{ path: 'x', weight: 0 }, { path: 'y', weight: 0 }], 0.9).path, 'y'); // all zero: even
 });

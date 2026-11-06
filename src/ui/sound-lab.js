@@ -920,6 +920,7 @@ function renderGuide() {
     p('Drag WAV, MP3, OGG or FLAC files onto a Recordings box. Files go to assets/audio/ and are named after the slot, such as inline-idle-01 (a file already in the library is reused, not copied), and are mixed to mono, because the game places each sound itself. Several files in one group are random variations. Clean up in your editor first: trim silence, avoid wind or narration, and keep one-shots short, because everything is decoded into memory at load. The count in the header shows the total. Large files also bloat git.'),
     p('Fill in licence and source for each file. A red ! in the list means one is missing or marked other, so it can be reviewed before release.'),
     p('A looping sound with several files plays a random one each time round. Each file has its own trim, so trim them to clean pieces. Engine clips are the exception: there is one per slot.'),
+    p('Each file in a group has a File volume, its own level on top of the group\'s Volume, to even out files recorded at different levels. With several files there is also a Weight: how often the file is picked compared with the others, so 2 is twice as often as 1 and 0 never. Both work for one-shots and loops, and while a loop plays the volume changes as you drag.'),
     h('Recorded engines'),
     p('On a build, add up to three clips, usually idle, cruise and full, and enter the rpm of each. The game pitches them to the engine and crossfades between the two nearest. Synth level and Clip level blend them with the synth. Misfires dip the recording too. Clips with very different rpm from the engine sound stretched. Tanks take a standing clip, a moving clip and a tracks clip instead.'),
     h('Your layers'),
@@ -1145,14 +1146,19 @@ function waveform(file, locked, onChange, height = 70) {
   return el('div', { style: `position:relative;width:100%;${height === 70 ? 'max-width:700px' : ''}` }, c, marker);
 }
 
-function fileRow(file, locked, remove, onChange, extra = []) {
+// mix: for a file in a group, { weight } says whether to show Weight (only with several files).
+// Volume and weight read as 1 when missing, and are only written when moved.
+function fileRow(file, locked, remove, onChange, extra = [], mix = null) {
+  const view = { get gain() { return file.gain ?? 1; }, set gain(v) { file.gain = v; }, get weight() { return file.weight ?? 1; }, set weight(v) { file.weight = v; } };
   const licence = el('select', { disabled: locked, onchange: () => { file.licence = licence.value; touch(); updateCount(); renderList(); } },
     ...LICENCES.map(([k, t]) => el('option', { value: k, textContent: t, selected: file.licence === k })));
   const source = el('input', { placeholder: 'Source: site, author, link', value: file.source ?? '', disabled: locked, onchange: () => { file.source = source.value; touch(); } });
   return el('div', { style: 'margin:8px 0;padding:6px;border:1px solid var(--line)' },
     el('div', { textContent: `${shortPath(file.path)}  (${((file.size ?? 0) / 1e6).toFixed(2)} MB)` }),
     waveform(file, locked, onChange),
-    el('div', { className: 'buttons' }, licence, source, ...extra, locked ? null : button('Remove', remove)));
+    el('div', { className: 'buttons' }, licence, source, ...extra, locked ? null : button('Remove', remove)),
+    mix ? slider(view, ['gain', 'File volume', 0, 3, 0.01, 'This file\'s own level, on top of the group\'s Volume. Use it to even out files that were recorded at different levels.'], null, locked) : null,
+    mix?.weight ? slider(view, ['weight', 'Weight', 0, 5, 0.1, 'How often this file is picked, compared with the others in the group. 2 is twice as often as 1; 0 never. Only matters when the group has several files.'], null, locked) : null);
 }
 
 const GROUP_FIELDS = [
@@ -1182,7 +1188,7 @@ function groupPanel(group, id, locked, opts = {}) {
   const trial = group.files.length && !opts.loop ? playToggle(() => mixer.recordings.playGroup(group, where(listen.distance, settings.audio.bangRange)), 'Play this group', 'Stop') : null;
   const reverse = el('input', { type: 'checkbox', checked: group.reverse, disabled: locked, onchange: () => { group.reverse = reverse.checked; touch(); } });
   box.append(
-    ...group.files.map((f, i) => fileRow(f, locked, () => { group.files.splice(i, 1); touch(); updateCount(); redo(); })),
+    ...group.files.map((f, i) => fileRow(f, locked, () => { group.files.splice(i, 1); touch(); updateCount(); redo(); }, undefined, [], { weight: group.files.length > 1 })),
     locked ? null : dropBox('Drop recordings here, or click. Several files are random variations.', (added) => {
       group.files.push(...added);
       if (added.length) touch();
@@ -1708,7 +1714,7 @@ function layerSlot(key, layer, help, locked, vehicleId) {
       const target = layer ?? airframeLayer(key);
       target.group.files.push(...added);
     },
-    body: [...files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
+    body: [...files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [], { weight: files.length > 1 })),
       layer && vehicleId ? layerOverride(layer, vehicleId) : null].filter(Boolean),
   });
 }
@@ -1750,7 +1756,7 @@ function groupSlot(id, key, name, help, locked, sub, looping = false) {
       if (!rec.groups[0]) rec.groups[0] = newGroup();
       rec.groups[0].files.push(...added);
     },
-    body: files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
+    body: files.map((f, i) => fileRow(f, locked, () => { files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [], { weight: files.length > 1 })),
   });
 }
 
