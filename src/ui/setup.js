@@ -78,7 +78,7 @@ export function createSetup({ parent, levels, on }) {
     const rows = [head];
     const cells = (label, make) => el('div', { class: 'setup-row' }, el('span', { class: 'label' }, label), ...state.sides.map(make));
     rows.push(cells('PILOTS', (s) => el('div', { class: 'pilots' },
-      ...s.players.map((p) => el('div', { class: p.me ? 'pilot me' : 'pilot' }, `${p.name} - ${p.plane}`)),
+      ...s.players.map((p) => el('div', { class: p.me ? 'pilot me' : 'pilot' }, p.name)),
       ...Array.from({ length: s.bots }, () => el('div', { class: 'pilot bot' }, 'BOT')),
     )));
     rows.push(cells('', (s) => {
