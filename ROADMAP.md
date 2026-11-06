@@ -90,6 +90,13 @@ later.
     sprites mirrored. The plane rolls out again when the panel is closed (or a ROLL OUT button), holding in the queue
     with a "LOADING" message; a respawn after death still rolls out by itself. H with the plane down or behind the
     doors opens the panel; H anywhere else (air, rolling, no hangar left) gives a snarky refusal (built).
+  - **Layout and equipment ideas (discussion 2026-11-06, not built):** the hangar page grows to ~820 px wide, a left list of
+    all planes (sprite + name, grouped by category, sorted by nation) and a right column of stacked sections BOMBS, GUNS, ENGINE
+    (each only if the plane has real options), whole-plane presets and a pinned weight/effect footer. Facts per plane in
+    `notes/hangar-options.md` and `notes/hangar-options-verified.md`. **Weight idea:** guns and ammunition get a weight (kg) and can
+    be removed to save weight (a plane may fly with no guns); the weight bar covers bombs and guns; a plane lighter than
+    standard flies better than today (so the current numbers are no longer the best case); guns and pods add some drag
+    (speed). Engine choice only on the few planes that really had one; altitude-rated engines need an altitude power model.
   - **Out of scope here:** paint editor (milestone 8), visible bombs and bay doors (steps 4 and 5), fuel weight.
   - **Build order:** (1, done 2026-11-06) sim and online: `p.loadout`, `validateLoadout`, presets, seat request, tests; (2) the
     full hangar page; (3) the roll-out overlay and plane swap in the hangar, remove the Esc plane switch;
