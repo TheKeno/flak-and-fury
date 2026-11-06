@@ -157,3 +157,23 @@ test('a human pilot takes over once the turn is done: throttle ends the push and
   assert.ok(p.speed > 0 && p.engineRunning, 'accelerating on its own engine');
   assert.equal(world.crew.filter((c) => c.push).length, 0, 'crew back in the hangar');
 });
+
+test('a pilot who died gets the hangar: the new plane waits inside until released; a bot just rolls out', () => {
+  const { world, p } = makeWorld();
+  const b = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'bot:easy' });
+  for (const o of [p, b]) {
+    o.state = 'dead';
+    o.respawnTimer = 0.05;
+  }
+  steps(world, 20);
+  assert.equal(p.state, 'ground');
+  assert.equal(p.hold, true, 'the pilot waits behind the shut doors');
+  assert.equal(b.hold, false);
+  steps(world, 60 * 12);
+  assert.equal(p.exitPhase, 'wait', 'still inside after a long wait');
+  assert.equal(p.engineRunning, false);
+  assert.notEqual(b.exitPhase, 'wait', 'the bot came out');
+  stepWorld(world, { p1: { ...IDLE, hangar: 'out' } });
+  steps(world, 60 * 20);
+  assert.notEqual(p.exitPhase, 'wait', 'released, it rolls out');
+});

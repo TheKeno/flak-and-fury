@@ -541,7 +541,7 @@ function frame(now) {
   if (!started || !player.hold) holdPanelShown = false;
   else if (!holdPanelShown && !menuOpen && !free.on) {
     const door = world.ground.find((o) => o.type === 'hangar' && o.team === player.team)?.door ?? 0;
-    if (door <= 0.01) {
+    if (door <= 0.01 || player.holdNew) { // a fresh plane is already inside: no waiting for the doors
       holdPanelShown = true;
       hangar.open();
     }
@@ -584,7 +584,7 @@ async function start() {
   started = true;
   // The first plane is chosen in the hangar: every pilot's plane waits behind the shut doors (as when parked in) and the
   // panel opens by itself (below); closing it rolls the plane out.
-  if (!guest) for (const p of world.planes) if (!p.seats[0].controller.startsWith('bot') && p.exitPhase === 'wait') p.hold = true;
+  if (!guest) for (const p of world.planes) if (!p.seats[0].controller.startsWith('bot') && p.exitPhase === 'wait') p.hold = p.holdNew = true;
   mouse.capture();
   mixer = await createMixer(content.settings.audio, content.sound.space);
   mixer.recordings = createRecordings(mixer, content.sound);

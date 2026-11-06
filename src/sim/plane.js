@@ -152,6 +152,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     exitT: 0, // 0..1 through the roll-out towards the camera: the plane is drawn bigger as it comes
     exitSeq: 0, // place in the hangar queue
     park: null, // being pushed into the hangar (H standing still): { phase: call | roll | turn | in, t, to } (stepParkIn)
+    holdNew: false, // the hold is a fresh plane waiting for its pilot's choice (not a park-in): the panel opens at once
     hold: false, // inside the hangar after a park-in: stays behind the closed doors until the hangar panel is closed
     edgeLevel: null, // seconds into levelling out before a map-edge swing (null: not doing that); see stepAir
     edgeLevelTime: 0, // how long that levelling takes
@@ -258,7 +259,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.rolling = false;
   p.rollAngle = p.inverted ? Math.PI : 0;
   p.groundTurn = p.groundLoop = p.edgeTurn = p.edgeLevel = null;
-  // Out of the hangar (a respawn): it starts inside, facing the camera, engine idling. stepHangarExit waits for
+  // Out of the hangar (a respawn): it starts inside, facing the camera, engine off until it has turned. stepHangarExit waits for
   // the doors and a free place, then the crew push it out; it turns into the runway and is rolled to
   // its place in the line. Not with the hangar destroyed (no doors, no crew): it appears on the runway.
   p.exitTo = null;
@@ -266,6 +267,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.exitT = 0;
   p.park = null;
   p.hold = false;
+  p.holdNew = false;
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team && o.alive);
   if (hangar && fromHangar) placeInHangar(p, world, hangar, facingRight ? 1 : -1);
   armPlane(p, world.weapons);
@@ -1106,7 +1108,11 @@ export function stepPlane(p, cmd, world, dt) {
   if (p.state === 'dead') {
     p.groundTurn = p.groundLoop = p.edgeTurn = p.edgeLevel = null;
     p.respawnTimer -= dt;
-    if (p.respawnTimer <= 0) spawnAtAirfield(p, world, true);
+    if (p.respawnTimer <= 0 && spawnAtAirfield(p, world, true) && !p.seats[0].controller.startsWith('bot') && p.exitPhase === 'wait') {
+      // A pilot's new plane waits behind the shut doors until they have picked it in the hangar (the panel opens by itself).
+      p.hold = true;
+      p.holdNew = true;
+    }
     return;
   }
 
@@ -1122,6 +1128,7 @@ export function stepPlane(p, cmd, world, dt) {
   if (cmd.hangar === 'call' && !parkInBlocker(p, world)) startParkIn(p, world);
   if (cmd.hangar === 'out' && p.hold) {
     p.hold = false;
+    p.holdNew = false;
     p.exitSeq = world.nextId++; // a fresh place in the queue
   }
   if (p.park && (p.park.phase === 'call' || p.park.phase === 'roll') && cmd.throttle > 0) cancelPark(p, world);
