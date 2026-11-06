@@ -10,10 +10,9 @@ export const ACTIONS = [
   ['throttleDown', 'Throttle down', ['KeyS', null]],
   ['roll', 'Roll / turn on the ground', ['ShiftLeft', null]],
   ['fire', 'Guns', ['Space', 'Mouse0']],
-  ['bomb', 'Bombs', ['KeyE', 'Mouse2']],
+  ['bomb', 'Bombs (hold: bomb view, release: drop)', ['KeyE', 'Mouse2']],
   ['gear', 'Landing gear', ['KeyG', null]],
   ['abandon', 'Bail out', ['KeyB', null]],
-  ['bombView', 'Bomb view (hold: look straight down)', ['KeyC', null]],
   ['lookUp', 'Look up', ['ArrowUp', null]],
   ['lookDown', 'Look down', ['ArrowDown', null]],
   ['lookLeft', 'Look left', ['ArrowLeft', null]],
@@ -92,6 +91,7 @@ export function codeName(code) {
 export function createKeyboard(bindings = defaultBindings()) {
   attach();
   const any = (codes) => codes.some((c) => c && held.has(c));
+  let bombWas = false; // was the bomb key down at the last read
   return {
     bindings,
     held: (code) => held.has(code),
@@ -106,7 +106,13 @@ export function createKeyboard(bindings = defaultBindings()) {
         throttle: (any(bindings.throttleUp) ? 1 : 0) - (any(bindings.throttleDown) ? 1 : 0),
         roll: any(bindings.roll),
         fire: any(bindings.fire),
-        bomb: any(bindings.bomb),
+        // Bomb view: holding the key only looks down (readLook); letting go drops the bomb, for one tick.
+        bomb: (() => {
+          const down = any(bindings.bomb);
+          const released = bombWas && !down;
+          bombWas = down;
+          return released;
+        })(),
         gear: any(bindings.gear),
         abandon: any(bindings.abandon),
         hangar: null, // set by main.js for one tick (park in, roll out)
@@ -117,8 +123,8 @@ export function createKeyboard(bindings = defaultBindings()) {
     readLook() {
       let x = (any(bindings.lookRight) ? 1 : 0) - (any(bindings.lookLeft) ? 1 : 0);
       let y = (any(bindings.lookDown) ? 1 : 0) - (any(bindings.lookUp) ? 1 : 0);
-      // Bomb view: held, the camera drops straight below the plane, whatever else is held.
-      if (any(bindings.bombView)) {
+      // Bomb view: while the bomb key is held the camera drops straight below the plane.
+      if (any(bindings.bomb)) {
         x = 0;
         y = 1;
       }
