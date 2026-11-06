@@ -193,7 +193,7 @@
     "closePoints": 100
   },
   "bots": {
-    "names": ["NewmaN", "Majsmannen", "Liquide", "Low-Life", "Totti", "Svett", "Hackbard", "Heiner", "Raiden", "ODEE", "Thrasher", "Snakey", "Sakai", "tagg", "RaideN", "SpadEs", "Deman", "Keno", "Ireaper", "Zlaxzzor", "Zatarra"],
+    "names": ["NewmaN", "Majsmannen", "Liquide", "Low-Life", "Totti", "Svett", "Hackbard", "Heiner", "ODEE", "Thrasher", "Snakey", "Sakai", "tagg", "RaideN", "SpadEs", "Deman", "Keno", "Ireaper", "Zlaxzzor", "Zatarra"],
     "cruiseHeight": 220,
     "terrainClear": 55,
     "patrolSpan": 500,
