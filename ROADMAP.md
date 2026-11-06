@@ -7,6 +7,47 @@ later.
 
 ## Decisions
 
+- **Bomb stations: hardpoints, loads and weight (decided 2026-11-06, discussion; not built):** a plane's
+  one bomb slot (`armament.bombs`, `bombOffset`) becomes a list of **hardpoints** plus a **load**, so the
+  Stuka carries an SC 500 on the crutch and four SC 50 on wing racks, bombers get bays and mixed loads,
+  and the hangar editor (milestone 8) gets slots and a weight budget.
+  - **Hardpoints** in `planes.json`: `hardpoints: [{id, kind, offset, group, maxKg}]`; kinds `crutch`
+    (fuselage), `rack` (wing, left and right pairs drop together) and `bay`. Offsets in the plane's own
+    frame like `noseOffset`, typed by hand; **`planes.json` is the single source of truth**, and `bombOffset`
+    goes away. The Outline Lab marker feature (backlog "underside point features") comes later and will
+    read and write these same positions. A plane with one bomb slot gets one hardpoint at its old
+    `bombOffset`, so it behaves exactly as today.
+  - **Load:** a list of `{hardpoint, weapon}`; the default is `loadout` in `planes.json`, the hangar editor
+    writes the same list later. In the sim `p.bombs` becomes `p.stations` (`{hp, def, loaded}`); helpers
+    `bombsLeft(p)`, `bombsFull(p)`, `nextStation(p)` replace every read of `p.bombs.count` (rearm in
+    `airfield.js`, HUD count, AI bomb choice and impact prediction in `ai.js`, the save/restore near
+    `plane.js` line 969, the tuning panel's bomb section). The AI keeps heavy bombs for tanks, small ones
+    for soldiers. Stations are plain data, so online snapshots carry them without changes
+    (`tests/net.test.mjs` checks).
+  - **Release:** still the one `bomb` key. A press drops the next station in `group` order (the Stuka's
+    crutch first, so the bomb clears the propeller, then the racks); a bay releases as a salvo or ripple
+    (interval per hardpoint, bay doors open briefly), and holding the key rips the whole bay.
+  - **Bomb aimer:** milestone 11 makes it a seat with its own control and the bomb indicator; until then
+    the pilot drops the bombs and AI fills empty seats. The system needs no change for it: `cmd.bomb` just
+    comes from another seat.
+  - **Choice:** both named presets per plane (2 to 4, e.g. "Stuka: heavy", "Stuka: light") and
+    per-hardpoint choice in the hangar editor, limited by each hardpoint's `maxKg`.
+  - **New weapon `sc_50`:** `blastRadius` 22, `blastDamage` 70, `craterRadius` 10, `craterDepth` 5,
+    `drag` 0.12 (below `fab_100`; crater and drag are guesses, tunable).
+  - **Weight (own stage after stations; bombs only, fuel can follow without a redesign):** every weapon
+    gets a `weight` (kg, bombs first, guns and ammo later if wanted), every plane an `emptyWeight` and a
+    `maxLoad`. Load fraction = bombs still carried / `maxLoad`, derived from the stations, so no snapshot
+    state. One simple effect, not physics: less effective thrust (slower acceleration and climb, longer
+    take-off roll), slightly higher stall and take-off speeds, slightly lower turn rate; dropping bombs
+    gives it all back. A few global knobs in the tuning panel and `TUNING.md`, plus the per-plane weights.
+    A plane without weight data behaves exactly as today (effect zero). Watch: `runwayNeeded` must be
+    calibrated for the heaviest loadout, and the take-off, bot and landing tests and the AI (`maxSpeed`,
+    turn behaviour in `ai.js`) assume today's numbers. Also feeds the hangar editor's weight budget.
+  - **Build order:** (1) station system with the Stuka (SC 500 crutch + 4 SC 50 racks, new `sc_50`) and the
+    Mosquito FB.VI (bay + wing racks; currently 2 GP 250 on one offset), all other planes one hardpoint at
+    their old offset, tests and TUNING.md; (2) weight; (3) hangar loadout editor; (4) visible bombs on the
+    racks (the backlog item "External bomb mounts and visible bombs"); (5) bays and the heavies (Blenheim,
+    Ju 88, B-17F, Lancaster, He 177, Pe-8).
 - **Outline Lab (decided 2026-11-04; side view and plan view built 2026-11-05, auto trace built 2026-11-05; the pixel touch-up layer was dropped 2026-11-05):** a browser editor for plane (and later tank) outlines,
   `outline-lab.html` next to the Sound Lab, so outline work runs on the owner's screen instead of costing
   tokens on screenshots and re-measuring. Only the outline is edited; everything inside it (shading,
