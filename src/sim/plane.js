@@ -282,6 +282,7 @@ function placeInHangar(p, world, hangar, dir) {
   p.x = hangar.x + dir * wheelGeometry(p.def).main[0];
   p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
   p.exitPhase = 'wait';
+  p.engineRunning = false; // cold inside the hangar: the crew push it out and it starts once it has turned (stepHangarExit)
   p.exitSeq = world.nextId++;
   // Pointing away from the take-off way: the turn into the runway flips it round (stepGroundTurn).
   p.angle = dir > 0 ? Math.PI : 0;
@@ -540,6 +541,7 @@ function stepHangarExit(p, world, dt) {
     p.exitPhase = null;
     p.hold = false;
     p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
+    startEngine(p, world);
     return;
   }
   if (p.exitPhase === 'wait') {
@@ -564,7 +566,10 @@ function stepHangarExit(p, world, dt) {
   }
   if (p.exitPhase === 'turn') {
     stepGroundTurn(p, world, dt);
-    if (p.groundTurn == null) p.exitPhase = 'roll';
+    if (p.groundTurn == null) {
+      p.exitPhase = 'roll';
+      startEngine(p, world); // out of the hangar and turned into the runway: the engine starts
+    }
     return;
   }
   // roll / shove: along the runway at parkPushSpeed, engine off.
@@ -582,6 +587,12 @@ function stepHangarExit(p, world, dt) {
     p.exitPhase = null;
     p.speed = p.vx = p.vy = 0;
   }
+}
+
+function startEngine(p, world) {
+  if (p.engineRunning || p.fuel <= 0) return;
+  p.engineRunning = true;
+  world.events.push({ type: 'engineStart', plane: p.id, x: p.x, y: p.y });
 }
 
 // Can this waiting plane come out now? Not while a plane of its team is on the way out or waiting ahead

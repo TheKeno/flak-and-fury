@@ -95,24 +95,28 @@ test('planes never spawn in a crater; one stuck in a crater is recovered', () =>
   assert.ok(recovered, 'recovered');
 });
 
-test('a respawned plane is pushed out of the hangar and turns into the runway, engine running', () => {
+test('a respawned plane is pushed out of the hangar and turns into the runway, and the engine starts after the turn', () => {
   const { world, p } = makeWorld();
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
   spawnAtAirfield(p, world, true);
   assert.equal(p.exitPhase, 'wait');
   assert.ok(Math.abs(mainWheelContact(p).x - hangar.x) < 0.01, 'starts inside it, wheels in the door centre');
   assert.equal(hangar.door, 0, 'doors shut');
-  assert.equal(p.engineRunning, true, 'engine running inside the hangar');
+  assert.equal(p.engineRunning, false, 'engine cold inside the hangar');
   const phases = new Set();
+  let coldUntilTurned = true;
   let crewSeen = 0;
   let moved = null;
   for (let i = 0; i < 60 * 25 && p.exitTo != null; i++) {
     stepWorld(world, { p1: { ...IDLE, throttle: 1, fire: true } });
     phases.add(p.exitPhase);
+    if (['wait', 'out', 'turn'].includes(p.exitPhase) && p.engineRunning) coldUntilTurned = false;
     crewSeen = Math.max(crewSeen, world.crew.filter((c) => c.push).length);
     if (moved == null && p.exitPhase !== 'wait') moved = hangar.door;
   }
   assert.deepEqual([...phases].filter(Boolean), ['wait', 'out', 'turn', 'roll']);
+  assert.ok(coldUntilTurned, 'no engine while waiting, being pushed out or turning');
+  assert.equal(p.engineRunning, true, 'started once turned into the runway');
   assert.equal(moved, 1, 'only came out once the doors were fully open');
   assert.equal(crewSeen, 2, 'two crew pushed it');
   assert.equal(p.groundTurn, null);

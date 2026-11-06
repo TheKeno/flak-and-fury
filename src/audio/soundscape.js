@@ -64,6 +64,8 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     };
   };
 
+  // Inside the hangar (waiting, being pushed out, turning) the engine is off; the sim's engineStart event starts it.
+  const coldInHangar = (p) => p.state === 'ground' && (p.exitPhase === 'wait' || p.exitPhase === 'out' || p.exitPhase === 'turn');
   const engineFor = (p) => {
     let v = engines.get(p.id);
     // Changing side or plane keeps the plane's id but gives it another def: the voice is rebuilt for it.
@@ -76,7 +78,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       v = createEngineVoice(mixer, p.def.engine, build, count, `build:${buildId}`);
       v.def = p.def;
       engines.set(p.id, v);
-      if (p.state !== 'dead') v.start();
+      if (p.state !== 'dead' && !coldInHangar(p)) v.start();
     }
     return v;
   };
@@ -351,7 +353,10 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       const where = mine ? ME : whereAt(e.x ?? p?.x ?? listener.x, e.y ?? p?.y ?? listener.y, range);
       switch (e.type) {
         case 'spawn':
-          engines.get(e.plane)?.start();
+          if (p && !coldInHangar(p)) engines.get(e.plane)?.start();
+          break;
+        case 'parkedIn':
+          engines.get(e.plane)?.stop();
           break;
         case 'crash':
           engines.get(e.plane)?.stop();
