@@ -21,6 +21,7 @@ function setup() {
     rules: { bots: 'off' },
   });
   const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  p.stations.forEach((s) => (s.loaded = 0)); // flying empty: these tests are about the turn's geometry
   p.state = 'air';
   p.gear = 0;
   p.angle = 0;

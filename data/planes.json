@@ -1,5 +1,5 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count}. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel.",
+  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count}. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -29,7 +29,7 @@
     "slowTurnSpeed": 108,
     "stallSpeed": 59,
     "takeoffSpeed": 64,
-    "runwayNeeded": 150,
+    "runwayNeeded": 185,
     "maxLandingSpeed": 92,
     "maxSpeed": 155,
     "hp": 95,
@@ -37,6 +37,8 @@
     "rearView": 0.45,
     "hitRadius": 6.5,
     "endurance": 240,
+    "emptyWeight": 2700,
+    "maxLoad": 300,
     "hardpoints": [
       {
         "id": "centre",
@@ -146,7 +148,7 @@
     "slowTurnSpeed": 105,
     "stallSpeed": 57,
     "takeoffSpeed": 62,
-    "runwayNeeded": 140,
+    "runwayNeeded": 175,
     "maxLandingSpeed": 90,
     "maxSpeed": 155,
     "hp": 90,
@@ -154,6 +156,8 @@
     "rearView": 0.45,
     "hitRadius": 6.5,
     "endurance": 240,
+    "emptyWeight": 2800,
+    "maxLoad": 300,
     "hardpoints": [
       {
         "id": "centre",
@@ -263,7 +267,7 @@
     "slowTurnSpeed": 110,
     "stallSpeed": 54,
     "takeoffSpeed": 59,
-    "runwayNeeded": 120,
+    "runwayNeeded": 135,
     "maxLandingSpeed": 92,
     "maxSpeed": 160,
     "hp": 100,
@@ -271,6 +275,8 @@
     "rearView": 0.55,
     "hitRadius": 7,
     "endurance": 220,
+    "emptyWeight": 3400,
+    "maxLoad": 454,
     "hardpoints": [
       {
         "id": "centre",
@@ -383,7 +389,7 @@
     "slowTurnSpeed": 115,
     "stallSpeed": 62,
     "takeoffSpeed": 66,
-    "runwayNeeded": 205,
+    "runwayNeeded": 300,
     "maxLandingSpeed": 95,
     "maxSpeed": 158,
     "hp": 140,
@@ -391,6 +397,8 @@
     "rearView": 0.45,
     "hitRadius": 8.5,
     "endurance": 300,
+    "emptyWeight": 4500,
+    "maxLoad": 454,
     "hardpoints": [
       {
         "id": "centre",
@@ -495,7 +503,7 @@
     "slowTurnSpeed": 108,
     "stallSpeed": 57,
     "takeoffSpeed": 62,
-    "runwayNeeded": 150,
+    "runwayNeeded": 180,
     "maxLandingSpeed": 92,
     "maxSpeed": 156,
     "hp": 110,
@@ -503,6 +511,8 @@
     "rearView": 0.6,
     "hitRadius": 6.8,
     "endurance": 210,
+    "emptyWeight": 3300,
+    "maxLoad": 250,
     "hardpoints": [
       {
         "id": "centre",
@@ -608,7 +618,7 @@
     "slowTurnSpeed": 100,
     "stallSpeed": 50,
     "takeoffSpeed": 54,
-    "runwayNeeded": 120,
+    "runwayNeeded": 140,
     "maxLandingSpeed": 88,
     "maxSpeed": 140,
     "hp": 70,
@@ -616,6 +626,8 @@
     "rearView": 0.8,
     "hitRadius": 6.5,
     "endurance": 360,
+    "emptyWeight": 1900,
+    "maxLoad": 250,
     "hardpoints": [
       {
         "id": "centre",
@@ -827,7 +839,7 @@
     "slowTurnSpeed": 115,
     "stallSpeed": 62,
     "takeoffSpeed": 66,
-    "runwayNeeded": 215,
+    "runwayNeeded": 300,
     "maxLandingSpeed": 98,
     "maxSpeed": 150,
     "hp": 170,
@@ -835,6 +847,8 @@
     "rearView": 0.9,
     "hitRadius": 10,
     "endurance": 420,
+    "emptyWeight": 5200,
+    "maxLoad": 600,
     "hardpoints": [
       {
         "id": "centre",
@@ -965,7 +979,7 @@
     "slowTurnSpeed": 115,
     "stallSpeed": 60,
     "takeoffSpeed": 65,
-    "runwayNeeded": 165,
+    "runwayNeeded": 200,
     "maxLandingSpeed": 96,
     "maxSpeed": 165,
     "hp": 120,
@@ -973,6 +987,8 @@
     "rearView": 0.8,
     "hitRadius": 9,
     "endurance": 360,
+    "emptyWeight": 6500,
+    "maxLoad": 500,
     "hardpoints": [
       {
         "id": "bay",
@@ -1106,7 +1122,7 @@
     "slowTurnSpeed": 88,
     "stallSpeed": 48,
     "takeoffSpeed": 52,
-    "runwayNeeded": 130,
+    "runwayNeeded": 155,
     "maxLandingSpeed": 84,
     "maxSpeed": 108,
     "hp": 110,
@@ -1114,6 +1130,8 @@
     "rearView": 0.7,
     "hitRadius": 8.5,
     "endurance": 300,
+    "emptyWeight": 3900,
+    "maxLoad": 800,
     "hardpoints": [
       {
         "id": "crutch",

@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Bomb stations: hardpoints, loads and weight (decided 2026-11-06, discussion; step 1 built 2026-11-06):** a plane's
+- **Bomb stations: hardpoints, loads and weight (decided 2026-11-06, discussion; steps 1 and 2 built 2026-11-06):** a plane's
   one bomb slot (`armament.bombs`, `bombOffset`) becomes a list of **hardpoints** plus a **load**, so the
   Stuka carries an SC 500 on the crutch and four SC 50 on wing racks, bombers get bays and mixed loads,
   and the hangar editor (milestone 8) gets slots and a weight budget.
@@ -45,7 +45,7 @@ later.
     turn behaviour in `ai.js`) assume today's numbers. Also feeds the hangar editor's weight budget.
   - **Build order:** (1, done 2026-11-06) station system with the Stuka (SC 500 crutch + 4 SC 50 racks, new `sc_50`) and the
     Mosquito FB.VI (bay + wing racks; currently 2 GP 250 on one offset), all other planes one hardpoint at
-    their old offset, tests and TUNING.md; (2) weight; (3) hangar loadout editor; (4) visible bombs on the
+    their old offset, tests and TUNING.md; (2, done 2026-11-06) weight; (3) hangar loadout editor; (4) visible bombs on the
     racks (the backlog item "External bomb mounts and visible bombs"); (5) bays and the heavies (Blenheim,
     Ju 88, B-17F, Lancaster, He 177, Pe-8).
 - **Outline Lab (decided 2026-11-04; side view and plan view built 2026-11-05, auto trace built 2026-11-05; the pixel touch-up layer was dropped 2026-11-05):** a browser editor for plane (and later tank) outlines,
@@ -172,6 +172,8 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+
+- **Bomb weight (Planes, 2026-11-06, step 2 of the bomb stations decision):** `weight` (kg) on every bomb, `emptyWeight` and `maxLoad` on the nine bomb planes. Load = bombs carried / `maxLoad` (`loadFraction`, derived from the stations, nothing new in snapshots); `flyingDef(p, world)` in `weapons.js` gives the plane's def with thrust, stall speed, take-off speed and turn rate adjusted (the very same def when empty or without `maxLoad`), used by `plane.js` and the AI. Knobs: `weight` in settings.json and a "Bomb load" tuning section (0.06 / 0.05 / 0.04 / 0.06). `runwayNeeded` re-measured for a full load on all nine (Bf 109 G-6 185, Bf 109 175, Spitfire 135, P-47 300, La-5FN 180, Ki-43 140, Bf 110 300, Mosquito 200, Ju 87 155). Bots open the patrol throttle with the load (else they cruise near the stall and overshoot into flak). Edge-turn tests fly empty. Tests in `tests/stations.test.mjs`. Not yet: fuel weight, weight shown in the HUD.
 
 - **Hangar rollout text (UI, 2026-11-06):** the HUD said "ROLLING OUT" from respawn, while the plane was still hidden behind closed doors. Now `groundMessage` in `src/render/hud.js` follows the exit phase: "HANGAR DOORS OPENING", then "WAITING FOR THE WAY TO CLEAR", then "ROLLING OUT" once the crew push it out. Noticed, not changed: the title screen's key-hint line renders in odd mixed case ("SwaCe/L.mOuSe") at small size.
 - **Bomb stations (Planes, 2026-11-06, step 1 of the Decisions entry):** `bombOffset` and `armament.bombs` replaced by `hardpoints` + `loadout` in `planes.json`; the sim holds `p.stations` (`{hp, def, loaded}`, built in `armPlane`) with `bombsLeft`/`bombsFull`/`nextStation` in `src/sim/weapons.js`, and airfield rearm, AI (bomb choice, impact prediction), HUD, `recover` and the tuning panel (one section per bomb type) read through them. Release by `group` order: crutch one bomb, rack its pair together, bay a salvo on a press then one by one while held. New `sc_50`. Ju 87: SC 500 on the crutch + 2 SC 50 pairs on wing racks. Mosquito: bay (salvo of 2 GP 250) + wing rack pair (4 bombs, was 2). All others: one `crutch` hardpoint called `centre` at the old offset, same behaviour. Not yet: weight, hangar editor, visible bombs, bay doors. Tests: `tests/stations.test.mjs`.

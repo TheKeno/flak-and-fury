@@ -1,5 +1,5 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
-import { armPlane, updateWeapons, updateDamage, allGuns } from './weapons.js';
+import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './weapons.js';
 import { updateServicing, ownAirfieldAt, sendPushCrew } from './airfield.js';
 import { clearRunway } from './runway.js';
 import { crashShockwave } from './ground.js';
@@ -510,7 +510,7 @@ function canLeaveHangar(p, world, cfg) {
 }
 
 function stepGround(p, cmd, world, dt) {
-  const d = p.def;
+  const d = flyingDef(p, world);
 
   if (p.groundTurn != null) {
     stepGroundTurn(p, world, dt);
@@ -644,7 +644,7 @@ const smooth01 = (t) => {
 // moves, rad/s); if the path would put it in the ground or the thin air at the top it levels faster, up to
 // about twice as fast.
 function levelPlan(p, world, out, to, swing) {
-  const d = p.def;
+  const d = flyingDef(p, world);
   const speed = Math.max(p.speed, d.stallSpeed * STALL_RECOVERY * 1.02);
   const target = out > 0 ? 0 : Math.PI;
   const diff = wrapAngle(p.angle - target);
@@ -675,7 +675,7 @@ function levelPlan(p, world, out, to, swing) {
 }
 
 function stepAir(p, cmd, world, dt) {
-  const d = p.def;
+  const d = flyingDef(p, world);
   // At a map edge the plane levels out, swings round and flies back level (see the edge code below): rolling
   // is locked throughout (guns still work), steering fades out over the first moments of the levelling
   // and stays locked through the swing.
@@ -867,7 +867,7 @@ export function approach(p, world) {
 // metre is a heavy tail-first plop. Worse is a crash, and the report says which limit was broken.
 function touchDown(p, world, ground, gearReady) {
   p.edgeTurn = p.edgeLevel = null;
-  const d = p.def;
+  const d = flyingDef(p, world);
   const cfg = world.landing;
   const facingRight = Math.cos(p.angle) >= 0;
   const slope = world.terrain.slopeAngle(p.x);

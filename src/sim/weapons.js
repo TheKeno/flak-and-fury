@@ -67,6 +67,30 @@ export function rearmBombs(p) {
   (p.def.loadout ?? []).forEach((l, i) => (p.stations[i].loaded = l.count ?? 1));
 }
 
+// Weight: bombs carried as a share of what the plane can lift (0 for a plane without `maxLoad`).
+export function loadFraction(p) {
+  if (!p.def.maxLoad) return 0;
+  const kg = (p.stations ?? []).reduce((n, s) => n + s.loaded * (s.def.weight ?? 0), 0);
+  return clamp(kg / p.def.maxLoad, 0, 1);
+}
+// How much a full load costs (world.weight, data/settings.json): thrust and turn rate fall, stall and
+// take-off speed rise, in proportion to the load carried.
+export const DEFAULT_WEIGHT = { thrust: 0.06, stall: 0.05, takeoff: 0.04, turn: 0.06 };
+// The plane's performance numbers as it is loaded now: its def when empty (so it is exactly as before),
+// else a view of the def with the four numbers changed. Never stored, so snapshots don't see it.
+export function flyingDef(p, world) {
+  const f = loadFraction(p);
+  if (f === 0) return p.def;
+  const w = world.weight ?? DEFAULT_WEIGHT;
+  const d = p.def;
+  return Object.assign(Object.create(d), {
+    thrust: d.thrust * (1 - w.thrust * f),
+    stallSpeed: d.stallSpeed * (1 + w.stall * f),
+    takeoffSpeed: d.takeoffSpeed * (1 + w.takeoff * f),
+    turnRate: d.turnRate * (1 - w.turn * f),
+  });
+}
+
 // Every gun on the plane, the pilot's and the gunners', for ammunition checks and rearming.
 export const allGuns = (p) => [...p.guns, ...(p.turrets ?? [])];
 

@@ -175,6 +175,12 @@
     "edgeTurnTime": 1.2,
     "levelRate": 1.2
   },
+  "weight": {
+    "thrust": 0.06,
+    "stall": 0.05,
+    "takeoff": 0.04,
+    "turn": 0.06
+  },
   "runway": {
     "concreteRadius": 0.6,
     "concreteDepth": 0.7,
@@ -267,7 +273,14 @@
     "showHelp": false,
     "showNames": true,
     "showOwnName": false,
-    "edgeMessages": ["WRONG WAY", "NICE TRY", "THE MAP HAS ENDED", "DYING LATER INSTEAD", "DENIED BY GEOGRAPHY", "FLAT EARTH CONFIRMED"]
+    "edgeMessages": [
+      "WRONG WAY",
+      "NICE TRY",
+      "THE MAP HAS ENDED",
+      "DYING LATER INSTEAD",
+      "DENIED BY GEOGRAPHY",
+      "FLAT EARTH CONFIRMED"
+    ]
   },
   "rules": {
     "friendlyFire": false,

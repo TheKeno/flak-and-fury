@@ -14,7 +14,7 @@ import { isUpright, GRAVITY } from './plane.js';
 import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { clearRunway } from './runway.js';
-import { allGuns, bombsLeft, bombsFull, nextStation } from './weapons.js';
+import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 
 const DT = 1 / 60;
 
@@ -150,7 +150,7 @@ function groundCommand(world, p, b) {
     const af = home && home.height != null ? home : null;
     const left = af ? (dir > 0 ? af.x + af.width - p.x : p.x - af.x) : Infinity;
     cmd.throttle = 1;
-    if (p.speed >= p.def.takeoffSpeed + (left > 60 ? 5 : 0)) cmd.turn = dir;
+    if (p.speed >= flyingDef(p, world).takeoffSpeed + (left > 60 ? 5 : 0)) cmd.turn = dir;
     return cmd;
   }
   // Someone of ours rolling ahead, or just off the ground in front: let them get clear.
@@ -208,7 +208,7 @@ function groundCommand(world, p, b) {
     }
   }
   cmd.throttle = 1;
-  if (p.speed >= p.def.takeoffSpeed + 5) cmd.turn = dir;
+  if (p.speed >= flyingDef(p, world).takeoffSpeed + 5) cmd.turn = dir;
   return cmd;
 }
 
@@ -630,7 +630,9 @@ function patrolWant(world, p, b) {
   if (b.leg !== 1 && b.leg !== -1) b.leg = 1;
   const x = clamp(b.leg > 0 ? hi : lo, 250, world.map.width - 250) + b.index * 40 * -dir;
   if ((x - p.x) * b.leg < 40) b.leg = -b.leg;
-  return cruiseTo(world, p, x, cfg.cruiseHeight + b.index * 45, 0.8);
+  // A loaded plane cruises slower on the same throttle, and too near the stall it can't turn round (the
+  // bot flies on to build speed first): it opens the throttle with the load.
+  return cruiseTo(world, p, x, cfg.cruiseHeight + b.index * 45, 0.8 + 0.2 * loadFraction(p));
 }
 
 // Fly towards x at a height above the ground (and enemy MG nests) on the way.
@@ -695,7 +697,7 @@ function chaseWant(world, p, b, skill, o, cmd) {
   const off = Math.abs(angleDiff(aim, p.angle));
   const height = p.y - world.terrain.heightAt(p.x);
   if (skill.turnFight > 0 && off > 0.5 && height > 120) {
-    const tight = p.def.stallSpeed * (1 + skill.stallMargin + 0.12);
+    const tight = flyingDef(p, world).stallSpeed * (1 + skill.stallMargin + 0.12);
     speed = p.def.maxSpeed + (tight - p.def.maxSpeed) * skill.turnFight;
   }
   if (d < 110 && closing > 25) throttle = 0.4; // don't ram it
@@ -973,20 +975,20 @@ function fly(world, p, b, skill, want, cmd) {
     const floor = floorAhead(world, p.x, dirH, Math.max(120, p.speed * 2.2));
     const dive = Math.asin(clamp(-p.vy / Math.max(1, p.speed), 0, 1));
     const react = (want.dive ? 0.3 : 0.6) + p.def.turnRampTime * 0.5; // the turn takes a moment to build
-    const loss = (p.speed / p.def.turnRate) * (1 - Math.cos(dive)) + Math.max(0, -p.vy) * react;
+    const loss = (p.speed / flyingDef(p, world).turnRate) * (1 - Math.cos(dive)) + Math.max(0, -p.vy) * react;
     const short = p.y - floor - loss;
     // Once started, the pull-out goes on until climbing with room to spare (and keeps its side).
     if (short < want.clear || (b.pullDir && (p.vy < 0 || short < want.clear * 1.5))) {
       b.pullDir ??= facing(p);
       // As steep as the speed allows: a hard pull at landing speed is a stall.
-      const steepest = clamp((p.speed - p.def.stallSpeed) / 60, 0.08, 0.9);
+      const steepest = clamp((p.speed - flyingDef(p, world).stallSpeed) / 60, 0.08, 0.9);
       angle = angleFor(b.pullDir, Math.min(steepest, clamp(0.3 + (want.clear - short) / 80, 0.3, 0.9)));
       pulling = true;
     } else b.pullDir = null;
   } else b.pullDir = null;
 
   // Too slow: lower the nose to keep flying speed.
-  if (p.speed < p.def.stallSpeed * (1 + margin) && Math.sin(angle) > -0.1 && !(want.landing && want.speed === 0)) {
+  if (p.speed < flyingDef(p, world).stallSpeed * (1 + margin) && Math.sin(angle) > -0.1 && !(want.landing && want.speed === 0)) {
     const h = p.y - world.terrain.heightAt(p.x);
     if (h > 40) angle = angleFor(Math.cos(angle) >= 0 ? 1 : -1, -0.15);
   }
@@ -1004,7 +1006,7 @@ function fly(world, p, b, skill, want, cmd) {
   // A turn right round goes over the top (a half loop), unless that's into the ceiling. It needs speed:
   // too slow, fly on and build it up first. Pulling out of a dive takes the short way.
   let rushing = false;
-  if (Math.abs(diff) > 2.2 && !pulling && p.speed < p.def.stallSpeed * 1.5) {
+  if (Math.abs(diff) > 2.2 && !pulling && p.speed < flyingDef(p, world).stallSpeed * 1.5) {
     angle = angleFor(facing(p), 0);
     diff = angleDiff(angle, p.angle);
     rushing = true; // full throttle to build the speed

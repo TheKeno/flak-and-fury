@@ -909,8 +909,18 @@ export function createRenderer(canvas, world, assets) {
   const NAME_GAP = 25; // below the plane's centre, in the plane's own frame
   const nameShown = (name, owner, focus) => name && assets.settings.hud.showNames !== false && (owner !== focus?.id || assets.settings.hud.showOwnName);
   const nameColour = (team, focus) => (team === focus?.team ? '#d8cfa0' : '#b86050');
+  // Pushed out of the hangar the plane starts small and faint: its name follows (size and opacity).
+  function exitLook(p) {
+    if (p.exitPhase !== 'out') return { grow: 1, alpha: 1 };
+    const def = hangarOf(p)?.def;
+    const g0 = def?.exitStartScale ?? 0.6;
+    const a0 = def?.exitStartAlpha ?? 0;
+    return { grow: g0 + (1 - g0) * p.exitT, alpha: Math.min(1, (a0 + (1 - a0) * p.exitT) * 1.4) }; // solid by 70% of the way out
+  }
   function drawPlaneName(p, focus) {
     if (!nameShown(p.callsign, p.id, focus)) return;
+    const { grow, alpha } = exitLook(p);
+    if (alpha <= 0) return;
     const view = groundAttitude(p);
     const roll = Math.cos(p.rollAngle ?? 0);
     const upright = Math.cos(view.angle) >= 0 === roll >= 0;
@@ -918,7 +928,8 @@ export function createRenderer(canvas, world, assets) {
     ctx.translate(planeX(view.x), planeY(view.y));
     ctx.rotate(-(Math.cos(view.angle) >= 0 ? view.angle : view.angle - Math.PI));
     if (!upright) ctx.rotate(Math.PI);
-    ctx.scale(1, Math.max(0.05, Math.abs(roll)));
+    ctx.scale(grow, grow * Math.max(0.05, Math.abs(roll)));
+    ctx.globalAlpha = alpha;
     ctx.font = NAME_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1069,9 +1080,8 @@ export function createRenderer(canvas, world, assets) {
       const prop = frames.meta.props[shown.row][shown.index];
       const discs = Array.isArray(prop[0]) ? prop : [prop];
       // Pushed out of the hangar towards the camera: small at first, growing to full size.
-      const grow = p.exitPhase === 'out' ? (hangarOf(p)?.def.exitStartScale ?? 0.6) + (1 - (hangarOf(p)?.def.exitStartScale ?? 0.6)) * p.exitT : 1;
-      const a0 = hangarOf(p)?.def.exitStartAlpha ?? 0;
-      planeAlpha = p.exitPhase === 'out' ? Math.min(1, (a0 + (1 - a0) * p.exitT) * 1.4) : 1; // solid by 70% of the way out
+      const { grow, alpha } = exitLook(p);
+      planeAlpha = alpha;
       if (grow !== 1) {
         ctx.save();
         ctx.translate(cx, cy);

@@ -112,3 +112,41 @@ test('the Mosquito bay drops a salvo on a press and rips one by one while the ke
   const ripple = press(world, 40); // held ~0.67 s: bay first press salvo of 2, then singles every 0.2 s
   assert.ok(ripple >= 2 && ripple <= 4, `ripples (${ripple})`);
 });
+
+// ---- weight ----
+import { flyingDef, loadFraction } from '../src/sim/weapons.js';
+
+test('weight: an empty plane flies exactly its data; the load slows it and dropping bombs gives it back', () => {
+  const { world, p } = make('ju87', 'germany');
+  assert.ok(loadFraction(p) > 0.8 && loadFraction(p) <= 1);
+  const loaded = flyingDef(p, world);
+  assert.ok(loaded.thrust < p.def.thrust && loaded.stallSpeed > p.def.stallSpeed);
+  assert.ok(loaded.takeoffSpeed > p.def.takeoffSpeed && loaded.turnRate < p.def.turnRate);
+  assert.equal(loaded.engine, p.def.engine, 'the rest of the def is as it was');
+  p.stations.forEach((s) => (s.loaded = 0));
+  assert.equal(flyingDef(p, world), p.def, 'empty: the very same def');
+});
+
+test('weight: a plane without maxLoad is unaffected, and no loadout is a zero load', () => {
+  const { world, p } = make('b239', 'finland');
+  assert.equal(loadFraction(p), 0);
+  assert.equal(flyingDef(p, world), p.def);
+});
+
+test('weight: the loaded take-off roll fits the runway the plane says it needs', () => {
+  const planes = load('data/planes.json');
+  const s = load('data/settings.json');
+  for (const [id, d] of Object.entries(planes)) {
+    if (id.startsWith('_') || !d.maxLoad) continue;
+    const gd = load('data/ground.json');
+    delete gd._notes;
+    const world = createWorld({ map: importLdtk(load('maps/countryside.ldtk')), planeDefs: planes, weapons: load('data/weapons.json'), groundDefs: gd, waves: { first: 1e6 }, landing: { ...s.landing }, takeoff: { ...s.takeoff }, weight: s.weight, rules: { bots: 'off' } });
+    const p = addPlane(world, { defId: id, team: 0, nation: 'germany', controller: 'p1' });
+    const x0 = p.x;
+    for (let i = 0; i < 60 * 40 && p.state !== 'air'; i++) {
+      stepWorld(world, { p1: { ...CMD, turn: p.speed >= flyingDef(p, world).takeoffSpeed ? 1 : 0 } });
+    }
+    assert.equal(p.state, 'air', `${id} took off loaded`);
+    assert.ok(Math.abs(p.x - x0) <= d.runwayNeeded, `${id}: rolled ${Math.round(Math.abs(p.x - x0))}, runwayNeeded ${d.runwayNeeded}`);
+  }
+});

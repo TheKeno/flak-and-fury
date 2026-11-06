@@ -28,6 +28,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `maxSpeed` | Used for sound and engine pitch, not a hard limit. Keep it near √(thrust ÷ dragCoef). | |
 | `stallSpeed` | Below this the wings stop lifting and the nose drops. | 40 – 70 |
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
+| `emptyWeight`, `maxLoad` | Optional, kg: the plane empty (for the hangar editor's weight budget later) and the bomb weight at which the load effects are at full strength (see `weight` below). Without `maxLoad` weight does nothing. | |
 | `runwayNeeded` | Crater-free runway the plane needs to take off, counted from the start of the clear stretch (it spawns 15 in). Shorter, and its runway counts as closed for it: it waits for the crew. Set from the measured roll plus a margin: Bf 109 F-4 rolls about 111 after the 15, the G-6 about 121, the Spitfire about 92, the P-47D about 178, the La-5FN about 118, the Ki-43-II about 89, the B-239 about 112, the Bf 110 G-2 about 184, the Mosquito FB.VI about 127, the Ju 87 D-5 about 114. The runway is 420. | 120 – 220 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundThrust` | Share of engine pull while rolling on the wheels. Lower = longer take-off roll. | 0.3 – 1 |
@@ -64,6 +65,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `life` | Seconds before the round is spent (sets range). |
 | `ammo` | Rounds per gun. |
 | `voice` | Gun sound: `rifle`, `heavy`, `cannon20`, `cannon30`. |
+| `weight` | Bomb only: kg of one bomb (GP bombs from their pounds). |
 | `blastRadius`, `blastDamage` | Bomb explosion size and damage at the centre. |
 | `craterRadius`, `craterDepth` | Size of the hole a bomb digs. |
 | `sc_50` | The 50 kg bomb (Stuka wing racks): blast radius 22, damage 70, crater 10 × 5, drag 0.12 (crater and drag are guesses). |
@@ -444,6 +446,8 @@ node tools/map-guide.mjs countryside
 
 `tools/make-map.mjs` wrote the starting map. Don't run it again: it would replace the map and every edit
 made in LDtk (it refuses unless given `--force`).
+
+`weight` (tuning panel: Bomb load): the load is the bombs still carried (each weapon's `weight` in kg) over the plane's `maxLoad`, 0 to 1, worked out from the stations, so dropping bombs gives everything back. At full load the thrust falls by `thrust`, the stall and take-off speeds rise by `stall` and `takeoff` and the turn rate falls by `turn` (0.06 / 0.05 / 0.04 / 0.06). Thrust is the strong one: on the ground the spare pull is small, so 6% lengthens the roll by 10 to 45% (Spitfire +10%, Stuka +30%, P-47 +45%). `runwayNeeded` is the loaded roll plus a little, so a heavy plane needs a clean runway (the P-47 and Bf 110 need 300 of the 420). The bots open the throttle with the load on patrol (else they cruise near the stall and can't turn back in time), and the AI reads stall, take-off speed and turn rate through `flyingDef(p, world)` (`src/sim/weapons.js`).
 
 `takeoff` (tuning panel: Take-off): the take-off is a rotation, not a jump. Holding nose-up at
 `takeoffSpeed` pitches the nose up on the main wheels at `rotateRate` (rad/s); at `liftoffPitch` (rad)

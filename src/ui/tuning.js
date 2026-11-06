@@ -19,6 +19,8 @@ const PLANE_FIELDS = [
   ['dragCoef', 'Drag', 0.002, 0.008, 0.0001, 'Air resistance. Top speed is about the square root of thrust / drag.'],
   ['stallSpeed', 'Stall speed', 30, 90, 1, 'Below this the wings stop lifting and the nose drops.'],
   ['takeoffSpeed', 'Take-off speed', 30, 90, 1, 'Speed needed to lift off the runway.'],
+  ['emptyWeight', 'Empty weight (kg)', 1000, 20000, 50, 'The plane without bombs. Informational for now (the hangar editor’s weight budget).'],
+  ['maxLoad', 'Max bomb load (kg)', 0, 3000, 25, 'Bomb weight at which the load effects below are at full strength. 0 = weight has no effect on this plane.'],
   ['runwayNeeded', 'Runway needed', 60, 420, 5, 'Crater-free runway this plane needs to take off (it starts 15 in). Shorter and its runway counts as closed: it waits for the crew to fill craters. The runway is 420.'],
   ['maxLandingSpeed', 'Max landing speed', 50, 160, 1, 'Touching down faster than this is a crash.'],
   ['groundThrust', 'Ground acceleration', 0.1, 1.5, 0.05, 'Share of engine pull you get while rolling on the wheels. Lower = longer take-off roll.'],
@@ -43,6 +45,7 @@ const GUN_FIELDS = [
   ['ammo', 'Ammo per gun', 10, 1000, 10, 'Rounds per gun. Applies on the next rearm.'],
 ];
 const BOMB_FIELDS = [
+  ['weight', 'Weight (kg)', 10, 1000, 5, 'What one bomb weighs; the share of the plane’s maxLoad it carries slows the plane.'],
   ['blastRadius', 'Blast radius', 10, 90, 1, 'Explosion reach (px).'],
   ['blastDamage', 'Blast damage', 10, 400, 5, 'Damage at the centre of the blast.'],
   ['craterRadius', 'Crater radius', 2, 40, 1, 'Width of the hole dug in the ground.'],
@@ -106,6 +109,12 @@ const LANDING_FIELDS = [
   ['collapseFrom', 'Gear may fold from', 0, 1, 0.05, 'Past this share of the hard band the gear may fold (more likely the worse it is): a belly landing.'],
   ['stallSink', 'Stall plop: sinking under', 0, 100, 1, 'A stall just above the ground sinking slower than this (units/s) is a heavy tail-first plop, not a crash.'],
   ['plopDamage', 'Stall plop damage', 0, 50, 1, 'Hit points lost in a stall plop.'],
+];
+const WEIGHT_FIELDS = [
+  ['thrust', 'Thrust lost', 0, 0.3, 0.01, 'Share of engine pull lost at full bomb load. Small values lengthen the take-off roll a lot.'],
+  ['stall', 'Stall speed rise', 0, 0.2, 0.01, 'Rise in stall speed at full bomb load.'],
+  ['takeoff', 'Take-off speed rise', 0, 0.2, 0.01, 'Rise in take-off speed at full bomb load.'],
+  ['turn', 'Turn rate lost', 0, 0.3, 0.01, 'Share of turn rate lost at full bomb load.'],
 ];
 const TAKEOFF_FIELDS = [
   ['rotateRate', 'Rotation rate', 0.1, 1.5, 0.05, 'How fast the nose comes up on the wheels (rad/s) when you pull back at take-off speed. Lower = a slower, longer rotation.'],
@@ -584,6 +593,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   );
   const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
   const takeoffSection = section('Take-off', false, ...TAKEOFF_FIELDS.map((f) => add(slider(settings.takeoff, f))));
+  const weightSection = section('Bomb load', false, ...WEIGHT_FIELDS.map((f) => add(slider(settings.weight, f))));
   const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
   const audioSection = section(
     'Sound',
@@ -639,6 +649,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.runway, saved.settings.runway);
     Object.assign(settings.landing, saved.settings.landing);
     Object.assign(settings.takeoff, saved.settings.takeoff);
+    Object.assign(settings.weight, saved.settings.weight);
     Object.assign(settings.collisions, saved.settings.collisions);
     Object.assign(settings.radar, saved.settings.radar);
     Object.assign(settings.net, saved.settings.net);
@@ -715,6 +726,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     ...bombSection,
     landingSection,
     takeoffSection,
+    weightSection,
     collisionSection,
     fireSection,
     radarSection,
