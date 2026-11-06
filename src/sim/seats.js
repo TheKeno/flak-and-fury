@@ -21,7 +21,7 @@ export function placeBots(world, sides) {
   const most = Math.max(...sides.map((s) => playersOn(world, s.team).length));
   for (const s of sides) {
     // A changed bot plane takes effect by replacing them.
-    for (const p of world.planes.filter((o) => o.team === s.team && isBot(o) && o.def !== world.planeDefs[s.defId])) world.planes.splice(world.planes.indexOf(p), 1);
+    if (s.defId) for (const p of world.planes.filter((o) => o.team === s.team && isBot(o) && o.def !== world.planeDefs[s.defId])) world.planes.splice(world.planes.indexOf(p), 1);
     const size = Math.max(s.planes, most);
     setBots(world, { team: s.team, defId: s.defId, nation: s.nation, skill: s.skill, count: size - playersOn(world, s.team).length });
   }

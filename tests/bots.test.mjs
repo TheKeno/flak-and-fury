@@ -218,3 +218,15 @@ test('setBots adds, re-levels and removes bot planes and leaves the humans alone
   assert.deepEqual(ctl(1), ['bot:normal']);
   assert.deepEqual(world.planes.filter((p) => p.team === 0), [human]);
 });
+
+test('setBots without a plane gives each new bot a random named plane (deterministic per world)', () => {
+  const pick = () => {
+    const world = makeWorld();
+    setBots(world, { team: 0, count: 6, skill: 'normal', defId: null, nation: null });
+    return world.planes.map((p) => Object.keys(world.planeDefs).find((k) => world.planeDefs[k] === p.def));
+  };
+  const a = pick();
+  assert.deepEqual(a, pick());
+  assert.ok(new Set(a).size > 1, 'more than one type');
+  for (const id of a) assert.ok(load('data/planes.json')[id].name);
+});

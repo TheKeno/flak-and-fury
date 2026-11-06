@@ -66,8 +66,8 @@ let player = addPlane(world, { defId: choice.plane, team: 0, nation: nationOf(ch
 // (the rules' wingmen and enemies; the setup screen sets them, the tuning panel can go past it for tests).
 // Players take bots' places (src/sim/seats.js).
 const SIDES = [
-  { team: 0, nation: nationOf(choice.plane), defId: choice.plane, planes: () => world.rules.wingmen + 1, skillKey: 'wingmanSkill' },
-  { team: 1, nation: nationOf(choice.enemy), defId: choice.enemy, planes: () => world.rules.enemies, skillKey: 'enemySkill' },
+  { team: 0, nation: null, defId: params.has('plane') ? choice.plane : null, planes: () => world.rules.wingmen + 1, skillKey: 'wingmanSkill' },
+  { team: 1, nation: null, defId: params.has('enemy') ? choice.enemy : null, planes: () => world.rules.enemies, skillKey: 'enemySkill' },
 ];
 const TEAMS = SIDES.map((s) => s.team);
 const placeBots = () => fillSides(world, SIDES.map((s) => ({ ...s, planes: s.planes(), skill: world.rules[s.skillKey] })));
@@ -582,6 +582,9 @@ async function start() {
   overlay.classList.add('hidden');
   setup.hide();
   started = true;
+  // The first plane is chosen in the hangar: every pilot's plane waits behind the shut doors (as when parked in) and the
+  // panel opens by itself (below); closing it rolls the plane out.
+  if (!guest) for (const p of world.planes) if (!p.seats[0].controller.startsWith('bot') && p.exitPhase === 'wait') p.hold = true;
   mouse.capture();
   mixer = await createMixer(content.settings.audio, content.sound.space);
   mixer.recordings = createRecordings(mixer, content.sound);
@@ -657,7 +660,6 @@ showControls();
 // host, who sends the table back.
 const setup = createSetup({
   parent: document.getElementById('wrap'),
-  planes: Object.keys(content.planeDefs).filter((id) => content.planeDefs[id].name).map((id) => [id, content.planeDefs[id].name]),
   levels: [['easy', 'EASY'], ['normal', 'NORMAL'], ['ace', 'ACE']],
   on: {
     planes(n) {
@@ -669,12 +671,7 @@ const setup = createSetup({
       world.rules[SIDES[team].skillKey] = id;
       sidesChanged();
     },
-    botPlane(team, id) {
-      Object.assign(SIDES[team], { defId: id, nation: nationOf(id) });
-      sidesChanged();
-    },
     side: (team) => askSeat({ team }),
-    plane: (defId) => askSeat({ defId }),
     start() {
       if (menuOpen) closeMenu();
       else start();
@@ -712,7 +709,6 @@ function sidesTable() {
       team: s.team,
       label: s.team === 0 ? 'SIDE A' : 'SIDE B',
       skill: world.rules[s.skillKey],
-      botPlane: s.defId,
       bots: world.planes.filter((p) => p.team === s.team && p.seats[0].controller.startsWith('bot')).length,
       players: playersOn(world, s.team).map((p) => ({ id: p.id, name: p.callsign ?? 'PILOT', plane: p.def.name, defId: Object.keys(content.planeDefs).find((k) => content.planeDefs[k] === p.def) })),
     })),
@@ -730,9 +726,7 @@ function drawSetup() {
     sides: table.sides.map((s) => ({ ...s, players: s.players.map((p) => ({ ...p, me: p.id === myId })) })),
     code: host?.code ?? null,
     canEdit: !guest,
-    myPlane: mine?.defId ?? choice.plane,
     canSwitch: true,
-    canPickPlane: !started, // in the game the plane is chosen in the hangar (L), not here
     start: started ? 'RESUME' : 'START ENGINE',
     canStart: ready,
   });

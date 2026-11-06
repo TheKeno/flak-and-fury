@@ -34,9 +34,9 @@ async function copyText(text) {
   }
 }
 
-// planes: [[id, name]...]; levels: [[id, name]...]. on: { planes(n), skill(team, id), botPlane(team, id),
-// side(team), plane(id), start(), back() }.
-export function createSetup({ parent, planes, levels, on }) {
+// levels: [[id, name]...]. on: { planes(n), skill(team, id), side(team), start(), back() }. Planes are chosen in the
+// hangar, not here; bots fly random planes.
+export function createSetup({ parent, levels, on }) {
   // Click the room code to copy just its letters, ready to paste to friends.
   let roomCode = null;
   let copied = false;
@@ -86,11 +86,9 @@ export function createSetup({ parent, planes, levels, on }) {
       return el('button', { class: 'join-side', disabled: !state.canSwitch && 'disabled', onclick: () => on.side(s.team) }, 'FLY FOR THIS SIDE');
     }));
     rows.push(cells('BOT SKILL', (s) => select(levels, s.skill, (v) => on.skill(s.team, v), !state.canEdit)));
-    rows.push(cells('BOTS FLY', (s) => select(planes, s.botPlane, (v) => on.botPlane(s.team, v), !state.canEdit)));
     const perSide = el('div', { class: 'setup-row wide' },
       el('span', { class: 'label' }, 'PLANES PER SIDE'),
       select([[1, '1'], [2, '2']], state.planes, (v) => on.planes(Number(v)), !state.canEdit),
-      ...(state.canPickPlane === false ? [] : [el('span', { class: 'label' }, 'YOUR PLANE'), select(planes, state.myPlane, (v) => on.plane(v))]),
     );
     table.replaceChildren(...rows, perSide);
     startBtn.textContent = state.start;

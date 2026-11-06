@@ -135,11 +135,20 @@ export function addPlane(world, { defId, team, nation, controller }) {
 
 // Sets a side's bots to count planes at the given level, adding or removing bot planes (humans are
 // left alone). defId, nation: what new ones fly.
+const randomPlane = (world) => {
+  const ids = Object.keys(world.planeDefs).filter((id) => world.planeDefs[id]?.name);
+  return ids[Math.floor(world.rng.next() * ids.length)];
+};
+
 export function setBots(world, { team, count, skill, defId, nation }) {
   const bots = world.planes.filter((p) => p.team === team && p.seats.some((s) => s.controller.startsWith('bot')));
   for (const p of bots.slice(count)) world.planes.splice(world.planes.indexOf(p), 1);
   for (const p of bots.slice(0, count)) p.seats[0].controller = `bot:${skill}`;
-  for (let i = bots.length; i < count; i++) addPlane(world, { defId, team, nation, controller: `bot:${skill}` });
+  for (let i = bots.length; i < count; i++) {
+    // No plane given: each new bot flies a random named plane of its own nation (to be tuned later).
+    const id = defId ?? randomPlane(world);
+    addPlane(world, { defId: id, team, nation: nation ?? world.planeDefs[id].nation, controller: `bot:${skill}` });
+  }
 }
 
 export function stepWorld(world, commands) {
