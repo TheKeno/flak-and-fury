@@ -1305,14 +1305,14 @@ function blenheim(o) {
     { ...spinner, material: plain('dark') },
     { ...radiators, material: plain('dark') }, // oil coolers
     { ...gunTray, material: (p) => ({ kind: p[0] > X(3.5) ? 'dark' : 'under' }) }, // ventral pack, muzzles dark
-    { ...box([X(6.5), Y(1.1), 0], [0.35 * M, 0.12 * M, 0.2 * M]), material: plain('dark') }, // dorsal turret
-    { ...strut([X(6.8), Y(1.18), 0], [X(7.35), Y(1.2), 0], 0.035 * M), material: plain('dark') }, // turret gun
+    { ...box([X(6.9), Y(1.1), 0], [0.35 * M, 0.12 * M, 0.2 * M]), material: plain('dark') }, // dorsal turret
+    { ...strut([X(7.2), Y(1.18), 0], [X(7.75), Y(1.2), 0], 0.035 * M), material: plain('dark') }, // turret gun
     { ...wing, material: wingMat },
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fins, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(12.4)) < 0.04 * M && p[1] > Y(0.5) ? 1 : 0 }) }, // rudder hinge
     { ...canopy, glass: true, material: canopyMat },
     { ...sphere([X(2.15), Y(0.85), 0], 0.16 * M), pilot: true, material: plain('pilot') },
-    { ...sphere([X(6.5), Y(1.1), 0], 0.15 * M), pilot: true, material: plain('pilot') }, // turret gunner
+    { ...sphere([X(6.9), Y(1.1), 0], 0.15 * M), pilot: true, material: plain('pilot') }, // turret gunner
     { ...strut([X(3.8), Y(-0.45), nz], main, 0.08 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.12 * M), material: tyre(main, wheelR), gear: true },
     { ...strut([X(11.0), Y(0.0), 0], tailW, 0.04 * M), material: metal, gear: true },
