@@ -246,6 +246,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Hangar exit sprite glitch (Planes, 2026-11-07):** the flash at the end of the roll-out was the pilot name jumping from below the plane to above it for one frame. `writePoses` (`src/render/interpolate.js`) snapped x and angle at the turn-end flip but still blended `rollAngle`, so `drawPlaneName` saw a half-turned plane; `rollAngle` now snaps too. Owner confirmed it gone on screen. (A prop-disc fade tried first did nothing and was reverted.)
 - **Names easier to read (UI, 2026-11-07):** plane and soldier names (`drawPlaneName`, `drawManName` in `src/render/renderer.js`) now have a dark outline round the letters (`nameText`), a bolder 12 px font and brighter colours (friendly cream `#ece3b4`, enemy salmon `#f5a08a` (the first red was too dark to read)). Checked against sky, grass and earth backgrounds; not yet seen on a plane in play.
 - **Outline Lab: gunner and pilot dots (Planes, 2026-11-07):** `points` list in the outline files, one helper draws crew, barrel and mount (`open`/`box`/`dome`) for every plane; Lab part Crew and guns with a draggable arc wedge; Save writes turret offset and arc into planes.json; gunner offsets of the Bf 110, Ki-45, Blenheim and Ju 87 synced to their dots. See Decisions and `notes/outline-lab.md`; more dot options are in the backlog.
 - **Take-off from dirt, uphill (Gameplay, 2026-11-07):** off the runway every plane now has to climb a 3° (0.05 rad) grass slope as well as flat grass. `stepGround` (`src/sim/plane.js`) eases grass friction per plane just enough to keep that slope climbable (`GRASS_SLOPE`, `GRASS_TAKEOFF_MARGIN` now 1.08), and `groundThrust` went up for the P-47D (0.45 to 0.50), Bf 239 (0.45 to 0.49), Bf 110, Pe-3 and Blenheim (0.48 to 0.54) and Ki-45 (0.48 to 0.53), which also shortens their runway roll. Before, those could not take off on 2 to 3° uphill grass (Blenheim 1.7°). A fully loaded Blenheim or Ju 87 has no spare thrust, so grass costs them nothing. Steep hills still stop a plane (the stranded recovery puts it back at an airfield). `tests/grass-takeoff.test.mjs` now has a slope case for every plane. Not looked at in the browser.
@@ -491,7 +492,6 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Hangar exit sprite glitch** (Planes; session "Planes — hangar exit sprite glitch"): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes. Cause found 2026-11-07 (owner saw it: the pilot name jumps from below the plane to above it for a frame): `writePoses` in `src/render/interpolate.js` snapped x and angle at the turn-end flip but still blended `rollAngle`, so `drawPlaneName` read a half-turned plane; `rollAngle` now snaps too. Owner to confirm on screen (the prop-disc fade tried first did nothing and was reverted).
 
 
 ## Backlog
