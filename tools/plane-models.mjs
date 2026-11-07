@@ -1280,7 +1280,7 @@ function mosquito(o) {
         [X(0.45), hubH, -nz],
       ],
       propRadius: 1.75 * M,
-      mainContact: [main[0], -10, 0],
+      mainContact: [main[0], main[1] - wheelR, 0],
       track: main[2],
     },
   };
@@ -1370,7 +1370,7 @@ function ju87(o) {
       wingTipR: [X(3.4), Y(o.wing.at) + o.wing.span * M * o.wing.rise, -o.wing.span * M],
       propHub: [X(0.4), Y(0), 0],
       propRadius: 1.7 * M,
-      mainContact: [main[0], -10, 0],
+      mainContact: [main[0], main[1] - wheelR, 0],
       track: main[2],
     },
   };
