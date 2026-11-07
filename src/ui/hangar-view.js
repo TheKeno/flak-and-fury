@@ -61,6 +61,7 @@ const AMMO_STEPS = [1, 0.75, 0.5, 0.25];
 //   state: { defId, loadout (list or null), guns (explicit choice or null = standard), editable, note, title? , footer? }
 //   h: { pickPlane(id), change({ loadout?, guns? }), close? , closeLabel? }
 export function createHangarView({ planeDefs, weapons, nations, settings, spriteOf }) {
+  let lastPick = { id: null, at: 0 }; // for double click on a card
   const cards = new Map(); // one canvas per plane, drawn when its sprite is ready, reused between redraws
 
   function card(id, sel, can, h) {
@@ -78,7 +79,14 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
     }
     const flag = flagCanvas(def.nation, { swastika: Boolean(settings.markings?.historicalSwastika) });
     if (flag) flag.className = 'flag';
-    return el('button', { className: `card${sel ? ' sel' : ''}`, disabled: !can, onclick: () => h.pickPlane(id) }, ...(flag ? [flag] : []), canvas,
+    return el('button', { className: `card${sel ? ' sel' : ''}`, disabled: !can, onclick: (e) => {
+      h.pickPlane(id);
+      // Double click = pick and roll out. Counted by hand because picking redraws the cards,
+      // so the browser's own dblclick would land on a fresh button.
+      const now = performance.now();
+      if (h.close && lastPick.id === id && now - lastPick.at < 400) { lastPick = { id: null, at: 0 }; h.close(); }
+      else lastPick = { id, at: now };
+    } }, ...(flag ? [flag] : []), canvas,
       el('span', {}, def.name, el('div', { className: 'sub' }, nations[def.nation]?.name ?? def.nation)));
   }
 
