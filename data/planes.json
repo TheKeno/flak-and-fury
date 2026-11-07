@@ -372,7 +372,7 @@
     "thrust": 82,
     "dragCoef": 0.00328,
     "groundFriction": 16,
-    "groundThrust": 0.50,
+    "groundThrust": 0.5,
     "tailUpSpeed": 0.85,
     "turnRate": 1.2,
     "fineTurn": 0.25,
@@ -1657,7 +1657,7 @@
     "groundFriction": 17,
     "groundThrust": 0.54,
     "tailUpSpeed": 0.85,
-    "turnRate": 1.0,
+    "turnRate": 1,
     "fineTurn": 0.25,
     "turnRampTime": 0.5,
     "slowTurnBonus": 0.5,
@@ -1818,7 +1818,7 @@
       -0.115
     ],
     "exhaustOffset": [
-      9.0,
+      9,
       1.01
     ],
     "thrust": 80,
@@ -1901,7 +1901,7 @@
           -3.952
         ],
         "stowed": [
-          4.0,
+          4,
           -0.99
         ],
         "r": 1.048
@@ -2135,12 +2135,12 @@
           "weapon": "browning_303",
           "count": 1,
           "offset": [
-            -1.025,
-            1.005
+            -1.573,
+            0.438
           ],
           "arc": [
-            30,
-            200
+            -7,
+            305
           ]
         }
       ]
