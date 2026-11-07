@@ -1964,5 +1964,196 @@
       "gearRatio": 0.7,
       "idleSource": "estimated"
     }
+  },
+  "blenheim4": {
+    "name": "Blenheim Mk IV",
+    "nation": "finland",
+    "role": "heavy fighter",
+    "sprite": "blenheim",
+    "spriteSize": [
+      146,
+      55
+    ],
+    "pivot": [
+      73,
+      33
+    ],
+    "noseOffset": [
+      16.225,
+      -1.62
+    ],
+    "propOffset": [
+      12.025,
+      -1.545
+    ],
+    "exhaustOffset": [
+      10.725,
+      -0.495
+    ],
+    "thrust": 92,
+    "dragCoef": 0.0066,
+    "groundFriction": 17,
+    "groundThrust": 0.48,
+    "tailUpSpeed": 0.85,
+    "turnRate": 0.95,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.5,
+    "slowTurnBonus": 0.5,
+    "slowTurnSpeed": 115,
+    "stallSpeed": 53,
+    "takeoffSpeed": 57,
+    "runwayNeeded": 420,
+    "maxLandingSpeed": 94,
+    "maxSpeed": 118,
+    "hp": 130,
+    "toughness": 1.1,
+    "rearView": 0.9,
+    "hitRadius": 10,
+    "endurance": 440,
+    "emptyWeight": 4000,
+    "maxLoad": 680,
+    "hardpoints": [
+      {
+        "id": "bay",
+        "kind": "bay",
+        "offset": [
+          5.225,
+          -3.745
+        ],
+        "group": 0,
+        "maxKg": 250,
+        "salvo": 2,
+        "interval": 0.2
+      },
+      {
+        "id": "rack",
+        "kind": "rack",
+        "offset": [
+          7.475,
+          -2.995
+        ],
+        "group": 1,
+        "maxKg": 250
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "bay",
+        "weapon": "gp_250",
+        "count": 4
+      },
+      {
+        "hardpoint": "rack",
+        "weapon": "gp_250",
+        "count": 2
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "Bay and racks",
+        "loadout": [
+          {
+            "hardpoint": "bay",
+            "weapon": "gp_250",
+            "count": 4
+          },
+          {
+            "hardpoint": "rack",
+            "weapon": "gp_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Bay only",
+        "loadout": [
+          {
+            "hardpoint": "bay",
+            "weapon": "gp_250",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
+      }
+    ],
+    "gearTime": 2.6,
+    "fixedTailWheel": false,
+    "wheels": [
+      {
+        "leg": [
+          5.638,
+          -2.87
+        ],
+        "wheel": [
+          5.638,
+          -4.006
+        ],
+        "stowed": [
+          3.975,
+          -2.245
+        ],
+        "r": 0.993
+      },
+      {
+        "leg": [
+          -12.156,
+          -1.768
+        ],
+        "wheel": [
+          -12.156,
+          -2.168
+        ],
+        "stowed": [
+          -12.156,
+          -1.768
+        ],
+        "r": 0.403,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.9,
+    "groundTurnTime": 2.4,
+    "groundLoopTime": 1.4,
+    "armament": {
+      "guns": [
+        {
+          "id": "pack",
+          "weapon": "browning_303",
+          "count": 4
+        },
+        {
+          "id": "wing",
+          "weapon": "browning_303",
+          "count": 1
+        }
+      ],
+      "turrets": [
+        {
+          "weapon": "browning_303",
+          "count": 1,
+          "offset": [
+            4.725,
+            1.505
+          ],
+          "arc": [
+            30,
+            200
+          ]
+        }
+      ]
+    },
+    "engine": {
+      "layout": "radial",
+      "cylinders": 9,
+      "idleRpm": 550,
+      "cruiseRpm": 2100,
+      "maxRpm": 2750,
+      "propBlades": 3,
+      "gearRatio": 0.5,
+      "idleSource": "estimated"
+    }
   }
 }
