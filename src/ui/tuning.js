@@ -355,6 +355,11 @@ const BOT_FIELDS = [
   ['approachSpeed', 'Approach speed', 0.6, 1, 0.01, "Speed on final as a share of the plane's max landing speed."],
   ['fuelReserve', 'Fuel reserve', 0, 0.4, 0.01, 'Fuel kept over what the trip home needs. Below that, the bot goes home.'],
   ['takeoffGap', 'Take-off gap', 0, 15, 0.5, 'Seconds between bots of one side taking off together.'],
+  ['mixFighter', 'Plane mix: fighters', 0, 100, 1, 'Weight of single-engine fighters when a bot picks its plane (the three mix weights are shares of their sum).'],
+  ['mixHeavy', 'Plane mix: heavy fighters', 0, 100, 1, 'Weight of heavy fighters (Bf 110).'],
+  ['mixDiveBomber', 'Plane mix: dive bombers', 0, 100, 1, 'Weight of dive bombers (Stuka).'],
+  ['switchMin', 'Plane change: fewest deaths', 1, 10, 1, 'A bot swaps to a newly picked plane after this many deaths at the least.'],
+  ['switchMax', 'Plane change: most deaths', 1, 10, 1, 'And after this many at the most.'],
 ];
 const BOT_LEVEL_FIELDS = [
   ['reaction', 'Reaction time', 0.05, 2, 0.05, 'Seconds between decisions: spotting a plane on its tail, picking a target, going home.'],

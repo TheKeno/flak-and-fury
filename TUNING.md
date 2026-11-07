@@ -234,6 +234,8 @@ Shared numbers (tuning panel: Bots):
 | `approachSpeed` | Speed on final, as a share of the plane's `maxLandingSpeed`. | 0.75 – 0.9 |
 | `fuelReserve` | Fuel kept over what the trip home needs. | 0.05 – 0.15 |
 | `takeoffGap` | Seconds between bots of one side taking off together (a bot alongside you goes after you). | 3 – 6 |
+| `mixFighter`, `mixHeavy`, `mixDiveBomber` | What a bot flies when its side has no plane chosen: weights by plane `role` (`fighter`, `heavy fighter`, `dive bomber`), shares of their sum. 75 / 20 / 5 to start; other roles (the Mosquito) are not picked. To be reviewed. | 75 / 20 / 5 |
+| `switchMin`, `switchMax` | A bot changes to a newly picked plane after this many deaths, drawn between the two each time. | 2 – 4 |
 
 Each level (`bots.levels.easy`, `normal`, `ace`; tuning panel: Bots → Easy / Normal / Ace):
 

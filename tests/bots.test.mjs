@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
-import { createWorld, addPlane, setBots, stepWorld } from '../src/sim/world.js';
+import { createWorld, addPlane, setBots, stepWorld, randomPlane } from '../src/sim/world.js';
 import { autopilotCommand } from '../src/sim/ai.js';
 import { makeGroundObject } from '../src/sim/ground.js';
 import { clearRunway } from '../src/sim/runway.js';
@@ -229,4 +229,42 @@ test('setBots without a plane gives each new bot a random named plane (determini
   assert.deepEqual(a, pick());
   assert.ok(new Set(a).size > 1, 'more than one type');
   for (const id of a) assert.ok(load('data/planes.json')[id].name);
+});
+
+test('free-choice bots mostly fly fighters, some heavy fighters, few Stukas', () => {
+  const world = makeWorld();
+  const n = { fighter: 0, 'heavy fighter': 0, 'dive bomber': 0, other: 0 };
+  const N = 2000;
+  for (let i = 0; i < N; i++) {
+    const role = world.planeDefs[randomPlane(world)].role;
+    n[role in n ? role : 'other']++;
+  }
+  assert.equal(n.other, 0, 'only the mixed roles are picked');
+  assert.ok(n.fighter / N > 0.68 && n.fighter / N < 0.82, `fighters ${n.fighter / N}`);
+  assert.ok(n['heavy fighter'] / N > 0.14 && n['heavy fighter'] / N < 0.26, `heavy ${n['heavy fighter'] / N}`);
+  assert.ok(n['dive bomber'] / N > 0.02 && n['dive bomber'] / N < 0.09, `dive ${n['dive bomber'] / N}`);
+});
+
+test('a free-choice bot changes plane after 2 to 4 deaths; a bot on a chosen plane keeps it', () => {
+  const world = makeWorld();
+  setBots(world, { team: 0, count: 1, skill: 'normal' });
+  setBots(world, { team: 1, count: 1, skill: 'normal', defId: 'spitfire' });
+  const [free, fixed] = world.planes;
+  assert.ok(free.switchAt >= 2 && free.switchAt <= 4);
+  assert.equal(fixed.switchAt, undefined);
+  let changes = 0;
+  let last = free.switchAt;
+  for (let d = 1; d <= 12; d++) {
+    free.deaths++;
+    free.state = 'dead';
+    free.respawnTimer = 1000; // stays down while we look
+    stepWorld(world, {});
+    if (free.switchAt !== last) { changes++; last = free.switchAt; }
+    fixed.deaths++;
+    fixed.state = 'dead';
+    stepWorld(world, {});
+    free.state = 'dead';
+  }
+  assert.ok(changes >= 3 && changes <= 6, `changes ${changes}`);
+  assert.equal(fixed.def, world.planeDefs.spitfire);
 });

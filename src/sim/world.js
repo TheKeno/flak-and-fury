@@ -14,6 +14,7 @@ import { DEFAULT_FIRE } from './fire.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
 import { stepRunways, DEFAULT_RUNWAY } from './runway.js';
 import { DEFAULT_DECOR } from './decor.js';
+import { changeSeat } from './seats.js';
 import { DEFAULT_BAILOUT, bailOut, stepBailedPilot, stepGroundWreck, stepParachutes } from './bailout.js';
 
 export const TICK_RATE = 60;
@@ -136,10 +137,34 @@ export function addPlane(world, { defId, team, nation, controller }) {
 
 // Sets a side's bots to count planes at the given level, adding or removing bot planes (humans are
 // left alone). defId, nation: what new ones fly.
-const randomPlane = (world) => {
-  const ids = Object.keys(world.planeDefs).filter((id) => world.planeDefs[id]?.name);
+// A bot's plane: a role by the mix weights (bots.mix*), then any plane of that role.
+const MIX_ROLES = [['fighter', 'mixFighter'], ['heavy fighter', 'mixHeavy'], ['dive bomber', 'mixDiveBomber']];
+export function randomPlane(world) {
+  const named = Object.keys(world.planeDefs).filter((id) => world.planeDefs[id]?.name);
+  const roles = MIX_ROLES.map(([role, key]) => [named.filter((id) => world.planeDefs[id].role === role), world.bots[key] ?? 0]).filter(([ids, w]) => ids.length && w > 0);
+  if (!roles.length) return named[Math.floor(world.rng.next() * named.length)];
+  let at = world.rng.next() * roles.reduce((n, [, w]) => n + w, 0);
+  const [ids] = roles.find(([, w]) => (at -= w) < 0) ?? roles[roles.length - 1];
   return ids[Math.floor(world.rng.next() * ids.length)];
-};
+}
+
+// Deaths a bot with a free choice of plane gets before it swaps (bots.switchMin..switchMax).
+export function nextSwitch(world, p) {
+  const lo = Math.max(1, Math.round(world.bots.switchMin ?? 2));
+  const hi = Math.max(lo, Math.round(world.bots.switchMax ?? 4));
+  p.switchAt = p.deaths + lo + Math.floor(world.rng.next() * (hi - lo + 1));
+}
+
+// A free-choice bot that has died enough times comes back in another plane (while it waits to respawn).
+function stepBotSwitch(world) {
+  for (const p of world.planes) {
+    if (p.switchAt == null || p.wreck || p.state !== 'dead' || p.deaths < p.switchAt) continue;
+    const defId = randomPlane(world);
+    nextSwitch(world, p);
+    p.switchedAt = null; // the wait between swaps is for players
+    changeSeat(world, p, { defId }, DT);
+  }
+}
 
 export function setBots(world, { team, count, skill, defId, nation }) {
   const bots = world.planes.filter((p) => p.team === team && p.seats.some((s) => s.controller.startsWith('bot')));
@@ -148,13 +173,15 @@ export function setBots(world, { team, count, skill, defId, nation }) {
   for (let i = bots.length; i < count; i++) {
     // No plane given: each new bot flies a random named plane of its own nation (to be tuned later).
     const id = defId ?? randomPlane(world);
-    addPlane(world, { defId: id, team, nation: nation ?? world.planeDefs[id].nation, controller: `bot:${skill}` });
+    const p = addPlane(world, { defId: id, team, nation: nation ?? world.planeDefs[id].nation, controller: `bot:${skill}` });
+    if (!defId) nextSwitch(world, p); // only bots left free to choose swap planes
   }
 }
 
 export function stepWorld(world, commands) {
   world.events.length = 0;
   world.tick++;
+  stepBotSwitch(world);
   for (const p of world.planes) {
     const pilot = p.seats.find((s) => s.role === 'pilot');
     const ctl = pilot?.controller ?? '';

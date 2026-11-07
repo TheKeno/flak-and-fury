@@ -34,6 +34,11 @@ export const DEFAULT_BOTS = {
   approachSpeed: 0.8, // share of the plane's max landing speed on final
   fuelReserve: 0.08, // fuel kept over what the trip home needs
   takeoffGap: 4, // seconds between bots of one side taking off together
+  mixFighter: 75, // what a new bot flies, as weights (any scale): fighters, heavy fighters, dive bombers
+  mixHeavy: 20,
+  mixDiveBomber: 5,
+  switchMin: 2, // a bot changes plane after this many deaths at least, this many at most
+  switchMax: 4,
   levels: {
     easy: { turnFight: 0, reaction: 0.6, lookout: 380, aimError: 0.06, aimTolerance: 0.1, fireRange: 200, evadeChance: 0.3, stallMargin: 0.35, turnHard: 0.75, flakAvoid: 0.4, bombError: 30, hpReturn: 0.25, ammoReturn: 0.05 },
     normal: { turnFight: 0.5, reaction: 0.35, lookout: 520, aimError: 0.03, aimTolerance: 0.07, fireRange: 230, evadeChance: 0.6, stallMargin: 0.2, turnHard: 0.9, flakAvoid: 0.8, bombError: 15, hpReturn: 0.35, ammoReturn: 0.1 },

@@ -206,6 +206,11 @@
     "approachSpeed": 0.8,
     "fuelReserve": 0.08,
     "takeoffGap": 4,
+    "mixFighter": 75,
+    "mixHeavy": 20,
+    "mixDiveBomber": 5,
+    "switchMin": 2,
+    "switchMax": 4,
     "levels": {
       "easy": {
         "turnFight": 0,
