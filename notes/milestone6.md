@@ -18,6 +18,10 @@ Own model `ju87()` (`tools/plane-models.mjs`) reading `data/outlines/ju87.json` 
 
 Outline by the owner in the Outline Lab (`data/outlines/p38j.json`, drawn on the bf110 template parts: pod = fuselage, boom = nacelle at z 2.49, intercooler bulge = radiators, twin fins at z 2.24). Own model `p38j()`; USAAF 1943 star and bar on booms and wings. In `data/planes.json` (nation usa, heavy fighter, 4 .50 + 1 Hispano 20 mm, one `wing` rack with 2 GP 500, `emptyWeight` 5800, `maxLoad` 908). First nosewheel plane: `wheelGeometry` in `src/sim/plane.js` now uses `atan` so a `tail` wheel ahead of the mains gives a tiny nose-down stance. Estimated values to check in flight: thrust 86, drag 0.0034, maxSpeed 157, turnRate 1.25, hp 150, stall 60, takeoff 65, runwayNeeded 260. Leg tops, stowed wheel positions, exhaust and prop offsets are computed from the outline; look at them in a big view. Not done: bomb under the wing is a single rack (no 1000 lb bomb yet), no turbo-supercharger sound.
 
+## Pe-3: done (2026-11-07)
+
+Outline by the owner in the Outline Lab (`data/outlines/pe3.json`, frame lowered so the main wheel bottoms sit at -10, see the P-38J note). Own model `pe3()`: red stars on the rear fuselage and under the wings. In `data/planes.json` (ussr, heavy fighter): ShVAK 20 mm + 2 ShKAS in the nose, AI rear gunner (ShKAS, arc 95 to 200), wing rack of 4 FAB-100, `emptyWeight` 5900, `maxLoad` 400. Estimated: thrust 82, drag 0.0037, maxSpeed 145, turnRate 1.0, hp 150, stall 62, takeoff 66, runwayNeeded 340 (loaded roll about that). Leg tops, stowed wheels, exhaust and gunner offsets computed from the outline: check in a big view. Not done: visible bombs, the real Pe-3's second heavy MG (no UBS weapon in `weapons.json`).
+
 ## Mosquito FB.VI: sprite done (2026-11-05)
 
 Own model `mosquito()` in `tools/plane-models.mjs` from `data/outlines/mosquito.json` (1943 RAF scheme, C1/B/C
@@ -43,7 +47,7 @@ nose line, rear down at 3.9 m). Use 1943 RAF markings, not the drawings' post-wa
    the seven finished planes onto outline files; the remaining planes are then outlined in it.
 1. (Done) Mosquito FB.VI
 2. (Done) P-38J
-3. Pe-3
+3. (Done) Pe-3
 4. Ki-45 KAI
 5. Blenheim Mk IV
 6. Dive bombers

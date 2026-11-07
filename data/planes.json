@@ -1626,5 +1626,174 @@
       "gearRatio": 0.5,
       "idleSource": "estimated"
     }
+  },
+  "pe3": {
+    "name": "Pe-3",
+    "nation": "ussr",
+    "role": "heavy fighter",
+    "sprite": "pe3",
+    "spriteSize": [
+      143,
+      51
+    ],
+    "pivot": [
+      72,
+      22
+    ],
+    "noseOffset": [
+      15.838,
+      0.896
+    ],
+    "propOffset": [
+      12.213,
+      -0.031
+    ],
+    "exhaustOffset": [
+      10.588,
+      1.356
+    ],
+    "thrust": 82,
+    "dragCoef": 0.0037,
+    "groundFriction": 17,
+    "groundThrust": 0.48,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.0,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.5,
+    "slowTurnBonus": 0.5,
+    "slowTurnSpeed": 115,
+    "stallSpeed": 62,
+    "takeoffSpeed": 66,
+    "runwayNeeded": 340,
+    "maxLandingSpeed": 100,
+    "maxSpeed": 145,
+    "hp": 150,
+    "toughness": 1.4,
+    "rearView": 0.9,
+    "hitRadius": 10,
+    "endurance": 400,
+    "emptyWeight": 5900,
+    "maxLoad": 400,
+    "hardpoints": [
+      {
+        "id": "wing",
+        "kind": "rack",
+        "offset": [
+          4.588,
+          -2.144
+        ],
+        "group": 0,
+        "maxKg": 100
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "wing",
+        "weapon": "fab_100",
+        "count": 4
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "4 x FAB-100",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "fab_100",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "name": "2 x FAB-100",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "fab_100",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
+      }
+    ],
+    "gearTime": 2.4,
+    "fixedTailWheel": false,
+    "wheels": [
+      {
+        "leg": [
+          7.411,
+          -1.144
+        ],
+        "wheel": [
+          7.411,
+          -3.827
+        ],
+        "stowed": [
+          2.088,
+          -0.644
+        ],
+        "r": 1.172
+      },
+      {
+        "leg": [
+          -9.073,
+          -0.255
+        ],
+        "wheel": [
+          -9.073,
+          -0.755
+        ],
+        "stowed": [
+          -9.073,
+          -0.255
+        ],
+        "r": 0.638,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.75,
+    "groundTurnTime": 2.2,
+    "groundLoopTime": 1.3,
+    "armament": {
+      "guns": [
+        {
+          "id": "nose-mg",
+          "weapon": "shkas",
+          "count": 2
+        },
+        {
+          "id": "nose-cannon",
+          "weapon": "shvak_20",
+          "count": 1
+        }
+      ],
+      "turrets": [
+        {
+          "weapon": "shkas",
+          "count": 1,
+          "offset": [
+            6.213,
+            3.056
+          ],
+          "arc": [
+            95,
+            200
+          ]
+        }
+      ]
+    },
+    "engine": {
+      "layout": "inline",
+      "cylinders": 12,
+      "idleRpm": 600,
+      "cruiseRpm": 2500,
+      "maxRpm": 2700,
+      "propBlades": 3,
+      "gearRatio": 0.66,
+      "idleSource": "estimated"
+    }
   }
 }

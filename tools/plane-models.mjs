@@ -1085,6 +1085,90 @@ function p38j(o) {
   };
 }
 
+// Petlyakov Pe-3 (the Pe-2's heavy-fighter version), traced in the Outline Lab (12.67 m long, 17.16 m span;
+// 5 model units to the metre, d back from the nose tip). Slim glazed nose over a belly gun tray (ShVAK and
+// ShKAS), long greenhouse for the pilot and the rear gunner, whose ShKAS pokes out of the back; two M-105
+// nacelles 2.32 m out with the radiator under each, hung under a low wing; one tailplane with the twin
+// fins at its tips; retractable gear, the tail wheel under the tailcone. 1943 Soviet scheme: green and
+// black over light blue, red stars on the rear fuselage and under the wings.
+function pe3(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
+  const split = Y(-0.15);
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
+  const fuselage = bodyOf(o.fuselage);
+  const fuselageDecals = [
+    // Red star on the rear fuselage.
+    (p, n) => {
+      const k = side(n) && redStar(p[0] - X(8.6), p[1] - Y(0.1), 0.42 * M);
+      return k ? { kind: k } : null;
+    },
+    // Panel lines: nose, rear fuselage joints.
+    (p, n) => (side(n) && [line(1.3), line(5.0), line(8.0)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
+  ];
+  const wing = surfaceOf(o.wing);
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    // Red stars under both wings only, as the Soviets painted them.
+    const k = under && Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && redStar(Math.abs(p[2]) - 5.4 * M, p[0] - (s.le + s.te) / 2, 0.55 * M);
+    if (k) return { kind: k };
+    const hinge = s.k > 0.15 && Math.abs(s.u - 0.74) < 0.03; // flap and aileron line
+    return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
+  };
+  const nz = o.nacelle.z * M;
+  const nacelle = bodyOf(o.nacelle);
+  const spinner = bodyOf(o.spinner);
+  const gunTray = bodyOf(o.gunTray);
+  const radiators = bodyOf(o.radiators);
+  const tailplane = surfaceOf(o.tailplane);
+  const fins = surfaceOf(o.fins, true);
+  const canopy = bodyOf(o.canopy);
+  const canopyMat = (p) => ({ kind: [1.9, 2.6, 3.35, 3.8, 4.15].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
+  const plain = (kind) => () => ({ kind });
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...nacelle, material: (p) => ({ kind: tone(p) }) },
+    { ...spinner, material: plain('paint') },
+    { ...radiators, material: (p) => ({ kind: p[0] > X(2.0) ? 'dark' : 'under' }) }, // radiator baths, intakes dark
+    { ...gunTray, material: (p) => ({ kind: p[0] > X(0.35) ? 'dark' : 'under' }) },
+    { ...box([X(2.0), Y(0.12), nz + 0.45 * M], [0.3 * M, 0.05 * M, 0.05 * M], { mirror: true }), material: (p) => ({ kind: Math.floor((X(1.7) - p[0]) / (0.12 * M)) % 2 ? 'metal' : 'dark' }) }, // exhaust stacks
+    { ...wing, material: wingMat },
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fins, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(12.0)) < 0.04 * M && p[1] > Y(-0.1) ? 1 : 0 }) }, // rudder hinge
+    { ...canopy, glass: true, material: canopyMat },
+    { ...sphere([X(2.2), Y(0.8), 0], 0.16 * M), pilot: true, material: plain('pilot') },
+    { ...sphere([X(3.85), Y(0.88), 0], 0.16 * M), pilot: true, material: plain('pilot') }, // rear gunner
+    { ...strut([X(4.3), Y(0.85), 0], [X(4.8), Y(1.1), 0], 0.04 * M), material: plain('dark') }, // rear ShKAS
+    { ...strut([X(0.3), Y(0.2), 0.1 * M], [X(0.0), Y(0.18), 0.1 * M], 0.03 * M), material: plain('dark') }, // nose ShKAS muzzles
+    { ...strut([X(3.3), Y(-1.0), nz], main, 0.08 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.13 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(9.6), Y(-0.15), 0], tailW, 0.04 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.05 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  return {
+    parts,
+    attach: {
+      exhaust: [X(2.0), Y(0.12), nz + 0.5 * M],
+      wingRootL: [X(4.0), Y(-0.45), 0.5 * M],
+      wingRootR: [X(4.0), Y(-0.45), -0.5 * M],
+      wingTipL: [X(4.4), Y(-0.45 + 8.58 * 0.03), 8.58 * M],
+      wingTipR: [X(4.4), Y(-0.45 + 8.58 * 0.03), -8.58 * M],
+      propHub: [X(1.45), Y(-0.355), nz],
+      propHubs: [
+        [X(1.45), Y(-0.355), nz],
+        [X(1.45), Y(-0.355), -nz],
+      ],
+      propRadius: 1.5 * M,
+      mainContact: [main[0], main[1] - wheelR, 0],
+      track: main[2],
+    },
+  };
+}
+
 // Supermarine Spitfire Mk IX, measured off a 3-view drawing (9.47 m long, 11.23 m span, 2.4 m root
 // chord; 5 model units to the metre, d back from the spinner tip, h up from the thrust line). Long
 // Merlin 61 nose with a pointed spinner, six ejector stacks a side and a long carburettor intake under
@@ -1393,7 +1477,7 @@ const withBumps = (build) => (o) => {
   }
   return model;
 };
-export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j }).map(([k, f]) => [k, withBumps(f)]));
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3 }).map(([k, f]) => [k, withBumps(f)]));
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
 // model code through outline.template, so its outline can be traced and previewed.
 export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);
