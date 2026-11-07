@@ -969,15 +969,13 @@ export function createRenderer(canvas, world, assets) {
     if (p.seats?.[0]?.controller?.startsWith('bot') && assets.settings.hud.showBotNames === false) return;
     const alpha = nameAlpha(p);
     if (alpha <= 0) return;
-    // Head-on frames (out of the hangar, turning round) are drawn level: the tail-down tilt would slant the name.
+    // Head-on frames (out of the hangar, turning round) use the plane's own position: the tail-down tilt would slant the name.
     const view = p.groundTurn != null ? { angle: p.angle, x: p.x, y: p.y } : groundAttitude(p);
-    const roll = Math.cos(p.rollAngle ?? 0);
-    const upright = Math.cos(view.angle) >= 0 === roll >= 0;
+    // The name hangs level, straight below the plane's centre on screen. Turning it with the plane's angle or
+    // squashing it with the roll made it swing through the plane and flip sides (at 90 degrees of roll or
+    // pitch, and at map-edge and ground turns).
     ctx.save();
     ctx.translate(planeX(view.x), planeY(view.y));
-    ctx.rotate(-(Math.cos(view.angle) >= 0 ? view.angle : view.angle - Math.PI));
-    if (!upright) ctx.rotate(Math.PI);
-    ctx.scale(1, Math.max(0.05, Math.abs(roll)));
     ctx.globalAlpha = alpha;
     ctx.font = NAME_FONT;
     ctx.textAlign = 'center';

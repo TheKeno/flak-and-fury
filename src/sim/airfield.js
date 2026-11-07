@@ -256,13 +256,21 @@ export function rearmFully(p) {
 }
 
 // How far along the current job is (0..1), for the HUD.
+// Every job's bar runs from empty to full over that job, however much was left to do when it began
+// (s.span: the most work the job has had, so fresh damage mid-repair doesn't push it past the start).
 export function serviceProgress(p, world) {
   const s = p.service;
   if (!s || s.wait > 0) return 0;
-  if (s.phase === 'repair') return clamp(p.hp / p.def.hp, 0, 1);
-  if (s.phase === 'refuel') return p.fuel;
+  if (s.phase === 'repair') return s.span > 0 ? clamp(1 - repairLeft(p) / s.span, 0, 1) : 0;
+  if (s.phase === 'refuel') return s.span > 0 ? clamp(1 - (FULL_TANK - p.fuel) / s.span, 0, 1) : 0;
   if (s.phase === 'rearm') return clamp(s.rearmT / world.servicing.rearmTime, 0, 1);
   return 1;
+}
+
+// Repair work left, in hit points: the repairs run side by side at one rate, so the biggest one decides.
+function repairLeft(p) {
+  const hp = p.def.hp;
+  return Math.max(hp - p.hp, p.engineDamage * hp, p.tailDamage * hp, Math.abs(p.wingPull) * hp);
 }
 
 // The crew work slower as their hangar is shelled, and not at all once it's destroyed.
@@ -278,7 +286,7 @@ export function updateServicing(p, world, dt) {
     p.service = null;
     return;
   }
-  if (!p.service) p.service = { wait: 0, phase: null, rearmT: 0 };
+  if (!p.service) p.service = { wait: 0, phase: null, rearmT: 0, span: 0 };
   const s = p.service;
   const phase = needs(p, s.phase === 'done');
   const crew = world.crew.filter((c) => c.plane === p.id);
@@ -313,8 +321,12 @@ export function updateServicing(p, world, dt) {
   if (phase !== s.phase) {
     s.phase = phase;
     s.rearmT = 0;
+    s.span = 0;
     world.events.push({ type: phase === 'done' ? 'serviceDone' : 'servicePhase', phase, plane: p.id, x: p.x, y: p.y });
   }
+
+  if (phase === 'repair') s.span = Math.max(s.span, repairLeft(p));
+  else if (phase === 'refuel') s.span = Math.max(s.span, FULL_TANK - p.fuel);
 
   if (phase === 'repair') {
     // A fire is the crew's first job; it's put out by the fire rules (src/sim/fire.js).
