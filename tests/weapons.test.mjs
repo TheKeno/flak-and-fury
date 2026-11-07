@@ -19,7 +19,7 @@ function makeWorld() {
     rules: { bots: 'off', friendlyFire: false },
   });
   for (const o of world.ground) if (o.team != null && o.type !== 'hangar') o.alive = false;
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   return { world, p };
 }
 

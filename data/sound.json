@@ -357,14 +357,6 @@
       "count": 1
     },
     {
-      "id": "bf109",
-      "name": "Bf 109 F-4",
-      "nation": "Germany",
-      "kind": "plane",
-      "engine": "db601e",
-      "count": 1
-    },
-    {
       "id": "bf110",
       "name": "Bf 110 G-2",
       "nation": "Germany",

@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Remove the Bf 109 F-4 completely (decided 2026-11-07, discussion; not built):** the G-6 already fills
+- **Remove the Bf 109 F-4 completely (decided 2026-11-07, discussion; built 2026-11-07):** the G-6 already fills
   Germany's fighter slot, the F-4 is a 1941–42 type outside the 1943 setting, and its model predates
   measuring. Remove `bf109` from the game, delete the backlog item "Rebuild the Bf 109 F-4".
   - **Remove:** the `bf109` entry in `data/planes.json`, `data/outlines/bf109.json`, its sprites in
@@ -239,6 +239,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Bf 109 F-4 removed (Planes, 2026-11-07):** `bf109` is gone from `data/planes.json`, its outline, sprites, `data/sound.json` vehicle entry (the id was only the plane itself; the `db601e` engine data stays as real-engine reference), the Outline Lab lists, `BUILDERS` and the model function. The Stuka already drew from its own `ju87` function; only its Lab template `tmpl` moved to `bf109g6`, and its sprites were rebuilt (side view identical, the sheet now also has the newer `edge` row). Tests use `bf109g6` (the plane-swap test in bailout swaps to `bf110`); 267 pass. Notes lines updated; hangar research notes keep the F-4 facts as history.
 - **Stuck bomb whistle fixed (Sound, 2026-11-07):** a friend's video had a steady ~2.3 kHz tone that never stopped (through death and plane switches). It matches the recorded bomb whistle (`trench-whistle-01.mp3`, tone lines 130 Hz apart, played ×1.19 and Doppler-scaled): a whistle was stopped only by the `bombExplode` event, so a missed event left it sounding for ever at its last pitch. `stopGone` in `src/audio/soundscape.js` now takes an `exists` check and sweeps whistles (against `bombsInFlight`) and crew sounds as well (fires and scrapes already had it). New `tests/soundscape-loops.test.mjs` (fake audio context). Not heard in play; why the event was missed is unknown (online play is the first suspect). The 6-7 Hz low rumble in the same clip is probably the engine synth, not looked into.
 - **Bot plane choice (Gameplay, 2026-11-07):** bots no longer spawn the same planes every match (the world rng was seeded from the map's fixed seed; `createWorld` takes a `seed`, the game passes a random one, tests keep the fixed one). Bots with no plane chosen in setup pick by role weights 75% fighter / 20% heavy fighter / 5% dive bomber (`bots.mixFighter/mixHeavy/mixDiveBomber`, the Mosquito is not in the mix) and swap to a newly picked plane after `switchMin`..`switchMax` (2 to 4) deaths (`stepBotSwitch` in `src/sim/world.js`). Bots on a plane chosen in setup keep it. Numbers to review: see the backlog. Not watched in a live match.
 - **Bomb view on the bomb key (UI, 2026-11-06):** holding the bomb key (E / right mouse) looks straight down (`readLook` in `src/input/keyboard.js`); releasing it drops the bomb for one tick. Not tried in play. Known: a release during the bomb cooldown drops nothing, and the window losing focus counts as a release.
@@ -310,7 +311,7 @@ later.
   fly a proper circuit home, land, wait for the crew and take off again; burning or with a dead engine
   they land at home if they can make it, otherwise in the nearest clear field towards home.
 - **Extras:**
-  - Bf 109 F-4 for the player.
+  - ~~Bf 109 F-4 for the player~~ (plane removed 2026-11-07).
   - Retractable gear with G override, belly landings, taildragger ground attitude, long take-off roll.
   - Graded collisions (fatal / hard / graze) with uneven damage shares, the taran prop-into-tail
     strike and wing pull.
@@ -414,7 +415,7 @@ later.
 
 6. **Six nations × 3 planes, and their tanks:** data-driven stats and sprites, following the Bf 109
    pattern, all 1943 types. Roster (decided):
-   - **Germany** (fast climb): Bf 109 G-6 (standard; the F-4 stays as a lighter option), Bf 110 G-2,
+   - **Germany** (fast climb): Bf 109 G-6, Bf 110 G-2,
      Ju 87 D-5 (was D-3); tank Panzer IV Ausf. H.
    - **UK** (tight turn): Spitfire Mk IX (replaces the placeholder `fighter_v12`), Mosquito FB.VI,
      Hurricane Mk IID "tin opener" (40 mm, in the dive-bomber slot: the RAF had no real dive bomber);

@@ -20,7 +20,7 @@ function approachAt(share, noseUp = -0.1, { stalled = false } = {}) {
     landing: { ...settings.landing },
     rules: { bots: 'off' },
   });
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   const af = world.map.airfields.find((a) => a.team === 0);
   p.state = 'air';
   p.x = af.x + af.width / 2;

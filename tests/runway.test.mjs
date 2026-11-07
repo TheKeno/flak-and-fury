@@ -25,7 +25,7 @@ function makeWorld() {
     runway: { ...settings.runway },
     rules: { bots: 'off' },
   });
-  const me = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const me = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   const enemy = addPlane(world, { defId: 'spitfire', team: 1, nation: 'uk', controller: 'bot:target' });
   return { world, me, enemy, bomb: weapons.gp_250 };
 }

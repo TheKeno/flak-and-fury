@@ -60,7 +60,7 @@ function makeWorld() {
 
 test('a bomb whistle stops when its bomb vanishes without a bombExplode event', () => {
   const world = makeWorld();
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   const { mixer } = fakeMixer();
   let scape;
   try {

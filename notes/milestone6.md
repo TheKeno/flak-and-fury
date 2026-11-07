@@ -6,7 +6,7 @@ folder `milestone6/`. They are kept out of this repo because GitHub Pages publis
 
 ## Done (pushed to main)
 
-Spitfire IX, Bf 109 G-6 (F-4 kept, to be rebuilt later from a 3-view), P-47D, La-5FN, Ki-43-II, B-239
+Spitfire IX, Bf 109 G-6 (the F-4 was removed 2026-11-07), P-47D, La-5FN, Ki-43-II, B-239
 (hakaristi), Bf 110 G-2 (AI rear gunner `armament.turrets`, twin prop discs, frame cells sized per
 plane), markings pass (optional German fin swastika setting).
 
@@ -57,7 +57,7 @@ sheet holds, or its scale and orientation: look when starting each plane.
   Hurricane Mk IID, A-36A Apache, Il-2M3 Shturmovik (rear gunner position to place), D3A2 Val, Ju 88 A-4.
 - **Backlog planes:** A6M5 Zero.
 - **Heavy bombers (milestone 12):** B-17F, Lancaster B3, Heinkel 177 (`heinkel177_3v.jpg`), Pe-8, G4M1.
-- **Bf 109 F-4** (backlog rebuild): `Bf 109 F-4.jpg`.
+- ~~Bf 109 F-4~~ (removed 2026-11-07).
 - **Tanks:** Panzer IV (`Panzer IV.jpeg`), Churchill, Sherman, T-34-76, Chi-Ha, BT-42.
 - **Nothing missing now** (23 sheets in all, plus the two Mosquito ones).
 - The new files are not yet committed in the notes repo.

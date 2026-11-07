@@ -64,6 +64,5 @@ Ammunition, kg per round incl. link (`roundKg`), all guesses from calibre: 7.9 /
 - Plane masses where missing: P-38J empty weight and engine hp, He 177 A-3 internal bomb capacity and empty weight,
   B-17F (only B-17G found), Hurricane IID engine, a Finnish Blenheim gun pack, plane empty weights for the nine in the
   game that have `emptyWeight` (check they match the verified list).
-- Still-open claims from the first pass: Bf 110 G-2 bomb options and the WGr.21 kit, Mosquito Merlin 23 and RP-3 date,
-  Bf 109 F-4 bomb variant.
+- Still-open claims from the first pass: Bf 110 G-2 bomb options and the WGr.21 kit, Mosquito Merlin 23 and RP-3 date (the F-4 bomb variant is moot: the plane was removed 2026-11-07).
 - Primary sources (manuals, museum data); everything so far is Wikipedia.

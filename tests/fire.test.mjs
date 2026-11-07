@@ -21,7 +21,7 @@ function makeWorld() {
     fire: { ...settings.fire },
     rules: { bots: 'off' },
   });
-  const player = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const player = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   return { world, player };
 }
 

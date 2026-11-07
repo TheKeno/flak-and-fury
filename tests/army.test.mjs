@@ -113,7 +113,7 @@ test('a damaged depot sends smaller waves; a destroyed one sends none', () => {
 
 test('with its hangar destroyed, an airfield has no ground crew', () => {
   const world = makeWorld({ first: 1e6 });
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   p.hp = p.def.hp / 2;
   damageGround(world, world.ground.find((o) => o.type === 'hangar' && o.team === 0), Infinity, null);
   assert.equal(hangarHealth(world, 0), 0);

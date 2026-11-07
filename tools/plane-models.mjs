@@ -483,91 +483,6 @@ const spiralSpinner = (x0, yc, len) => (p) => {
   return { kind: ((turn % 1) + 1) % 1 < 0.25 ? 'white' : 'dark' };
 };
 
-// Messerschmitt Bf 109 F-4, from its real dimensions (8.94 m long, 9.92 m span; 5 model units to the
-// metre, with d measured back from the spinner tip and h up from the thrust line). Slim inline
-// cowling with a pointed spinner, deep cockpit section tapering hard to a slim tail, low framed
-// hood, small rounded fin and rudder, cantilever tailplane set on the fin (the F lost the E's struts),
-// rounded wingtips, chin oil cooler, shallow radiator baths under the wings, narrow splayed gear.
-function bf109(o) {
-  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
-  const split = Y(-0.22); // camouflage demarcation down the fuselage side
-  const tone = (p) => (p[1] < split ? 'under' : 'paint');
-  const fuselage = bodyOf(o.fuselage);
-  const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
-  const fuselageDecals = [
-    // Panel lines: cowling joint, firewall, cockpit rear, rear fuselage joint.
-    (p, n) => (side(n) && [line(1.05), line(2.3), line(4.2), line(6.6)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
-    // Exhaust stacks: a dark row a little below the cowling top (six stacks are too fine to split).
-    (p, n) => (side(n) && Math.abs(p[1] - Y(0.18)) < 0.07 * M && p[0] < X(1.0) && p[0] > X(1.9) ? { kind: 'dark' } : null),
-    // Balkenkreuz behind the cockpit.
-    (p, n) => {
-      const k = side(n) && cross(p[0] - X(5.25), p[1] - Y(0.02), 0.85);
-      return k ? { kind: k } : null;
-    },
-  ];
-  const wing = surfaceOf(o.wing);
-  const wingMat = (p, n, vn) => {
-    const s = wing.shape(p);
-    const under = n[1] < -0.3;
-    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && cross(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 3.5 * M, 1.05);
-    if (k) return { kind: k };
-    const hinge = s.k > 0.2 && Math.abs(s.u - 0.74) < 0.035; // flap and aileron line
-    const slat = s.k > 0.55 && s.k < 0.92 && Math.abs(s.u - 0.13) < 0.035; // leading-edge slats
-    return { kind: under ? 'under' : 'paint', dark: hinge || slat ? 1 : 0 };
-  };
-  const tailplane = surfaceOf(o.tailplane);
-  const fin = surfaceOf(o.fin, true);
-  const canopy = bodyOf(o.canopy);
-  const canopyMat = (p) => {
-    const frame = [2.86, 3.57].some((d) => Math.abs(p[0] - X(d)) < 0.045 * M);
-    const armour = p[0] < X(3.6) && p[0] > X(3.72) && p[1] > Y(0.58); // head armour behind the pilot
-    return { kind: frame || armour ? 'frame' : 'glass' };
-  };
-  const spinner = bodyOf(o.spinner);
-  const plain = (kind) => () => ({ kind });
-  // Gear (world units in data/planes.json bf109.wheels, here in model units): main wheels 2.3 m back,
-  // 2.06 m track, splayed legs from the wing roots; small tail wheel under the fin.
-  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
-  const metal = () => ({ kind: 'metal' });
-  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
-  const parts = [
-    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
-    { ...spinner, material: spiralSpinner(X(0), Y(0), 0.72 * M) },
-    { ...wing, material: wingMat },
-    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
-    {
-      ...fin,
-      material: (p, n) => {
-        const k = side(n) && hakenkreuz(p[0] - X(8.25), p[1] - Y(0.82), 0.3 * M);
-        return { kind: k || 'paint', dark: !k && Math.abs(p[0] - X(8.15)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }; // rudder hinge
-      },
-    },
-    { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(3.3), Y(0.74), 0], 0.17 * M), pilot: true, material: plain('pilot') },
-    { ...box([X(1.35), Y(-0.6), 0], [0.35 * M, 0.11 * M, 0.2 * M]), material: (p) => ({ kind: p[0] > X(1.05) ? 'dark' : 'under' }) }, // oil cooler
-    { ...box([X(3.75), Y(-0.66), 1.0 * M], [0.45 * M, 0.1 * M, 0.42 * M], { mirror: true }), material: (p) => ({ kind: 'under', dark: p[0] < X(4.1) ? 1 : 0 }) }, // radiators
-    { ...box([X(2.05), Y(0.12), 0.5 * M], [0.2 * M, 0.09 * M, 0.07 * M]), material: (p) => ({ kind: p[0] > X(1.9) ? 'dark' : 'paint' }) }, // supercharger intake, port side
-    { ...strut([X(2.45), Y(-0.55), 0.4 * M], main, 0.06 * M), material: metal, gear: true },
-    { ...wheel(main, wheelR, 0.08 * M), material: tyre(main, wheelR), gear: true },
-    { ...strut([X(7.8), Y(-0.08), 0], tailW, 0.05 * M), material: metal, gear: true },
-    { ...wheel(tailW, tailR, 0.05 * M), material: tyre(tailW, tailR), gear: true },
-  ];
-  return {
-    parts,
-    attach: {
-      exhaust: [X(1.45), Y(0.18), 0.47 * M],
-      wingRootL: [X(3.3), Y(-0.48), 0.45 * M],
-      wingRootR: [X(3.3), Y(-0.48), -0.45 * M],
-      wingTipL: [X(3.3), Y(-0.48) + 4.9 * M * 0.114, 4.9 * M],
-      wingTipR: [X(3.3), Y(-0.48) + 4.9 * M * 0.114, -4.9 * M],
-      propHub: [X(0.7), Y(0), 0],
-      propRadius: 1.5 * M,
-      mainContact: [main[0], -10, 0],
-      track: main[2],
-    },
-  };
-}
-
 // Messerschmitt Bf 109 G-6, measured off a 3-view drawing (9.02 m long, 9.92 m span; 5 model units to
 // the metre, d back from the spinner tip, h up from the thrust line). Bigger spinner, cowling rising
 // to the windscreen with the MG 131 bulges (Beulen) ahead of it, exhaust stacks low on the cowl (the
@@ -1394,7 +1309,7 @@ const withBumps = (build) => (o) => {
   }
   return model;
 };
-export const BUILDERS = Object.fromEntries(Object.entries({ bf109, bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87 }).map(([k, f]) => [k, withBumps(f)]));
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87 }).map(([k, f]) => [k, withBumps(f)]));
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
 // model code through outline.template, so its outline can be traced and previewed.
 export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);

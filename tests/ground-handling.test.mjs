@@ -20,7 +20,7 @@ function makeWorld() {
     waves: { first: 1e6 },
     rules: { bots: 'off' },
   });
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   return { world, p };
 }
 
@@ -128,7 +128,7 @@ test('a respawned plane is pushed out of the hangar and turns into the runway, a
 
 test('planes leave the hangar one at a time; one idling in the way is shoved up the line', () => {
   const { world, p } = makeWorld();
-  const q = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'bot:easy' });
+  const q = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'bot:easy' });
   spawnAtAirfield(p, world, true);
   spawnAtAirfield(q, world, true);
   let overlap = false;
@@ -160,7 +160,7 @@ test('a human pilot takes over once the turn is done: throttle ends the push and
 
 test('a pilot who died gets the hangar: the new plane waits inside until released; a bot just rolls out', () => {
   const { world, p } = makeWorld();
-  const b = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'bot:easy' });
+  const b = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'bot:easy' });
   for (const o of [p, b]) {
     o.state = 'dead';
     o.respawnTimer = 0.05;

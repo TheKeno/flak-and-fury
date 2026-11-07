@@ -20,7 +20,7 @@ function setup() {
     takeoff: { ...settings.takeoff },
     rules: { bots: 'off' },
   });
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   p.stations.forEach((s) => (s.loaded = 0)); // flying empty: these tests are about the turn's geometry
   p.state = 'air';
   p.gear = 0;
@@ -147,7 +147,7 @@ test('whatever the entry angle, the plane levels out first, swings round level a
     assert.ok(Math.abs(Math.sin(r.plane.angle)) < 1e-6, `entry ${angle}: leaves level`);
     assert.ok(Math.cos(r.plane.angle) < 0, `entry ${angle}: heading back`);
     assert.ok(r.beyond < 6, `entry ${angle}: stays in the world (${r.beyond} past the wall)`);
-    assert.ok(r.minSpeed >= load('data/planes.json').bf109.stallSpeed, `entry ${angle}: never slow enough to stall (${r.minSpeed})`);
+    assert.ok(r.minSpeed >= load('data/planes.json').bf109g6.stallSpeed, `entry ${angle}: never slow enough to stall (${r.minSpeed})`);
     assert.ok(r.worstStep < 0.05, `entry ${angle}: the nose never jumps (${r.worstStep} rad in one tick)`);
   }
 });

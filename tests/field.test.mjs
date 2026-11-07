@@ -24,7 +24,7 @@ function makeWorld() {
     collisions: { ...settings.collisions },
     rules: { bots: 'off' },
   });
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   return { world, p };
 }
 

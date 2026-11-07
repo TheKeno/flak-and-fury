@@ -1890,7 +1890,7 @@ const PLANNED = [
   { id: 'il2', label: 'Il-2M3 Shturmovik (USSR)', L: 11.65, W: 14.6, tmpl: 'la5fn', sheet: 'Il-2M3 Shturmovik.png' },
   { id: 'ki45', label: 'Ki-45 KAI Toryu (Japan)', L: 11.0, W: 15.02, tmpl: 'bf110', sheet: 'Ki-45 KAI Toryu.gif' },
   { id: 'd3a2', label: 'D3A2 Val (Japan)', L: 10.2, W: 14.37, tmpl: 'ki43', sheet: 'D3A2 Val.png' },
-  { id: 'ju87', label: 'Ju 87 D-5 Stuka (Germany)', L: 11.5, W: 15.0, tmpl: 'bf109', sheet: 'Ju-87 D-5.jpg' },
+  { id: 'ju87', label: 'Ju 87 D-5 Stuka (Germany)', L: 11.5, W: 15.0, tmpl: 'bf109g6', sheet: 'Ju-87 D-5.jpg' },
   { id: 'hurricane', label: 'Hurricane Mk IID (UK)', L: 9.81, W: 12.19, tmpl: 'spitfire', sheet: 'Hurricane Mk IID.jpg' },
   { id: 'blenheim', label: 'Blenheim Mk IV (Finland)', L: 12.98, W: 17.17, tmpl: 'bf110', sheet: 'Blenheim Mk IV with gun pack.gif' },
   { id: 'ju88', label: 'Ju 88 A-4 (Finland)', L: 14.4, W: 20.08, tmpl: 'bf110', sheet: 'Ju 88 A-4.jpg' },
@@ -1901,8 +1901,6 @@ const PLANNED = [
   { id: 'he177', label: 'He 177 A-3 (Germany)', L: 20.4, W: 31.44, tmpl: 'bf110', sheet: 'heinkel177_3v.jpg' },
   { id: 'pe8', label: 'Pe-8 (USSR)', L: 22.5, W: 39.1, tmpl: 'bf110', sheet: 'Pe-8.jpg' },
   { id: 'g4m1', label: 'G4M1 Betty (Japan)', L: 19.97, W: 24.89, tmpl: 'bf110', sheet: 'G4M1.jpg' },
-  // Already has an outline from before measuring: the picker opens that plane and loads the sheet to trace it again.
-  { id: 'bf109', label: 'Bf 109 F-4 (Germany), rebuild of bf109', L: 8.85, W: 9.92, tmpl: 'bf109', sheet: 'Bf 109 F-4.jpg', rebuild: true },
 ];
 // The picker for New plane...: a planned plane fills in name, size and template; "Other" lets you type them.
 function askNewPlane() {
@@ -2007,7 +2005,7 @@ async function loadLibrarySheet(name) {
     libMsg(`Could not load ${name} from the library.`);
   }
 }
-const BASES = ['bf109', 'bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239', 'bf110'];
+const BASES = ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239', 'bf110'];
 function scaledOutline(base, id, template, L, W) {
   const f = L / base.length; // along the plane
   const g = W / base.span; // across it

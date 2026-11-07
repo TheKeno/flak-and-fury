@@ -180,8 +180,8 @@ test('deserting: a white flag, the new side, and 5 seconds before the next switc
 test('a new plane mid-flight: the old one burns, and you restart at home in the new one at once', () => {
   const { world, p } = setup();
   flying(p, world);
-  assert.equal(changeSeat(world, p, { defId: 'bf109' }, DT), null);
-  assert.equal(p.def, world.planeDefs.bf109);
+  assert.equal(changeSeat(world, p, { defId: 'bf110' }, DT), null);
+  assert.equal(p.def, world.planeDefs.bf110);
   assert.equal(p.state, 'ground');
   assert.equal(world.parachutes.length, 0);
   assert.ok(world.planes.find((o) => o.wreck)?.burning);

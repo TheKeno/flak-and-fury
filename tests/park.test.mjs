@@ -27,7 +27,7 @@ function standing(offset) {
     collisions: { ...settings.collisions },
     rules: { bots: 'off' },
   });
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   const af = world.map.airfields.find((a) => a.team === p.team);
   const home = hangarX(world, af);
   p.x = home + offset * (af.x < world.map.width / 2 ? 1 : -1);

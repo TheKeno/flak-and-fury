@@ -43,21 +43,21 @@ test('outline stations are sorted, in range and mirror the plane they name', () 
 });
 
 test('the kit places things by the frame: d back from the reference, h up', () => {
-  const { X, Y, M } = kit(loadOutline('bf109'));
+  const { X, Y, M } = kit(loadOutline('bf109g6'));
   assert.equal(M, 5);
-  assert.equal(X(0), 24.5);
+  assert.equal(X(0), 23);
   assert.equal(X(2) - X(3), 5);
   assert.equal(Y(1) - Y(0), 5);
 });
 
 test('a model renders from its outline, and moving a station moves the silhouette', () => {
-  const o = loadOutline('bf109');
-  const base = render(buildModel('bf109', o), rollPose(0), 96, 36, [48, 18], { gear: false, res: 2 });
+  const o = loadOutline('bf109g6');
+  const base = render(buildModel('bf109g6', o), rollPose(0), 96, 36, [48, 18], { gear: false, res: 2 });
   const count = (img) => [...img.join('')].filter((c) => c !== '.').length;
   assert.ok(count(base) > 300);
   const fat = structuredClone(o);
   for (const row of fat.fuselage.stations) { row[1] += 0.2; row[2] -= 0.2; }
-  const wider = render(buildModel('bf109', fat), rollPose(0), 96, 36, [48, 18], { gear: false, res: 2 });
+  const wider = render(buildModel('bf109g6', fat), rollPose(0), 96, 36, [48, 18], { gear: false, res: 2 });
   assert.ok(count(wider) > count(base));
 });
 
@@ -85,9 +85,9 @@ test('plan view: a formula wing converts to edge tables that draw nearly the sam
 
 test('plan view: widening a wing makes a bigger top silhouette, and a table wing needs no formula fields', async () => {
   const { convertPlanform } = await import('../tools/planform.mjs');
-  const o = loadOutline('bf109');
+  const o = loadOutline('bf109g6');
   convertPlanform(o, 'wing');
-  const top = (x) => [...render(buildModel('bf109', x), rollPose(Math.PI / 2), 120, 140, [60, 69.5], { gear: false, res: 2 }).join('')].filter((c) => c !== '.').length;
+  const top = (x) => [...render(buildModel('bf109g6', x), rollPose(Math.PI / 2), 120, 140, [60, 69.5], { gear: false, res: 2 }).join('')].filter((c) => c !== '.').length;
   const base = top(o);
   for (const r of o.wing.te) r[1] += 0.3;
   assert.ok(top(o) > base);

@@ -21,7 +21,7 @@ function takeoff(pull = true) {
     takeoff: { ...settings.takeoff },
     rules: { bots: 'off' },
   });
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   const trace = [];
   for (let i = 0; i < 60 * 25; i++) {
     const turn = pull && p.speed >= p.def.takeoffSpeed ? 1 : 0;

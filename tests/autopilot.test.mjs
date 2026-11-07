@@ -20,7 +20,7 @@ test('the autopilot flies level over the hills at its height and turns back at t
     rules: { bots: 'off' },
   });
   for (const o of world.ground) if (o.team != null) o.alive = false; // nothing shooting at it
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   p.def.endurance = 1e6; // fuel isn't what's tested
   Object.assign(p, { state: 'air', x: 800, y: world.terrain.heightAt(800) + 200, vx: 130, vy: 0, speed: 130, angle: 0, throttle: 0.85, gear: 0, gearDown: false });
   const state = {};

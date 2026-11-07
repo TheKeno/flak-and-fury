@@ -86,7 +86,7 @@ function rollInto(type, speed) {
   world.ground = world.ground.filter((o) => Math.abs(o.x - x) > 80);
   const thing = makeGroundObject(world, type, null, x);
   world.ground.push(thing);
-  const p = addPlane(world, { defId: 'bf109', team: 0, nation: 'germany', controller: 'p1' });
+  const p = addPlane(world, { defId: 'bf109g6', team: 0, nation: 'germany', controller: 'p1' });
   Object.assign(p, { x: x - 20, angle: world.terrain.slopeAngle(x - 20), inverted: false, speed, throttle: 0.3, state: 'ground' });
   p.y = world.terrain.heightAt(p.x) + 4;
   const events = [];
