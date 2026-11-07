@@ -246,6 +246,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Ground crew bars (Gameplay, 2026-11-07):** the service bars showed absolute hp and fuel, so they began wherever the damage or tank level was. Each job's bar now runs 0 to 1 over that job (`serviceProgress`, `s.span` in `src/sim/airfield.js`; `tests/servicebar.test.mjs`). A sim trace showed tasks already run strictly one after another and crew sounds follow each job; no sound or order fault found, so none changed (owner may report a specific moment later).
 - **Hangar exit sprite glitch (Planes, 2026-11-07):** the flash at the end of the roll-out was the pilot name jumping from below the plane to above it for one frame. `writePoses` (`src/render/interpolate.js`) snapped x and angle at the turn-end flip but still blended `rollAngle`, so `drawPlaneName` saw a half-turned plane; `rollAngle` now snaps too. Owner confirmed it gone on screen. (A prop-disc fade tried first did nothing and was reverted.)
 - **Names easier to read (UI, 2026-11-07):** plane and soldier names (`drawPlaneName`, `drawManName` in `src/render/renderer.js`) now have a dark outline round the letters (`nameText`), a bolder 12 px font and brighter colours (friendly cream `#ece3b4`, enemy salmon `#f5a08a` (the first red was too dark to read)). Checked against sky, grass and earth backgrounds; not yet seen on a plane in play.
 - **Outline Lab: gunner and pilot dots (Planes, 2026-11-07):** `points` list in the outline files, one helper draws crew, barrel and mount (`open`/`box`/`dome`) for every plane; Lab part Crew and guns with a draggable arc wedge; Save writes turret offset and arc into planes.json; gunner offsets of the Bf 110, Ki-45, Blenheim and Ju 87 synced to their dots. See Decisions and `notes/outline-lab.md`; more dot options are in the backlog.
@@ -494,7 +495,6 @@ Then: more themes, co-op missions, matchmaking.
 
 - **Nametag under the plane jumps around during animations** (UI): the pilot name under a plane moves about (and can jump) while the plane animates, e.g. rolls, ground turns and map-edge turns; the hangar exit flip was one case, fixed in `interpolate.js` (see Done). Session: "UI — nametag jumps during animations".
 
-- **Ground crew pass: bars, sounds, task order** (Gameplay): the progress bars start at strange places and almost never from the beginning (owner, 2026-11-07; bars fixed: each job now runs 0 to 1, `tests/servicebar.test.mjs`); sim trace shows tasks already run strictly one after another (repair, refuel, rearm; crew work only once both men are at the plane) and crew sounds start and stop with each job; still to do: owner to say which sound or moment feels wrong. Session: "Gameplay — ground crew pass".
 
 - **FPS is low again** (Gameplay): the frame rate has dropped again (reported 2026-11-07); start from `notes/perf-findings.md` and the `?perf` test switches (`?skip=...`, `?cap=1080`) from the earlier performance pass, and check the Blenheim-era additions (more planes, new crew parts) and the bombed-terrain stutter item below. Session: "Gameplay — FPS is low again".
 
