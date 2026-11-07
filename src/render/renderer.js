@@ -927,7 +927,7 @@ export function createRenderer(canvas, world, assets) {
   const NAME_FONT = "700 12px Consolas, 'Lucida Console', 'DejaVu Sans Mono', monospace";
   const NAME_GAP = 25; // below the plane's centre, in the plane's own frame
   const nameShown = (name, owner, focus) => name && assets.settings.hud.showNames !== false && (owner !== focus?.id || assets.settings.hud.showOwnName);
-  const nameColour = (team, focus) => (team === focus?.team ? '#ece3b4' : '#e07a64');
+  const nameColour = (team, focus) => (team === focus?.team ? '#ece3b4' : '#f5a08a');
   // Name text with a dark outline round the letters, so it reads over sky, ground and planes alike.
   function nameText(text, x, y, colour) {
     ctx.lineJoin = 'round';
