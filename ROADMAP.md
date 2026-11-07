@@ -494,7 +494,7 @@ Then: more themes, co-op missions, matchmaking.
 
 - **Nametag under the plane jumps around during animations** (UI): the pilot name under a plane moves about (and can jump) while the plane animates, e.g. rolls, ground turns and map-edge turns; the hangar exit flip was one case, fixed in `interpolate.js` (see Done). Session: "UI — nametag jumps during animations".
 
-- **Ground crew pass: bars, sounds, task order** (Gameplay): the progress bars start at strange places and almost never from the beginning (owner, 2026-11-07; bars fixed: each job now runs 0 to 1, `tests/servicebar.test.mjs`); still to do: go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another. Session: "Gameplay — ground crew pass".
+- **Ground crew pass: bars, sounds, task order** (Gameplay): the progress bars start at strange places and almost never from the beginning (owner, 2026-11-07; bars fixed: each job now runs 0 to 1, `tests/servicebar.test.mjs`); sim trace shows tasks already run strictly one after another (repair, refuel, rearm; crew work only once both men are at the plane) and crew sounds start and stop with each job; still to do: owner to say which sound or moment feels wrong. Session: "Gameplay — ground crew pass".
 
 ## Backlog
 - **FPS is low again** (Gameplay): the frame rate has dropped again (reported 2026-11-07); start from `notes/perf-findings.md` and the `?perf` test switches (`?skip=...`, `?cap=1080`) from the earlier performance pass, and check the Blenheim-era additions (more planes, new crew parts) and the bombed-terrain stutter item below.
