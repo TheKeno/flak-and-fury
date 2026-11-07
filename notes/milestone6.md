@@ -22,6 +22,10 @@ Outline by the owner in the Outline Lab (`data/outlines/p38j.json`, drawn on the
 
 Outline by the owner in the Outline Lab (`data/outlines/pe3.json`, frame lowered so the main wheel bottoms sit at -10, see the P-38J note). Own model `pe3()`: red stars on the rear fuselage and under the wings. In `data/planes.json` (ussr, heavy fighter): ShVAK 20 mm + 2 ShKAS in the nose, AI rear gunner (ShKAS, arc 95 to 200), wing rack of 4 FAB-100, `emptyWeight` 5900, `maxLoad` 400. Estimated: thrust 82, drag 0.0037, maxSpeed 145, turnRate 1.0, hp 150, stall 62, takeoff 66, runwayNeeded 340 (loaded roll about that). Leg tops, stowed wheels, exhaust and gunner offsets computed from the outline: check in a big view. Not done: visible bombs, the real Pe-3's second heavy MG (no UBS weapon in `weapons.json`).
 
+## Ki-45 KAI Toryu: done (2026-11-07)
+
+Outline by the owner (`data/outlines/ki45.json`, frame lowered so the main wheel bottoms sit at -10). Own model `ki45()`: hinomaru on the rear fuselage and both wing surfaces, yellow identification strips, nacelles painted by facing. In `data/planes.json` (japan, heavy fighter): 2 Ho-103 nose + 1 Type 99 20 mm belly, AI observer gun (Ho-103 standing in for the 7.92 mm Type 98, arc 95 to 200), wing rack with 2 GP 250, `emptyWeight` 4000, `maxLoad` 500. Estimated: thrust 80, drag 0.0036, maxSpeed 148, turnRate 1.15, hp 130, stall 58, takeoff 64, runwayNeeded 300. **Open question for the owner:** the outline's fins are a mirrored pair at z 2.13 (left from the Bf 110 template); the real Ki-45 has ONE fin on the centre line ("Make single"). The sprite shows twin fins until that is changed in the lab.
+
 ## Mosquito FB.VI: sprite done (2026-11-05)
 
 Own model `mosquito()` in `tools/plane-models.mjs` from `data/outlines/mosquito.json` (1943 RAF scheme, C1/B/C
@@ -48,7 +52,7 @@ nose line, rear down at 3.9 m). Use 1943 RAF markings, not the drawings' post-wa
 1. (Done) Mosquito FB.VI
 2. (Done) P-38J
 3. (Done) Pe-3
-4. Ki-45 KAI
+4. (Done) Ki-45 KAI
 5. Blenheim Mk IV
 6. Dive bombers
 7. Tanks

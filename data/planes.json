@@ -1795,5 +1795,174 @@
       "gearRatio": 0.66,
       "idleSource": "estimated"
     }
+  },
+  "ki45": {
+    "name": "Ki-45 KAI Toryu",
+    "nation": "japan",
+    "role": "heavy fighter",
+    "sprite": "ki45",
+    "spriteSize": [
+      126,
+      48
+    ],
+    "pivot": [
+      63,
+      26
+    ],
+    "noseOffset": [
+      13.75,
+      0.685
+    ],
+    "propOffset": [
+      10.375,
+      -0.115
+    ],
+    "exhaustOffset": [
+      9.0,
+      1.01
+    ],
+    "thrust": 80,
+    "dragCoef": 0.0036,
+    "groundFriction": 17,
+    "groundThrust": 0.48,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.15,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.5,
+    "slowTurnBonus": 0.5,
+    "slowTurnSpeed": 115,
+    "stallSpeed": 58,
+    "takeoffSpeed": 64,
+    "runwayNeeded": 300,
+    "maxLandingSpeed": 96,
+    "maxSpeed": 148,
+    "hp": 130,
+    "toughness": 1.2,
+    "rearView": 0.9,
+    "hitRadius": 9.5,
+    "endurance": 420,
+    "emptyWeight": 4000,
+    "maxLoad": 500,
+    "hardpoints": [
+      {
+        "id": "wing",
+        "kind": "rack",
+        "offset": [
+          5.25,
+          -2.115
+        ],
+        "group": 0,
+        "maxKg": 250
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "wing",
+        "weapon": "gp_250",
+        "count": 2
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "2 x 250 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "gp_250",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "1 x 250 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "gp_250",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "Clean",
+        "loadout": []
+      }
+    ],
+    "gearTime": 2.4,
+    "fixedTailWheel": false,
+    "wheels": [
+      {
+        "leg": [
+          7.157,
+          -1.49
+        ],
+        "wheel": [
+          7.157,
+          -3.952
+        ],
+        "stowed": [
+          4.0,
+          -0.99
+        ],
+        "r": 1.048
+      },
+      {
+        "leg": [
+          -12.051,
+          -0.337
+        ],
+        "wheel": [
+          -12.051,
+          -0.837
+        ],
+        "stowed": [
+          -12.051,
+          -0.337
+        ],
+        "r": 0.576,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.7,
+    "groundTurnTime": 2.2,
+    "groundLoopTime": 1.3,
+    "armament": {
+      "guns": [
+        {
+          "id": "nose-mg",
+          "weapon": "ho103",
+          "count": 2
+        },
+        {
+          "id": "belly-cannon",
+          "weapon": "type99_20",
+          "count": 1
+        }
+      ],
+      "turrets": [
+        {
+          "weapon": "ho103",
+          "count": 1,
+          "offset": [
+            2.25,
+            2.635
+          ],
+          "arc": [
+            95,
+            200
+          ]
+        }
+      ]
+    },
+    "engine": {
+      "layout": "radial",
+      "cylinders": 14,
+      "idleRpm": 540,
+      "cruiseRpm": 2300,
+      "maxRpm": 2700,
+      "propBlades": 3,
+      "gearRatio": 0.7,
+      "idleSource": "estimated"
+    }
   }
 }

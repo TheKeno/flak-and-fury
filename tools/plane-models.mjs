@@ -1169,6 +1169,91 @@ function pe3(o) {
   };
 }
 
+// Kawasaki Ki-45 KAI Toryu ("Nick"), traced in the Outline Lab (11.0 m long, 15.02 m span; 5 model units
+// to the metre, d back from the nose tip). Slim two-seat fuselage with a long greenhouse for the pilot and
+// the observer (flexible gun at the back), twin Ha-102 radials 2.0 m out in long nacelles with the oil coolers
+// under them, wing with a straight taper, tailplane on the tailcone with its fin, retractable gear and a
+// tail wheel. 1943 Army scheme: dark green over grey, hinomaru with white surrounds, yellow identification
+// strips along the inner leading edges.
+function ki45(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
+  const split = Y(-0.15);
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
+  const fuselage = bodyOf(o.fuselage);
+  const fuselageDecals = [
+    // Hinomaru on the rear fuselage.
+    (p, n) => {
+      const k = side(n) && hinomaru(p[0] - X(7.5), p[1] - Y(0.03), 0.4 * M);
+      return k ? { kind: k } : null;
+    },
+    // Panel lines: nose, rear fuselage joints.
+    (p, n) => (side(n) && [line(1.2), line(5.9), line(8.6)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
+  ];
+  const wing = surfaceOf(o.wing);
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && hinomaru(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 4.7 * M, 0.5 * M);
+    if (k) return { kind: k };
+    // Yellow identification strip along the inner leading edges.
+    if (s.u < 0.07 && s.k > 0.1 && s.k < 0.45) return { kind: 'yellow' };
+    const hinge = s.k > 0.15 && Math.abs(s.u - 0.74) < 0.03; // flap and aileron line
+    return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
+  };
+  const nz = o.nacelle.z * M;
+  const nacelle = bodyOf(o.nacelle);
+  const spinner = bodyOf(o.spinner);
+  const gunTray = bodyOf(o.gunTray);
+  const radiators = bodyOf(o.radiators);
+  const tailplane = surfaceOf(o.tailplane);
+  const fins = surfaceOf(o.fins, true);
+  const canopy = bodyOf(o.canopy);
+  const canopyMat = (p) => ({ kind: [2.92, 3.7, 4.54, 4.92, 5.3].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
+  const plain = (kind) => () => ({ kind });
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...nacelle, material: (p, n) => ({ kind: n[1] < -0.3 ? 'under' : 'paint' }) }, // by facing: the tapering tail dips below the height split
+    { ...spinner, material: plain('dark') },
+    { ...radiators, material: (p) => ({ kind: p[0] > X(2.3) ? 'dark' : 'under' }) }, // oil coolers, intakes dark
+    { ...gunTray, material: (p) => ({ kind: p[0] > X(0.5) ? 'dark' : 'under' }) },
+    { ...box([X(1.8), Y(0.12), nz + 0.5 * M], [0.3 * M, 0.05 * M, 0.05 * M], { mirror: true }), material: (p) => ({ kind: Math.floor((X(1.5) - p[0]) / (0.12 * M)) % 2 ? 'metal' : 'dark' }) }, // exhaust stacks
+    { ...wing, material: wingMat },
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fins, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(10.4)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }) }, // rudder hinge
+    { ...canopy, glass: true, material: canopyMat },
+    { ...sphere([X(2.5), Y(0.85), 0], 0.16 * M), pilot: true, material: plain('pilot') },
+    { ...sphere([X(4.2), Y(0.85), 0], 0.16 * M), pilot: true, material: plain('pilot') }, // observer
+    { ...strut([X(5.3), Y(0.95), 0], [X(5.8), Y(1.18), 0], 0.035 * M), material: plain('dark') }, // flexible gun
+    { ...strut([X(0.3), Y(0.3), 0.1 * M], [X(-0.05), Y(0.28), 0.1 * M], 0.03 * M), material: plain('dark') }, // nose Ho-103 muzzles
+    { ...strut([X(2.64), Y(-0.75), nz], main, 0.08 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.12 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(10.0), Y(-0.05), 0], tailW, 0.04 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.05 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  return {
+    parts,
+    attach: {
+      exhaust: [X(1.8), Y(0.12), nz + 0.55 * M],
+      wingRootL: [X(3.6), Y(-0.2), 0.5 * M],
+      wingRootR: [X(3.6), Y(-0.2), -0.5 * M],
+      wingTipL: [X(3.1), Y(-0.21 + 7.51 * 0.03), 7.5 * M],
+      wingTipR: [X(3.1), Y(-0.21 + 7.51 * 0.03), -7.5 * M],
+      propHub: [X(1.35), Y(-0.2), nz],
+      propHubs: [
+        [X(1.35), Y(-0.2), nz],
+        [X(1.35), Y(-0.2), -nz],
+      ],
+      propRadius: 1.5 * M,
+      mainContact: [main[0], main[1] - wheelR, 0],
+      track: main[2],
+    },
+  };
+}
+
 // Supermarine Spitfire Mk IX, measured off a 3-view drawing (9.47 m long, 11.23 m span, 2.4 m root
 // chord; 5 model units to the metre, d back from the spinner tip, h up from the thrust line). Long
 // Merlin 61 nose with a pointed spinner, six ejector stacks a side and a long carburettor intake under
@@ -1477,7 +1562,7 @@ const withBumps = (build) => (o) => {
   }
   return model;
 };
-export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3 }).map(([k, f]) => [k, withBumps(f)]));
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45 }).map(([k, f]) => [k, withBumps(f)]));
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
 // model code through outline.template, so its outline can be traced and previewed.
 export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);
