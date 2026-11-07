@@ -246,6 +246,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Nametag hop in runway turns (UI, 2026-11-07):** the name was pinned to `p.x`, which the sim moves by two wheel offsets at the end of a ground turn, and switched between tilted and untilted angle at the turn's ends. `drawPlaneName` (`src/render/renderer.js`) now keeps the tilt and slides the name across with the turn to the mirrored position. Owner: good enough. Rolls, loops and map-edge turns were not checked.
 - **Ground crew bars (Gameplay, 2026-11-07):** the service bars showed absolute hp and fuel, so they began wherever the damage or tank level was. Each job's bar now runs 0 to 1 over that job (`serviceProgress`, `s.span` in `src/sim/airfield.js`; `tests/servicebar.test.mjs`). A sim trace showed tasks already run strictly one after another and crew sounds follow each job; no sound or order fault found, so none changed (owner may report a specific moment later).
 - **Hangar exit sprite glitch (Planes, 2026-11-07):** the flash at the end of the roll-out was the pilot name jumping from below the plane to above it for one frame. `writePoses` (`src/render/interpolate.js`) snapped x and angle at the turn-end flip but still blended `rollAngle`, so `drawPlaneName` saw a half-turned plane; `rollAngle` now snaps too. Owner confirmed it gone on screen. (A prop-disc fade tried first did nothing and was reverted.)
 - **Names easier to read (UI, 2026-11-07):** plane and soldier names (`drawPlaneName`, `drawManName` in `src/render/renderer.js`) now have a dark outline round the letters (`nameText`), a bolder 12 px font and brighter colours (friendly cream `#ece3b4`, enemy salmon `#f5a08a` (the first red was too dark to read)). Checked against sky, grass and earth backgrounds; not yet seen on a plane in play.
@@ -493,12 +494,12 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Nametag under the plane jumps around during animations** (UI): the pilot name under a plane moves about (and can jump) while the plane animates, e.g. rolls, ground turns and map-edge turns; the hangar exit flip was one case, fixed in `interpolate.js` (see Done). Session: "UI — nametag jumps during animations".
 
 
 - **FPS is low again** (Gameplay): the frame rate has dropped again (reported 2026-11-07); start from `notes/perf-findings.md` and the `?perf` test switches (`?skip=...`, `?cap=1080`) from the earlier performance pass, and check the Blenheim-era additions (more planes, new crew parts) and the bombed-terrain stutter item below. Session: "Gameplay — FPS is low again".
 
 ## Backlog
+- **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Decide the key, the damage rate and the cool-down in a short discussion first.
