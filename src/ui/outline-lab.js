@@ -17,11 +17,11 @@ const round025 = (v) => Math.round(v / 0.025) * 0.025;
 
 const COLOURS = {
   fuselage: '#e0c070', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
-  gunTray: '#b0b0b0', radiators: '#90d090', bump: '#d0d0ff', bump2: '#d0d0ff', bump3: '#d0d0ff', spat: '#c0b090', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff',
+  gunTray: '#b0b0b0', radiators: '#90d090', bump: '#d0d0ff', bump2: '#d0d0ff', bump3: '#d0d0ff', spat: '#c0b090', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff', points: '#ff7ad9',
 };
 const LABELS = {
   fuselage: 'Fuselage', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
-  radiators: 'Radiators', bump: 'Bump', bump2: 'Bump 2', bump3: 'Bump 3', spat: 'Wheel spat', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear',
+  radiators: 'Radiators', bump: 'Bump', bump2: 'Bump 2', bump3: 'Bump 3', spat: 'Wheel spat', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear', points: 'Crew and guns',
 };
 const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
 // The plan view (from above) and the underside view (from below) edit the same points, each over its own picture.
@@ -34,6 +34,7 @@ const S = window.outlineLab = {
   o: null, // the outline being edited
   saved: '', // its saved text
   baseGear: '',
+  baseTurrets: '[]',
   planes: null,
   nations: null,
   def: null,
@@ -186,6 +187,22 @@ function planHandles(key) {
   const s = S.o[key];
   const hs = [];
   if (!s) return hs;
+  if (key === 'points') {
+    // seen from above a dot is placed along the plane (d) and out from the centre line (z)
+    for (const pt of s) {
+      hs.push({
+        ref: pt,
+        which: 'dot',
+        pos: () => [pt.d, pt.z ?? 0],
+        set: (d, z) => {
+          pt.d = r4(d);
+          if (r4(z) === 0) delete pt.z;
+          else pt.z = r4(z);
+        },
+      });
+    }
+    return hs;
+  }
   if (key === 'gear') {
     // The main wheel seen from above: along the plane (d) and out from the centre line (half track).
     const wh = s.main;
@@ -297,6 +314,36 @@ function handlesFor(key) {
   if (isPlan()) return planHandles(key);
   const o = S.o;
   const hs = [];
+  if (key === 'points') {
+    for (const pt of o.points ?? []) {
+      hs.push({
+        ref: pt,
+        which: 'dot',
+        pos: () => [pt.d, pt.h],
+        set: (d, h) => {
+          pt.d = r4(d);
+          pt.h = r4(h);
+        },
+        remove: () => removePoint(pt),
+      });
+      if (pt.type === 'gunner') {
+        // the two ends of the arc of fire, on the wedge's rim
+        [0, 1].forEach((i) =>
+          hs.push({
+            ref: pt,
+            which: `arc${i}`,
+            pos: () => arcPoint(pt, pt.arc[i]),
+            set: (d, h) => {
+              const cur = pt.arc[i];
+              const a = (Math.atan2(h - pt.h, pt.d - d) * 180) / Math.PI;
+              pt.arc[i] = Math.round(cur + ((((a - cur) % 360) + 540) % 360) - 180);
+            },
+          }),
+        );
+      }
+    }
+    return hs;
+  }
   if (BODY_KEYS.includes(key) && o[key]) {
     const rows = bodyRows(key);
     const sym = isSym(rows);
@@ -406,11 +453,128 @@ function handlesFor(key) {
   return hs;
 }
 
+// ---------- Crew and gun dots (outline.points, see pointParts in tools/plane-models.mjs) ----------
+const ARC_R = 1.4; // metres: how far the wedge of an arc of fire reaches in the drawing
+const RAD = Math.PI / 180;
+// A point on the wedge at an angle (degrees, 0 ahead, 90 up, 180 back).
+const arcPoint = (pt, a, r = ARC_R) => [pt.d - r * Math.cos(a * RAD), pt.h + r * Math.sin(a * RAD)];
+function pointLines() {
+  const lines = [];
+  for (const pt of S.o.points ?? []) {
+    if (pt.type !== 'gunner') continue;
+    const [a0, a1] = pt.arc;
+    const wedge = [[pt.d, pt.h]];
+    const n = Math.max(2, Math.ceil(Math.abs(a1 - a0) / 6));
+    for (let i = 0; i <= n; i++) wedge.push(arcPoint(pt, a0 + ((a1 - a0) * i) / n));
+    lines.push({ pts: wedge, closed: true });
+    const g = pt.gun;
+    if (g) {
+      const d0 = pt.d + g.at[0];
+      const h0 = pt.h + g.at[1];
+      lines.push({ pts: [[d0, h0], [d0 - Math.cos(g.aim * RAD) * g.len, h0 + Math.sin(g.aim * RAD) * g.len]], closed: false });
+    }
+    if (pt.mount === 'box') {
+      const [hx, hy] = pt.size;
+      lines.push({ pts: [[pt.d - hx, pt.h - hy], [pt.d + hx, pt.h - hy], [pt.d + hx, pt.h + hy], [pt.d - hx, pt.h + hy]], closed: true });
+    } else if (pt.mount === 'dome') {
+      const r = pt.size ?? 0.4;
+      lines.push({ pts: Array.from({ length: 25 }, (_, i) => [pt.d + r * Math.cos((i / 24) * Math.PI * 2), pt.h + r * Math.sin((i / 24) * Math.PI * 2)]), closed: true });
+    }
+  }
+  return lines;
+}
+const gunners = (o = S.o) => (o.points ?? []).filter((p) => p.type === 'gunner');
+const pointName = (pt) => (pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
+function removePoint(pt) {
+  const list = S.o.points;
+  list.splice(list.indexOf(pt), 1);
+  if (!list.length) {
+    delete S.o.points;
+    S.part = 'fuselage';
+  }
+}
+const KNOWN_TURRET_WEAPONS = ['mg81z', 'shkas', 'ho103', 'browning_303'];
+const interpTop = (rows, d) => {
+  const i = rows.findIndex((r) => r[0] >= d);
+  if (i <= 0) return rows[Math.max(0, i)][1];
+  const [a, b] = [rows[i - 1], rows[i]];
+  return a[1] + ((b[1] - a[1]) * (d - a[0])) / (b[0] - a[0] || 1);
+};
+// A new dot behind the cockpit, just under the fuselage top; a gunner gets a short barrel pointing back and an arc.
+function addPoint(type) {
+  pushUndo();
+  const fus = S.o.fuselage.stations;
+  const d = r4((fus[0][0] + fus.at(-1)[0]) * 0.35);
+  const pt = { type, d, h: r4(interpTop(fus, d) - 0.1) };
+  if (type === 'gunner') {
+    Object.assign(pt, { arc: [95, 200], mount: 'open', gun: { at: [0.4, 0.1], aim: 155, len: 0.5, r: 0.04 } });
+    pt.weapon = KNOWN_TURRET_WEAPONS[0];
+  }
+  (S.o.points ??= []).push(pt);
+  S.part = 'points';
+  S.sel = { ref: pt, which: 'dot' };
+  rebuildPanel();
+  changed();
+}
+function pointsPanel(panel, row, note) {
+  const choice = (opts, get, set) => {
+    const el = document.createElement('select');
+    for (const v of opts) el.append(new Option(v, v));
+    el.value = get();
+    el.onchange = () => {
+      pushUndo();
+      set(el.value);
+      rebuildPanel();
+      changed();
+    };
+    return el;
+  };
+  for (const pt of S.o.points ?? []) {
+    const h = document.createElement('div');
+    h.className = 'dim';
+    h.textContent = pointName(pt);
+    panel.append(h);
+    row('d', numInput(() => pt.d, (v) => (pt.d = v)), 'h', numInput(() => pt.h, (v) => (pt.h = v)), 'z', numInput(() => pt.z ?? 0, (v) => (v ? (pt.z = v) : delete pt.z)), 'r', numInput(() => pt.r ?? 0.16, (v) => (pt.r = v)));
+    if (pt.type === 'gunner') {
+      row('arc from', numInput(() => pt.arc[0], (v) => (pt.arc[0] = v), 1), 'to', numInput(() => pt.arc[1], (v) => (pt.arc[1] = v), 1));
+      row('mount', choice(['open', 'box', 'dome'], () => pt.mount ?? 'open', (v) => {
+        pt.mount = v;
+        if (v === 'box') pt.size = Array.isArray(pt.size) ? pt.size : [0.35, 0.12, 0.2];
+        else if (v === 'dome') pt.size = typeof pt.size === 'number' ? pt.size : 0.4;
+        else delete pt.size;
+      }));
+      if (pt.mount === 'box') row('half length, height, width', ...[0, 1, 2].map((i) => numInput(() => pt.size[i], (v) => (pt.size[i] = v))));
+      if (pt.mount === 'dome') row('dome radius', numInput(() => pt.size, (v) => (pt.size = v)));
+      const g = pt.gun;
+      if (g) {
+        row('barrel from', numInput(() => g.at[0], (v) => (g.at[0] = v)), numInput(() => g.at[1], (v) => (g.at[1] = v)), 'aim', numInput(() => g.aim, (v) => (g.aim = v), 1));
+        row('length', numInput(() => g.len, (v) => (g.len = v)), 'r', numInput(() => g.r, (v) => (g.r = v), 0.005));
+      }
+      const turret = turretOf(pt);
+      if (!turret) row('weapon (new gun)', choice(KNOWN_TURRET_WEAPONS, () => pt.weapon ?? KNOWN_TURRET_WEAPONS[0], (v) => (pt.weapon = v)));
+      else row('weapon', turret.weapon);
+    }
+    const rb = document.createElement('button');
+    rb.textContent = `Remove ${pointName(pt)}`;
+    rb.onclick = () => {
+      pushUndo();
+      removePoint(pt);
+      S.sel = null;
+      rebuildPanel();
+      changed();
+    };
+    panel.append(rb);
+  }
+  note("Drag a dot to move the crew member; the gun and mount move with it. A gunner also has a wedge: drag its two edge squares to set the arc of fire (0 ahead, 90 up, 180 back; a belly gunner points down). Save writes the gunner's position and arc into data/planes.json armament.turrets (Gunner 1 is the first turret). In the plan view a dot moves along the plane and out from the centre line (z). The barrel is drawn along its aim, the box or dome mount round the dot.");
+}
+const turretOf = (pt) => S.planes && Object.values(S.planes).find((d) => d && d.sprite === S.name)?.armament?.turrets?.[gunners().indexOf(pt)];
+
 // Lines to draw for a part, in metres: [{ pts, closed }]. Fixed ones for parts without points in this view.
 function linesFor(key) {
   if (isPlan()) return planLines(key);
   const o = S.o;
   if (!o[key]) return [];
+  if (key === 'points') return pointLines();
   if (BODY_KEYS.includes(key)) {
     const rows = bodyRows(key);
     const top = rows.map((r) => [r[0], r[1]]);
@@ -468,8 +632,9 @@ function segmentsFor(key) {
 }
 
 function partIds() {
-  if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k]), 'gear'];
-  return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), 'gear'];
+  const crew = S.o.points?.length ? ['points'] : [];
+  if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k]), ...crew, 'gear'];
+  return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), ...crew, 'gear'];
 }
 
 // ---------- Undo ----------
@@ -818,7 +983,7 @@ function draw() {
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      if (h.which === 'radius') ctx.arc(px, py, r, 0, Math.PI * 2);
+      if (h.which === 'radius' || h.which.startsWith('arc')) ctx.arc(px, py, r, 0, Math.PI * 2);
       else ctx.rect(px - r, py - r, r * 2, r * 2);
       ctx.fill();
       ctx.stroke();
@@ -1229,6 +1394,7 @@ function rowTable(rows, cols, edit, remove) {
 function planPanel(o, row, note, button, panel) {
   const s = o[S.part];
   if (!s) return;
+  if (S.part === 'points') return pointsPanel(panel, row, note);
   if (S.part === 'gear') {
     row('main wheel d', numInput(() => s.main.d, (v) => (s.main.d = v)), 'half track', numInput(() => s.main.half, (v) => (s.main.half = v)));
     note('Seen from above only the main wheel is shown (a flat box, its diameter long). Drag it along the plane and out from the centre line to set the half track. Its height and size are set in the side view. A wheel spat (fairing) is its own part: Wheel spat, under "+ add part…".');
@@ -1429,13 +1595,15 @@ function rebuildPanel() {
     parts.append(b);
   }
   // 'bump' stays on offer while one of its three slots is free
+  const crewOpts = [['crew:gunner', 'Gunner (crew, gun, arc)'], ['crew:pilot', 'Pilot / crew member']];
   const missing = BODY_KEYS.filter((k) => PART_STARTERS[k] && (k === 'bump' ? ['bump', 'bump2', 'bump3'].some((b) => !S.o[b]) : !S.o[k]));
-  if (missing.length) {
+  if (missing.length || !isPlan()) {
     const sel = document.createElement('select');
     sel.title = 'This plane lacks these parts (its template had none): add one as a starting shape, then drag its points onto the drawing';
     sel.append(Object.assign(document.createElement('option'), { value: '', textContent: '+ add part…' }));
     for (const k of missing) sel.append(Object.assign(document.createElement('option'), { value: k, textContent: PART_STARTERS[k].label }));
-    sel.onchange = () => addPart(sel.value);
+    if (!isPlan()) for (const [v, t] of crewOpts) sel.append(Object.assign(document.createElement('option'), { value: v, textContent: t }));
+    sel.onchange = () => (sel.value.startsWith('crew:') ? addPoint(sel.value.slice(5)) : addPart(sel.value));
     parts.append(sel);
   }
   const panel = $('partPanel');
@@ -1466,7 +1634,9 @@ function rebuildPanel() {
     refreshPanelValues();
     return;
   }
-  if (BODY_KEYS.includes(S.part) && o[S.part]) {
+  if (S.part === 'points') {
+    pointsPanel(panel, row, note);
+  } else if (BODY_KEYS.includes(S.part) && o[S.part]) {
     const s = o[S.part];
     const nRow = row('squareness n', numInput(() => s.n, (v) => (s.n = v), 0.1));
     if (s.z !== undefined) nRow.append('z', numInput(() => s.z, (v) => (s.z = v)));
@@ -1842,14 +2012,42 @@ async function writeWheels() {
   await put('data/planes.json', JSON.stringify(planes, null, 2) + '\n');
   return true;
 }
+// What the game reads of the gunners (planes.json armament.turrets): offset in world units from the pivot (half the
+// model units, to 0.001) and the arc. Written only for gunners that changed since the file was opened.
+const turretView = (o) => JSON.stringify(gunners(o).map((p) => [p.d, p.h, p.arc, p.weapon]));
+async function writeTurrets() {
+  if (turretView(S.o) === S.baseTurrets) return false;
+  const res = await fetch('data/planes.json', { cache: 'no-store' });
+  const planes = await res.json();
+  const key = Object.keys(planes).find((k) => planes[k]?.sprite === S.name);
+  if (!key) return false;
+  const base = JSON.parse(S.baseTurrets);
+  const { X, Y } = kit(S.o);
+  const now = gunners();
+  const arm = (planes[key].armament ??= {});
+  const turrets = (arm.turrets ??= []);
+  now.forEach((pt, i) => {
+    if (base[i] && JSON.stringify(base[i]) === JSON.stringify([pt.d, pt.h, pt.arc, pt.weapon])) return;
+    const offset = [Math.round((X(pt.d) / 2) * 1000) / 1000, Math.round((Y(pt.h) / 2) * 1000) / 1000];
+    if (turrets[i]) Object.assign(turrets[i], { offset, arc: [...pt.arc] });
+    else turrets[i] = { weapon: pt.weapon ?? KNOWN_TURRET_WEAPONS[0], count: 1, offset, arc: [...pt.arc] };
+  });
+  if (turrets.length > now.length) turrets.length = now.length; // a removed gunner takes its turret with it
+  if (!turrets.length) delete arm.turrets;
+  await put('data/planes.json', JSON.stringify(planes, null, 2) + '\n');
+  S.planes = planes;
+  return true;
+}
 async function save() {
   try {
     const text = formatOutline(S.o);
     await put(`data/outlines/${S.name}.json`, text);
     const wheels = await writeWheels();
+    const guns = await writeTurrets();
     S.saved = text;
     S.baseGear = JSON.stringify(S.o.gear);
-    status(`saved ${S.name}.json${wheels ? ' and the wheels in planes.json' : ''}`);
+    S.baseTurrets = turretView(S.o);
+    status(`saved ${S.name}.json${wheels ? ' and the wheels in planes.json' : ''}${guns ? ' and the gunners in planes.json' : ''}`);
     return true;
   } catch (e) {
     status(`save failed: ${e.message}`, true);
@@ -1884,6 +2082,7 @@ async function openPlane(name, fresh = null) {
   S.name = name;
   S.saved = fresh ? '' : formatOutline(S.o);
   S.baseGear = JSON.stringify(S.o.gear);
+  S.baseTurrets = turretView(S.o);
   // After S.saved, so a fin that had drifted shows as an unsaved change to save.
   for (const k of ['fin', 'fins']) {
     if (S.o[k]?.le) Object.assign(S.o[k], splitFin(S.o[k]));
@@ -2061,6 +2260,16 @@ function scaledOutline(base, id, template, L, W) {
     s.thick = r4(s.thick * f);
     if (s.z) s.z = r4(s.z * g);
     for (const edge of ['le', 'te']) if (s[edge]) s[edge] = s[edge].map(([a, d]) => [r4(a * (vertical ? f : g)), r4(d * f)]);
+  }
+  for (const pt of o.points ?? []) {
+    pt.d = r4(pt.d * f);
+    pt.h = r4(pt.h * f);
+    if (pt.z) pt.z = r4(pt.z * g);
+    if (pt.gun) pt.gun.at = pt.gun.at.map((v) => r4(v * f));
+    if (pt.gun) pt.gun.len = r4(pt.gun.len * f);
+    if (Array.isArray(pt.size)) pt.size = pt.size.map((v) => r4(v * f));
+    else if (pt.size) pt.size = r4(pt.size * f);
+    delete pt.weapon; // a new plane's gunner picks its own weapon
   }
   const gear = o.gear;
   for (const w of ['main', 'tail']) {

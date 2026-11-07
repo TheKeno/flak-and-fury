@@ -110,6 +110,19 @@ Spec: ROADMAP.md, Decisions, "Outline Lab". Open `http://localhost:8080/outline-
 - Station sorting (2026-11-05): while a point is dragged, body stations and wing/tailplane tables stay in order (`sortNear`
   in `tools/planform.mjs`); two points within half a sprite pixel keep their listed order, so a step in the outline is possible.
 
+- **Crew and gun dots** (2026-11-07, ROADMAP Decisions "gunner dots and turret mounts"): `points` list in the outline file, one
+  dot per crew/gun position `{type: pilot|gunner, d, h, z?, r?, label?}`; a gunner adds `arc` [from, to] (degrees, 0 ahead, 90 up,
+  180 back), `mount` (`open` | `box` with `size` [half length, height, width] | `dome` with `size` = radius), `gun` {at: [dd, dh]
+  from the dot, aim (degrees), len, r, z?} and, for a gunner with no turret in planes.json yet, `weapon`. `pointParts` in
+  `tools/plane-models.mjs` (called by `withBumps`) draws them for every plane, so the hand-placed pilot/gunner spheres and
+  barrels left the model functions (sprites byte-identical, checked). Lab: part **Crew and guns** (side view: dots, a wedge
+  for the arc with a square at each end to drag, barrel and mount outlines; plan view: dots by d and z); "+ add part…" >
+  Gunner / Pilot adds one; panel numbers for everything else. **Save writes `armament.turrets[i].offset` (X(d)/2, Y(h)/2, to
+  0.001) and `arc` into planes.json** for the gunners that changed (Gunner 1 = turrets[0]; a new gunner adds a turret with its
+  `weapon`; a removed one removes its turret). `tests/outlines.test.mjs` checks each gunner against planes.json. On 2026-11-07
+  the bf110, ki45, blenheim and ju87 offsets were synced to their dots (bf110 and ki45 were guesses, up to 1 world unit off).
+  Not done: `ball` mount (first bomber that needs it), other point types (racks, muzzles: same list, see the backlog).
+
 ## Known limits
 - A fuselage station's top and bottom point share one `d` (position along the plane), so a sharp nose needs
   extra stations. Judged acceptable; revisit if the Mosquito nose or canopy fights it.

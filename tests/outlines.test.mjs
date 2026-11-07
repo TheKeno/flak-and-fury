@@ -99,3 +99,38 @@ test('sortNear puts rows in order but leaves rows within the tolerance where the
   assert.deepEqual(sortNear(rows.map((r) => [...r]), 0, 0.05).map((r) => r[1]), ['a', 'b', 'e', 'c', 'd'], 'c before d stays, e is a real inversion');
   assert.deepEqual(sortNear(rows.map((r) => [...r]), 0, 0).map((r) => r[1]), ['a', 'b', 'e', 'd', 'c'], 'plain sort');
 });
+
+test('crew and gun dots: valid, and each gunner matches its turret in planes.json', async () => {
+  const { readFileSync } = await import('node:fs');
+  const planes = JSON.parse(readFileSync(new URL('../data/planes.json', import.meta.url), 'utf8'));
+  for (const name of names) {
+    const o = loadOutline(name);
+    const { X, Y } = kit(o);
+    const gunners = (o.points ?? []).filter((p) => p.type === 'gunner');
+    for (const p of o.points ?? []) {
+      assert.ok(['pilot', 'gunner'].includes(p.type), `${name} point type ${p.type}`);
+      assert.ok(Number.isFinite(p.d) && Number.isFinite(p.h), `${name} point place`);
+    }
+    for (const g of gunners) {
+      assert.ok(g.arc.length === 2 && g.arc[0] < g.arc[1], `${name} arc`);
+      assert.ok(['open', 'box', 'dome'].includes(g.mount ?? 'open'), `${name} mount`);
+      if (g.mount === 'box') assert.equal(g.size.length, 3, `${name} box size`);
+    }
+    const def = Object.values(planes).find((d) => d && d.sprite === name);
+    const turrets = def?.armament?.turrets ?? [];
+    if (!def) continue;
+    assert.equal(turrets.length, gunners.length, `${name}: one turret per gunner dot`);
+    gunners.forEach((g, i) => {
+      assert.deepEqual(turrets[i].arc, g.arc, `${name} arc`);
+      assert.ok(Math.abs(turrets[i].offset[0] - X(g.d) / 2) < 0.002 && Math.abs(turrets[i].offset[1] - Y(g.h) / 2) < 0.002, `${name} turret offset follows the dot`);
+    });
+  }
+});
+
+test('dots draw: a gunner with a box mount shows more of the plane than the same one open', () => {
+  const o = loadOutline('blenheim');
+  const count = (m) => [...render(buildModel('blenheim', m), rollPose(0), 146, 55, [73, 33], { gear: false, res: 2 }).join('')].filter((c) => c !== '.').length;
+  const open = structuredClone(o);
+  open.points.find((p) => p.type === 'gunner').mount = 'open';
+  assert.ok(count(o) > count(open));
+});
