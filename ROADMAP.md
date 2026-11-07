@@ -492,12 +492,13 @@ Then: more themes, co-op missions, matchmaking.
 
 - **Hangar exit sprite glitch** (Planes; session "Planes — hangar exit sprite glitch"): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes. Fix tried 2026-11-07 (not seen in the browser, owner to check): the propeller disc now fades in with rpm (`PROP_BLUR_RPM` in `renderer.js`), so the hand-over from the hangar frames to the plain sprite at engine start doesn't pop. If the blink is still there, find it by playing the roll-out; the sim side (one-tick flip at turn end) checked clean.
 
+- **Names hard to read** (UI; session "UI — enemy and friendly names hard to read"): the names drawn along enemy and friendly planes are hard to read.
+
 ## Backlog
 - **FPS is low again** (Gameplay): the frame rate has dropped again (reported 2026-11-07); start from `notes/perf-findings.md` and the `?perf` test switches (`?skip=...`, `?cap=1080`) from the earlier performance pass, and check the Blenheim-era additions (more planes, new crew parts) and the bombed-terrain stutter item below.
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Decide the key, the damage rate and the cool-down in a short discussion first.
-- **Enemy names hard to read** (UI): the names drawn along enemy planes are hard to read.
 - **Objective map features** (Gameplay): towns, bases and other interesting places on the map to fight for, giving matches objectives beyond kills.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 - **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass.
