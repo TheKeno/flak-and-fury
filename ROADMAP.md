@@ -480,6 +480,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Take-off from dirt** (Gameplay): every plane must be able to take off from dirt (grass or open ground, not only the runway); `tests/grass-takeoff.test.mjs` checks this on flat grass, so find out what is still missing and how rough ground should cost.
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Camera pan during a ground turn** (Gameplay): when the plane turns on the tarmac, the camera should pan smoothly to its new position during the turn instead of jumping.
 - **Ammo click with ammo left** (Sound, Gameplay): the empty-gun click plays while the plane still has ammo; probably because one gun mount ran dry (e.g. the cannon) while others still have rounds. Decide when the click should play.
