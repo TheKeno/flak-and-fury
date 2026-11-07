@@ -494,6 +494,8 @@ Then: more themes, co-op missions, matchmaking.
 
 - **Nametag under the plane jumps around during animations** (UI): the pilot name under a plane moves about (and can jump) while the plane animates, e.g. rolls, ground turns and map-edge turns; the hangar exit flip was one case, fixed in `interpolate.js` (see Done). Session: "UI — nametag jumps during animations".
 
+- **Ground crew pass: bars, sounds, task order** (Gameplay): the progress bars start at strange places and almost never from the beginning (owner, 2026-11-07); go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another. Session: "Gameplay — ground crew pass".
+
 ## Backlog
 - **FPS is low again** (Gameplay): the frame rate has dropped again (reported 2026-11-07); start from `notes/perf-findings.md` and the `?perf` test switches (`?skip=...`, `?cap=1080`) from the earlier performance pass, and check the Blenheim-era additions (more planes, new crew parts) and the bombed-terrain stutter item below.
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
@@ -520,8 +522,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Surface-dependent landing sounds** (Sound): a soft thump on grass and dirt, a clatter on pierced steel planking, and a braking skid on concrete (a loop, like the belly scrape); the tyre chirp covers runway touchdowns only.
 - **Sound effect layering** (Sound): build sound effects from several layered sounds played together
   (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
-- **Ground crew pass: bars, sounds, task order** (Gameplay): the ground crew progress bars don't start correctly;
-  go over all ground crew tasks so sounds trigger at the right moment and tasks run one after another.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
 - **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
