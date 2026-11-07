@@ -138,7 +138,7 @@ later.
   owner paints single pixels onto the rendered side-view sprite, saved apart from the model (e.g. in the
   outline file) and applied after every rebuild. Touch-ups fit only the side view (used in normal
   flight, also rotated); the roll, ground-turn and loop frames keep the model's look.
-- **Outline Lab: gunner dots and turret mounts (decided 2026-11-07, owner approved; not built yet):** a draggable dot per crew/gun position in the Lab's side view, so nobody edits code and `planes.json` by hand for a gunner.
+- **Outline Lab: gunner dots and turret mounts (decided and built 2026-11-07; see notes/outline-lab.md):** a draggable dot per crew/gun position in the Lab's side view, so nobody edits code and `planes.json` by hand for a gunner.
   - **Data:** one shared `points` list in the outline file (metres: d back from the nose, h up), one entry per dot: `{type, d, h, ...}`. Types now: `pilot`, `gunner`; later `rack`, `muzzle` etc. (the backlog "underside point features" reuses the list and the marker code).
     A `gunner` has `arc: [from, to]` (degrees, 0 ahead, 90 up, 180 back), `mount` (`open` | `box` | `dome`; `ball` with the first bomber that needs it) and `size` (m) for box/dome. Mounts can sit on top **and underneath** (belly, ventral): the barrel runs along the middle of the arc, and the mount shape is drawn on the side the arc faces.
   - **Lab:** dots in the side view ("Gunner 1", "Gunner 2", "Pilot"), plus a draggable wedge for the arc with a handle for each angle; mount and size in the panel; "+ add part" > Gunner adds a dot (and a `turrets` entry in `planes.json`) for a plane without one. Planes without gunners show nothing.
