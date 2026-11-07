@@ -546,7 +546,6 @@ function bf109g6(o) {
       },
     },
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(3.8), Y(0.66), 0], 0.16 * M), pilot: true, material: plain('pilot') },
     { ...strut([X(1.4), Y(0.43), 0.36 * M], [X(2.05), Y(0.47), 0.38 * M], 0.09 * M), material: (p) => ({ kind: tone(p) }) }, // MG 131 bulges
     { ...box([X(1.6), Y(-0.53), 0], [0.22 * M, 0.08 * M, 0.2 * M]), material: (p) => ({ kind: p[0] > X(1.42) ? 'dark' : 'under' }) }, // oil cooler
     { ...box([X(3.2), Y(-0.5), 1.0 * M], [0.42 * M, 0.08 * M, 0.42 * M], { mirror: true }), material: (p) => ({ kind: 'under', dark: p[0] < X(3.5) ? 1 : 0 }) }, // radiators
@@ -633,7 +632,6 @@ function p47d(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fin, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(10.45)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }) }, // rudder hinge
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(4.55), Y(0.78), 0], 0.17 * M), pilot: true, material: plain('pilot') },
     { ...box([X(0.64), Y(-0.18), 0], [0.03 * M, 0.42 * M, 0.42 * M]), material: plain('dark') }, // the cowl's open front
     ...guns,
     { ...strut([X(3.5), Y(-0.85), 2.25 * M], main, 0.08 * M), material: metal, gear: true },
@@ -719,7 +717,6 @@ function la5fn(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fin, material: finMat },
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(3.85), Y(0.7), 0], 0.16 * M), pilot: true, material: plain('pilot') },
     { ...strut([X(2.3), Y(-0.55), 1.35 * M], main, 0.06 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.09 * M), material: tyre(main, wheelR), gear: true },
     { ...strut([X(7.4), Y(-0.05), 0], tailW, 0.05 * M), material: metal, gear: true },
@@ -798,7 +795,6 @@ function ki43(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fin, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(8.37)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }) }, // rudder hinge
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(3.2), Y(0.7), 0], 0.16 * M), pilot: true, material: plain('pilot') },
     { ...strut([X(2.25), Y(-0.6), 1.6 * M], main, 0.05 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.08 * M), material: tyre(main, wheelR), gear: true },
     { ...strut([X(7.55), Y(-0.38), 0], tailW, 0.04 * M), material: metal, gear: true },
@@ -882,7 +878,6 @@ function b239(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fin, material: finMat },
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(3.6), Y(0.85), 0], 0.16 * M), pilot: true, material: plain('pilot') },
     { ...strut([X(2.0), Y(-0.6), 1.55 * M], main, 0.07 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.1 * M), material: tyre(main, wheelR), gear: true },
     { ...strut([X(7.1), Y(-0.36), 0], tailW, 0.04 * M), material: metal, gear: true },
@@ -972,9 +967,6 @@ function bf110(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fins, material: finMat },
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(2.4), Y(0.72), 0], 0.16 * M), pilot: true, material: plain('pilot') },
-    { ...sphere([X(4.35), Y(0.7), 0], 0.16 * M), pilot: true, material: plain('pilot') }, // rear gunner
-    { ...strut([X(5.0), Y(0.82), 0], [X(5.45), Y(1.12), 0], 0.05 * M), material: plain('dark') }, // MG 81Z
     { ...strut([X(0.35), Y(0.22), 0.12 * M], [X(0.05), Y(0.2), 0.12 * M], 0.03 * M), material: plain('dark') }, // nose MG 17 muzzles
     { ...strut([X(3.15), Y(-0.85), nz], main, 0.08 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.13 * M), material: tyre(main, wheelR), gear: true },
@@ -1054,7 +1046,6 @@ function p38j(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fins, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(11.3)) < 0.04 * M && p[1] > Y(-0.1) ? 1 : 0 }) }, // rudder hinge
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(3.5), Y(0.82), 0], 0.17 * M), pilot: true, material: plain('pilot') },
     // Nose armament: four .50 in a row beside the 20 mm, all muzzles just ahead of the nose tip.
     muzzle(0.12, 0.17, 0.1, 0.35), muzzle(0.12, 0.1, 0.1, 0.35), muzzle(0.12, 0.14, 0, 0.3),
     // Main legs under the booms, nose leg under the pod.
@@ -1140,9 +1131,6 @@ function pe3(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fins, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(12.0)) < 0.04 * M && p[1] > Y(-0.1) ? 1 : 0 }) }, // rudder hinge
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(2.2), Y(0.8), 0], 0.16 * M), pilot: true, material: plain('pilot') },
-    { ...sphere([X(3.85), Y(0.88), 0], 0.16 * M), pilot: true, material: plain('pilot') }, // rear gunner
-    { ...strut([X(4.3), Y(0.85), 0], [X(4.8), Y(1.1), 0], 0.04 * M), material: plain('dark') }, // rear ShKAS
     { ...strut([X(0.3), Y(0.2), 0.1 * M], [X(0.0), Y(0.18), 0.1 * M], 0.03 * M), material: plain('dark') }, // nose ShKAS muzzles
     { ...strut([X(3.3), Y(-1.0), nz], main, 0.08 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.13 * M), material: tyre(main, wheelR), gear: true },
@@ -1225,9 +1213,6 @@ function ki45(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fins, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(10.4)) < 0.04 * M && p[1] > Y(0.3) ? 1 : 0 }) }, // rudder hinge
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(2.5), Y(0.85), 0], 0.16 * M), pilot: true, material: plain('pilot') },
-    { ...sphere([X(4.2), Y(0.85), 0], 0.16 * M), pilot: true, material: plain('pilot') }, // observer
-    { ...strut([X(5.3), Y(0.95), 0], [X(5.8), Y(1.18), 0], 0.035 * M), material: plain('dark') }, // flexible gun
     { ...strut([X(0.3), Y(0.3), 0.1 * M], [X(-0.05), Y(0.28), 0.1 * M], 0.03 * M), material: plain('dark') }, // nose Ho-103 muzzles
     { ...strut([X(2.64), Y(-0.75), nz], main, 0.08 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.12 * M), material: tyre(main, wheelR), gear: true },
@@ -1305,14 +1290,10 @@ function blenheim(o) {
     { ...spinner, material: plain('dark') },
     { ...radiators, material: plain('dark') }, // oil coolers
     { ...gunTray, material: (p) => ({ kind: p[0] > X(3.5) ? 'dark' : 'under' }) }, // ventral pack, muzzles dark
-    { ...box([X(6.9), Y(1.1), 0], [0.35 * M, 0.12 * M, 0.2 * M]), material: plain('dark') }, // dorsal turret
-    { ...strut([X(7.2), Y(1.18), 0], [X(7.75), Y(1.2), 0], 0.035 * M), material: plain('dark') }, // turret gun
     { ...wing, material: wingMat },
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fins, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(12.4)) < 0.04 * M && p[1] > Y(0.5) ? 1 : 0 }) }, // rudder hinge
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(2.15), Y(0.85), 0], 0.16 * M), pilot: true, material: plain('pilot') },
-    { ...sphere([X(6.9), Y(1.1), 0], 0.15 * M), pilot: true, material: plain('pilot') }, // turret gunner
     { ...strut([X(3.8), Y(-0.45), nz], main, 0.08 * M), material: metal, gear: true },
     { ...wheel(main, wheelR, 0.12 * M), material: tyre(main, wheelR), gear: true },
     { ...strut([X(11.0), Y(0.0), 0], tailW, 0.04 * M), material: metal, gear: true },
@@ -1411,7 +1392,6 @@ function spitfire(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fin, material: finMat },
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(4.15), Y(0.47), 0], 0.16 * M), pilot: true, material: plain('pilot') },
     { ...box([X(1.88), Y(-0.79), 0], [0.43 * M, 0.08 * M, 0.13 * M]), material: (p) => ({ kind: p[0] > X(1.55) ? 'dark' : 'under' }) }, // carburettor intake
     { ...box([X(3.6), Y(-0.92), 1.2 * M], [0.54 * M, 0.1 * M, 0.25 * M], { mirror: true }), material: (p) => ({ kind: p[0] > X(3.12) || p[0] < X(4.08) ? 'dark' : 'under' }) }, // radiators
     { ...box([X(1.47), Y(0.11), 0.4 * M], [0.43 * M, 0.07 * M, 0.05 * M], { mirror: true }), material: (p) => ({ kind: Math.floor((X(1.04) - p[0]) / (0.143 * M)) % 2 ? 'metal' : 'dark' }) }, // exhaust stacks
@@ -1506,8 +1486,6 @@ function mosquito(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fin, material: finMat },
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(2.35), Y(0.8), 0.22 * M], 0.16 * M), pilot: true, material: plain('pilot') },
-    { ...sphere([X(2.8), Y(0.78), -0.22 * M], 0.16 * M), pilot: true, material: plain('pilot') }, // navigator, beside and behind
     // Four .303 in the upper nose, four Hispanos from the tray below.
     ...[[0.1, 0.12], [0.2, 0.04], [0.1, -0.04], [0.2, -0.12]].map(([zz, hh]) => ({ ...strut([X(0.35), Y(0.1 + hh * 0.5), zz * M], [X(0.12), Y(0.1 + hh * 0.5), zz * M], 0.025 * M), material: plain('dark') })),
     ...[0.12, 0.27].map((zz) => ({ ...strut([X(0.95), Y(-0.62), zz * M], [X(0.55), Y(-0.62), zz * M], 0.04 * M), material: plain('dark') })),
@@ -1600,10 +1578,6 @@ function ju87(o) {
     { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
     { ...fin, material: finMat },
     { ...canopy, glass: true, material: canopyMat },
-    { ...sphere([X(4.5), Y(0.88), 0], 0.17 * M), pilot: true, material: plain('pilot') },
-    { ...sphere([X(5.55), Y(0.86), 0], 0.17 * M), pilot: true, material: plain('pilot') }, // rear gunner, facing aft
-    // Rear gunner's MG 81Z on its pivot mount, barrels poking aft out of the canopy.
-    { ...strut([X(6.55), Y(0.78), 0.06 * M], [X(6.95), Y(0.62), 0.06 * M], 0.03 * M), material: plain('dark') },
     // Two MG 151/20 in the wings.
     { ...strut([X(3.25), wy, wz], [X(2.8), wy, wz], 0.04 * M), material: plain('dark') },
     { ...spat, material: plain('paint') },
@@ -1637,10 +1611,39 @@ function ju87(o) {
 // whose model already draws a key is not drawn twice: the model is built through a proxy that notes what it
 // reads, so a finished plane is built exactly as before.
 const EXTRA_PARTS = { bump: 'dark', bump2: 'dark', bump3: 'dark', spat: 'paint', radiators: 'under', gunTray: 'under', nacelle: 'paint', spine: 'paint' };
+// Crew and gun positions: outline.points is a list of dots {type, d, h, z?, r?} in the outline's metres (d back from the
+// nose point, h up). `pilot` is a crew sphere. `gunner` is a crew sphere plus a gun barrel {at: [dd, dh] from the dot,
+// aim (degrees, 0 ahead, 90 up, 180 back), len, r, z?} and a mount: `open` (nothing), `box` (size [half length, half
+// height, half width]) or `dome` (size = radius, glass bubble). `arc` [from, to] is the field of fire the game uses
+// (planes.json armament.turrets[i].arc, i = the gunner's place among the gunners); the sprite does not show it.
+const pointParts = (o) => {
+  const { X, Y, M } = kit(o);
+  const plain = (kind) => () => ({ kind });
+  const parts = [];
+  for (const pt of o.points ?? []) {
+    const c = [X(pt.d), Y(pt.h), (pt.z ?? 0) * M];
+    if (pt.type === 'gunner') {
+      const m = pt.mount ?? 'open';
+      if (m === 'box') parts.push({ ...box(c, pt.size.map((v) => v * M)), material: plain('dark') });
+      else if (m === 'dome') parts.push({ ...sphere(c, (pt.size ?? 0.4) * M), glass: true, material: plain('glass') });
+    }
+    parts.push({ ...sphere(c, (pt.r ?? 0.16) * M), pilot: true, material: plain('pilot') });
+    const g = pt.type === 'gunner' ? pt.gun : null;
+    if (g) {
+      const a = (g.aim * Math.PI) / 180;
+      const d0 = pt.d + g.at[0];
+      const h0 = pt.h + g.at[1];
+      const gz = (g.z ?? 0) * M;
+      parts.push({ ...strut([X(d0), Y(h0), gz], [X(d0 - Math.cos(a) * g.len), Y(h0 + Math.sin(a) * g.len), gz], g.r * M), material: plain('dark') });
+    }
+  }
+  return parts;
+};
 const withBumps = (build) => (o) => {
   const read = new Set();
   const model = build(new Proxy(o, { get: (t, k) => (read.add(k), t[k]) }));
   const { bodyOf } = kit(o);
+  model.parts.push(...pointParts(o));
   for (const [key, kind] of Object.entries(EXTRA_PARTS)) {
     if (o[key] && !read.has(key)) model.parts.push({ ...bodyOf(o[key]), material: () => ({ kind: o[key].kind ?? kind }) });
   }
