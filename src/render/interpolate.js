@@ -44,13 +44,15 @@ export function writePoses(world, from, to = null, t = 0) {
       const jump = b && Math.abs((b[0] ?? 0) - (a[0] ?? 0)) + Math.abs((b[1] ?? 0) - (a[1] ?? 0)) > TELEPORT;
       // A plane that flipped round at a map edge this tick (angle mirrored, moved to the other side of its
       // wheels): blending would swing the angle through up to 180 degrees, so x and angle take the new state.
+      // So does rollAngle (it flips with `inverted` at the same moment): blended, it half-turns the plane's
+      // pilot name from below the plane to above it for a frame (drawPlaneName reads angle and roll together).
       const flipped = b && a[POSE.length] !== undefined && b[POSE.length] !== a[POSE.length];
       for (let i = 0; i < POSE.length; i++) {
         if (a[i] === undefined) continue;
         const end = b && !jump ? b[i] : undefined;
         const f = POSE[i];
         if (end === undefined) e[f] = a[i];
-        else if (flipped && (f === 'x' || f === 'angle')) e[f] = end;
+        else if (flipped && (f === 'x' || f === 'angle' || f === 'rollAngle')) e[f] = end;
         else if (!ANGLES.has(f)) e[f] = a[i] + (end - a[i]) * t;
         else {
           const v = lerpAngle(a[i], end, t);

@@ -490,7 +490,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Hangar exit sprite glitch** (Planes; session "Planes — hangar exit sprite glitch"): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes. Fix tried 2026-11-07 (not seen in the browser, owner to check): the propeller disc now fades in with rpm (`PROP_BLUR_RPM` in `renderer.js`), so the hand-over from the hangar frames to the plain sprite at engine start doesn't pop. If the blink is still there, find it by playing the roll-out; the sim side (one-tick flip at turn end) checked clean.
+- **Hangar exit sprite glitch** (Planes; session "Planes — hangar exit sprite glitch"): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes. Cause found 2026-11-07 (owner saw it: the pilot name jumps from below the plane to above it for a frame): `writePoses` in `src/render/interpolate.js` snapped x and angle at the turn-end flip but still blended `rollAngle`, so `drawPlaneName` read a half-turned plane; `rollAngle` now snaps too. Owner to confirm on screen (the prop-disc fade tried first did nothing and was reverted).
 
 - **Names hard to read** (UI; session "UI — enemy and friendly names hard to read"): the names drawn along enemy and friendly planes are hard to read.
 

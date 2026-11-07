@@ -27,7 +27,6 @@ export const W = 480; // view width in world units at zoom 1
 export const H = 270;
 export const SCALE = 2; // pixels per world unit for scenery, ground sprites and effects
 export const DETAIL = 2; // buffer pixels per scenery pixel
-const PROP_BLUR_RPM = 200; // the propeller disc is fully drawn from this rpm up, fading out below it
 export const PLANE_SCALE = SCALE * DETAIL; // buffer pixels per world unit for planes (their sprites are drawn at this)
 export const MAX_ZOOM = 1.8;
 
@@ -889,7 +888,6 @@ export function createRenderer(canvas, world, assets) {
   }
 
   // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.
-  const propBlur = (p) => clamp((p.rpm ?? 0) / PROP_BLUR_RPM, 0, 1);
   function drawPropDisc(p, cx, cy, [hx, hy0, ax, ay0, bx, by0], rot, mirror, flipped = false) {
     const m = mirror ? -1 : 1;
     // A plane drawn upside down (frames flipped over): the disc's offsets flip with it.
@@ -904,9 +902,7 @@ export function createRenderer(canvas, world, assets) {
     const [ax2, ay2] = turn(ax, ay);
     const [bx2, by2] = turn(bx, by);
     const spin = Math.floor(frame * (p.rpm / 400));
-    // A stopped prop shows no bright disc: it fades in as the engine spins up, so the hand-over from the hangar
-    // frames to the plain sprite (engine starts that tick) has nothing to pop.
-    ctx.fillStyle = `rgba(225,225,215,${(0.4 * propBlur(p)).toFixed(3)})`;
+    ctx.fillStyle = 'rgba(225,225,215,0.4)';
     for (let k = 0; k < 48; k++) {
       if ((k + spin) % 3 === 0) continue;
       const t = (k / 48) * Math.PI * 2;
@@ -928,10 +924,19 @@ export function createRenderer(canvas, world, assets) {
 
   // Pilot names (bots too, if the option is on). A plane's is like paint: it tilts with the plane, reads normally when
   // the pilot is upright whichever way he flies, turns upside down with him and squashes through a roll.
-  const NAME_FONT = "600 11px Consolas, 'Lucida Console', 'DejaVu Sans Mono', monospace";
+  const NAME_FONT = "700 12px Consolas, 'Lucida Console', 'DejaVu Sans Mono', monospace";
   const NAME_GAP = 25; // below the plane's centre, in the plane's own frame
   const nameShown = (name, owner, focus) => name && assets.settings.hud.showNames !== false && (owner !== focus?.id || assets.settings.hud.showOwnName);
-  const nameColour = (team, focus) => (team === focus?.team ? '#d8cfa0' : '#b86050');
+  const nameColour = (team, focus) => (team === focus?.team ? '#ece3b4' : '#e07a64');
+  // Name text with a dark outline round the letters, so it reads over sky, ground and planes alike.
+  function nameText(text, x, y, colour) {
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 3.2;
+    ctx.strokeStyle = 'rgba(8,8,6,0.88)';
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = colour;
+    ctx.fillText(text, x, y);
+  }
   // Pushed out of the hangar the plane starts small and faint.
   function exitLook(p) {
     // Parking in is the roll-out reversed: the same look, run backwards.
@@ -977,10 +982,7 @@ export function createRenderer(canvas, world, assets) {
     ctx.font = NAME_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillText(p.callsign, 0.7, NAME_GAP + 0.7);
-    ctx.fillStyle = nameColour(p.team, focus);
-    ctx.fillText(p.callsign, 0, NAME_GAP);
+    nameText(p.callsign, 0, NAME_GAP, nameColour(p.team, focus));
     ctx.restore();
   }
   // A man's name hangs level under his feet.
@@ -990,10 +992,7 @@ export function createRenderer(canvas, world, assets) {
     ctx.font = NAME_FONT;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillText(name, x * DETAIL + 0.7, (y + 7) * DETAIL + 0.7);
-    ctx.fillStyle = nameColour(team, focus);
-    ctx.fillText(name, x * DETAIL, (y + 7) * DETAIL);
+    nameText(name, x * DETAIL, (y + 7) * DETAIL, nameColour(team, focus));
     ctx.restore();
   }
 
@@ -1184,11 +1183,9 @@ export function createRenderer(canvas, world, assets) {
       const spin = Math.floor(frame * (p.rpm / 400));
       const reach = 4 * PLANE_SCALE + 1;
       const bloody = gore.bloodied(p.id) > 0;
-      const blur = propBlur(p);
       for (let k = -reach; k <= reach; k++) {
         if ((k + spin) % 3 === 0) continue;
-        const edge = Math.abs(k) > reach - 2;
-        ctx.fillStyle = bloody ? `rgba(120,40,34,${((edge ? 0.35 : 0.55) * blur).toFixed(3)})` : `rgba(225,225,215,${((edge ? 0.3 : 0.5) * blur).toFixed(3)})`;
+        ctx.fillStyle = bloody ? `rgba(120,40,34,${Math.abs(k) > reach - 2 ? 0.35 : 0.55})` : Math.abs(k) > reach - 2 ? 'rgba(225,225,215,0.3)' : 'rgba(225,225,215,0.5)';
         ctx.fillRect(Math.round(px + s * k), Math.round(py + c * k), 1, 1);
       }
     }
