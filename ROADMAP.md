@@ -246,6 +246,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Take-off from dirt, uphill (Gameplay, 2026-11-07):** off the runway every plane now has to climb a 3° (0.05 rad) grass slope as well as flat grass. `stepGround` (`src/sim/plane.js`) eases grass friction per plane just enough to keep that slope climbable (`GRASS_SLOPE`, `GRASS_TAKEOFF_MARGIN` now 1.08), and `groundThrust` went up for the P-47D (0.45 to 0.50), Bf 239 (0.45 to 0.49), Bf 110, Pe-3 and Blenheim (0.48 to 0.54) and Ki-45 (0.48 to 0.53), which also shortens their runway roll. Before, those could not take off on 2 to 3° uphill grass (Blenheim 1.7°). A fully loaded Blenheim or Ju 87 has no spare thrust, so grass costs them nothing. Steep hills still stop a plane (the stranded recovery puts it back at an airfield). `tests/grass-takeoff.test.mjs` now has a slope case for every plane. Not looked at in the browser.
 - **Camera pans during a ground turn (Gameplay, 2026-11-07):** `updateCamera` in `src/render/renderer.js` now drives the look-ahead (`cam.leadX`) and the view position by the turn's progress (`focus.groundTurn`, smoothstep): it starts moving with the turn, swings to the new facing and follows the pivot to where the plane will stand (the sim moves it two wheel offsets when the turn ends), so nothing jumps at the end. Hangar exit turns use it too. Measured by logging `cam.x` per frame (Bf 109): steps at most 5 units, none at the flip; clamps at the map edge. Not judged by eye; the speed follows `groundTurnTime`. No new tuning values.
 - **Empty-gun click fixed (Sound, Gameplay, 2026-11-07):** the dry click played as soon as any one gun ran dry (`updateWeapons` in `src/sim/weapons.js` clicked per gun); now it plays once per trigger press only when every pilot gun is empty. Test in `tests/guns.test.mjs`. Turret guns do not count.
 - **Hangar: double click a plane card = pick and START ENGINE (UI, 2026-11-07):** in `src/ui/hangar-view.js` a second click on the same card within 400 ms calls `h.close` after `pickPlane` (timed by hand, since picking redraws the cards and the browser's `dblclick` would miss). Only where the view has a close/start action. Tests pass (270); not tried by eye in the browser.
@@ -487,7 +488,6 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-- **Take-off from dirt** (Gameplay): every plane must be able to take off from dirt (grass or open ground, not only the runway); `tests/grass-takeoff.test.mjs` checks this on flat grass, so find out what is still missing and how rough ground should cost. Session: "Gameplay — take-off from dirt".
 
 ## Backlog
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.

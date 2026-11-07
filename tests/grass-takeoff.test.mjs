@@ -11,16 +11,19 @@ const settings = load('data/settings.json');
 const planeDefs = load('data/planes.json');
 const FULL = { turn: 0, throttle: 1, roll: false, fire: false, bomb: false, gear: false, abandon: false };
 
+// Rising ground this steep (rad, about 3 degrees) must still be climbable on grass; keep in step with GRASS_SLOPE.
+const SLOPE = 0.05;
+
 for (const defId of Object.keys(planeDefs)) {
   if (!planeDefs[defId].thrust) continue;
-  test(`${defId} can reach take-off speed on flat grass`, () => {
+  for (const [label, slope] of [['flat grass', 0], ['a gentle uphill slope on grass', SLOPE]]) test(`${defId} can reach take-off speed on ${label}`, () => {
     const map = importLdtk(load('maps/countryside.ldtk'));
     const world = createWorld({ map, planeDefs, weapons: load('data/weapons.json'), waves: { first: 1e6 },
       landing: { ...settings.landing }, takeoff: { ...settings.takeoff }, rules: { bots: 'off' } });
     const p = addPlane(world, { defId, team: 0, nation: 'germany', controller: 'p1' });
-    // Level ground, well away from either runway: plain grass.
-    world.terrain.heightAt = () => 100;
-    world.terrain.slopeAngle = () => 0;
+    // Well away from either runway: plain grass, level or rising.
+    world.terrain.heightAt = (x) => 100 + Math.tan(slope) * (x - 1000);
+    world.terrain.slopeAngle = () => slope;
     p.state = 'ground';
     p.x = 1000;
     p.y = 100;

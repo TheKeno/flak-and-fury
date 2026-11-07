@@ -32,7 +32,8 @@ const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the gro
 const LOOP_SLOWDOWN = 2.5; // a ground-looping plane sheds this share of its speed per second, skidding round
 const SPAWN_INSET = 15; // a plane starts this far into the clear stretch (counted in def.runwayNeeded)
 const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
-const GRASS_TAKEOFF_MARGIN = 1.15; // ...but never so much that full throttle tops out below take-off speed (+15% for slopes)
+const GRASS_TAKEOFF_MARGIN = 1.08; // ...but never so much that full throttle tops out below take-off speed (+8%; the test asks for 5%) ...
+const GRASS_SLOPE = 0.05; // ...while climbing a gentle grass slope this steep (rad, about 3 degrees)
 const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
 
 export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false, hangar: null }); // hangar: 'call' (park in) | 'out' (roll out of the hangar), one tick
@@ -666,7 +667,7 @@ function stepGround(p, cmd, world, dt) {
   let grass = onRunway ? 1 : GRASS_FRICTION;
   if (!onRunway) {
     // Weaker engines (P-47, Bf 110) would otherwise be capped by grass drag below the speed they need to fly.
-    const spare = d.thrust * (d.groundThrust ?? 1) - d.dragCoef * (d.takeoffSpeed * GRASS_TAKEOFF_MARGIN) ** 2;
+    const spare = d.thrust * (d.groundThrust ?? 1) - d.dragCoef * (d.takeoffSpeed * GRASS_TAKEOFF_MARGIN) ** 2 - GRAVITY * Math.sin(GRASS_SLOPE);
     grass = clamp(spare / d.groundFriction, 1, GRASS_FRICTION);
   }
   const rolling = p.belly ? BELLY_FRICTION : d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1) * grass;
