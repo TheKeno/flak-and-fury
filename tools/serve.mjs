@@ -109,7 +109,8 @@ function buildSprites(res, plane) {
   if (plane && !/^[a-z0-9_]+$/.test(plane)) throw new Error('bad plane name');
   execFile(process.execPath, ['tools/make-sprites.mjs', ...(plane ? [plane] : [])], { cwd: root, timeout: 300_000 }, (err, stdout, stderr) => {
     res.writeHead(err ? 500 : 200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: !err, output: String(stdout) + String(stderr) }));
+    res.end(JSON.stringify({ ok: !err, output: String(stdout) + String(stderr) + (err ? `
+${err.message}` : '') }));
   });
 }
 
