@@ -169,6 +169,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         crews.delete(p.id);
       }
     }
+    stopGone(crews);
   }
 
   // Sliding on the belly, and the gear-up warning horn for the plane being listened from.
@@ -209,10 +210,12 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   }
 
   // A crashed wreck is taken out of world.planes, so the loops above never see it stop burning:
-  // stop any loop whose plane is no longer in the world.
-  function stopGone(loops) {
+  // stop any loop whose owner is no longer in the world. This is the safety net behind every
+  // keyed loop: a stop that depends on an event alone leaves the loop sounding for ever, frozen
+  // at its last pitch, if that event is ever missed. exists: id -> still there? (default: a plane)
+  function stopGone(loops, exists = (id) => world.planes.some((p) => p.id === id)) {
     for (const [id, l] of loops) {
-      if (world.planes.some((p) => p.id === id)) continue;
+      if (exists(id)) continue;
       l.stop();
       loops.delete(id);
     }
@@ -263,6 +266,8 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       if (!w) whistles.set(b.id, (w = withLoop('bombWhistle', createBombWhistle(scope('loop:bombWhistle')))));
       w.update(spatialize(listener, b.x, b.y, b.vx, b.vy, hearing()), Math.max(0, -b.vy));
     }
+    // The bombExplode event normally stops a whistle; a bomb gone without it must not whistle on.
+    stopGone(whistles, (id) => world.bombsInFlight.some((b) => b.id === id));
   }
 
   // Enemy rounds that pass close crack past your head.
@@ -285,6 +290,8 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
 
   return {
     listener,
+    // The keyed loops now sounding, for tests.
+    debugLoops: () => ({ whistles, crews, fires, scrapes, tanks }),
     // The Sound Lab in another window changed something. final: a slider was let go or a file added.
     async liveUpdate(next, final) {
       syncInPlace(sound, next);
