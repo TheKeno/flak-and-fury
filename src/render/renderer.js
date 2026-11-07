@@ -1129,10 +1129,17 @@ export function createRenderer(canvas, world, assets) {
     const view = groundAttitude(p);
     const sx = planeX(view.x);
     const sy = planeY(view.y);
+    // A twin's roll frames list one disc per engine: they replace the single line at propOffset below, which
+    // would sit between the engines, where there is no propeller.
+    let twinDiscs = null;
     if (shown) {
       // Mid-roll: a frame of the model rolled about its long axis (gear drawn in it), rotated now.
+      const prop = frames.meta.props[shown.row]?.[shown.index];
+      if (Array.isArray(prop?.[0])) twinDiscs = prop;
+      if (twinDiscs) for (const d of twinDiscs) if (d[6] < 0) drawPropDisc(p, sx, sy, d, view.angle, false);
       const f = frames.frame(shown.row, shown.index, view.angle);
       drawOutlined(f.canvas, sx - f.radius, sy - f.radius, outline);
+      if (twinDiscs) for (const d of twinDiscs) if (d[6] >= 0) drawPropDisc(p, sx, sy, d, view.angle, false);
     } else {
       const set = assets.planeSprite(p)[p.inverted ? 'inverted' : 'upright'];
       drawGear(p, sx, sy, view.angle);
@@ -1142,21 +1149,23 @@ export function createRenderer(canvas, world, assets) {
     }
     drawMuzzleFlash(p, sx, sy, view.angle);
 
-    // Propeller disc: a flickering line across the nose (reddened after running soldiers down). A twin's
-    // two propellers line up in side view: one line at propOffset, where the engines are.
-    const c = Math.cos(view.angle);
-    const s = Math.sin(view.angle);
-    const f = p.inverted ? -1 : 1;
-    const [ox, oy] = p.def.propOffset ?? [p.def.noseOffset[0] + 0.5, 0];
-    const px = sx + (c * ox - s * oy * f) * PLANE_SCALE;
-    const py = sy - (s * ox + c * oy * f) * PLANE_SCALE;
-    const spin = Math.floor(frame * (p.rpm / 400));
-    const reach = 4 * PLANE_SCALE + 1;
-    const bloody = gore.bloodied(p.id) > 0;
-    for (let k = -reach; k <= reach; k++) {
-      if ((k + spin) % 3 === 0) continue;
-      ctx.fillStyle = bloody ? `rgba(120,40,34,${Math.abs(k) > reach - 2 ? 0.35 : 0.55})` : Math.abs(k) > reach - 2 ? 'rgba(225,225,215,0.3)' : 'rgba(225,225,215,0.5)';
-      ctx.fillRect(Math.round(px + s * k), Math.round(py + c * k), 1, 1);
+    if (!twinDiscs) {
+      // Propeller disc: a flickering line across the nose (reddened after running soldiers down). A twin's
+      // two propellers line up in side view: one line at propOffset, where the engines are.
+      const c = Math.cos(view.angle);
+      const s = Math.sin(view.angle);
+      const f = p.inverted ? -1 : 1;
+      const [ox, oy] = p.def.propOffset ?? [p.def.noseOffset[0] + 0.5, 0];
+      const px = sx + (c * ox - s * oy * f) * PLANE_SCALE;
+      const py = sy - (s * ox + c * oy * f) * PLANE_SCALE;
+      const spin = Math.floor(frame * (p.rpm / 400));
+      const reach = 4 * PLANE_SCALE + 1;
+      const bloody = gore.bloodied(p.id) > 0;
+      for (let k = -reach; k <= reach; k++) {
+        if ((k + spin) % 3 === 0) continue;
+        ctx.fillStyle = bloody ? `rgba(120,40,34,${Math.abs(k) > reach - 2 ? 0.35 : 0.55})` : Math.abs(k) > reach - 2 ? 'rgba(225,225,215,0.3)' : 'rgba(225,225,215,0.5)';
+        ctx.fillRect(Math.round(px + s * k), Math.round(py + c * k), 1, 1);
+      }
     }
   }
 
