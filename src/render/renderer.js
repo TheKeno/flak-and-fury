@@ -162,7 +162,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, rest: 0, restX: 0, hopX: 0, flipId: null, flipCount: 0, flipX: null };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, rest: 0, restX: 0, turnStart: null, turnLead: 0 };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -277,7 +277,26 @@ export function createRenderer(canvas, world, assets) {
       const targetY = climb * vh * camCfg.leadY;
       const k = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeed) : 1;
       const ky = cam.snapped ? 1 - Math.exp(-dt * camCfg.leadSpeedY) : 1;
-      cam.leadX += (targetX - cam.leadX) * k;
+      // Turning round on the ground: the camera pans DURING the turn, in step with it. The look-ahead
+      // swings to the new facing and the view follows the pivot to where the plane will stand (the sim
+      // moves the plane by two wheel offsets when the turn ends), so nothing is left to jump at the end.
+      let turnT = 0;
+      let fx = focus.x;
+      if (focus.state === 'ground' && focus.groundTurn != null && !focus.bailout) {
+        if (cam.turnStart == null) {
+          cam.turnStart = focus.groundTurn;
+          cam.turnLead = cam.leadX;
+        }
+        const span = Math.max(0.01, 1 - cam.turnStart);
+        const u = clamp((focus.groundTurn - cam.turnStart) / span, 0, 1);
+        turnT = u * u * (3 - 2 * u);
+        const dir = Math.cos(focus.angle) >= 0 ? 1 : -1;
+        fx += turnT * 2 * dir * wheelGeometry(focus.def).main[0];
+        cam.leadX = cam.turnLead + (-targetX - cam.turnLead) * turnT;
+      } else {
+        cam.turnStart = null;
+        cam.leadX += (targetX - cam.leadX) * k;
+      }
       cam.leadY += (targetY - cam.leadY) * ky;
       // However you look, your own plane stays on screen. Sideways, looking ahead on top of the
       // look-ahead would run into that edge and stop dead, so beyond the normal look-ahead the view
@@ -293,11 +312,11 @@ export function createRenderer(canvas, world, assets) {
       const off = cam.leadX * leadShare + cam.fightX * fight + cam.lookX * vw * camCfg.lookRange;
       const past = Math.abs(off) - knee;
       const softOff = past <= 0 ? off : Math.sign(off) * (knee + (limit - knee) * Math.tanh(past / (limit - knee)));
-      cam.x = focus.x + softOff - vw / 2;
+      cam.x = fx + softOff - vw / 2;
       const restY = vh * (0.5 - camCfg.height); // the view centre above the plane outside a fight
       const centreY = cam.leadY * leadShare + restY * (1 - fight) + cam.fightY * fight;
       cam.y = focus.y + centreY + cam.lookY * vh * camCfg.lookRange - vh / 2;
-      cam.x = clamp(cam.x, focus.x - vw * (1 - margin), focus.x - vw * margin);
+      cam.x = clamp(cam.x, fx - vw * (1 - margin), fx - vw * margin);
       cam.y = clamp(cam.y, focus.y - vh * (1 - margin), focus.y - vh * margin);
       cam.snapped = true;
       // Back from free look: glide from where it was over to the plane.
@@ -308,23 +327,6 @@ export function createRenderer(canvas, world, assets) {
       }
     }
     if (cam.rest > 0) cam.x += (cam.restX - cam.x) * cam.rest;
-    // Turning round on the ground flips the plane's x by the wheel offset in one tick (the drawing pivots
-    // on the wheels, so it doesn't show). Take that jump out of the view and let it ease away, so the
-    // camera pans over to the new position instead of snapping.
-    if (!free && focus && focus.state === 'ground') {
-      if (cam.flipId === focus.id && cam.flipCount !== focus.edgeFlip && cam.flipX != null) cam.hopX += cam.flipX - focus.x;
-      cam.flipId = focus.id;
-      cam.flipCount = focus.edgeFlip;
-      cam.flipX = focus.x;
-    } else {
-      cam.flipId = cam.flipX = null;
-      cam.hopX = 0;
-    }
-    if (cam.hopX) {
-      cam.x += cam.hopX;
-      cam.hopX *= Math.exp(-Math.min(dt, 0.1) * 3);
-      if (Math.abs(cam.hopX) < 0.01) cam.hopX = 0;
-    }
     cam.x = clamp(cam.x, 0, map.width - vw);
     cam.y = clamp(cam.y, 0, Math.max(0, map.ceiling + 160 - vh));
     // Snap to whole buffer pixels so the scenery doesn't shimmer.
