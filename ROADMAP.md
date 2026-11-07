@@ -440,7 +440,7 @@ later.
    Two-seaters get a simple AI rear gun now (mouse-aimed seats come with milestone 11). Twins get two
    prop discs and one engine sound until the sound pass. Plane choice from the tuning panel until the
    hangar. Build order: Spitfire IX, the other fighters, heavy fighters, dive bombers, tanks.
-   **Paused** after the Mosquito FB.VI (own model and planes.json entry, owner-approved values, flies in the game, 2026-11-05); resume at the P-38J, see [notes/milestone6.md](notes/milestone6.md).
+   **Heavy fighters done 2026-11-07** (P-38J, Pe-3, Ki-45 KAI, Blenheim Mk IV; own models, planes.json entries, owner-approved outlines, values estimated and still to check in flight). Next: the dive bombers (A-36A Apache, Il-2M3, D3A2 Val, Hurricane IID, Ju 88 A-4), then the tanks; see [notes/milestone6.md](notes/milestone6.md).
    Later, rare heavy tanks (Tiger, KV-1S) worth more points.
 7. **Online multiplayer** (decided): online, each player in their own browser. **Host-authoritative**:
    the host's browser runs the real sim; guests send their per-tick commands and receive world
