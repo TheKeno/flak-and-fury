@@ -479,6 +479,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 ## Backlog
+- **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Camera pan during a ground turn** (Gameplay): when the plane turns on the tarmac, the camera should pan smoothly to its new position during the turn instead of jumping.
 - **Ammo click with ammo left** (Sound, Gameplay): the empty-gun click plays while the plane still has ammo; probably because one gun mount ran dry (e.g. the cannon) while others still have rounds. Decide when the click should play.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
