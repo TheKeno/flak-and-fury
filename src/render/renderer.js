@@ -21,7 +21,7 @@ import { fireStage } from '../sim/fire.js';
 import { drawSightShape } from './sight.js';
 import { surfaceAt } from '../sim/ground.js';
 import { localToWorld } from '../sim/weapons.js';
-import { attitude, mainWheelContact, isUpright, DEFAULT_WHEELS } from '../sim/plane.js';
+import { attitude, mainWheelContact, isUpright, wheelGeometry, DEFAULT_WHEELS } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
 export const H = 270;
@@ -1093,7 +1093,13 @@ export function createRenderer(canvas, world, assets) {
       // On the ground, turning round or looping: the model's frame stands on the main wheels (gear
       // included), facing-left frames mirrored, tilted with the ground's slope.
       const right = Math.cos(p.angle) >= 0;
-      const rot = right ? p.angle : p.angle - Math.PI;
+      let rot = right ? p.angle : p.angle - Math.PI;
+      // The edge-turn frames are baked tail-down like the ground ones, but the plane is level in the air: take
+      // the pitch back out, fully side-on at both ends and fading to nothing tail-on mid-swing.
+      if (shown.row === 'edge') {
+        const k = Math.cos(Math.min(1, p.edgeTurn) * Math.PI);
+        rot -= wheelGeometry(p.def).tailDown * k * k * (right ? 1 : -1) * (isUpright(p) ? 1 : -1);
+      }
       const at = mainWheelContact(p);
       const cx = planeX(at.x);
       const cy = planeY(at.y);
