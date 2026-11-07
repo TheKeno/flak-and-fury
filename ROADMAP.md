@@ -488,8 +488,9 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 - **Camera pan during a ground turn** (Gameplay): when the plane turns on the tarmac, the camera should pan smoothly to its new position during the turn instead of jumping. Session: "Gameplay — camera pan during ground turn".
 
+- **Take-off from dirt** (Gameplay): every plane must be able to take off from dirt (grass or open ground, not only the runway); `tests/grass-takeoff.test.mjs` checks this on flat grass, so find out what is still missing and how rough ground should cost. Session: "Gameplay — take-off from dirt".
+
 ## Backlog
-- **Take-off from dirt** (Gameplay): every plane must be able to take off from dirt (grass or open ground, not only the runway); `tests/grass-takeoff.test.mjs` checks this on flat grass, so find out what is still missing and how rough ground should cost.
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Decide the key, the damage rate and the cool-down in a short discussion first.
