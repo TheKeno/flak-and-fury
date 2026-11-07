@@ -246,6 +246,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **FPS dropped again (Gameplay, 2026-11-07):** owner saw about 50 fps on the runway, 60-70 in clear air and 25-40 in a dogfight on a 120 Hz screen. Headless sim with 8 bots costs about 0.25 ms a tick and the pane showed about 2 ms CPU a frame, so the game was not the limit; the fps came back to a steady 120 on its own. Cause (owner is quite sure): other sessions running the game in browser panes at the same time, competing for the GPU. No code changed. If it returns, close other panes first, then send F3 numbers from a fight (`rollbuild /s`, `cacheclr /s`, ms per part). Untested idea: roll frames are rotated on demand (about 0.8 ms each), so a fight with many planes rolling could build several in one frame; pre-build if `rollbuild` is high.
 - **Nametag hop in runway turns (UI, 2026-11-07):** the name was pinned to `p.x`, which the sim moves by two wheel offsets at the end of a ground turn, and switched between tilted and untilted angle at the turn's ends. `drawPlaneName` (`src/render/renderer.js`) now keeps the tilt and slides the name across with the turn to the mirrored position. Owner: good enough. Rolls, loops and map-edge turns were not checked.
 - **Ground crew bars (Gameplay, 2026-11-07):** the service bars showed absolute hp and fuel, so they began wherever the damage or tank level was. Each job's bar now runs 0 to 1 over that job (`serviceProgress`, `s.span` in `src/sim/airfield.js`; `tests/servicebar.test.mjs`). A sim trace showed tasks already run strictly one after another and crew sounds follow each job; no sound or order fault found, so none changed (owner may report a specific moment later).
 - **Hangar exit sprite glitch (Planes, 2026-11-07):** the flash at the end of the roll-out was the pilot name jumping from below the plane to above it for one frame. `writePoses` (`src/render/interpolate.js`) snapped x and angle at the turn-end flip but still blended `rollAngle`, so `drawPlaneName` saw a half-turned plane; `rollAngle` now snaps too. Owner confirmed it gone on screen. (A prop-disc fade tried first did nothing and was reverted.)
@@ -495,8 +496,6 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 
 
-
-- **FPS is low again** (Gameplay): the frame rate has dropped again (reported 2026-11-07); start from `notes/perf-findings.md` and the `?perf` test switches (`?skip=...`, `?cap=1080`) from the earlier performance pass, and check the Blenheim-era additions (more planes, new crew parts) and the bombed-terrain stutter item below. Session: "Gameplay — FPS is low again".
 
 ## Backlog
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
