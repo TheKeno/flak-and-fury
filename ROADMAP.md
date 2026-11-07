@@ -489,6 +489,8 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Hangar exit sprite glitch** (Planes; session "Planes — hangar exit sprite glitch"): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes.
+
 ## Backlog
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
@@ -498,7 +500,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 - **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass.
 - **Weird sound from Jonatan's video** (Sound): look into the odd sound Jonatan sent the owner in a video; find out what it is and whether the game should have it.
-- **Hangar exit sprite glitch** (Planes): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes.
 
 
 - **Infantry wave mission** (Gameplay): waves of enemy infantry advance on the player's base and the player has to mow them down with guns and bombs to stop the assault.
