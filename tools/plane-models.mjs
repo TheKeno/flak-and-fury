@@ -1131,7 +1131,7 @@ function pe3(o) {
   const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
   const parts = [
     { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
-    { ...nacelle, material: (p) => ({ kind: tone(p) }) },
+    { ...nacelle, material: (p, n) => ({ kind: n[1] < -0.3 ? 'under' : 'paint' }) }, // by facing: the tapering tail of the nacelle lies below the height split but its top faces up
     { ...spinner, material: plain('paint') },
     { ...radiators, material: (p) => ({ kind: p[0] > X(2.0) ? 'dark' : 'under' }) }, // radiator baths, intakes dark
     { ...gunTray, material: (p) => ({ kind: p[0] > X(0.35) ? 'dark' : 'under' }) },
