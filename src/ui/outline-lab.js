@@ -1391,6 +1391,28 @@ function addPart(key) {
   changed();
 }
 
+// Takes an optional part (spat, bump, radiators, gun tray, nacelle, spine) off the plane again. A plane
+// whose model code draws that part itself cannot lose it: the model is built without it first and the
+// part comes back with a message if that fails.
+function removePart(key) {
+  if (!S.o[key] || !PART_STARTERS[key.replace(/\d+$/, '')]) return;
+  if (!confirm(`Remove ${label(key)} from this plane?`)) return;
+  pushUndo();
+  const saved = S.o[key];
+  delete S.o[key];
+  try {
+    buildModel(S.name, S.o);
+  } catch {
+    S.o[key] = saved;
+    alert(`${label(key)} cannot be removed: this plane's model code draws it itself.`);
+    return;
+  }
+  S.part = 'fuselage';
+  S.sel = null;
+  rebuildPanel();
+  changed();
+}
+
 function rebuildPanel() {
   const parts = $('parts');
   parts.textContent = '';
@@ -1448,6 +1470,13 @@ function rebuildPanel() {
     const s = o[S.part];
     const nRow = row('squareness n', numInput(() => s.n, (v) => (s.n = v), 0.1));
     if (s.z !== undefined) nRow.append('z', numInput(() => s.z, (v) => (s.z = v)));
+    if (PART_STARTERS[S.part.replace(/\d+$/, '')]) {
+      const rb = document.createElement('button');
+      rb.textContent = 'Remove part';
+      rb.title = 'Take this part off the plane (undo with Ctrl+Z)';
+      rb.onclick = () => removePart(S.part);
+      nRow.append(rb);
+    }
     if (pairable(S.part)) {
       const pb = document.createElement('button');
       pb.textContent = s.z === undefined ? 'Make a mirrored pair' : 'Make single (centre line)';
