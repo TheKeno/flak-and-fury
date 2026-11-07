@@ -749,6 +749,9 @@ function stepGroundTurn(p, world, dt) {
   p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
   p.angle = wrapAngle(p.angle + Math.PI);
   p.inverted = !p.inverted;
+  // Position and angle jump at once: tell the drawing not to blend this tick (src/render/interpolate.js),
+  // or one frame shows the plane half-shifted and tilted part-way round.
+  p.edgeFlip = (p.edgeFlip ?? 0) + 1;
   world.events.push({ type: 'turnedRound', plane: p.id, x: p.x, y: p.y });
 }
 

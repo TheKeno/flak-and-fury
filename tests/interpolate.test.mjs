@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, setBots, stepWorld, DT } from '../src/sim/world.js';
 import { takePoses, writePoses } from '../src/render/interpolate.js';
+import { mainWheelContact } from '../src/sim/plane.js';
 import { encodeWorld, staticRefs } from '../src/net/snapshot.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
@@ -120,4 +121,28 @@ test('the roll stays within 0..2PI when blended across the wrap', () => {
     const r = world.planes[0].rollAngle;
     assert.ok(r >= 0 && r < Math.PI * 2, `roll ${r} at ${t}`);
   }
+});
+
+test('turning round on the ground: the flip tick is not blended, the main wheels never move on screen', () => {
+  const world = makeWorld();
+  const p = world.planes.find((q) => q.seats[0].controller === 'p1');
+  for (let i = 0; i < 120 && p.state !== 'ground'; i++) stepWorld(world, {});
+  assert.equal(p.state, 'ground');
+  p.speed = p.vx = p.vy = 0;
+  p.groundTurn = 0;
+  const wheels = mainWheelContact(p);
+  let before = takePoses(world);
+  for (let i = 0; i < 400 && p.groundTurn != null; i++) {
+    before = takePoses(world);
+    stepWorld(world, {});
+  }
+  assert.equal(p.groundTurn, null, 'the turn finished');
+  const after = takePoses(world);
+  const end = mainWheelContact(p);
+  for (const t of [0.25, 0.5, 0.75]) {
+    writePoses(world, before, after, t);
+    const drawn = mainWheelContact(p);
+    assert.ok(Math.hypot(drawn.x - end.x, drawn.y - end.y) < 0.01, `wheels at ${t}: ${drawn.x} vs ${end.x}`);
+  }
+  assert.ok(Math.abs(wheels.x - end.x) < 0.5, 'the turn pivoted on the main wheels');
 });
