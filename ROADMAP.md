@@ -7,6 +7,20 @@ later.
 
 ## Decisions
 
+- **Remove the Bf 109 F-4 completely (decided 2026-11-07, discussion; not built):** the G-6 already fills
+  Germany's fighter slot, the F-4 is a 1941–42 type outside the 1943 setting, and its model predates
+  measuring. Remove `bf109` from the game, delete the backlog item "Rebuild the Bf 109 F-4".
+  - **Remove:** the `bf109` entry in `data/planes.json`, `data/outlines/bf109.json`, its sprites in
+    `assets/sprites/`, its entry in `data/sound.json` (check whether the id is a shared engine reference
+    first), its place in the Outline Lab lists (`src/ui/outline-lab.js` ~1893, 1905, 2010) and
+    `tools/plane-models.mjs` `BUILDERS`, and mentions in TUNING.md and notes.
+  - **Ju 87 template:** the Stuka is built from the F-4's model (`tmpl: 'bf109'`). Move it onto the G-6
+    template (`bf109g6`) and rebuild its sprites; the Stuka must look unchanged or better. If that is
+    awkward, keep the F-4 model function as an internal template only (no plane entry) and say so here.
+  - **Tests:** about 20 files in `tests/` use `defId: 'bf109'` as the stand-in plane (also
+    `tests/outlines.test.mjs`, `tests/bailout.test.mjs`): switch them to `bf109g6`, then `node --test tests/`.
+  - Update the milestone 6 / hangar notes lines that say "the F-4 stays as a lighter option".
+
 - **Bomb stations: hardpoints, loads and weight (decided 2026-11-06, discussion; steps 1 and 2 built 2026-11-06):** a plane's
   one bomb slot (`armament.bombs`, `bombOffset`) becomes a list of **hardpoints** plus a **load**, so the
   Stuka carries an SC 500 on the crutch and four SC 50 on wing racks, bombers get bays and mixed loads,
@@ -496,10 +510,6 @@ Then: more themes, co-op missions, matchmaking.
   cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
   review the evidence (see its Done entry), the numbers and how it plays before it stays. Original ask:
   revisit the shooting-through-the-propeller rule, check whether planes really did this, adjust accordingly.
-- **Rebuild the Bf 109 F-4** (the lighter German option) from a 3-view drawing, like the other
-  milestone 6 planes: the current model predates measuring (canopy stands proud of a falling spine,
-  slim rear fuselage, exhausts too high, small fin). Ask the owner for the F-4 3-view first; much of
-  the G-6 model carries over (slimmer cowl without the gun bulges, smaller spinner).
 - **Smoother wing wobble** (off by default for now, see `wobble` in `data/settings.json`): more roll animation steps, above all the first ones either side of level.
   The sheets have 16 frames (22.5 degrees apart), so the small leans and tilts jump a whole step; with
   finer steps near level (say every 5-8 degrees) the wobble, lean and flutter (`wobble` in
