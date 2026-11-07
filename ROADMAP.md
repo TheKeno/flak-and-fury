@@ -490,7 +490,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Hangar exit sprite glitch** (Planes; session "Planes — hangar exit sprite glitch"): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes.
+- **Hangar exit sprite glitch** (Planes; session "Planes — hangar exit sprite glitch"): when leaving the hangar there is sometimes a quick sprite glitch around the point where the plane turns. Owner (2026-11-07): something white blinks over the plane right before the runway turn finishes. Fix tried 2026-11-07 (not seen in the browser, owner to check): the propeller disc now fades in with rpm (`PROP_BLUR_RPM` in `renderer.js`), so the hand-over from the hangar frames to the plain sprite at engine start doesn't pop. If the blink is still there, find it by playing the roll-out; the sim side (one-tick flip at turn end) checked clean.
 
 ## Backlog
 - **FPS is low again** (Gameplay): the frame rate has dropped again (reported 2026-11-07); start from `notes/perf-findings.md` and the `?perf` test switches (`?skip=...`, `?cap=1080`) from the earlier performance pass, and check the Blenheim-era additions (more planes, new crew parts) and the bombed-terrain stutter item below.

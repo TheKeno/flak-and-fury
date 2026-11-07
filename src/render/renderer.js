@@ -27,6 +27,7 @@ export const W = 480; // view width in world units at zoom 1
 export const H = 270;
 export const SCALE = 2; // pixels per world unit for scenery, ground sprites and effects
 export const DETAIL = 2; // buffer pixels per scenery pixel
+const PROP_BLUR_RPM = 200; // the propeller disc is fully drawn from this rpm up, fading out below it
 export const PLANE_SCALE = SCALE * DETAIL; // buffer pixels per world unit for planes (their sprites are drawn at this)
 export const MAX_ZOOM = 1.8;
 
@@ -888,6 +889,7 @@ export function createRenderer(canvas, world, assets) {
   }
 
   // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.
+  const propBlur = (p) => clamp((p.rpm ?? 0) / PROP_BLUR_RPM, 0, 1);
   function drawPropDisc(p, cx, cy, [hx, hy0, ax, ay0, bx, by0], rot, mirror, flipped = false) {
     const m = mirror ? -1 : 1;
     // A plane drawn upside down (frames flipped over): the disc's offsets flip with it.
@@ -902,7 +904,9 @@ export function createRenderer(canvas, world, assets) {
     const [ax2, ay2] = turn(ax, ay);
     const [bx2, by2] = turn(bx, by);
     const spin = Math.floor(frame * (p.rpm / 400));
-    ctx.fillStyle = 'rgba(225,225,215,0.4)';
+    // A stopped prop shows no bright disc: it fades in as the engine spins up, so the hand-over from the hangar
+    // frames to the plain sprite (engine starts that tick) has nothing to pop.
+    ctx.fillStyle = `rgba(225,225,215,${(0.4 * propBlur(p)).toFixed(3)})`;
     for (let k = 0; k < 48; k++) {
       if ((k + spin) % 3 === 0) continue;
       const t = (k / 48) * Math.PI * 2;
@@ -1180,9 +1184,11 @@ export function createRenderer(canvas, world, assets) {
       const spin = Math.floor(frame * (p.rpm / 400));
       const reach = 4 * PLANE_SCALE + 1;
       const bloody = gore.bloodied(p.id) > 0;
+      const blur = propBlur(p);
       for (let k = -reach; k <= reach; k++) {
         if ((k + spin) % 3 === 0) continue;
-        ctx.fillStyle = bloody ? `rgba(120,40,34,${Math.abs(k) > reach - 2 ? 0.35 : 0.55})` : Math.abs(k) > reach - 2 ? 'rgba(225,225,215,0.3)' : 'rgba(225,225,215,0.5)';
+        const edge = Math.abs(k) > reach - 2;
+        ctx.fillStyle = bloody ? `rgba(120,40,34,${((edge ? 0.35 : 0.55) * blur).toFixed(3)})` : `rgba(225,225,215,${((edge ? 0.3 : 0.5) * blur).toFixed(3)})`;
         ctx.fillRect(Math.round(px + s * k), Math.round(py + c * k), 1, 1);
       }
     }
