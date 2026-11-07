@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld, DT } from '../src/sim/world.js';
-import { validateGuns, setGuns, setLoadout, flyingDef, loadFraction, equipKg, mountsOf, gunsOf, standardGunKg, refKg, DEFAULT_WEIGHT } from '../src/sim/weapons.js';
+import { updateWeapons, validateGuns, setGuns, setLoadout, flyingDef, loadFraction, equipKg, mountsOf, gunsOf, standardGunKg, refKg, DEFAULT_WEIGHT } from '../src/sim/weapons.js';
 import { changeSeat } from '../src/sim/seats.js';
 import { rearmFully } from '../src/sim/airfield.js';
 import { gunRows, buildGuns, effects, describeEffects, sanitizeChoice, hasGunOptions } from '../src/ui/hangar-logic.js';
@@ -202,4 +202,21 @@ test('gunsOf on a plane with no choice gives the standard fit with full ammuniti
   const { world, p } = waiting('spitfire');
   const g = gunsOf(p, world.weapons);
   assert.deepEqual(g.map((x) => [x.weapon, x.count, x.ammoPer]), [['hispano_20', 2, 70], ['browning_303', 4, 180]]);
+});
+
+test('the dry-gun click plays only when every gun is empty, not when one mount ran out', () => {
+  const { world, p } = waiting('bf109g6');
+  assert.ok(p.guns.length > 1, 'needs more than one gun mount');
+  p.state = 'air';
+  const clicks = () => world.events.filter((e) => e.type === 'empty').length;
+  const fire = { ...CMD, fire: true };
+  p.guns[0].ammo = 0;
+  world.events.length = 0;
+  for (const g of p.guns) g.cooldown = 0;
+  updateWeapons(p, fire, world, DT);
+  assert.equal(clicks(), 0, 'one mount dry, the others still fire: no click');
+  p.guns.forEach((g) => (g.ammo = 0));
+  world.events.length = 0;
+  updateWeapons(p, fire, world, DT);
+  assert.equal(clicks(), 1, 'all dry: one click');
 });

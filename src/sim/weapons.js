@@ -241,11 +241,7 @@ export function updateWeapons(p, cmd, world, dt) {
   for (const g of p.guns) {
     g.cooldown = Math.max(0, g.cooldown - dt);
     if (!cmd.fire || !canFight || g.cooldown > 0) continue;
-    if (g.ammo <= 0) {
-      if (!p.emptyClicked) world.events.push({ type: 'empty', plane: p.id });
-      p.emptyClicked = true;
-      continue;
-    }
+    if (g.ammo <= 0) continue;
     // Guns firing through the propeller are timed to miss the blades: they slow with the engine, and
     // with the propeller stopped they can't fire at all.
     const rate = g.synced ? syncRate(p) : 1;
@@ -271,6 +267,12 @@ export function updateWeapons(p, cmd, world, dt) {
       tracer: g.fired % TRACER_EVERY === 0, // every third round per gun battery is a tracer
     });
     world.events.push({ type: 'shot', plane: p.id, voice: w.voice, x, y });
+  }
+  // The dry click means "nothing left to shoot": one mount running out (the cannon) while the rest
+  // still fire is not a click.
+  if (cmd.fire && canFight && p.guns.length && p.guns.every((g) => g.ammo <= 0)) {
+    if (!p.emptyClicked) world.events.push({ type: 'empty', plane: p.id });
+    p.emptyClicked = true;
   }
   if (!cmd.fire) p.emptyClicked = false;
   updateTurrets(p, world, dt, canFight);

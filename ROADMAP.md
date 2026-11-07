@@ -246,6 +246,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Empty-gun click fixed (Sound, Gameplay, 2026-11-07):** the dry click played as soon as any one gun ran dry (`updateWeapons` in `src/sim/weapons.js` clicked per gun); now it plays once per trigger press only when every pilot gun is empty. Test in `tests/guns.test.mjs`. Turret guns do not count.
 - **Hangar: double click a plane card = pick and START ENGINE (UI, 2026-11-07):** in `src/ui/hangar-view.js` a second click on the same card within 400 ms calls `h.close` after `pickPlane` (timed by hand, since picking redraws the cards and the browser's `dblclick` would miss). Only where the view has a close/start action. Tests pass (270); not tried by eye in the browser.
 - **Ground-turn glitch frame fixed (Planes, 2026-11-07):** at the end of a turn on the ground the sim flips the plane at once (moved two wheel offsets, angle +180 degrees), but drawing blends the last two ticks and only the map-edge turn told it about a flip, so one drawn frame showed the plane half-shifted and tilted. `stepGroundTurn` now bumps `edgeFlip` too (all planes, hangar exit included); test in `tests/interpolate.test.mjs`. Not yet checked by eye in play. The camera jerk at the flip stays in the backlog item *Camera pan during a ground turn*.
 - **Edge turn no longer tilts the plane (Planes, 2026-11-07):** the `edge` frame row is baked tail-down (same pose as the ground turn), so the level plane popped nose-up when the swing started and back at the end. `drawPlaneDetail` in `src/render/renderer.js` now takes `wheelGeometry(def).tailDown` back out of the rotation for that row, full at both ends and fading to nothing tail-on mid-swing (`cos^2(pi*edgeTurn)`; sign flips for facing left and for upside down). Not yet checked by eye in play; if a case looks wrong the signs are the suspect. Cleaner alternative if it doesn't: build the `edge` row with pitch 0 in `tools/make-sprites.mjs` and rebuild the sprites.
@@ -486,7 +487,6 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 - **Camera pan during a ground turn** (Gameplay): when the plane turns on the tarmac, the camera should pan smoothly to its new position during the turn instead of jumping. Session: "Gameplay — camera pan during ground turn".
-- **Ammo click with ammo left** (Sound, Gameplay): the empty-gun click plays while the plane still has ammo; probably because one gun mount ran dry (e.g. the cannon) while others still have rounds. Decide when the click should play. Session: "Sound — ammo click with ammo left".
 
 ## Backlog
 - **Take-off from dirt** (Gameplay): every plane must be able to take off from dirt (grass or open ground, not only the runway); `tests/grass-takeoff.test.mjs` checks this on flat grass, so find out what is still missing and how rough ground should cost.
