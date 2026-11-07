@@ -57,7 +57,8 @@ export function wheelGeometry(def) {
     const bottom = (w) => [w.wheel[0], w.wheel[1] - w.r];
     const main = bottom(wheels.find((w) => !w.tail));
     const tail = bottom(wheels.find((w) => w.tail));
-    g = { main, tail, tailDown: Math.atan2(tail[1] - main[1], main[0] - tail[0]) };
+    // atan, not atan2: a nosewheel plane has its 'tail' wheel ahead of the main wheels.
+    g = { main, tail, tailDown: Math.atan((tail[1] - main[1]) / (main[0] - tail[0])) };
     geometry.set(def, g);
   }
   return g;

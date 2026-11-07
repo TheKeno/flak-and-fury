@@ -14,6 +14,10 @@ plane), markings pass (optional German fin swastika setting).
 
 Own model `ju87()` (`tools/plane-models.mjs`) reading `data/outlines/ju87.json` through `kit(o)` incl. radiators, spat and bump; rebuild sprites with `node tools/make-sprites.mjs ju87` after any outline edit. In `data/planes.json` with `fixedGear`, `sc_500` bomb, sound id `ju87` (was `ju87d3`). Estimated values (to check in flight): thrust 72, drag 0.0052 (level top about 103 with the gear drag), maxSpeed 108, turnRate 1.0, hp 110, toughness 1.2, stall 48, takeoff 52, roll about 114, runwayNeeded 130, `sc_500` blast 50 / 200 (extrapolated from sc_250). Wheel, tail leg, propOffset, exhaustOffset, bombOffset and gunner offset computed from the outline; look at them in a big view. Open: 4 x 50 kg wing bombs (one bomb slot per plane), visible bombs, the Ju 87 G-2 (two 37 mm pods) on the same airframe, dive brakes could animate.
 
+## P-38J Lightning: done (2026-11-07)
+
+Outline by the owner in the Outline Lab (`data/outlines/p38j.json`, drawn on the bf110 template parts: pod = fuselage, boom = nacelle at z 2.49, intercooler bulge = radiators, twin fins at z 2.24). Own model `p38j()`; USAAF 1943 star and bar on booms and wings. In `data/planes.json` (nation usa, heavy fighter, 4 .50 + 1 Hispano 20 mm, one `wing` rack with 2 GP 500, `emptyWeight` 5800, `maxLoad` 908). First nosewheel plane: `wheelGeometry` in `src/sim/plane.js` now uses `atan` so a `tail` wheel ahead of the mains gives a tiny nose-down stance. Estimated values to check in flight: thrust 86, drag 0.0034, maxSpeed 157, turnRate 1.25, hp 150, stall 60, takeoff 65, runwayNeeded 260. Leg tops, stowed wheel positions, exhaust and prop offsets are computed from the outline; look at them in a big view. Not done: bomb under the wing is a single rack (no 1000 lb bomb yet), no turbo-supercharger sound.
+
 ## Mosquito FB.VI: sprite done (2026-11-05)
 
 Own model `mosquito()` in `tools/plane-models.mjs` from `data/outlines/mosquito.json` (1943 RAF scheme, C1/B/C
@@ -38,7 +42,7 @@ nose line, rear down at 3.9 m). Use 1943 RAF markings, not the drawings' post-wa
 0. First build the **Outline Lab** (ROADMAP Decisions, 2026-11-04) in its own session and move
    the seven finished planes onto outline files; the remaining planes are then outlined in it.
 1. (Done) Mosquito FB.VI
-2. P-38J (owner changed from H)
+2. (Done) P-38J
 3. Pe-3
 4. Ki-45 KAI
 5. Blenheim Mk IV
