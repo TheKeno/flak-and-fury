@@ -162,7 +162,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, rest: 0, restX: 0 };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, rest: 0, restX: 0, hopX: 0, flipId: null, flipCount: 0, flipX: null };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -308,6 +308,23 @@ export function createRenderer(canvas, world, assets) {
       }
     }
     if (cam.rest > 0) cam.x += (cam.restX - cam.x) * cam.rest;
+    // Turning round on the ground flips the plane's x by the wheel offset in one tick (the drawing pivots
+    // on the wheels, so it doesn't show). Take that jump out of the view and let it ease away, so the
+    // camera pans over to the new position instead of snapping.
+    if (!free && focus && focus.state === 'ground') {
+      if (cam.flipId === focus.id && cam.flipCount !== focus.edgeFlip && cam.flipX != null) cam.hopX += cam.flipX - focus.x;
+      cam.flipId = focus.id;
+      cam.flipCount = focus.edgeFlip;
+      cam.flipX = focus.x;
+    } else {
+      cam.flipId = cam.flipX = null;
+      cam.hopX = 0;
+    }
+    if (cam.hopX) {
+      cam.x += cam.hopX;
+      cam.hopX *= Math.exp(-Math.min(dt, 0.1) * 3);
+      if (Math.abs(cam.hopX) < 0.01) cam.hopX = 0;
+    }
     cam.x = clamp(cam.x, 0, map.width - vw);
     cam.y = clamp(cam.y, 0, Math.max(0, map.ceiling + 160 - vh));
     // Snap to whole buffer pixels so the scenery doesn't shimmer.
