@@ -1079,7 +1079,7 @@ function p38j(o) {
         [X(hubD), Y(hubH), -nz],
       ],
       propRadius: 1.75 * M,
-      mainContact: [main[0], -10, 0],
+      mainContact: [main[0], main[1] - wheelR, 0],
       track: main[2],
     },
   };
