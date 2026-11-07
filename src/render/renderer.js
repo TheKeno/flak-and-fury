@@ -969,8 +969,13 @@ export function createRenderer(canvas, world, assets) {
     if (p.seats?.[0]?.controller?.startsWith('bot') && assets.settings.hud.showBotNames === false) return;
     const alpha = nameAlpha(p);
     if (alpha <= 0) return;
-    // Head-on frames (out of the hangar, turning round) are drawn level: the tail-down tilt would slant the name.
-    const view = p.groundTurn != null ? { angle: p.angle, x: p.x, y: p.y } : groundAttitude(p);
+    const view = { ...groundAttitude(p) };
+    // Turning round on the ground the plane pivots on its main wheels and the sim moves p.x by two wheel
+    // offsets at the end, so a name left at p.x would hop across at the flip. Slide it over with the turn
+    // (it is above the wheels in the head-on middle frame) so it ends exactly where the flipped plane's
+    // name starts. The tilt stays in, as before and after the turn.
+    // The flipped plane is the mirror image about the wheel contact, so the name ends at twice the contact minus where it began.
+    if (p.groundTurn != null) view.x += 2 * (mainWheelContact(p).x - view.x) * smooth(Math.min(1, Math.max(0, p.groundTurn)));
     const roll = Math.cos(p.rollAngle ?? 0);
     const upright = Math.cos(view.angle) >= 0 === roll >= 0;
     ctx.save();
