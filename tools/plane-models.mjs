@@ -1712,7 +1712,7 @@ function tank(o, opts = {}) {
   const [gd, gh] = o.gun.pivot;
   const ring = o.turret.stations;
   const parts = [
-    { ...hull, material: (p, n) => mark('hull')(p, n) ?? { kind: 'paint', dark: inLoop(p[0], p[1]) ? 2 : 0 } },
+    { ...hull, material: (p, n) => mark('hull')(p, n) ?? (inLoop(p[0], p[1]) ? { kind: 'dark' } : { kind: 'paint' }) },
     { ...band, material: bandMat },
     ...wheels,
     { ...turret, layer: 'turret', material: (p, n) => mark('turret')(p, n) ?? { kind: 'paint' } },
