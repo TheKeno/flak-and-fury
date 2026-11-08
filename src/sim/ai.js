@@ -38,6 +38,8 @@ export const DEFAULT_BOTS = {
   mixDiveBomber: 5,
   switchMin: 2, // a bot changes plane after this many deaths at least, this many at most
   switchMax: 4,
+  emergencyWear: 0.25, // a bot stops using emergency power once its engine is this worn
+  emergencyRange: 350, // limping home, a bot uses it when an enemy is this close
   levels: {
     easy: { turnFight: 0, reaction: 0.6, lookout: 380, aimError: 0.06, aimTolerance: 0.1, fireRange: 200, evadeChance: 0.3, stallMargin: 0.35, turnHard: 0.75, flakAvoid: 0.4, bombError: 30, hpReturn: 0.25, ammoReturn: 0.05 },
     normal: { turnFight: 0.5, reaction: 0.35, lookout: 520, aimError: 0.03, aimTolerance: 0.07, fireRange: 230, evadeChance: 0.6, stallMargin: 0.2, turnHard: 0.9, flakAvoid: 0.8, bombError: 15, hpReturn: 0.35, ammoReturn: 0.1 },
@@ -50,7 +52,7 @@ export const DEFAULT_BOTS = {
 export const DEFAULT_RADAR = { sweepTime: 2.5, lowGap: 60, dropout: 0.6 };
 export const levelOf = (world, name) => world.bots.levels[name] ?? world.bots.levels.normal;
 
-const IDLE = () => ({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false });
+const IDLE = () => ({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false, emergency: false });
 const isBotPlane = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 // Absolute nose angle for flying towards dir (1 right, -1 left) at a pitch (rad, + up).
 const angleFor = (dir, pitch) => (dir > 0 ? pitch : Math.PI - pitch);
@@ -622,7 +624,20 @@ function airCommand(world, p, b, skill) {
       cmd.fire = false;
     }
   }
-  return fly(world, p, b, skill, want, cmd);
+  const out = fly(world, p, b, skill, want, cmd);
+  // The key is a toggle: press only when the wish differs from the state.
+  out.emergency = wantsEmergency(world, p, b) !== p.emergency;
+  return out;
+}
+
+// Bots use emergency power to survive, never to win a fight: only while breaking away from a plane on
+// the tail (or limping home with an enemy near), only while the engine is little worn and cool.
+function wantsEmergency(world, p, b) {
+  const cfg = world.bots;
+  if (p.engineDamage > cfg.emergencyWear || (p.emergency ? p.heat > 0.8 : p.heat > 0.35)) return false;
+  if (b.mode === 'evade') return true;
+  if (b.mode !== 'home') return false;
+  return world.planes.some((o) => o.team !== p.team && o.state === 'air' && !o.dying && Math.hypot(o.x - p.x, o.y - p.y) < cfg.emergencyRange);
 }
 
 function patrolWant(world, p, b) {

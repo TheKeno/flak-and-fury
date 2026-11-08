@@ -150,6 +150,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
       `${keyOf('fire')}  GUNS`,
       `${keyOf('bomb')}  BOMBS`,
       `${keyOf('gear')} GEAR   ${keyOf('abandon')} BAIL OUT`,
+      `${keyOf('emergency')}  EMERGENCY POWER`,
       `MOUSE / ${arrows === 'UP/DOWN/LEFT/RIGHT' ? 'ARROWS' : arrows}  LOOK`,
       `${keyOf('menu')} MENU   ${keyOf('mute')} MUTE   ${keyOf('help')} HIDE HELP`,
       `${keyOf('hangar')} HANGAR (PLANE, BOMBS)`,
@@ -250,6 +251,7 @@ export function damageLines(plane) {
   else if (plane.engineDamage > 0.5) lines.push(['ENGINE BADLY HIT', RED]);
   else if (plane.engineDamage > 0.1) lines.push(['ENGINE DAMAGED', AMBER]);
   if (plane.belly) lines.push(['ON ITS BELLY', AMBER]);
+  if (plane.emergency) lines.push([`EMERGENCY POWER - ${keyOf('emergency')} TO CUT${plane.heat > 0.6 ? ' - ENGINE HOT' : ''}`, plane.heat > 0.6 ? RED : AMBER]);
   return lines;
 }
 

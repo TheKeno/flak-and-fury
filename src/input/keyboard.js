@@ -13,6 +13,7 @@ export const ACTIONS = [
   ['bomb', 'Bombs (hold: bomb view, release: drop)', ['KeyE', 'Mouse2']],
   ['gear', 'Landing gear', ['KeyG', null]],
   ['abandon', 'Bail out', ['KeyB', null]],
+  ['emergency', 'Emergency power (on / off)', ['KeyQ', null]],
   ['lookUp', 'Look up', ['ArrowUp', null]],
   ['lookDown', 'Look down', ['ArrowDown', null]],
   ['lookLeft', 'Look left', ['ArrowLeft', null]],
@@ -115,6 +116,7 @@ export function createKeyboard(bindings = defaultBindings()) {
         })(),
         gear: any(bindings.gear),
         abandon: any(bindings.abandon),
+        emergency: any(bindings.emergency), // a toggle: the sim acts on the press
         hangar: null, // set by main.js for one tick (park in, roll out)
       };
     },

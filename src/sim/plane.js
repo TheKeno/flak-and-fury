@@ -2,6 +2,7 @@ import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './weapons.js';
 import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
 import { crashShockwave } from './ground.js';
+import { updateEmergency } from './emergency.js';
 
 
 export const GRAVITY = 90;
@@ -34,7 +35,7 @@ const GRASS_TAKEOFF_MARGIN = 1.08; // ...but never so much that full throttle to
 const GRASS_SLOPE = 0.05; // ...while climbing a gentle grass slope this steep (rad, about 3 degrees)
 const GEAR_JOLT_LIMIT = 320; // upward acceleration (units/s²) the gear survives when the ground rises
 
-export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false, hangar: null }); // hangar: 'call' (park in) | 'out' (roll out of the hangar), one tick
+export const NO_COMMAND = Object.freeze({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false, emergency: false, hangar: null }); // hangar: 'call' (park in) | 'out' (roll out of the hangar), one tick
 
 const isBot = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
 
@@ -167,6 +168,9 @@ export function createPlane(id, def, { team, nation, seats }) {
     turnHold: 0, // seconds the current turn key has been held, for fine aiming
     hp: def.hp,
     engineDamage: 0, // 0 = healthy, 1 = wrecked: less power, rough running
+    emergency: false, // war emergency power is on (src/sim/emergency.js)
+    heat: 0, // 0..1: how hot emergency power has run the engine
+    prevEmergency: false,
     burning: false,
     fireLeft: 0, // seconds until a fire finishes the plane
     fireOut: 0, // seconds spent putting a fire out
@@ -224,6 +228,8 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.stalled = false;
   p.hp = p.def.hp;
   p.engineDamage = 0;
+  p.emergency = false;
+  p.heat = 0;
   p.burning = p.dying = false;
   p.fireLeft = p.fireOut = 0;
   p.fireCough = p.fireStopped = false;
@@ -403,9 +409,13 @@ function updateEngine(p, world, dt) {
   updateFuel(p, world, dt);
   const firing = p.engineRunning && !p.starved && !(p.burning && p.fireCough);
   p.power = firing ? 1 - p.engineDamage * 0.5 : 0;
+  // Emergency power: extra power, less of it as the engine wears; max rpm and full load for the sound.
+  const boosted = firing && p.emergency;
+  if (boosted) p.power *= 1 + world.emergency.boost * (1 - p.engineDamage);
   let target;
   if (firing) {
     target = e.idleRpm + (e.cruiseRpm - e.idleRpm) * p.throttle * (1 - p.engineDamage * 0.35);
+    if (boosted) target = e.maxRpm * (1 - p.engineDamage * 0.1);
     // Airspeed drives the propeller: dives over-rev the engine, slow climbs drag it down.
     if (p.state === 'air') target += (p.speed / p.def.maxSpeed - 0.75) * 700 * (0.4 + 0.6 * p.throttle);
     target = clamp(target, e.idleRpm * 0.85, e.maxRpm * 1.1);
@@ -414,7 +424,7 @@ function updateEngine(p, world, dt) {
     target = p.state === 'air' ? clamp(p.speed / p.def.maxSpeed, 0, 1.3) * e.cruiseRpm * 0.55 : 0;
   }
   p.rpm += (target - p.rpm) * Math.min(1, dt * (firing ? 2.2 : 0.8));
-  p.load += (p.throttle * (firing ? 1 : 0) - p.load) * Math.min(1, dt * 5);
+  p.load += ((boosted ? 1 : p.throttle) * (firing ? 1 : 0) - p.load) * Math.min(1, dt * 5);
 }
 
 // Landing gear. Automatic by default: up once climbing away, down when low and slow. Pressing G takes
@@ -1128,6 +1138,7 @@ export function stepPlane(p, cmd, world, dt) {
   if (p.groundTurn != null || p.groundLoop != null) cmd = { ...cmd, fire: false, bomb: false };
   p.throttle = clamp(p.throttle + cmd.throttle * 0.7 * dt, 0, 1);
   updateConsciousness(p, cmd, world, dt);
+  updateEmergency(p, cmd, world, dt);
   updateEngine(p, world, dt);
   updateDamage(p, world, dt);
 

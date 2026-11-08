@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Emergency power (decided 2026-11-08, discussion; not built):** build is its own session, "Gameplay — emergency power (build)".
+- **Emergency power (decided 2026-11-08, discussion; built 2026-11-08, see Done):**
   Always available, no lockout, no grace period: every second costs something at once and the cost grows the longer it is held.
   - **Gain:** about +20% engine power (climb, top speed, acceleration), engine at `maxRpm`. Toggle key `E` (or `Shift` if `E` is
     taken), rebindable through `ACTIONS`.
@@ -352,6 +352,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Emergency power (Gameplay, 2026-11-08):** built from the Decisions entry. `src/sim/emergency.js` (toggle on the press of `Q`, since `E` is bombs and Shift is roll; heat; wear as plain `engineDamage`, so the existing servicing repairs it), the boost and max rpm in `updateEngine` (`src/sim/plane.js`), `settings.emergency` in the tuning panel and `TUNING.md`, dark smoke trail for everyone (`emitEffects`), HUD warning and help line, bots use it only to break away or limp home (`bots.emergencyWear`, `emergencyRange`). `tests/emergency.test.mjs`; all 298 tests pass. Not flown in the browser (game loads without errors); smoke trail, HUD line and feel need a look. Left: sound (the `emergency` input in the Sound Lab is not wired to the game: the sim sends max rpm and full load, which the engine voice follows), fuel burn is unchanged.
 - **Tank crew behaviour (Gameplay, 2026-11-08):** sim side only. `stepCrew` in `src/sim/army.js` sets `tank.crew` to `in` (ground combat: fighting, has shot, or an enemy in main-gun reach, held `combatHold` s), `gunner` (roof MG fired at a plane, held `gunnerHold` s) or `out` (commander); event `tankCrew {id, x, state}` on a change. While `in`, `pickTarget` in `src/sim/defences.js` skips planes for the tank (coax and roof MG), soldiers still get shot. New values in `data/ground.json`, tuning panel, TUNING.md; `tests/tank-crew.test.mjs`. **Still to do:** drawing the three sprites and the `tankcrew` dot wait for the Lab session (tank outline); then the renderer reads `crew`. Open point from the Decisions entry kept: only the machine gun counts, not the main gun.
 - **FPS counter (UI, 2026-11-08):** `FPS` read-out above `SPD` in the HUD (`fpsNow` in `src/render/hud.js`, frames counted over 500 ms). Seen at 67 in the hangar screen; not checked in flight. Removal is a backlog item for 1.0.
 - **Bot take-off direction (Gameplay, 2026-11-08):** planes queued out of the hangar stand 50-130 units down the runway, which failed the bot's `need` check (runway width - 60), so they taxied back to the far end and turned round. `need` in `groundCommand` (`src/sim/ai.js`) now also subtracts the hangar queue (`queueSize * slotGap`). Checked headless with three bots from one hangar, all take off towards the enemy; 284 tests pass. No regression test added.
@@ -604,7 +605,6 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-- **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Discussion settled 2026-11-08 (see Decisions, "Emergency power"); build waits for its own session.
 
 - **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). The owner's new sheets (Panzer IV Ausf. H and six trucks) are in the library; hull and turret fitted by Fit to drawing, gun measured from the sheet; waiting for the owner to check and correct the Panzer IV H outline by hand in the Lab (hull corners, skirts, wheels). Then: wire the layers into the renderer (also "Draw the tank crew" in the Backlog), New plane picker for tanks, trucks.
 

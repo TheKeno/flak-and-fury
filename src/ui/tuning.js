@@ -158,6 +158,13 @@ const FIRE_FIELDS = [
   ['crewTime', 'Put out by ground crew', 0.2, 10, 0.1, 'Seconds the ground crew need once stopped on your own airstrip.'],
   ['engineHarm', 'Engine damage from fire', 0, 1, 0.05, 'Engine damage left behind once a fire is out.'],
 ];
+const EMERGENCY_FIELDS = [
+  ['boost', 'Extra power', 0, 0.6, 0.01, 'Extra engine power with emergency power on (0.2 = +20%). A worn engine gets less of it.'],
+  ['baseWear', 'Wear at once (per s)', 0, 0.05, 0.001, 'Engine damage per second from the moment it is switched on (1 = wrecked). Stays until the ground crew repair it.'],
+  ['peakWear', 'Wear when hot (per s)', 0, 0.1, 0.001, 'Engine damage per second once the engine is fully heated.'],
+  ['heatTime', 'Time to full heat', 2, 60, 1, 'Seconds of emergency power until the engine is fully heated and wears at the top rate.'],
+  ['coolTime', 'Time to cool', 2, 60, 1, 'Seconds to cool fully once switched off. Switching on again while hot starts at a higher wear rate.'],
+];
 const RADAR_FIELDS = [
   ['sweepTime', 'Sweep time', 0.3, 8, 0.1, 'Seconds for the radar beam to cross the map. Contacts only update when the beam passes them.'],
   ['afterglow', 'Afterglow', 0.3, 8, 0.1, 'Seconds a plot keeps glowing on the phosphor after being swept.'],
@@ -353,6 +360,8 @@ const BOT_FIELDS = [
   ['mixDiveBomber', 'Plane mix: dive bombers', 0, 100, 1, 'Weight of dive bombers (Stuka).'],
   ['switchMin', 'Plane change: fewest deaths', 1, 10, 1, 'A bot swaps to a newly picked plane after this many deaths at the least.'],
   ['switchMax', 'Plane change: most deaths', 1, 10, 1, 'And after this many at the most.'],
+  ['emergencyWear', 'Emergency power: wear limit', 0, 1, 0.05, 'A bot stops using emergency power once its engine damage reaches this.'],
+  ['emergencyRange', 'Emergency power: enemy range', 50, 1000, 10, 'Limping home, a bot switches on emergency power when an enemy is this close.'],
 ];
 const BOT_LEVEL_FIELDS = [
   ['reaction', 'Reaction time', 0.05, 2, 0.05, 'Seconds between decisions: spotting a plane on its tail, picking a target, going home.'],
@@ -544,6 +553,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
+  const emergencySection = section('Emergency power', false, ...EMERGENCY_FIELDS.map((f) => add(slider(settings.emergency, f))));
   const decorSection = section('Decor', false, ...DECOR_FIELDS.map((f) => add(slider(settings.decor, f))));
   const zoneSection = section('Landscape zones', false, ...ZONE_FIELDS.map((f) => add(slider(settings.zones, f))));
   const padSection = section('Structure pads', false, ...PAD_FIELDS.map((f) => add(slider(settings.pads, f))));
@@ -663,6 +673,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
       else settings.bots[k] = v;
     }
     Object.assign(settings.fire, saved.settings.fire);
+    Object.assign(settings.emergency, saved.settings.emergency);
     Object.assign(settings.waves, saved.settings.waves);
     Object.assign(settings.pads, saved.settings.pads);
     Object.assign(settings.zones, saved.settings.zones);
@@ -733,6 +744,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     weightSection,
     collisionSection,
     fireSection,
+    emergencySection,
     radarSection,
     netSection,
     bailoutSection,

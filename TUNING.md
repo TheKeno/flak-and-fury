@@ -145,6 +145,15 @@ left), the ground crew in `crewTime` on your own airstrip, counted from when bot
 (not from when it stopped). The time keeps running while they walk out and work. All in
 the tuning panel's Fire section.
 
+`emergency` (Q, war emergency power; tuning panel: Emergency power): a toggle, always available. The engine
+runs at its max rpm with `boost` extra power (0.2 = +20%; a worn engine gets less). Wear starts at once:
+`baseWear` engine damage per second (1 = wrecked), rising to `peakWear` as the engine heats; heat takes
+`heatTime` seconds to reach full and `coolTime` to drain once switched off, so switching on again while hot
+starts at a higher wear. The wear is ordinary engine damage: it stays until the ground crew repair it. A dark
+smoke trail shows from the first moment, to everyone. Bots use it only to survive (breaking away from a plane
+on the tail, or limping home with an enemy within `bots.emergencyRange`) and stop once their engine damage
+reaches `bots.emergencyWear`.
+
 `landing` (tuning panel: Landing): touchdowns are graded. Clean: speed under the plane's
 `maxLandingSpeed` and the nose within `cleanAngle` (rad) of the ground's slope. Hard: up to
 `hardSpeed` (share of max landing speed) or `hardAngle`, the plane is kicked back up a little and

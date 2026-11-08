@@ -11,6 +11,7 @@ import { DEFAULT_SERVICING, stepCrew } from './airfield.js';
 import { createGround, planesHitStructures, stepHangarDoors } from './ground.js';
 import { stepDefences, stepShells } from './defences.js';
 import { DEFAULT_FIRE } from './fire.js';
+import { DEFAULT_EMERGENCY } from './emergency.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
 import { DEFAULT_DECOR } from './decor.js';
 import { changeSeat } from './seats.js';
@@ -37,6 +38,7 @@ export const DEFAULT_RULES = {
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 // waves: how often and how big the tank columns are (src/sim/army.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
+// emergency: war emergency power, its boost, wear and heat (src/sim/emergency.js).
 // decor: hedges, walls and trees placed from the map's zones (src/sim/decor.js).
 // landing: how forgiving touchdowns are (src/sim/plane.js).
 // takeoff: how the nose rotates and the plane eases into flight (src/sim/plane.js).
@@ -52,6 +54,7 @@ export function createWorld({
   servicing = { ...DEFAULT_SERVICING },
   collisions = { ...DEFAULT_COLLISIONS },
   fire = { ...DEFAULT_FIRE },
+  emergency = { ...DEFAULT_EMERGENCY },
   waves = { ...DEFAULT_WAVES },
   pads = { ...DEFAULT_PADS },
   zones = { ...DEFAULT_ZONES },
@@ -75,6 +78,7 @@ export function createWorld({
     servicing,
     collisions,
     fire,
+    emergency,
     waves,
     landing,
     takeoff,

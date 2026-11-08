@@ -105,6 +105,13 @@
     "crewTime": 1.5,
     "engineHarm": 0.3
   },
+  "emergency": {
+    "boost": 0.2,
+    "baseWear": 0.005,
+    "peakWear": 0.02,
+    "heatTime": 15,
+    "coolTime": 10
+  },
   "waves": {
     "first": 15,
     "interval": 75,
@@ -204,6 +211,8 @@
     "mixDiveBomber": 5,
     "switchMin": 2,
     "switchMax": 4,
+    "emergencyWear": 0.25,
+    "emergencyRange": 350,
     "levels": {
       "easy": {
         "turnFight": 0,

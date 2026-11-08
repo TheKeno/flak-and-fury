@@ -40,6 +40,7 @@ const world = createWorld({
   servicing: content.settings.servicing,
   collisions: content.settings.collisions,
   fire: content.settings.fire,
+  emergency: content.settings.emergency,
   waves: content.settings.waves,
   pads: content.settings.pads,
   zones: content.settings.zones,

@@ -1382,6 +1382,10 @@ export function createRenderer(canvas, world, assets) {
       const kind = p.burning || hurt > 0.7 ? 'blacksmoke' : 'smoke';
       particles.spawn(kind, wx, wy, p.vx * 0.1, p.vy * 0.1 + 4, 1.2 + Math.random(), 1.2);
     }
+    // Emergency power: a dark trail from the first moment, thicker as the engine heats. Everyone sees it.
+    if (p.emergency && p.engineRunning && Math.random() < (0.5 + 0.5 * p.heat) * dt * 60) {
+      particles.spawn('blacksmoke', wx, wy, p.vx * 0.15 - c * 8, p.vy * 0.15 - s * 8 + 3, 1.4 + Math.random() * 0.8 + p.heat, 1.1 + p.heat * 0.6);
+    }
     // Flames grow as the fire takes hold.
     const stage = p.dying ? 1 : fireStage(world, p);
     if (p.burning && Math.random() < (0.5 + 1.3 * stage) * dt * 60) {
