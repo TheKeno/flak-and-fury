@@ -617,6 +617,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Vehicle headlights at night (Gameplay):** when the night maps and the lighting layer (item 13) are done, light the trucks' headlamps (and tank lamps) from the `lights` list in each truck's sprite json (pixel centre and radius, beam pointing forward).
 - **A tank for each nation in the game (Gameplay):** the sim has one `tank` type drawn as the Panzer for every side. Give each nation its own (`panzer4h`, `m4a1`, `t34-76`, `churchill`, `chiha`, `bt42`), chosen by the depot's nation, with its own size and hit box (the real hull lengths are 5.55 to 7.44 m); `spriteScale` stays 1.5 until the infantry get real-scale sprites.
 - **Tank detail list (Planes):** hand-placed extras on a tank outline (tools on the mudguards, exhaust, hatches, spare track links, headlamp), rectangles and circles at d and h, edited in the Lab like the markings.
 - **Infantry at real scale (Planes):** the squad drawing (`drawSquad`, 13 scenery pixels, 2.6 m) is 1.5 times too big for the planes' scale; redraw them as 0.1 m pixel sprites (17 px) from the Lab, then drop the tank's `spriteScale`.
