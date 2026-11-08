@@ -1354,10 +1354,13 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // Bomb sight (bomb view held): the first part of the next bomb's fall as dots, ending in a ring and
-  // cross up in the air. It stops camera.bombSightReach of the way to the ground (share of the fall's time),
-  // so the rest of the drop is the pilot's own judgement.
-  function drawBombSight(p) {
+  // Bomb sight (bomb view held): the first part of the next bomb's fall as dots in the world, ending in the
+  // player's own gunsight (same shape, colour, size and opacity as the options set) up in the air. It stops
+  // camera.bombSightReach of the way to the ground (share of the fall's time), so the rest of the drop is
+  // the pilot's judgement. The ordinary gunsight is hidden meanwhile.
+  let bombEnd = null; // [x, y] world point the sight sits at this frame
+  function drawBombPath(p) {
+    bombEnd = null;
     if (!p || p.state === 'dead' || p.bailout) return;
     const hit = bombSightPath(world, p);
     if (!hit) return;
@@ -1365,22 +1368,14 @@ export function createRenderer(canvas, world, assets) {
     const shown = hit.path.slice(0, n);
     ctx.fillStyle = 'rgba(200,184,112,0.55)';
     for (const [x, y] of shown) ctx.fillRect(Math.round(toScreenX(x)), Math.round(toScreenY(y)), 1, 1);
-    const [px, py] = shown[shown.length - 1];
-    const sx = Math.round(toScreenX(px));
-    const sy = Math.round(toScreenY(py));
-    ctx.strokeStyle = 'rgba(214,196,120,0.9)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(sx + 0.5, sy + 0.5, 6, 0, Math.PI * 2);
-    ctx.moveTo(sx - 10, sy + 0.5);
-    ctx.lineTo(sx - 3, sy + 0.5);
-    ctx.moveTo(sx + 4, sy + 0.5);
-    ctx.lineTo(sx + 11, sy + 0.5);
-    ctx.moveTo(sx + 0.5, sy - 10);
-    ctx.lineTo(sx + 0.5, sy - 3);
-    ctx.moveTo(sx + 0.5, sy + 4);
-    ctx.lineTo(sx + 0.5, sy + 11);
-    ctx.stroke();
+    bombEnd = shown[shown.length - 1];
+  }
+  function drawBombSight() {
+    if (!bombEnd || !hudCfg.crosshair || hudCfg.crosshairAlpha <= 0) return;
+    const x = ((bombEnd[0] - cam.x) * SCALE / bw) * W;
+    const y = ((bh - (bombEnd[1] - cam.y) * SCALE) / bh) * H;
+    if (x < 0 || y < 0 || x >= W || y >= H) return;
+    drawSightShape(hud, x, y, hudCfg);
   }
 
   function drawMessages() {
@@ -1582,7 +1577,8 @@ export function createRenderer(canvas, world, assets) {
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       prof.mark('particles');
       drawProjectiles();
-      if (bombView && !free) drawBombSight(focus);
+      bombEnd = null;
+      if (bombView && !free) drawBombPath(focus);
       prof.mark('shots');
       if (!skip.has('planes')) for (const p of world.planes) drawPlane(p, focus);
       prof.mark('planes');
@@ -1621,7 +1617,7 @@ export function createRenderer(canvas, world, assets) {
         else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
       }
       if (focus) gore.drawSpatters(hud, focus.id);
-      if (focus && !free) drawSight(focus);
+      if (focus && !free) (bombView ? drawBombSight() : drawSight(focus));
       hud.globalAlpha = hudCfg.opacity ?? 1;
       if (!skip.has('hud')) drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
       drawMessages();
