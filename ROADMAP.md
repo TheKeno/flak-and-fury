@@ -611,7 +611,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab.
+- **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 13).
 
 
 
