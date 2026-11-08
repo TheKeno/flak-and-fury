@@ -1671,11 +1671,12 @@ function tank(o, opts = {}) {
   const travel = phase * 2 * pitch; // how far the tank has rolled, model units
   const plain = (kind) => () => ({ kind });
   // National markings on the hull and turret sides: shape 'cross' (Balkenkreuz, r scales it), 'star' (white, r = the
-  // points' radius, the US), 'redstar' (the USSR) or 'disc' (red, Japan).
+  // points' radius, the US), 'redstar' (the USSR), 'disc' (red, Japan) or 'hakaristi' (Finland, r = the white disc's radius).
   const markShape = (m, du, dv) => {
     // A fatter star than the plane's, so that it still reads a few pixels across.
     if (m.shape === 'star' || m.shape === 'redstar') return starRatio(du, dv, m.r * M, 0.5) <= 1 ? (m.shape === 'star' ? 'white' : 'red') : null;
     if (m.shape === 'disc') return Math.hypot(du, dv) <= m.r * M ? 'red' : null;
+    if (m.shape === 'hakaristi') return hakaristi(du, dv, m.r * M); // Finland: the blue swastika on a white disc
     // Tank cross: the black cross with a thin white edge (the plane's has a wide one).
     const a = Math.abs(du) / (m.r * M);
     const b = Math.abs(dv) / (m.r * M);
