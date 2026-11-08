@@ -145,7 +145,7 @@ left), the ground crew in `crewTime` on your own airstrip, counted from when bot
 (not from when it stopped). The time keeps running while they walk out and work. All in
 the tuning panel's Fire section.
 
-`emergency` (Q, war emergency power; tuning panel: Emergency power): a toggle, always available. The engine
+`emergency` (E, war emergency power; tuning panel: Emergency power): a toggle, always available. The engine
 runs at its max rpm with `boost` extra power (0.2 = +20%; a worn engine gets less). Wear starts at once:
 `baseWear` engine damage per second (1 = wrecked), rising to `peakWear` as the engine heats; heat takes
 `heatTime` seconds to reach full and `coolTime` to drain once switched off, so switching on again while hot
