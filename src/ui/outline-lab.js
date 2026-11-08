@@ -18,11 +18,11 @@ const round025 = (v) => Math.round(v / 0.025) * 0.025;
 
 const COLOURS = {
   fuselage: '#e0c070', glass: '#70c0e0', bed: '#e0a070', tarp: '#a0d0a0', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
-  gunTray: '#b0b0b0', radiators: '#90d090', ...Object.fromEntries(BUMP_KEYS.map((k) => [k, '#d0d0ff'])), spat: '#c0b090', turret: '#70d0c0', gun: '#f0a060', tracks: '#b0b0b0', wheels: '#e0d0a0', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff', points: '#ff7ad9',
+  gunTray: '#b0b0b0', radiators: '#90d090', ...Object.fromEntries(BUMP_KEYS.map((k) => [k, '#d0d0ff'])), spat: '#c0b090', turret: '#70d0c0', gun: '#f0a060', tracks: '#b0b0b0', wheels: '#e0d0a0', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff', points: '#ff7ad9', lights: '#fff0a0',
 };
 const LABELS = {
   fuselage: 'Fuselage', glass: 'Windshield / glass', bed: 'Cargo bed', tarp: 'Tarp / box body', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
-  radiators: 'Radiators', ...Object.fromEntries(BUMP_KEYS.map((k, i) => [k, i ? `Bump ${i + 1}` : 'Bump'])), spat: 'Wheel spat', turret: 'Turret', gun: 'Gun', tracks: 'Tracks', wheels: 'Wheels', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear', points: 'Crew and guns',
+  radiators: 'Radiators', ...Object.fromEntries(BUMP_KEYS.map((k, i) => [k, i ? `Bump ${i + 1}` : 'Bump'])), spat: 'Wheel spat', turret: 'Turret', gun: 'Gun', tracks: 'Tracks', wheels: 'Wheels', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear', points: 'Crew and guns', lights: 'Headlights',
 };
 const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
 // The plan view (from above) and the underside view (from below) edit the same points, each over its own picture.
@@ -386,8 +386,8 @@ function rawHandles(key) {
   if (isPlan()) return planHandles(key);
   const o = S.o;
   const hs = [];
-  if (key === 'points') {
-    for (const pt of o.points ?? []) {
+  if (key === 'points' || key === 'lights') {
+    for (const pt of pointsOf(key)) {
       hs.push({
         ref: pt,
         which: 'dot',
@@ -594,13 +594,13 @@ function pointLines() {
 }
 const gunners = (o = S.o) => (o.points ?? []).filter((p) => p.type === 'gunner');
 const pointName = (pt) => (pt.type === 'passenger' ? `Passenger ${(S.o.points ?? []).filter((q) => q.type === 'passenger').indexOf(pt) + 1}` : pt.type === 'exit' ? 'Exit (where infantry get off)' : pt.type === 'headlight' ? `Headlight ${(S.o.points ?? []).filter((q) => q.type === 'headlight').indexOf(pt) + 1}` : pt.type === 'tankcrew' ? 'Tank crew (commander and MG gunner)' : pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
+// The dots a part edits: the headlights are their own part, all the other dots are crew and guns.
+const pointsOf = (key, o = S.o) => (o.points ?? []).filter((p) => (key === 'lights') === (p.type === 'headlight'));
 function removePoint(pt) {
   const list = S.o.points;
   list.splice(list.indexOf(pt), 1);
-  if (!list.length) {
-    delete S.o.points;
-    S.part = 'fuselage';
-  }
+  if (!list.length) delete S.o.points;
+  if ((S.part === 'points' || S.part === 'lights') && !pointsOf(S.part).length) S.part = 'fuselage';
 }
 const KNOWN_TURRET_WEAPONS = ['mg81z', 'shkas', 'ho103', 'browning_303'];
 const interpTop = (rows, d) => {
@@ -643,7 +643,7 @@ function addPoint(type) {
     pt.weapon = KNOWN_TURRET_WEAPONS[0];
   }
   (S.o.points ??= []).push(pt);
-  S.part = 'points';
+  S.part = type === 'headlight' ? 'lights' : 'points';
   S.sel = { ref: pt, which: 'dot' };
   rebuildPanel();
   changed();
@@ -676,7 +676,7 @@ function pointsPanel(panel, row, note) {
     };
     return el;
   };
-  for (const pt of S.o.points ?? []) {
+  for (const pt of pointsOf(S.part)) {
     const h = document.createElement('div');
     h.className = 'dim';
     h.textContent = pointName(pt);
@@ -719,7 +719,7 @@ function pointsPanel(panel, row, note) {
     };
     panel.append(rb);
   }
-  note("Drag a dot to move the crew member; the gun and mount move with it. A gunner also has a wedge: drag its two edge squares to set the arc of fire (0 ahead, 90 up, 180 back; a belly gunner points down). Save writes the gunner's position and arc into data/planes.json armament.turrets (Gunner 1 is the first turret). In the plan view a dot moves along the plane and out from the centre line (z). The barrel is drawn along its aim, the box or dome mount round the dot.");
+  if (S.part === 'points') note("Drag a dot to move the crew member; the gun and mount move with it. A gunner also has a wedge: drag its two edge squares to set the arc of fire (0 ahead, 90 up, 180 back; a belly gunner points down). Save writes the gunner's position and arc into data/planes.json armament.turrets (Gunner 1 is the first turret). In the plan view a dot moves along the plane and out from the centre line (z). The barrel is drawn along its aim, the box or dome mount round the dot.");
 }
 const turretOf = (pt) => S.planes && Object.values(S.planes).find((d) => d && d.sprite === S.name)?.armament?.turrets?.[gunners().indexOf(pt)];
 
@@ -809,7 +809,7 @@ function segmentsFor(key) {
 }
 
 function partIds() {
-  const crew = S.o.points?.length ? ['points'] : [];
+  const crew = [...(pointsOf('points').length ? ['points'] : []), ...(pointsOf('lights').length ? ['lights'] : [])];
   if (isVehicle()) return [...BODY_KEYS.filter((k) => S.o[k]), ...(S.o.tracks ? ['tracks'] : []), ...(S.o.glass ? ['glass'] : []), 'wheels', ...crew];
   if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k]), ...crew, 'gear'];
   return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), ...crew, 'gear'];
@@ -1597,7 +1597,7 @@ function rowTable(rows, cols, edit, remove) {
 function planPanel(o, row, note, button, panel) {
   const s = o[S.part];
   if (!s) return;
-  if (S.part === 'points') return pointsPanel(panel, row, note);
+  if (S.part === 'points' || S.part === 'lights') return pointsPanel(panel, row, note);
   if (S.part === 'gear') {
     row('main wheel d', numInput(() => s.main.d, (v) => (s.main.d = v)), 'half track', numInput(() => s.main.half, (v) => (s.main.half = v)));
     note('Seen from above only the main wheel is shown (a flat box, its diameter long). Drag it along the plane and out from the centre line to set the half track. Its height and size are set in the side view. A wheel spat (fairing) is its own part: Wheel spat, under "+ add part…".');
@@ -1837,7 +1837,7 @@ function rebuildPanel() {
     refreshPanelValues();
     return;
   }
-  if (S.part === 'points') {
+  if (S.part === 'points' || S.part === 'lights') {
     pointsPanel(panel, row, note);
   } else if (BODY_KEYS.includes(S.part) && o[S.part]) {
     const s = o[S.part];
