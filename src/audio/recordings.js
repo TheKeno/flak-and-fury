@@ -278,7 +278,10 @@ export function createRecordings(mixer, sound) {
         const span = clips[hi].rpm - clips[lo].rpm;
         const t = span > 0 ? Math.max(0, Math.min(1, (rpm - clips[lo].rpm) / span)) : 1;
         const loaded = (rec.loadLow ?? 0.6) + (1 - (rec.loadLow ?? 0.6)) * load;
-        const level = (rec.clipLevel ?? 1) * loaded * (1 - misfire * 0.85) / Math.sqrt(engines);
+        // A dead engine (misfire 1: no fuel, fire, overheating) is silent in the clips too: pitched down to the
+        // windmilling propeller's rpm they would only drone. Coughing (starving, damage) keeps a little.
+        const alive = misfire > 0.97 ? 0 : 1 - misfire * 0.85;
+        const level = (rec.clipLevel ?? 1) * loaded * alive / Math.sqrt(engines);
         voices.forEach((v, i) => {
           const mix = i === hi ? Math.sqrt(t) : i === lo ? Math.sqrt(1 - t) : 0;
           setT(v.g.gain, mix * (v.clip.gain ?? 1) * level, ctx, 0.06);
