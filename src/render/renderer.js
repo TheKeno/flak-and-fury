@@ -515,7 +515,8 @@ export function createRenderer(canvas, world, assets) {
   function vehicleSet(name, v, team) {
     const key = `veh|${name}|${team}`;
     if (!spriteCache.has(key)) {
-      const paint = assets.nations[nationOf(team)]?.paint ?? assets.nations.germany.paint;
+      const nation = assets.nations[nationOf(team)] ?? assets.nations.germany;
+      const paint = nation.tankPaint ?? nation.paint; // tanks may have their own colours (Panzergrau)
       const L = {};
       for (const [k, img] of Object.entries(v.layers)) L[k] = paintSprite(img, paint);
       const [cw, ch] = v.meta.cell;

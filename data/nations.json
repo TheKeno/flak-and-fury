@@ -12,7 +12,8 @@
   "germany": {
     "name": "Germany",
     "uniform": "#6a6e5e",
-    "paint": { "base": "#5e6650", "under": "#8fa8bf", "nose": "#d8c04a", "marking": "#1e1e1e" }
+    "paint": { "base": "#5e6650", "under": "#8fa8bf", "nose": "#d8c04a", "marking": "#1e1e1e" },
+    "tankPaint": { "base": "#4a4e50", "under": "#3a3d3f", "nose": "#4a4e50", "marking": "#1e1e1e" }
   },
   "japan": {
     "name": "Japan",
