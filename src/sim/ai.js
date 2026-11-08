@@ -171,7 +171,10 @@ function groundCommand(world, p, b) {
 
   // Take off towards the enemy if the runway allows; otherwise taxi to the far end and turn round.
   // The whole runway is clear now: take off from the far end unless most of it lies ahead.
-  const need = home ? home.width - 60 : 0;
+  // Planes queued out of the hangar stand further down the runway: that is not "too short", so the queue's length is allowed for.
+  const hd = world.ground.find((o) => o.type === 'hangar' && o.team === p.team)?.def ?? {};
+  const queue = (hd.queueSize ?? 3) * (hd.slotGap ?? 34);
+  const need = home ? home.width - 60 - queue : 0;
   const toward = enemyDir(world, p.team);
   if (home && home.height != null && p.speed < 25) {
     const clear = { from: home.x, to: home.x + home.width };
