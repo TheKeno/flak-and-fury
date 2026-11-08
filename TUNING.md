@@ -106,7 +106,7 @@ right tilt, fading out as a turn gets harder. 0 = off for each.
 `audio.muteInBackground` silences the game while its tab is hidden. `display.smooth` scales the
 scenery up smoothly instead of sharp pixels.
 
-Dogfight camera, also in `camera`: `fightOn` turns it on or off (also in the options menu). An enemy plane
+Dogfight camera, also in `camera`: `fightOn` turns it on or off (also in the options menu). An enemy plane Holding the bomb view eases it out (at `fightBlend`) and back in on release.
 in the air within `fightEnter` starts it and it lasts until all are beyond `fightExit`, plus `fightHold`
 seconds. The view frames the `fightPlanes` most urgent enemies: nearest first, those behind you counting
 `fightRear` times as much, and those pulling away faster than `fightLeaveSpeed` barely counting.
