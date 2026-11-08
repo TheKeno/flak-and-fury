@@ -1,0 +1,117 @@
+{
+  "vehicle": "truck",
+  "sprite": {
+    "size": [76, 36],
+    "pivot": [70, 31]
+  },
+  "_notes": "Starter for the Opel Blitz 3-ton (4x2, open bed), read off the sheet Opel Blitz 3-ton.png by eye: trace every part over it in the Lab. Ground vehicle (truck), side view only. Metres: d = back from the front of the truck, h = up from the ground (the tyres' bottom). Stations are [d, top h, bottom h, half width]. fuselage = the cab with its bonnet, bed = the cargo bed (stakes = the posts' d), tarp = the canvas over its bows (also the shape of a closed box body), wheels = circles at the axles' z (any number: a six-wheeler has three axles), axles = z (tyre centre out from the centre line) and half (half a tyre's width). cab: boxes [d0, h0, d1, h1] for the side window, the door's outline and the bonnet's louvres. cover = open | tarp | closed (the Lab's preview setting and the truck's default; passengers are drawn only when open). points: passenger dots (the head of a seated man; the infantry session reads them) and one exit (tailgate or rear door). Calibrate: the ground under the front of the truck, then the ground under the rear end (6.02 m). scale = model units per metre (5 = the planes' 0.1 m pixel).",
+  "length": 6.02,
+  "width": 2.27,
+  "scale": 5,
+  "frame": {
+    "x": 0,
+    "y": 0
+  },
+  "cover": "open",
+  "fuselage": {
+    "n": 4,
+    "stations": [
+      [0.02, 1.3, 0.55, 0.62],
+      [0.06, 1.52, 0.5, 0.7],
+      [0.25, 1.6, 0.5, 0.78],
+      [1.3, 1.62, 0.5, 0.8],
+      [1.45, 1.7, 0.5, 0.92],
+      [1.62, 2.05, 0.52, 0.95],
+      [1.8, 2.15, 0.55, 0.95],
+      [2.28, 2.15, 0.58, 0.95],
+      [2.38, 2.0, 0.6, 0.95]
+    ]
+  },
+  "cab": {
+    "window": [1.45, 1.62, 2.22, 1.92],
+    "door": [1.42, 0.62, 2.3, 1.58],
+    "louvres": [0.35, 1.18, 1.2, 1.4]
+  },
+  "bed": {
+    "n": 6,
+    "stakes": [2.45, 3.6, 4.73, 5.9],
+    "stations": [
+      [2.42, 1.68, 1.05, 1.05],
+      [6.02, 1.68, 1.05, 1.05]
+    ]
+  },
+  "tarp": {
+    "n": 4,
+    "stations": [
+      [2.5, 2.0, 1.45, 1.08],
+      [2.62, 2.5, 1.45, 1.12],
+      [2.95, 2.66, 1.45, 1.12],
+      [5.85, 2.66, 1.45, 1.12],
+      [6.0, 2.45, 1.45, 1.1],
+      [6.06, 2.0, 1.45, 1.06]
+    ]
+  },
+  "axles": {
+    "z": 0.85,
+    "half": 0.14
+  },
+  "wheels": [
+    { "d": 0.79, "h": 0.45, "r": 0.45 },
+    { "d": 4.37, "h": 0.45, "r": 0.45 }
+  ],
+  "bump": {
+    "n": 4,
+    "kind": "metal",
+    "stations": [
+      [-0.02, 0.62, 0.48, 0.95],
+      [0.12, 0.62, 0.48, 0.95]
+    ]
+  },
+  "bump2": {
+    "n": 4,
+    "kind": "dark",
+    "stations": [
+      [0.1, 0.82, 0.62, 0.45],
+      [5.9, 0.82, 0.62, 0.45]
+    ]
+  },
+  "bump3": {
+    "n": 2,
+    "kind": "metal",
+    "stations": [
+      [2.85, 1.0, 0.72, 0.5],
+      [3.75, 1.0, 0.72, 0.5]
+    ]
+  },
+  "bump4": {
+    "n": 4,
+    "z": 0.88,
+    "stations": [
+      [0.0, 0.95, 0.7, 0.2],
+      [0.35, 1.2, 1.05, 0.2],
+      [0.8, 1.22, 1.08, 0.2],
+      [1.25, 1.15, 1.0, 0.2],
+      [1.6, 0.95, 0.8, 0.2]
+    ]
+  },
+  "bump5": {
+    "n": 4,
+    "z": 0.88,
+    "stations": [
+      [3.85, 0.95, 0.7, 0.2],
+      [4.1, 1.15, 1.0, 0.2],
+      [4.4, 1.18, 1.05, 0.2],
+      [4.8, 1.12, 1.0, 0.2],
+      [5.0, 0.9, 0.7, 0.2]
+    ]
+  },
+  "points": [
+    { "type": "passenger", "d": 2.8, "h": 1.95, "r": 0.14 },
+    { "type": "passenger", "d": 3.4, "h": 1.95, "r": 0.14 },
+    { "type": "passenger", "d": 4.0, "h": 1.95, "r": 0.14 },
+    { "type": "passenger", "d": 4.6, "h": 1.95, "r": 0.14 },
+    { "type": "passenger", "d": 5.2, "h": 1.95, "r": 0.14 },
+    { "type": "passenger", "d": 5.7, "h": 1.95, "r": 0.14 },
+    { "type": "exit", "d": 6.1, "h": 1.2 }
+  ]
+}

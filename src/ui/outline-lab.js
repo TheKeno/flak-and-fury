@@ -17,20 +17,21 @@ const r4 = (v) => Math.round(v * 1e4) / 1e4;
 const round025 = (v) => Math.round(v / 0.025) * 0.025;
 
 const COLOURS = {
-  fuselage: '#e0c070', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
+  fuselage: '#e0c070', bed: '#e0a070', tarp: '#a0d0a0', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
   gunTray: '#b0b0b0', radiators: '#90d090', ...Object.fromEntries(BUMP_KEYS.map((k) => [k, '#d0d0ff'])), spat: '#c0b090', turret: '#70d0c0', gun: '#f0a060', tracks: '#b0b0b0', wheels: '#e0d0a0', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff', points: '#ff7ad9',
 };
 const LABELS = {
-  fuselage: 'Fuselage', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
+  fuselage: 'Fuselage', bed: 'Cargo bed', tarp: 'Tarp / box body', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
   radiators: 'Radiators', ...Object.fromEntries(BUMP_KEYS.map((k, i) => [k, i ? `Bump ${i + 1}` : 'Bump'])), spat: 'Wheel spat', turret: 'Turret', gun: 'Gun', tracks: 'Tracks', wheels: 'Wheels', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear', points: 'Crew and guns',
 };
 const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
 // The plan view (from above) and the underside view (from below) edit the same points, each over its own picture.
 const isPlan = () => S.mode !== 'side';
-const label = (key) => (isVehicle() && key === 'fuselage' ? 'Hull' : S.mode === 'side' && (key === 'wing' || key === 'tailplane') ? `${LABELS[key]} root` : LABELS[key]);
-const BODY_KEYS = ['fuselage', 'turret', 'gun', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', ...BUMP_KEYS, 'spat'];
+const label = (key) => (isVehicle() && key === 'fuselage' ? (isTruck() ? 'Cab' : 'Hull') : S.mode === 'side' && (key === 'wing' || key === 'tailplane') ? `${LABELS[key]} root` : LABELS[key]);
+const BODY_KEYS = ['fuselage', 'bed', 'tarp', 'turret', 'gun', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', ...BUMP_KEYS, 'spat'];
 // Ground vehicles (a tank: an outline file with `vehicle`) are edited in the side view only; see the vehicle notes in plane-models.mjs.
 const isVehicle = () => !!S.o?.vehicle;
+const isTruck = () => S.o?.vehicle === 'truck';
 
 const S = window.outlineLab = {
   name: null,
@@ -77,7 +78,7 @@ function showDirty() {
 // Metres: d back from the plane's reference nose point, h up. The blueprint is placed by the two
 // calibration clicks (nose = d 0, h 0; tail end = d length, h tailH), which also gives its scale and tilt.
 function tailHeight() {
-  if (isVehicle()) return 0; // the rear end of the tracks, on the ground
+  if (isVehicle()) return 0; // the rear end of the tracks (a truck: of the body), on the ground
   if (S.bp?.tailH !== undefined && S.bp.tailH !== null) return S.bp.tailH;
   const last = S.o.fuselage.stations.at(-1);
   return r4((last[1] + last[2]) / 2);
@@ -580,7 +581,7 @@ function pointLines() {
   return lines;
 }
 const gunners = (o = S.o) => (o.points ?? []).filter((p) => p.type === 'gunner');
-const pointName = (pt) => (pt.type === 'tankcrew' ? 'Tank crew (commander and MG gunner)' : pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
+const pointName = (pt) => (pt.type === 'passenger' ? `Passenger ${(S.o.points ?? []).filter((q) => q.type === 'passenger').indexOf(pt) + 1}` : pt.type === 'exit' ? 'Exit (where infantry get off)' : pt.type === 'tankcrew' ? 'Tank crew (commander and MG gunner)' : pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
 function removePoint(pt) {
   const list = S.o.points;
   list.splice(list.indexOf(pt), 1);
@@ -602,6 +603,16 @@ function addPoint(type) {
   const fus = S.o.fuselage.stations;
   const d = r4((fus[0][0] + fus.at(-1)[0]) * 0.35);
   const pt = { type, d, h: r4(interpTop(fus, d) - 0.1) };
+  if (type === 'passenger' || type === 'exit') {
+    // A seat in the bed (heads just above the side boards) or the tailgate at the bed's rear end.
+    const bed = S.o.bed?.stations ?? fus;
+    const front = bed[0][0];
+    const rear = bed.at(-1)[0];
+    const seats = (S.o.points ?? []).filter((q) => q.type === 'passenger');
+    pt.d = type === 'exit' ? r4(rear + 0.1) : r4(Math.min(rear - 0.2, (seats.at(-1)?.d ?? front) + 0.6));
+    pt.h = type === 'exit' ? r4(Math.max(...bed.map((r) => r[1])) - 0.4) : r4(Math.max(...bed.map((r) => r[1])) + 0.27);
+    if (type === 'passenger') pt.r = 0.14;
+  }
   if (type === 'tankcrew') {
     // One man at the commander's cupola, who also works the machine gun: placed on the turret roof.
     const tur = S.o.turret.stations;
@@ -757,7 +768,7 @@ function segmentsFor(key) {
 
 function partIds() {
   const crew = S.o.points?.length ? ['points'] : [];
-  if (isVehicle()) return [...BODY_KEYS.filter((k) => S.o[k]), 'tracks', 'wheels', ...crew];
+  if (isVehicle()) return [...BODY_KEYS.filter((k) => S.o[k]), ...(S.o.tracks ? ['tracks'] : []), 'wheels', ...crew];
   if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k]), ...crew, 'gear'];
   return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), ...crew, 'gear'];
 }
@@ -779,6 +790,7 @@ function pushUndo() {
 function restore(text) {
   clearGhost();
   S.o = JSON.parse(text);
+  if (isTruck()) $('coverView').value = S.o.cover ?? 'open';
   syncDef();
   S.sel = null;
   rebuildPanel();
@@ -886,7 +898,7 @@ function renderSprite() {
   try {
     const [w, h] = spriteSize();
     const veh = isVehicle();
-    const model = buildModel(S.name, S.o, veh ? { crew: $('crewView').value, phase: Number($('runFrame').value) / RUN_FRAMES } : {});
+    const model = buildModel(S.name, S.o, isTruck() ? { cover: S.o.cover ?? 'open', passengers: true } : veh ? { crew: $('crewView').value, phase: Number($('runFrame').value) / RUN_FRAMES } : {});
     const rows = veh ? renderVehicle(model, w, h, S.def.pivot, { res: RES }) : render(model, rollPose(0), w, h, S.def.pivot, { gear: $('gear').checked, res: RES });
     const c = document.createElement('canvas');
     c.width = w;
@@ -1744,7 +1756,7 @@ function rebuildPanel() {
     parts.append(b);
   }
   // 'bump' stays on offer while one of its three slots is free
-  const crewOpts = isVehicle() ? (S.o.points?.some((p) => p.type === 'tankcrew') ? [] : [['crew:tankcrew', 'Tank crew (commander / MG gunner)']]) : [['crew:gunner', 'Gunner (crew, gun, arc)'], ['crew:pilot', 'Pilot / crew member']];
+  const crewOpts = isTruck() ? [['crew:passenger', 'Passenger (a seat in the bed)'], ...(S.o.points?.some((p) => p.type === 'exit') ? [] : [['crew:exit', 'Exit point (tarp / closed)']])] : isVehicle() ? (S.o.points?.some((p) => p.type === 'tankcrew') ? [] : [['crew:tankcrew', 'Tank crew (commander / MG gunner)']]) : [['crew:gunner', 'Gunner (crew, gun, arc)'], ['crew:pilot', 'Pilot / crew member']];
   const missing = BODY_KEYS.filter((k) => PART_STARTERS[k] && (k === 'bump' ? BUMP_KEYS.some((b) => !S.o[b]) : !S.o[k]));
   if (missing.length || !isPlan()) {
     const sel = document.createElement('select');
@@ -1794,6 +1806,33 @@ function rebuildPanel() {
       row('barrel for d below', numInput(() => s.mantlet, (v) => (s.mantlet = v)));
       note('The gun is its own sprite and swings about the pivot (the square). The part is drawn as the dark barrel in front of the "barrel for d below" value and as painted mantlet behind it.');
     }
+    if (isTruck() && S.part === 'fuselage') {
+      // Boxes [d0, h0, d1, h1] the cab's paint is drawn with: the side window, the door's outline, the bonnet's louvres.
+      for (const [k, title] of [['window', 'side window'], ['door', 'door outline'], ['louvres', 'bonnet louvres']]) {
+        const box = () => o.cab?.[k] ?? [0, 0, 0, 0];
+        const set = (i, v) => {
+          const b = [...box()];
+          b[i] = v;
+          (o.cab ??= {})[k] = b;
+        };
+        row(title, ...['d0', 'h0', 'd1', 'h1'].flatMap((n, i) => [n, numInput(() => box()[i], (v) => set(i, v))]));
+      }
+      note('The cab and its bonnet in one profile (stations). The boxes are d0, h0 to d1, h1 in metres; leave a box at zeros to draw none.');
+    }
+    if (isTruck() && S.part === 'bed') {
+      const stakes = document.createElement('input');
+      stakes.type = 'text';
+      stakes.value = (s.stakes ?? []).join(', ');
+      stakes.size = 22;
+      stakes.onchange = () => {
+        pushUndo();
+        s.stakes = stakes.value.split(/[ ,]+/).map(parseFloat).filter((v) => !Number.isNaN(v));
+        changed();
+      };
+      row('side-board posts at d', stakes);
+      note('The cargo bed with its side boards (open truck). Passengers sit in it: add Passenger dots under + add part.');
+    }
+    if (isTruck() && S.part === 'tarp') note('The canvas over its bows (cover: tarp) and the same outline drawn as a solid box with rear doors (cover: closed). The Lab draws it with the cover switch at the top; Build sprites makes the truck without it, with it and as a box, plus four frames of the tarp flapping loose and one crumpled on the ground, all from these stations. Make the bottom of the tarp reach down over the top of the side boards.');
     if (isVehicle() && BUMP_KEYS.includes(S.part)) {
       const pick = (title, options, get, set) => {
         const sel = document.createElement('select');
@@ -1806,7 +1845,7 @@ function rebuildPanel() {
         };
         row(title, sel);
       };
-      pick('on sprite', ['hull', 'turret'], () => s.layer ?? 'hull', (v) => (v === 'hull' ? delete s.layer : (s.layer = v)));
+      if (!isTruck()) pick('on sprite', ['hull', 'turret'], () => s.layer ?? 'hull', (v) => (v === 'hull' ? delete s.layer : (s.layer = v)));
       pick('surface', ['paint', 'shade', 'dark', 'metal', 'under', 'frame'], () => s.kind ?? 'dark', (v) => (s.kind = v));
     }
     if (PART_STARTERS[S.part.replace(/\d+$/, '')]) {
@@ -1922,6 +1961,47 @@ function rebuildPanel() {
       rebuildPanel();
       changed();
     }));
+  } else if (S.part === 'wheels' && isTruck()) {
+    const ax = (o.axles ??= { z: 0.85, half: 0.14 });
+    row('tyres out from the centre line', numInput(() => ax.z, (v) => (ax.z = v)), 'half width', numInput(() => ax.half, (v) => (ax.half = v)));
+    note('One circle per wheel as the side view shows it, as many axles as the truck has (a six-wheeler has three; a pair of dual wheels is one circle). Drag a centre or its radius handle; the bottom of the tyres sits on the ground (h = r). A z overrides the place of the tyres out from the centre line for one wheel.');
+    const t = document.createElement('table');
+    t.className = 'st';
+    t.innerHTML = '<tr><th>d</th><th>h</th><th>r</th><th>z</th><th></th></tr>';
+    for (const w of o.wheels) {
+      const tr = document.createElement('tr');
+      tr.dataset.ref = '1';
+      tr._ref = w;
+      for (const k of ['d', 'h', 'r']) {
+        const td = document.createElement('td');
+        td.append(numInput(() => w[k], (v) => (w[k] = v)));
+        tr.append(td);
+      }
+      const zd = document.createElement('td');
+      zd.append(numInput(() => w.z ?? ax.z, (v) => (v === ax.z ? delete w.z : (w.z = v))));
+      tr.append(zd);
+      const td = document.createElement('td');
+      const del = document.createElement('button');
+      del.textContent = '×';
+      del.onclick = () => {
+        if (o.wheels.length <= 1) return;
+        pushUndo();
+        o.wheels.splice(o.wheels.indexOf(w), 1);
+        rebuildPanel();
+        changed();
+      };
+      td.append(del);
+      tr.append(td);
+      t.append(tr);
+    }
+    panel.append(t);
+    button('+ axle', () => {
+      pushUndo();
+      const last = [...o.wheels].sort((a, b) => a.d - b.d).at(-1) ?? { d: 1, h: 0.45, r: 0.45 };
+      o.wheels.push({ d: r4(last.d + 1.3), h: last.h, r: last.r });
+      rebuildPanel();
+      changed();
+    }, 'Another wheel behind the last one (the second rear axle of a six-wheeler): drag it into place');
   } else if (S.part === 'wheels') {
     note('Circles at the track z, on both sides. Drag a centre or its radius handle. The sprocket and idler are the large ones, the road wheels sit on the ground run, the return rollers carry the top run.');
     // Many equal road wheels at once: N wheels evenly from one d to another, the first road wheel's height and size.
@@ -2099,6 +2179,12 @@ $('turn').onclick = () => {
   requestDraw();
 };
 $('modeSide').onclick = () => setMode('side');
+$('coverView').onchange = () => {
+  if (!isTruck()) return;
+  pushUndo();
+  S.o.cover = $('coverView').value;
+  changed();
+};
 for (const id of ['crewView', 'runFrame']) $(id).oninput = () => ((S.dirtyPreview = true), requestDraw());
 $('modePlan').onclick = () => setMode('plan');
 $('modeUnder').onclick = () => setMode('under');
@@ -2335,7 +2421,9 @@ async function openPlane(name, fresh = null) {
   S.baseGear = JSON.stringify(S.o.gear);
   S.baseTurrets = turretView(S.o);
   for (const id of ['modePlan', 'modeUnder']) $(id).hidden = !!S.o.vehicle;
-  $('vehOpts').hidden = !S.o.vehicle;
+  $('vehOpts').hidden = S.o.vehicle !== 'tank';
+  $('truckOpts').hidden = S.o.vehicle !== 'truck';
+  if (isTruck()) $('coverView').value = S.o.cover ?? 'open';
   $('gear').parentElement.hidden = !!S.o.vehicle;
   // After S.saved, so a fin that had drifted shows as an unsaved change to save.
   for (const k of ['fin', 'fins']) {
@@ -2473,6 +2561,7 @@ const VEHICLES = [
   { id: 'churchill', label: 'Churchill Mk III (UK)', nation: 'uk', kind: 'tank' },
   { id: 'chiha', label: 'Type 97 Chi-Ha (Japan)', nation: 'japan', kind: 'tank' },
   { id: 'bt42', label: 'BT-42 (Finland)', nation: 'finland', kind: 'tank' },
+  { id: 'opel-blitz', label: 'Opel Blitz 3-ton (Germany)', nation: 'germany', kind: 'truck' },
 ];
 // The list as the hangar has it: a heading over each role group (fighters, heavy fighters ...), then Tanks, then
 // Trucks, each sorted by nation then name. Outlines of planes not in the hangar yet go last.

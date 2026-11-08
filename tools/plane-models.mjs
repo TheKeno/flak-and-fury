@@ -1616,7 +1616,7 @@ function ju87(o) {
 // the turret and show the crew; the running gear is built for a phase (0..1 of one track link) for the
 // animation frames.
 export const BUMP_KEYS = ['bump', ...Array.from({ length: 11 }, (_, i) => `bump${i + 2}`)];
-export const VEHICLE_LAYERS = ['hull', 'turret', 'gun', 'crew'];
+export const VEHICLE_LAYERS = ['hull', 'turret', 'gun', 'crew', 'cover'];
 
 // A closed band round a track run: a tube along the loop (points [x, y] in model units), flat across z (centred on
 // ±zc, `half` wide). near(x, y) gives the distance to the loop and how far along it the nearest point lies.
@@ -1815,6 +1815,127 @@ function tank(o, opts = {}) {
   };
 }
 
+// ----- Ground vehicles (trucks) -----
+// Outline file with `vehicle: 'truck'`, side view only, metres, d back from the front of the truck, h up from the ground:
+//   fuselage = the cab with its bonnet (stations; `cab` {window, door, louvres}: boxes [d0, h0, d1, h1] for the glass, the
+//   door's outline and the bonnet's side louvres), bed = the cargo bed (stations; `stakes` [d] for the side-board posts),
+//   tarp = the canvas over bows (stations; also the shape of a closed box body), wheels [{ d, h, r, z? }] any number of
+//   axles (six-wheelers too; z overrides the track), axles { z, half } (where the tyres sit out from the centre line and
+//   half their width), bump...bump12 (frame, fuel tank, mudguards), points: `passenger` dots (seats in the bed: the head;
+//   the infantry reads them) and one `exit` point (where infantry get off a tarp or closed truck: tailgate or rear door).
+//   cover: 'open' (side boards, passengers drawn), 'tarp' (canvas over bows, passengers hidden) or 'closed' (box body).
+// Layers: hull (the truck), cover (the tarp or box), crew (the passengers, shown only for an open truck).
+// opts: cover, passengers (draw the seated passengers: the Lab preview), loose (0..1, one cycle of the tarp flapping
+// loose: the cloth alone is the cover layer), crumpled (the tarp lying on the ground).
+function truck(o, opts = {}) {
+  const { M, X, Y, bodyOf } = kit(o);
+  const cover = opts.cover ?? o.cover ?? 'open';
+  const dOf = (p) => (X(0) - p[0]) / M;
+  const hOf = (p) => (p[1] - Y(0)) / M;
+  const inBox = (b, d, h) => b && d >= b[0] && d <= b[2] && h >= b[1] && h <= b[3];
+  const near = (v, a, w) => Math.abs(v - a) < w;
+  const c = o.cab ?? {};
+  const cabMat = (p, n) => {
+    if (!side(n)) return { kind: 'paint' };
+    const d = dOf(p);
+    const h = hOf(p);
+    if (inBox(c.window, d, h)) return { kind: 'glass' };
+    let dark = h - stationAt(o.fuselage.stations, d, 2) < 0.12 ? 1 : 0;
+    if (inBox(c.louvres, d, h) && (d - c.louvres[0]) % 0.1 < 0.04) return { kind: 'dark' };
+    const b = c.door;
+    if (b && h >= b[1] - 0.02 && h <= b[3] + 0.02 && d >= b[0] - 0.02 && d <= b[2] + 0.02 && (near(d, b[0], 0.02) || near(d, b[2], 0.02) || near(h, b[1], 0.02) || near(h, b[3], 0.02))) dark = 1;
+    return { kind: 'paint', dark };
+  };
+  const parts = [{ ...bodyOf(o.fuselage), material: cabMat }];
+  if (o.bed) {
+    const rows = o.bed.stations;
+    const stakes = o.bed.stakes ?? [];
+    parts.push({
+      ...bodyOf(o.bed),
+      material: (p, n) => {
+        if (!side(n)) return { kind: 'paint' };
+        const d = dOf(p);
+        const t = stationAt(rows, d, 1) - hOf(p);
+        let dark = hOf(p) - stationAt(rows, d, 2) < 0.12 ? 1 : 0; // the underside of the floor in shade
+        if (t > 0.03 && t % 0.22 < 0.035) dark = 1; // plank joints
+        if (stakes.some((s) => near(d, s, 0.04))) dark = 1; // the posts
+        return { kind: 'paint', dark };
+      },
+    });
+  }
+  // Wheels: a tyre, a pressed-steel disc with a ring of nuts, a dark hub. The tread (seen from above) is dark and ribbed.
+  const ax = o.axles ?? { z: 0.85, half: 0.14 };
+  for (const w of o.wheels ?? []) {
+    const ctr = [X(w.d), Y(w.h), (w.z ?? ax.z) * M];
+    parts.push({
+      ...wheel(ctr, w.r * M, ax.half * M),
+      material: (p, n) => {
+        if (!side(n)) return { kind: 'tyre' };
+        const dx = p[0] - ctr[0];
+        const dy = p[1] - ctr[1];
+        const rr = Math.hypot(dx, dy) / (w.r * M);
+        const a = Math.atan2(dy, dx);
+        if (rr > 0.8) return { kind: 'tyre' };
+        if (rr > 0.72) return { kind: 'dark' };
+        if (rr < 0.16) return { kind: 'dark' };
+        return { kind: 'metal', dark: rr > 0.3 && rr < 0.48 && Math.cos(a * 8) > 0.7 ? 2 : 0 };
+      },
+    });
+  }
+  // The cover: a tarp over bows, a box body, a tarp flapping loose or one lying crumpled on the ground.
+  const tarp = o.tarp;
+  const tarpRows = () => {
+    const rows = tarp.stations.map((r) => [...r]);
+    const d0 = rows[0][0];
+    const d1 = rows.at(-1)[0];
+    if (opts.crumpled) {
+      // Lumps along the ground, from the tarp's first d to its last.
+      const out = [];
+      for (let d = d0; d <= d1 + 1e-9; d += 0.25) {
+        const top = 0.3 + 0.16 * Math.abs(Math.sin(d * 3.1)) + 0.08 * Math.sin(d * 8.3 + 1);
+        out.push([d, top, 0, tarp.stations[0][3] * 0.8 + 0.2 * Math.sin(d * 5)]);
+      }
+      return out;
+    }
+    if (opts.loose != null) {
+      // A cloth: thin, lifted above the bed, the wave running back along it and growing towards the rear.
+      const mid = (Math.max(...rows.map((r) => r[1])) + Math.min(...rows.map((r) => r[2]))) / 2;
+      const out = [];
+      for (let d = d0; d <= d1 + 1e-9; d += 0.3) {
+        const k = (d - d0) / (d1 - d0);
+        const wave = Math.sin((d / 1.7 - opts.loose) * Math.PI * 2) * (0.1 + 0.3 * k * k);
+        out.push([d, mid + 0.75 + wave + 0.2 * k, mid + 0.2 + wave * 0.8 + 0.2 * k, tarp.stations[0][3] * 0.95]);
+      }
+      return out;
+    }
+    return rows;
+  };
+  const wanted = cover === 'tarp' || cover === 'closed' || opts.crumpled || opts.loose != null;
+  if (tarp && wanted) {
+    const rows = tarpRows();
+    const d0 = tarp.stations[0][0];
+    const box = cover === 'closed' && !opts.crumpled && opts.loose == null;
+    const crease = opts.crumpled || opts.loose != null;
+    parts.push({
+      ...bodyOf({ ...tarp, n: box ? 8 : opts.crumpled ? 2 : tarp.n, stations: rows }),
+      layer: 'cover',
+      material: (p, n) => {
+        const d = dOf(p);
+        if (!side(n)) return { kind: 'paint' };
+        let dark = 0;
+        if (crease) dark = Math.sin(d * 13 + (opts.loose ?? 0) * Math.PI * 2) > 0.75 ? 1 : 0;
+        else if (box) dark = near(d, tarp.stations.at(-1)[0] - 0.03, 0.03) || near(d, d0 + 0.06, 0.03) ? 1 : 0;
+        else {
+          if ((d - d0 - 0.4) % 0.95 < 0.07) dark = 1; // the bows
+          if (hOf(p) - stationAt(rows, d, 2) < 0.1) dark = 1; // the lower hem
+        }
+        return { kind: 'paint', dark };
+      },
+    });
+  }
+  return { parts, attach: { cover } };
+}
+
 // The layers of a vehicle drawn on top of each other (hull, turret, gun, crew) into one grid of palette keys.
 export function renderVehicle(model, w, h, anchor, { res = 1, layers = VEHICLE_LAYERS } = {}) {
   let out = null;
@@ -1861,6 +1982,16 @@ const pointParts = (o, opts = {}) => {
       }
       continue;
     }
+    if (pt.type === 'exit') continue; // a place for the game (where infantry get off), not drawn
+    if (pt.type === 'passenger') {
+      // A seated passenger (head and shoulders): shown in the Lab and only while the truck is open; the game draws its own infantry.
+      if (!opts.passengers || (opts.cover ?? o.cover ?? 'open') !== 'open') continue;
+      const c = [X(pt.d), Y(pt.h), (pt.z ?? 0) * M];
+      const r = (pt.r ?? 0.14) * M;
+      parts.push({ ...sphere(c, r), layer: 'crew', material: plain('pilot') });
+      parts.push({ ...box([c[0], c[1] - r * 1.9, c[2]], [r * 1.5, r * 1.1, r * 1.4]), layer: 'crew', material: plain('pilot') });
+      continue;
+    }
     const c = [X(pt.d), Y(pt.h), (pt.z ?? 0) * M];
     if (pt.type === 'gunner') {
       const m = pt.mount ?? 'open';
@@ -1892,7 +2023,7 @@ const withBumps = (build) => (o, opts = {}) => {
 };
 export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim }).map(([k, f]) => [k, withBumps(f)]));
 // Ground vehicles: an outline with `vehicle: 'tank'` is built by the tank model (VEHICLE_BUILDERS).
-export const VEHICLE_BUILDERS = { tank: withBumps(tank) };
+export const VEHICLE_BUILDERS = { tank: withBumps(tank), truck: withBumps(truck) };
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
 // model code through outline.template, so its outline can be traced and previewed. opts: ground vehicles
 // take { phase } (running gear, 0..1 of a track link) and { crew } ('commander' or 'gunner').

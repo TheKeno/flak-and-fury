@@ -6,7 +6,8 @@ import { readdirSync } from 'node:fs';
 import { buildModel, renderVehicle, render, rollPose, belt, VEHICLE_LAYERS } from '../tools/plane-models.mjs';
 import { loadOutline } from '../tools/outlines.mjs';
 
-const ids = readdirSync(new URL('../data/outlines/', import.meta.url)).map((f) => f.replace('.json', '')).filter((n) => loadOutline(n).vehicle);
+const ids = readdirSync(new URL('../data/outlines/', import.meta.url)).map((f) => f.replace('.json', '')).filter((n) => loadOutline(n).vehicle === 'tank');
+const truckIds = readdirSync(new URL('../data/outlines/', import.meta.url)).map((f) => f.replace('.json', '')).filter((n) => loadOutline(n).vehicle === 'truck');
 const inOrder = (rows) => rows.every((r, i) => !i || r[0] >= rows[i - 1][0] - 1e-9);
 const filled = (rows) => rows.join('').replace(/\./g, '').length;
 
@@ -63,3 +64,47 @@ test('belt: the nearest point on a loop and its direction', () => {
   assert.ok(b.field([5, 0, 3]) > 0, 'outside across z');
   assert.equal(belt([[0, 0], [0, 2], [10, 2], [10, 0]], 1, 0.5, 0.1).clockwise, true);
 });
+
+test('there is at least one truck outline', () => assert.ok(truckIds.length > 0));
+
+for (const id of truckIds) {
+  const o = loadOutline(id);
+  const [w, h] = o.sprite.size;
+  const px = (cover, opts = {}, layer = null) => render(buildModel(id, o, { cover, ...opts }), rollPose(0), w, h, o.sprite.pivot, { res: 2, layer }).join('\n');
+  const whole = (cover, opts = {}) => renderVehicle(buildModel(id, o, { cover, ...opts }), w, h, o.sprite.pivot, { res: 2 }).join('\n');
+
+  test(`${id}: stations in order, any number of wheels on the ground inside the sprite, a valid cover`, () => {
+    for (const key of ['fuselage', 'bed', 'tarp']) if (o[key]) assert.ok(inOrder(o[key].stations), `${key} stations out of order`);
+    assert.ok(['open', 'tarp', 'closed'].includes(o.cover ?? 'open'));
+    assert.ok(o.wheels.length >= 2);
+    for (const wh of o.wheels) {
+      assert.ok(wh.r > 0 && Math.abs(wh.h - wh.r) < 0.1, `wheel at d ${wh.d} stands on the ground`);
+      assert.ok(o.sprite.pivot[0] - (wh.d + wh.r) * 10 >= 0 && o.sprite.pivot[0] - (wh.d - wh.r) * 10 <= w, `wheel at d ${wh.d} outside the sprite`);
+    }
+    const top = Math.max(...(o.tarp ?? o.bed ?? o.fuselage).stations.map((r) => r[1]));
+    assert.ok(o.sprite.pivot[1] - top * 10 >= 0, 'the cover fits the sprite');
+    assert.equal(o.points.filter((p) => p.type === 'exit').length <= 1, true, 'at most one exit');
+    assert.ok(o.points.some((p) => p.type === 'passenger'));
+  });
+
+  test(`${id}: open, tarp and closed look different; the tarp is its own layer; passengers show only in an open truck`, () => {
+    assert.notEqual(whole('open'), whole('tarp'));
+    assert.notEqual(whole('tarp'), whole('closed'));
+    assert.equal(px('open', {}, 'cover').replace(/[.\n]/g, ''), '', 'an open truck has no cover');
+    assert.ok(px('tarp', {}, 'cover').replace(/[.\n]/g, '').length > 50);
+    assert.equal(px('tarp', {}, 'hull'), px('open', {}, 'hull'), 'the truck under the cover is the same');
+    assert.notEqual(whole('open', { passengers: true }), whole('open'));
+    assert.equal(whole('tarp', { passengers: true }), whole('tarp'), 'the tarp hides the passengers');
+    assert.equal(whole('closed', { passengers: true }), whole('closed'));
+  });
+
+  test(`${id}: the loose tarp has frames that differ and loop; a crumpled tarp lies on the ground`, () => {
+    const cloth = (k) => px('tarp', { loose: k }, 'cover');
+    assert.notEqual(cloth(0), cloth(0.25));
+    assert.notEqual(cloth(0), cloth(0.5));
+    assert.equal(cloth(0), cloth(1));
+    const down = px('tarp', { crumpled: true }, 'cover').split('\n');
+    const rows = down.map((r, y) => (/[^.]/.test(r) ? y : -1)).filter((y) => y >= 0);
+    assert.ok(rows.length > 2 && rows.at(-1) <= o.sprite.pivot[1] + 1 && o.sprite.pivot[1] - rows[0] < 8, 'a low heap on the ground');
+  });
+}
