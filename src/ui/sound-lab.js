@@ -1878,6 +1878,23 @@ function testFlight(buildId, vehicles, kind) {
   let running = null;
   let flyby = 0;
   let throttleRow = null; // shows the rpm; redrawn when another vehicle (engine) is picked
+  // A dead engine, as the game plays it (updateEngine in src/sim/plane.js): no load, every cylinder missing,
+  // and the revs fall at 0.8 per second towards a windmilling propeller (about 55% of cruise rpm at full
+  // airspeed, 0 standing still). Start-up brings the engine back, as the sim's engineStart does.
+  const WINDMILL_SPEED = 160; // airspeed at which the windmilling propeller turns fastest (a typical plane's top speed)
+  let shownRpm = 0; // the rpm the last frame used
+  let lastFrame = 0;
+  const cutEngine = () => {
+    if (!running) return;
+    state.dead = 1;
+    state.emergency = 0; // an overheated engine has been switched off by the sim
+    throttleRow?.refresh();
+    running.cutOut();
+  };
+  const restartEngine = () => {
+    state.dead = 0;
+    running?.start();
+  };
   // The same rpm the sim gives (updateEngine in src/sim/plane.js): full throttle is cruise rpm; max rpm
   // is emergency power, which in the sim also comes from over-revving in a dive.
   const throttleRpm = (s) => (state.emergency ? s.maxRpm : s.idleRpm + (s.cruiseRpm - s.idleRpm) * state.throttle);
@@ -1904,12 +1921,27 @@ function testFlight(buildId, vehicles, kind) {
         voice.update(w, Boolean(state.moving));
         host.update({ moving: state.moving, speed: state.moving ? 5 : 0 }, w, false);
       } else {
-        const rpm = throttleRpm(spec);
-        voice.update({ rpm, load: state.emergency ? 1 : state.throttle, roughness: 0.08 + state.damage * 0.5, misfire: state.damage * 0.22, gain: w.gain, pan: w.pan, cutoff: w.cutoff, doppler: w.doppler });
-        host.update({ rpm, load: state.emergency ? 1 : state.throttle, speed: state.speed, turn: state.turn, damage: state.damage, altitude: 200, ground: 0, inverted: 0, service: 0 }, w, !flyby && listen.distance === 0);
+        const now = performance.now();
+        const dt = Math.min(0.1, (now - (lastFrame || now)) / 1000);
+        lastFrame = now;
+        let rpm = throttleRpm(spec);
+        let load = state.emergency ? 1 : state.throttle;
+        let misfire = state.damage * 0.22;
+        if (state.dead) {
+          const target = Math.max(0, Math.min(1.3, state.speed / WINDMILL_SPEED)) * spec.cruiseRpm * 0.55;
+          rpm = shownRpm + (target - shownRpm) * Math.min(1, dt * 0.8);
+          load = 0;
+          misfire = 1;
+        }
+        shownRpm = rpm;
+        voice.update({ rpm, load, roughness: 0.08 + state.damage * 0.5, misfire, gain: w.gain, pan: w.pan, cutoff: w.cutoff, doppler: w.doppler });
+        host.update({ rpm, load, speed: state.speed, turn: state.turn, damage: state.damage, altitude: 200, ground: 0, inverted: 0, service: 0 }, w, !flyby && listen.distance === 0);
       }
       frame = requestAnimationFrame(tick);
     };
+    state.dead = 0;
+    shownRpm = throttleRpm(spec);
+    lastFrame = 0;
     tick();
     running = voice;
     runBtn.textContent = 'Stop';
@@ -1928,8 +1960,8 @@ function testFlight(buildId, vehicles, kind) {
   const pick = el('select', { onchange: () => { state.vehicle = pick.value; throttleRow?.refresh(); if (running) run(); } },
     ...usable.map((v) => el('option', { value: v.id, textContent: `${v.name}${v.count > 1 ? ` × ${v.count}` : ''}`, selected: v.id === state.vehicle })));
   box.append(el('div', { className: 'buttons' }, runBtn, 'as', pick,
-    kind === 'plane' ? button('Start-up', () => running?.start(), 'Plays the start again') : null,
-    kind === 'plane' ? button('Engine cut', () => running?.cutOut?.(), 'Plays the engine dying') : null,
+    kind === 'plane' ? button('Start-up', restartEngine, 'Plays the start again (and restarts a dead engine)') : null,
+    kind === 'plane' ? button('Engine cut', cutEngine, 'The engine dies as in the game: the cut-out sound, the revs fall away to a windmilling propeller. Start-up brings it back.') : null,
     button('Flyby', () => { if (mixer) flyby = mixer.now; }, 'Passes by over 6 seconds. Cockpit-only layers go quiet, as they would outside.')));
   box.append(slider(settings.audio, LEVEL_FIELDS[0], () => mixer?.applyLevels(), false));
   if (kind === 'tank') box.append(testSlider(state, 'moving', 'Moving', 0, 1, 1));
