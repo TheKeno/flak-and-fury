@@ -18,6 +18,8 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
 - **Historically accurate looks:** planes, tanks and vehicles are built from the real type's
   dimensions, all to one scale; the outline shape matters most (canopy, nose, fin, gear, wing shape).
   Compare against 3-view references and show the owner the outlines before animation or data work.
+- **Balancing: fun first.** For gameplay numbers (damage, hp, loads, timings) the objective is fun
+  gameplay; historical accuracy is secondary there. History still rules the looks.
 
 ## Project facts
 
