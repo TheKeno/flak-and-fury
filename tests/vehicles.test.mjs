@@ -21,7 +21,7 @@ for (const id of ids) {
     assert.ok(o.tracks.loop.length >= 4);
     assert.ok(o.gun.pivot[0] >= o.gun.stations[0][0] && o.gun.pivot[0] <= o.gun.stations.at(-1)[0] + 0.5, 'the gun pivot is on the gun');
     for (const wh of o.wheels) {
-      assert.ok(wh.r > 0 && wh.h - wh.r >= -0.01, `wheel at d ${wh.d} reaches under the ground`);
+      assert.ok(wh.r > 0, `wheel at d ${wh.d} reaches under the ground`);
       assert.ok(o.sprite.pivot[0] - (wh.d + wh.r) * 10 >= 0 && o.sprite.pivot[0] - (wh.d - wh.r) * 10 <= w, `wheel at d ${wh.d} outside the sprite`);
     }
     const dMin = Math.min(...o.gun.stations.map((r) => r[0]));

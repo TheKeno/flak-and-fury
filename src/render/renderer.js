@@ -510,6 +510,93 @@ export function createRenderer(canvas, world, assets) {
     if (!spriteCache.has(key)) spriteCache.set(key, paintSprite(img, assets.nations[nationOf(obj.team)]?.paint ?? assets.nations.germany.paint));
     return [key, spriteCache.get(key)];
   }
+  // Lab-built tanks: layers painted in the nation's colours, built once per team. A wreck is the hull burnt black with
+  // its turret knocked off crooked and no gun or crew.
+  function vehicleSet(name, v, team) {
+    const key = `veh|${name}|${team}`;
+    if (!spriteCache.has(key)) {
+      const paint = assets.nations[nationOf(team)]?.paint ?? assets.nations.germany.paint;
+      const L = {};
+      for (const [k, img] of Object.entries(v.layers)) L[k] = paintSprite(img, paint);
+      const [cw, ch] = v.meta.cell;
+      const wreck = makeCanvas(cw, ch);
+      const g = wreck.getContext('2d');
+      g.drawImage(L.hull, 0, 0, cw, ch, 0, 0, cw, ch);
+      const [tx, ty] = v.meta.turret.pivot;
+      g.save();
+      g.translate(tx + 3, ty - 2);
+      g.rotate(0.22);
+      g.drawImage(L.turret, -tx, -ty);
+      g.restore();
+      g.globalCompositeOperation = 'source-atop';
+      g.fillStyle = 'rgba(26,20,16,0.72)';
+      g.fillRect(0, 0, cw, ch);
+      L.wreck = wreck;
+      spriteCache.set(key, L);
+    }
+    return spriteCache.get(key);
+  }
+  // Drawn in the hull's frame (x = the middle of the tracks on the ground), a sprite pixel being a buffer pixel.
+  function drawVehicle(obj, v, sx, by, dir) {
+    const m = v.meta;
+    const L = vehicleSet(obj.def.sprite, v, obj.team);
+    const [cw, ch] = m.cell;
+    const mid = Math.round(m.pivot[0] - (m.length * m.pixelsPerMetre) / 2);
+    const tilt = obj.tilt ?? 0;
+    ctx.save();
+    ctx.translate(sx, by);
+    ctx.rotate(-tilt);
+    ctx.scale(dir / DETAIL, 1 / DETAIL);
+    ctx.translate(-mid, -Math.round(m.ground));
+    if (!obj.alive) {
+      ctx.drawImage(L.wreck, 0, 0);
+      ctx.restore();
+      return;
+    }
+    // The tracks run with the ground: a quarter of a cycle for every half unit driven.
+    const f = (((Math.floor((obj.x * dir) / 0.5) % m.frames) + m.frames) % m.frames);
+    ctx.drawImage(L.hull, f * cw, 0, cw, ch, 0, 0, cw, ch);
+    ctx.drawImage(L.turret, 0, 0);
+    // The gun swings about its pivot; its aim is kept relative to the hull, mirrored for a tank facing left.
+    const aim = obj.gunAim ?? (dir > 0 ? 0 : Math.PI);
+    const a = dir > 0 ? aim : Math.PI - aim;
+    const [gx, gy] = m.gun.pivot;
+    ctx.save();
+    ctx.translate(gx, gy);
+    ctx.rotate(-a);
+    ctx.drawImage(L.gun, -gx, -gy);
+    ctx.restore();
+    const flash = groundFlashes.get(obj.id);
+    if (flash > 0) {
+      groundFlashes.set(obj.id, flash - 1);
+      const len = m.gun.muzzle[0] - gx + 3;
+      const fx = Math.round(gx + Math.cos(a) * len);
+      const fy = Math.round(gy - Math.sin(a) * len);
+      ctx.fillStyle = '#ffc850';
+      ctx.fillRect(fx - 4, fy - 4, 8, 8);
+      ctx.fillStyle = '#fff6c8';
+      ctx.fillRect(fx - 2, fy - 2, 4, 4);
+    }
+    // One man: up in the cupola, or at the roof machine gun when it fires at a plane, else inside.
+    const crew = obj.crew ?? 'out';
+    if (crew === 'out') ctx.drawImage(L.commander, 0, 0);
+    else if (crew === 'gunner') {
+      ctx.drawImage(L.gunner, 0, 0);
+      if (obj.aa && m.crew?.mg) {
+        const aaAim = obj.aa.aim - tilt;
+        const aa = dir > 0 ? aaAim : Math.PI - aaAim;
+        const [mx, my] = m.crew.mg.pivot;
+        drawBarrel(mx, my, aa, m.crew.mg.len + 2, 2, '#24261f');
+        const aaFlash = groundFlashes.get(`${obj.id}:aa`);
+        if (aaFlash > 0) {
+          groundFlashes.set(`${obj.id}:aa`, aaFlash - 1);
+          ctx.fillStyle = '#ffd870';
+          ctx.fillRect(Math.round(mx + Math.cos(aa) * (m.crew.mg.len + 4)) - 2, Math.round(my - Math.sin(aa) * (m.crew.mg.len + 4)) - 2, 4, 4);
+        }
+      }
+    }
+    ctx.restore();
+  }
   function flipped(name, img) {
     const key = `${name}|flip`;
     if (!spriteCache.has(key)) {
@@ -727,6 +814,10 @@ export function createRenderer(canvas, world, assets) {
       const dir = facingOf(obj);
       const turns = obj.type === 'flak' || obj.type === 'mgNest' || obj.type === 'tank';
       const gun = obj.type === 'flak' || obj.type === 'mgNest';
+      if (obj.type === 'tank' && assets.vehicles?.[obj.def.sprite]) {
+        drawVehicle(obj, assets.vehicles[obj.def.sprite], sx, Math.round(toScreenY(obj.baseY ?? surfaceAt(world, obj.x))) + 2, dir);
+        continue;
+      }
       if (obj.type === 'tank') {
         // Drawn in the hull's own frame: turned about the middle of the tracks to the ground's slope.
         const tilt = obj.tilt ?? 0;

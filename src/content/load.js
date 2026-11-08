@@ -87,7 +87,23 @@ export async function loadContent(mapName) {
     return cache.get(key);
   };
 
+  // Ground vehicles drawn from the Outline Lab come as layers (see tools/make-sprites.mjs): the sprite's json says so.
+  const vehicles = {};
+  await Promise.all(
+    [...new Set(Object.values(groundDefs).filter((d) => d.layers).map((d) => d.sprite))].map(async (n) => {
+      try {
+        const meta = await json(`assets/sprites/${n}.json`);
+        if (!meta.frames) return;
+        const layers = {};
+        await Promise.all(['hull', 'turret', 'gun', 'commander', 'gunner'].map(async (l) => { layers[l] = await loadImage(`assets/sprites/${n}-${l}.png`); }));
+        vehicles[n] = { meta, layers };
+      } catch {
+        /* a plain sprite: no json */
+      }
+    }),
+  );
+
   const bombSprite = buildRotations(toCanvas(images.bomb), [7, 3]);
 
-  return { planeDefs, nations, weapons, settings, groundDefs, sound, notes, map, images, planeSprite, planeFrames, bombSprite };
+  return { planeDefs, nations, weapons, settings, groundDefs, sound, notes, map, images, vehicles, planeSprite, planeFrames, bombSprite };
 }

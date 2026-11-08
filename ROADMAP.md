@@ -609,7 +609,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). The owner's new sheets (Panzer IV Ausf. H and six trucks) are in the library; hull and turret fitted by Fit to drawing, gun measured from the sheet; waiting for the owner to check and correct the Panzer IV H outline by hand in the Lab (hull corners, skirts, wheels). Then: wire the layers into the renderer (also "Draw the tank crew" in the Backlog), New plane picker for tanks, trucks.
+- **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). The owner's new sheets (Panzer IV Ausf. H and six trucks) are in the library; hull and turret fitted by Fit to drawing, gun measured from the sheet; the owner finished the Panzer IV H outline by hand (2026-11-08) and it is wired into the game (stop 2 done: `drawVehicle` in `renderer.js`, the tank def in `data/ground.json` has `sprite: panzer4h` and `layers: true`, width 15 and height 7 units = the real 5.92 m at 0.4 m a unit; crew drawn from `tank.crew`; wreck = burnt hull with the turret knocked crooked). Still to do: other tanks as scaled copies, a real turret toss, trucks (stop 3).
 
 
 
@@ -619,7 +619,6 @@ Then: more themes, co-op missions, matchmaking.
   (`washBase`, `washLoad`) in `src/audio/engine-worklet.js`, set per shared build in the Sound Lab (`builds.<name>.synth`).
   Owner to review it; after the engine cut a dead engine keeps only the wash, which sounded synth-like. Maybe quiet or
   silence the wash on a dead engine, and check it beside the recorded clips (owner, 2026-11-08).
-- **Draw the tank crew** (Gameplay): the renderer picks the hull sprite from `tank.crew` (`out` commander, `in` hull only, `gunner` at the MG). Waits for the tank crew sprites and `tankcrew` dot from the Lab session; sim side is done (owner, 2026-11-08).
 - **Trucks and infantry logic** (Gameplay): trucks carry infantry (loading, driving, dismounting at the `exit` point, bots, tarp blown off by blasts with the cloth-style flying tarp). Waits for the truck outlines and sprites from the Lab session; see Decisions, "Ground vehicles in the Outline Lab" (owner, 2026-11-08).
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).

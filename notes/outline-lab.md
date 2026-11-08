@@ -161,3 +161,12 @@ Decision: ROADMAP Decisions, "Ground vehicles in the Outline Lab". Side view onl
 - **New plane... picker**: a dialog lists the milestone 6 planes that have no outline yet (`PLANNED` in `src/ui/outline-lab.js`: id, real length and span, suggested template) and fills in name, size and template; "Other" types them by hand. Dimensions are from memory of the real types, so check them against the sheet.
 - **New plane... also loads the sheet**: each `PLANNED` entry has a `sheet` (file name in the blueprint library); after Create the sheet goes on the side view (usual confirm before replacing a calibrated picture); a missing sheet or library is only mentioned in the library panel. Entries added: A6M5, and the heavy bombers B-17F, Lancaster, He 177 A-3, Pe-8, G4M1 (template Bf 110 for lack of a 4-engine one; sizes from memory, check against each sheet). A `rebuild: true` entry would stay in the list although the plane exists and open that plane instead of making a copy (none at the moment; the Bf 109 F-4 was removed 2026-11-07). Tanks are not in the picker (no tank support in the lab).
 - **Plane list names**: the top-left plane list shows names as in the New plane picker ("Spitfire Mk IX (UK)": `planeLabel` uses planes.json `name` and nation, or the `PLANNED` label for a new plane); the value stays the short id.
+
+## Panzer IV H in the game (2026-11-08)
+
+`renderer.js` `drawVehicle` draws a ground def with `layers: true` (`data/ground.json`) from `assets/sprites/<id>*.png`
+(loaded into `assets.vehicles` by `content/load.js`): hull frame (by distance driven, 0.5 unit a frame), turret, gun
+about its pivot (`tank.gunAim`), then the crew look from `tank.crew` (`out` commander, `gunner` + the aimed roof MG,
+`in` nothing). A sprite pixel is a buffer pixel, so 1 unit = 0.4 m like the planes. The sprite's `ground` row is the
+lowest of track and wheels, wherever the outline put h = 0. Wreck: hull frame 0, turret knocked crooked, scorched.
+Not done: a flying turret on destruction, other tanks.
