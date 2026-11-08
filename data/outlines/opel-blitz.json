@@ -116,7 +116,7 @@
     {"type": "passenger", "d": 3.4, "h": 1.95, "r": 0.14},
     {"type": "passenger", "d": 4, "h": 1.95, "r": 0.14},
     {"type": "passenger", "d": 4.6, "h": 1.95, "r": 0.14},
-    {"type": "passenger", "d": 5.2, "h": 1.95, "r": 0.14},
+    {"type": "passenger", "d": 5.1507, "h": 1.9479, "r": 0.14},
     {"type": "passenger", "d": 5.7, "h": 1.95, "r": 0.14},
     {"type": "exit", "d": 6.1, "h": 1.2},
     {"type": "headlight", "d": 0.1612, "h": 1.2107, "r": 0.12, "z": 0.6}
