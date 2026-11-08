@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Balance Lab</title>
+    <style>
+      :root {
+        --bg: #101214;
+        --panel: #181b1e;
+        --line: #2c3135;
+        --text: #c4c5bb;
+        --dim: #7f837c;
+        --accent: #a8905c;
+        --good: #6f8560;
+        --bad: #a8603f;
+      }
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font: 13px/1.45 'Courier New', monospace; }
+      button, select, input { font: inherit; color: var(--text); background: #22262a; border: 1px solid var(--line); border-radius: 2px; padding: 2px 7px; }
+      button { cursor: pointer; }
+      button:hover:not(:disabled) { border-color: var(--accent); }
+      button:disabled { opacity: 0.45; cursor: default; }
+      button.on { background: var(--accent); color: #111; }
+      input[type='number'] { width: 70px; padding: 1px 4px; }
+      header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 12px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 2; }
+      header strong { margin-right: 6px; }
+      #space { flex: 1; }
+      #status { color: var(--dim); }
+      #status.warn, .warn { color: #ff3030; font-weight: 600; }
+      main { padding: 10px 14px 40px; max-width: 1200px; }
+      h3 { margin: 16px 0 6px; font-size: 13px; color: var(--accent); border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+      .row { display: flex; align-items: center; gap: 8px; margin: 4px 0; flex-wrap: wrap; }
+      .dim { color: var(--dim); }
+      label.chk { display: inline-flex; align-items: center; gap: 4px; }
+      table { border-collapse: collapse; }
+      th { color: var(--dim); font-weight: normal; text-align: left; padding: 2px 8px 2px 0; font-size: 12px; }
+      td { padding: 2px 8px 2px 0; vertical-align: top; }
+      th, td { white-space: nowrap; }
+      .wide { overflow-x: auto; max-width: 100%; }
+      tr.click { cursor: pointer; }
+      tr.click:hover td { color: #e8e4d0; }
+      tr.sel td { color: var(--accent); }
+      .num { text-align: right; font-variant-numeric: tabular-nums; }
+      .bar { height: 10px; background: #1d2023; position: relative; width: 220px; border: 1px solid var(--line); }
+      .bar i { position: absolute; top: 0; bottom: 0; }
+      .bar b { position: absolute; left: 50%; top: -2px; bottom: -2px; border-left: 1px solid var(--dim); }
+      .flag-strong { color: #c99a5a; }
+      .flag-weak { color: #8fa3b8; }
+      #progress { height: 14px; border: 1px solid var(--line); background: #1d2023; width: 100%; max-width: 600px; }
+      #progress i { display: block; height: 100%; background: var(--good); width: 0; }
+      .queue div { padding: 2px 0; }
+      .summary p { margin: 4px 0; max-width: 900px; }
+      .grid td { width: 64px; height: 30px; text-align: center; vertical-align: middle; border: 1px solid var(--bg); cursor: pointer; padding: 0; }
+      .grid td.self { background: #15181a; color: var(--dim); }
+      .grid th { text-align: center; padding: 2px; font-size: 11px; }
+      .grid th.rowh { text-align: right; padding-right: 6px; }
+      .grid td.sel { outline: 1px solid var(--accent); }
+      canvas.chart { background: #15181a; border: 1px solid var(--line); display: block; width: 100%; max-width: 760px; height: 220px; }
+      ul.notes { margin: 4px 0; padding-left: 18px; max-width: 900px; }
+      .scen td input[type='number'] { width: 80px; }
+      .cols { display: flex; gap: 24px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>Balance Lab</strong>
+      <button data-tab="run" class="on">Run</button>
+      <button data-tab="results">Results</button>
+      <button data-tab="scenarios">Scenarios</button>
+      <span id="status"></span>
+      <span id="space"></span>
+      <span id="busy" class="dim"></span>
+    </header>
+    <main>
+      <section id="tab-run">
+        <h3>New run</h3>
+        <div class="row">scenario <select id="scenario"></select> <span id="scenAbout" class="dim"></span></div>
+        <div class="row" id="planePicks"></div>
+        <div class="row">
+          <label class="chk"><input type="radio" name="mode" value="quick" checked /> quick</label>
+          <label class="chk"><input type="radio" name="mode" value="full" /> full</label>
+          <label class="chk"><input type="radio" name="mode" value="matchup" /> one matchup</label>
+          <select id="mx"></select> against <select id="my"></select>
+        </div>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="half" /> half cores (for playing during a run)</label>
+          <span id="cores" class="dim"></span>
+        </div>
+        <div class="row"><button id="start">Start</button> <span id="estimate" class="dim"></span></div>
+        <h3>Running</h3>
+        <div id="current" class="dim">Nothing running.</div>
+        <div class="row"><div id="progress"><i></i></div></div>
+        <div class="row"><button id="cancel" disabled>Cancel (keeps the matches done)</button></div>
+        <p class="dim">Keep this tab open while it runs. Runs in the queue start one after another; each is saved to balance/results/ as it goes.</p>
+        <h3>Queue</h3>
+        <div id="queue" class="queue dim">Empty.</div>
+      </section>
+
+      <section id="tab-results" hidden>
+        <h3>Past runs</h3>
+        <div class="row">
+          <select id="runPick" style="min-width: 420px"></select>
+          <button id="refresh">Refresh</button>
+          <label class="chk">compare with <select id="runCompare"><option value="">(nothing)</option></select></label>
+        </div>
+        <div id="report"></div>
+      </section>
+
+      <section id="tab-scenarios" hidden>
+        <h3>Scenario</h3>
+        <div class="row">scenario <select id="scenEdit"></select></div>
+        <table class="scen" id="scenForm"></table>
+        <div class="row" id="scenPlanes"></div>
+        <div class="row"><button id="scenSave">Save</button> <button id="scenSaveAs">Save as new…</button></div>
+        <p class="dim">Later versions add bot behaviour (aggression, bombing priority) and custom setups here.</p>
+      </section>
+    </main>
+    <script type="module" src="src/ui/balance-lab.js"></script>
+  </body>
+</html>

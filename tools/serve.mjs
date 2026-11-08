@@ -1,6 +1,8 @@
 // Tiny static file server for local development: node tools/serve.mjs [port]
 // It also accepts PUT for the tuning panel's "Save to files", limited to existing data/*.json files
-// (and data/outlines/*.json), POST /build-sprites[?plane=x] for the Outline Lab, GET /api/outlines.
+// (and data/outlines/*.json), POST /build-sprites[?plane=x] for the Outline Lab, GET /api/outlines,
+// and for the Balance Lab GET /api/balance (scenario and result files) and PUT of balance/results/*.json
+// (new runs) and balance/scenarios/*.json.
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -30,6 +32,9 @@ const TYPES = {
 const SAVABLE = /^\/data\/[a-z_]+\.json$/;
 // The Outline Lab may also create a plane's outline file.
 const OUTLINE = /^\/data\/outlines\/[a-z0-9_-]+\.json$/;
+
+// The Balance Lab saves its runs (new files) and scenarios here; results can run to a few MB.
+const BALANCE = /^\/balance\/(results|scenarios)\/[a-z0-9_.-]+\.json$/;
 
 const AUDIO = 'assets/audio';
 const hashOf = (buf) => createHash('sha256').update(buf).digest('hex');
@@ -91,12 +96,14 @@ async function saveRecording(req, res, name) {
 
 async function save(req, res, path) {
   const file = normalize(join(root, path));
+  const balance = BALANCE.test(path);
   if (OUTLINE.test(path)) await mkdir(join(root, 'data/outlines'), { recursive: true });
+  else if (balance) await mkdir(join(file, '..'), { recursive: true });
   else if (!SAVABLE.test(path) || !(await stat(file)).isFile()) throw new Error('not savable');
   let body = '';
   for await (const chunk of req) {
     body += chunk;
-    if (body.length > 1_000_000) throw new Error('too large');
+    if (body.length > (balance ? 50_000_000 : 1_000_000)) throw new Error('too large');
   }
   JSON.parse(body); // refuse anything that isn't valid JSON
   await writeFile(file, body);
@@ -163,6 +170,12 @@ createServer(async (req, res) => {
     const files = (await readdir(join(root, 'data/outlines')).catch(() => [])).filter((f) => f.endsWith('.json'));
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(JSON.stringify(files.map((f) => f.replace('.json', ''))));
+    return;
+  }
+  if (req.method === 'GET' && req.url.split('?')[0] === '/api/balance') {
+    const list = async (dir) => (await readdir(join(root, 'balance', dir)).catch(() => [])).filter((f) => f.endsWith('.json')).sort();
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ scenarios: await list('scenarios'), results: await list('results') }));
     return;
   }
   if (req.method === 'PUT') {

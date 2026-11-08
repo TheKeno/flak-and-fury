@@ -1,0 +1,13 @@
+{
+  "name": "fighters",
+  "title": "The six fighters",
+  "about": "Every pairing of the single-engine fighters, both ways round, plus a same-plane baseline each. 4 normal bots a side, 20 game-minutes on the countryside map. Heavy fighters, the Mosquito and the Stuka are balanced later.",
+  "planes": ["bf109g6", "spitfire", "p47d", "la5fn", "ki43", "b239"],
+  "perSide": 4,
+  "skill": "normal",
+  "minutes": 20,
+  "map": "countryside",
+  "sample": 10,
+  "seed": 1,
+  "sizes": { "quick": 10, "full": 50, "matchup": 30 }
+}

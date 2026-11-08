@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Balance Lab: bot battles to find unbalanced planes (decided 2026-11-08, discussion; not built):** a headless
+- **Balance Lab: bot battles to find unbalanced planes (decided 2026-11-08; stage 1 built 2026-11-08, see Done):** a headless
   balance tool with its own page, so the owner can run hundreds of bot matches without tokens and see which planes
   differ from the rest. Replaces the backlog's "Balance simulation system".
   - **The measure is the front.** With only fighters flying, the front should not move much more than in a same-plane
@@ -448,6 +448,22 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Balance Lab stage 1 (Gameplay, 2026-11-08):** `balance-lab.html` + `src/ui/balance-lab.js` (Run / Results /
+  Scenarios tabs, Web Workers on all threads or half, a queue, progress with time left, cancel keeps the matches done,
+  compare two runs) and `node tools/balance.mjs <scenario> [--full | --matchup a,b] [--half]`, both on the same runner
+  (`src/balance/runner.js`, `plan.js`, `analyse.js`) and giving the same numbers (checked match for match). Scenario
+  `balance/scenarios/fighters.json` (6 fighters, 36 setups); runs saved in `balance/results/` (the dev server's
+  `/api/balance` and PUT). No sim change: stats come from `world.events` and the world each tick; the front is halfway
+  between each side's most forward tank or infantry squad (a side with none out counts as at its depot), reported in
+  metres from the middle. A match's push is the mean front over the match; noise is the larger of the matchup's own
+  spread and the same-plane baselines' (root mean square), flagged beyond 2 standard errors with at least 3 matches.
+  **Measured:** a 20-minute match with 8 bots takes about 28 s on one thread (the ground war dominates); 16 threads on
+  the 8-core Ryzen run about 7× as fast, so quick (10 per setup, 360 matches) takes about 25 min and full (50, 1800)
+  about 2 h; one matchup (30 per setup, 120) about 8 min (first quick run: 24 min). **First quick run**
+  (`balance/results/2026-11-08-19-22-57-fighters-quick.json`): noise about 42 m a match; P-47D (+20 m ± 12) and
+  Spitfire (+14 ± 11) flagged strong, Ki-43-II (−26 ± 11) weak; one-sided: Spitfire v Ki-43 (+44 ± 25, Spitfire 1.14
+  kills per life against 0.15) and P-47D v Ki-43 (+34 ± 29). No side reached an enemy depot in any match. A full run
+  should confirm before tuning. Restart a running `tools/serve.mjs` to get the Lab's endpoints.
 - **Bomb rebalance (Planes, 2026-11-08):** bombs named by weight (`bomb_50/100/113/227/250/500`, FAB-100 and Army 100 merged); blast radius, damage and crater scale with weight (TUNING.md). Loads per plane: Spitfire 227 + 2×113 (centre crutch + wing rack), P-47D 227 + 2×227 (maxLoad 690), Mosquito 4 bay + 2 rack ×113 (maxLoad 700), Ki-45 2×250, Ki-43 2×50, La-5FN wing rack 2×100; presets named in kg; wing pairs are `rack` hardpoints and drop together. Tanks take `bombFactor` 0.6 of a bomb's blast (tank shells not cut), so a fighter's 227/250 kg direct hit no longer kills a tank, the Stuka's 500 kg still does.
 - **A tank for each nation (Gameplay, 2026-11-08):** each side drives its nation's Outline Lab tank (`tank.sprites` in `data/ground.json`: Panzer IV H, T-34/76, Churchill, M4A1, Chi-Ha, BT-42; countryside: Panzer against Churchill). Owner's call: **one shared set of numbers**, only the size differs: `tank.sizes` holds each type's real length and height (heights from memory, check against the sheets), and `makeGroundObject` in `src/sim/ground.js` sets `obj.model`, `obj.width` and `obj.height` (hit box, column spacing, bot skyline). The loader loads all six layer sets; `drawVehicle` draws `obj.model`. Seen in play muted: all six draw with their own gun and crew points. `tests/tank-types.test.mjs`. **Not done:** tanks all use one engine sound (`defaultTankBuild` in `soundscape.js`), not the Sound Lab vehicle entry per type.
 - **Milestone 8 step 1: the pace of the ground forces, infantry in trucks (Gameplay, 2026-11-08):** tanks 5 → 12 u/s
@@ -754,7 +770,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Balance Lab** (Gameplay): designed, ready to build; see the Decisions entry "Balance Lab: bot battles to find unbalanced planes".
+- **Balance Lab stage 2: the auto-tuner** (Gameplay): stage 1 is built (see Done); stage 2 as in the Decisions entry "Balance Lab: bot battles to find unbalanced planes". First read a full fighter run.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
