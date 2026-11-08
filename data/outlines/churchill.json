@@ -1,7 +1,7 @@
 {
   "vehicle": "tank",
   "sprite": {
-    "size": [92, 46],
+    "size": [96, 46],
     "pivot": [80, 36]
   },
   "_notes": "Starter copied from the Panzer IV H so the Lab can open it: reshape every part over the sheet Churchill.gif (a Churchill Mk III: welded turret, 6-pdr; whitewashed; the side view faces left, so mirror it; calibrate: front of the hull and the rear end, both on the ground line, 7.44 m). Same format and notes as panzer4h.json. Churchill: hull 7.44 m, width 3.25 m over the track guards, height 2.49 m, 11 small road wheels on bogie arms (no return rollers: the track runs on the hull top), sprocket at the rear, idler at the front, the whole upper hull wrapped by the track.",
