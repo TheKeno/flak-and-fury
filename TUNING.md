@@ -309,7 +309,7 @@ clears the tank columns and starts the waves again.
 | Field | What it does | Try |
 |---|---|---|
 | `hp` | Hit points. For infantry, per soldier. A 250 lb bomb does about 120 at the centre. | 3 – 200 |
-| `bulletFactor` | Share of bullet damage it takes; bombs always do full damage. 0.15 = bombs only, in practice. | 0 – 1 |
+| `bulletFactor` | Share of bullet damage it takes; bombs do full damage unless it has a `bombFactor` (tanks). 0.15 = bombs only, in practice. | 0 – 1 |
 | `width`, `height` | Size in world units, also the hit box. Sprites don't stretch with it. | |
 | `solid` | Planes that fly into it crash (and damage it). | |
 | `spacing` | Infantry only: gap between soldiers in a squad. | 3 – 8 |
@@ -376,7 +376,8 @@ map the first columns meet at about 2.5 minutes (it was about 5).
 | `engageRange` | An enemy this close ahead stops the unit to fight. | 60 – 200 |
 | `layers` / `spriteScale` | A tank drawn from Outline Lab layers (hull, turret, gun, crew; `assets/sprites/<sprite>.json`): `layers` turns it on, `spriteScale` draws it that many times bigger than the real scale (1.5 while the infantry are drawn 1.5 times too big). | true / 1 – 1.5 |
 | `sprites` / `sizes` (tank) | Each nation's tank: `sprites` by nation (failing that, the team's place in the list), `sizes` each type's real [length, height] in metres. All tanks share the other numbers; the size sets the hit box (2.5 units a metre × `spriteScale`). Edit in the file, not the panel. | Panzer IV 5.92 × 2.68 … Churchill 7.44 × 2.49 |
-| `bulletFactor` / `roofFactor` | Tank armour: share of bullet damage from the front and sides, and from a steep dive onto the roof. Bombs do full damage. | 0.02 – 0.1 / 0.2 – 0.5 |
+| `bulletFactor` / `roofFactor` | Tank armour: share of bullet damage from the front and sides, and from a steep dive onto the roof. | 0.02 – 0.1 / 0.2 – 0.5 |
+| `bombFactor` | Tank armour against bombs: share of a bomb's blast damage it takes (tank shells are not cut; other ground objects take full blast). Balance value, set for fun: 0.6 (2026-11-08) so a fighter's 227 or 250 kg direct hit (about 85 to 88 of 120 hp) needs a second bomb, while the Stuka's 500 kg (120) still kills. | 0.4 – 1 |
 | `gunRange`, `gunInterval`, `gunVelocity` | Tank main gun (ground targets only): reach, seconds between shots, shell speed. | 120 – 250, 3 – 8 |
 | `gunDepression`, `gunElevation` | How far the main gun dips below and lifts above the hull (radians). The hull tilts with the ground, so a tank on a slope can't reach everything. | 0.1 – 0.3, 0.3 – 0.7 |
 | `tiltRate` | How quickly a tank's hull settles to the ground's slope (higher = follows every bump). | 2 – 8 |

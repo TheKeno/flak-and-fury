@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
-import { damageGround, makeGroundObject, hangarHealth, settleHull, surfaceAt } from '../src/sim/ground.js';
+import { damageGround, makeGroundObject, hangarHealth, settleHull, surfaceAt, blastGround, groundBox } from '../src/sim/ground.js';
+import { explode } from '../src/sim/weapons.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
@@ -207,4 +208,25 @@ test('a side never has more tanks out than maxTanks', () => {
   run(world, 60, () => (most = Math.max(most, units(world, 'tank', 0).length, units(world, 'tank', 1).length)));
   assert.equal(most, 4);
   assert.ok(units(world, 'truck', 0).length + units(world, 'infantry', 0).length > 2, 'infantry still comes');
+});
+
+test('tank armour takes bombFactor of a bomb: a 250 kg direct hit leaves it alive, a 500 kg kills; shells are not cut', () => {
+  const world = makeWorld({ first: 1e6 });
+  const hit = (bomb) => {
+    const tank = makeGroundObject(world, 'tank', 1, 400, { mobile: true });
+    world.ground.push(tank);
+    const [l, , r, t] = groundBox(world, tank);
+    explode(world, (l + r) / 2, t, world.weapons[bomb], null, 0);
+    return tank;
+  };
+  const f = world.groundDefs?.tank?.bombFactor ?? load('data/ground.json').tank.bombFactor;
+  const t250 = hit('bomb_250');
+  assert.ok(t250.alive, 'a 250 kg direct hit is not enough');
+  assert.ok(Math.abs(t250.hp - (120 - 146 * f)) < 1, `took ${120 - t250.hp}`);
+  assert.equal(hit('bomb_500').alive, false, 'a 500 kg direct hit kills');
+  const shelled = makeGroundObject(world, 'tank', 1, 400, { mobile: true });
+  world.ground.push(shelled);
+  const [l, , r, t] = groundBox(world, shelled);
+  blastGround(world, (l + r) / 2, t, { blastRadius: 12, blastDamage: 30 }, null, 0, { spareNeutral: true });
+  assert.equal(shelled.hp, 90, 'a tank shell does full damage');
 });

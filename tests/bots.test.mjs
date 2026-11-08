@@ -126,7 +126,7 @@ test('a bot shoots down a plane flying straight and level', () => {
   assert.equal(hunter.state, 'air', 'and the bot is still flying');
 });
 
-test('a bot bombs an enemy tank closing on its hangar, without cratering its own runway', () => {
+test('a bot bombs an enemy tank closing on its hangar and hits it, without cratering its own runway', () => {
   const world = makeWorld();
   const p = bot(world, GERMAN);
   const home = world.map.airfields.find((a) => a.team === 0);
@@ -134,10 +134,12 @@ test('a bot bombs an enemy tank closing on its hangar, without cratering its own
   tank.dir = -1;
   tank.moving = false;
   world.ground.push(tank);
-  const events = run(world, 150, { until: () => !tank.alive });
+  const full = tank.hp;
+  // The G-6 carries one 250 kg bomb: against tank armour (bombFactor) a hit hurts but doesn't kill.
+  const events = run(world, 150, { until: () => tank.hp < full * 0.5 });
   assert.deepEqual(crashesOf(events, p), [], describe(crashesOf(events, p)));
   assert.ok(events.some((e) => e.type === 'bombRelease' && e.plane === p.id), 'it dropped a bomb');
-  assert.equal(tank.alive, false, 'the tank is destroyed');
+  assert.ok(tank.hp < full * 0.5, `the bomb hit the tank (hp ${Math.round(tank.hp)} of ${full})`);
   assert.equal(world.terrain.heightAt(home.x + home.width / 2), home.height, 'the runway has no craters');
 });
 

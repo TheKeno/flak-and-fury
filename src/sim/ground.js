@@ -254,7 +254,8 @@ export function bombStrikesGround(world, bomb) {
 
 // Blast damage falls off with the distance to the nearest point of each object.
 // spareNeutral: leaves bridges alone (tank shells, so tanks don't knock down the bridge they need).
-export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = false } = {}) {
+// bomb: a bomb's blast, which armour shrugs off in part (the def's bombFactor; tank shells are not cut).
+export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = false, bomb = false } = {}) {
   for (const obj of world.ground) {
     if (!obj.alive || !isEnemy(world, obj, team)) continue;
     if (spareNeutral && obj.team == null) continue;
@@ -269,7 +270,7 @@ export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = fa
     const [l, b, r, t] = groundBox(world, obj);
     const d = Math.hypot(x - clamp(x, l, r), y - clamp(y, b, t));
     if (d >= def.blastRadius) continue;
-    const dmg = def.blastDamage * (1 - d / def.blastRadius);
+    const dmg = def.blastDamage * (1 - d / def.blastRadius) * (bomb ? obj.def.bombFactor ?? 1 : 1);
     world.events.push({ type: 'groundHit', id: obj.id, kind: obj.type, x: clamp(x, l, r), y: clamp(y, b, t), damage: dmg });
     // Men in a truck feel it too: fully in an open one, less under a tarp.
     if (obj.passengers) {

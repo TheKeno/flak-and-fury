@@ -439,7 +439,7 @@ export function explode(world, x, y, def, ownerId, team) {
     const d = Math.hypot(p.x - x, p.y - y);
     if (d < def.blastRadius) damagePlane(world, p, def.blastDamage * (1 - d / def.blastRadius), ownerId, p.x, p.y, 'bomb');
   }
-  blastGround(world, x, y, def, ownerId, team);
+  blastGround(world, x, y, def, ownerId, team, { bomb: true });
   if (y - world.terrain.heightAt(x) < def.craterRadius) digCrater(world, x, def.craterRadius, def.craterDepth, ownerId);
 }
 

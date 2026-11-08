@@ -197,7 +197,7 @@ const BAILOUT_FIELDS = [
 ];
 const GROUND_FIELDS = [
   ['hp', 'Hit points', 1, 400, 1, 'Damage it takes to destroy (infantry: per soldier). Applies when targets are restored.'],
-  ['bulletFactor', 'Bullet damage taken', 0, 1, 0.05, 'Share of bullet damage it takes. Bombs always do full damage. Low = bombs only.'],
+  ['bulletFactor', 'Bullet damage taken', 0, 1, 0.05, 'Share of bullet damage it takes. Bombs do full damage (tanks: Bomb damage taken). Low = bombs only.'],
 ];
 // Extra sliders for the ground objects that shoot.
 const DEFENCE_FIELDS = {
@@ -236,6 +236,7 @@ const DEFENCE_FIELDS = {
   tank: [
     ['speed', 'Speed', 1, 20, 0.5, 'How fast tanks advance (world units per second).'],
     ['engageRange', 'Stops to fight at', 0, 300, 5, 'An enemy this close ahead stops the tank to fight.'],
+    ['bombFactor', 'Bomb damage taken', 0, 1, 0.05, 'Share of a bomb blast the armour lets through. Tank shells are not cut. 0.6: a 227 or 250 kg direct hit no longer kills, a 500 kg still does.'],
     ['roofFactor', 'Roof armour', 0, 1, 0.05, 'Share of bullet damage from a steep dive onto the thin roof (the front and sides take Bullet damage taken).'],
     ['gunRange', 'Main gun reach', 30, 400, 5, 'How far the main gun fires at ground targets.'],
     ['gunInterval', 'Main gun reload', 0.5, 15, 0.5, 'Seconds between shots (varies a little).'],
