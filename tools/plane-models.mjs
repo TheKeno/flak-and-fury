@@ -244,8 +244,8 @@ export function roundelB(du, dv, r) {
 }
 // Five-pointed star, its points at radius R, the top point towards +dv: at most 1 inside. The edge runs
 // straight from a point to the next inner corner (radius R * 0.382, 36 degrees round).
-function starRatio(du, dv, R) {
-  const Ri = R * 0.382;
+function starRatio(du, dv, R, inner = 0.382) {
+  const Ri = R * inner;
   const t = (36 * Math.PI) / 180;
   const phi = (((Math.atan2(du, dv) % (2 * t)) + 2 * t) % (2 * t));
   const al = phi > t ? 2 * t - phi : phi;
@@ -1669,9 +1669,21 @@ function tank(o, opts = {}) {
   const phase = opts.phase ?? 0;
   const travel = phase * 2 * pitch; // how far the tank has rolled, model units
   const plain = (kind) => () => ({ kind });
+  // National markings on the hull and turret sides: shape 'cross' (Balkenkreuz, r scales it), 'star' (white, r = the
+  // points' radius, the US), 'redstar' (the USSR) or 'disc' (red, Japan).
+  const markShape = (m, du, dv) => {
+    // A fatter star than the plane's, so that it still reads a few pixels across.
+    if (m.shape === 'star' || m.shape === 'redstar') return starRatio(du, dv, m.r * M, 0.5) <= 1 ? (m.shape === 'star' ? 'white' : 'red') : null;
+    if (m.shape === 'disc') return Math.hypot(du, dv) <= m.r * M ? 'red' : null;
+    // Tank cross: the black cross with a thin white edge (the plane's has a wide one).
+    const a = Math.abs(du) / (m.r * M);
+    const b = Math.abs(dv) / (m.r * M);
+    if ((a <= 0.55 && b <= 1.6) || (b <= 0.55 && a <= 1.6)) return 'marking';
+    return (a <= 0.95 && b <= 2) || (b <= 0.95 && a <= 2) ? 'white' : null;
+  };
   const mark = (on) => (p, n) => {
     for (const m of o.markings ?? []) {
-      const k = m.on === on && side(n) && cross(p[0] - X(m.d), p[1] - Y(m.h), m.r * M);
+      const k = m.on === on && side(n) && markShape(m, p[0] - X(m.d), p[1] - Y(m.h));
       if (k) return { kind: k };
     }
     return null;
