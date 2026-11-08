@@ -29,8 +29,8 @@ test('the Stuka carries two wing cannon, a rear gunner and five bombs', () => {
   assert.equal(p.guns[0].count, 2);
   assert.equal(p.turrets[0].weapon, 'mg81z');
   assert.deepEqual(p.stations.map((s) => [s.hp, s.loaded]), [['crutch', 1], ['rack-in', 2], ['rack-out', 2]]);
-  assert.equal(p.stations[0].def, world.weapons.sc_500);
-  assert.equal(p.stations[1].def, world.weapons.sc_50);
+  assert.equal(p.stations[0].def, world.weapons.bomb_500);
+  assert.equal(p.stations[1].def, world.weapons.bomb_50);
 });
 
 test('the gear stays down: G on the ground and in the air changes nothing', () => {

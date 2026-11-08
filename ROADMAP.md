@@ -7,6 +7,8 @@ later.
 
 ## Decisions
 
+- **Bomb rebalance step 1 (Planes, 2026-11-08, done):** bombs are named by weight (`bomb_50/100/113/227/250/500`, FAB-100 and Army 100 merged); blast, damage and crater scale with weight (see TUNING.md). Next: per-plane loads and weight limits.
+
 - **Direction: the front, first map the Kursk salient (decided 2026-11-08, discussion; not built):** resolves the
   owner's MOBA note. This is milestone 8.
   - **The player is air support.** Dogfighting and bombing stay the core. The AI ground war is the story, and the

@@ -61,7 +61,7 @@ test('every bomb plane has hardpoints and a loadout that fit together, and no ol
     }
   }
   assert.deepEqual(
-    [weapons.sc_50.blastRadius, weapons.sc_50.blastDamage, weapons.sc_50.craterRadius, weapons.sc_50.craterDepth, weapons.sc_50.drag],
+    [weapons.bomb_50.blastRadius, weapons.bomb_50.blastDamage, weapons.bomb_50.craterRadius, weapons.bomb_50.craterDepth, weapons.bomb_50.drag],
     [22, 70, 10, 5, 0.12],
   );
 });
@@ -174,26 +174,26 @@ test('validateLoadout refuses what does not fit', () => {
   const weapons = load('data/weapons.json');
   const stuka = planes.ju87;
   const ok = (l) => validateLoadout(stuka, l, weapons);
-  assert.ok(ok([{ hardpoint: 'crutch', weapon: 'sc_500', count: 1 }]), 'SC 500 on the crutch');
-  assert.equal(ok([{ hardpoint: 'rack-in', weapon: 'sc_250', count: 1 }]), null, 'heavier than the rack takes (maxKg)');
-  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'sc_500', count: 2 }]), null, 'more than the hardpoint holds');
-  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'sc_500', count: 0 }]), null, 'zero count (leave it out instead)');
-  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'sc_500', count: 1.5 }]), null, 'not a whole number');
-  assert.equal(ok([{ hardpoint: 'nowhere', weapon: 'sc_50', count: 1 }]), null, 'no such hardpoint');
+  assert.ok(ok([{ hardpoint: 'crutch', weapon: 'bomb_500', count: 1 }]), 'SC 500 on the crutch');
+  assert.equal(ok([{ hardpoint: 'rack-in', weapon: 'bomb_250', count: 1 }]), null, 'heavier than the rack takes (maxKg)');
+  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'bomb_500', count: 2 }]), null, 'more than the hardpoint holds');
+  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'bomb_500', count: 0 }]), null, 'zero count (leave it out instead)');
+  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'bomb_500', count: 1.5 }]), null, 'not a whole number');
+  assert.equal(ok([{ hardpoint: 'nowhere', weapon: 'bomb_50', count: 1 }]), null, 'no such hardpoint');
   assert.equal(ok([{ hardpoint: 'crutch', weapon: 'toString', count: 1 }]), null, 'not a weapon at all');
-  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'sc_250' }, { hardpoint: 'crutch', weapon: 'sc_250' }]), null, 'hardpoint used twice');
-  assert.equal(ok('sc_500'), null, 'not a list');
+  assert.equal(ok([{ hardpoint: 'crutch', weapon: 'bomb_250' }, { hardpoint: 'crutch', weapon: 'bomb_250' }]), null, 'hardpoint used twice');
+  assert.equal(ok('bomb_500'), null, 'not a list');
   assert.deepEqual(ok([]), [], 'clean');
-  assert.equal(validateLoadout(planes.bf109g6, [{ hardpoint: 'centre', weapon: 'sc_250' }], weapons)[0].count, 1, 'count defaults to 1');
+  assert.equal(validateLoadout(planes.bf109g6, [{ hardpoint: 'centre', weapon: 'bomb_250' }], weapons)[0].count, 1, 'count defaults to 1');
   const gun = Object.entries(weapons).find(([, w]) => w.type !== 'bomb')[0];
   assert.equal(ok([{ hardpoint: 'crutch', weapon: gun, count: 1 }]), null, 'not a bomb');
   // The weight budget: a Mosquito with 4 x GP 250 is 452 kg, under 500; shrink maxLoad and it is refused.
   const mos = planes.mosquito;
-  const four = [{ hardpoint: 'bay', weapon: 'gp_250', count: 2 }, { hardpoint: 'rack', weapon: 'gp_250', count: 2 }];
+  const four = [{ hardpoint: 'bay', weapon: 'bomb_113', count: 2 }, { hardpoint: 'rack', weapon: 'bomb_113', count: 2 }];
   assert.ok(validateLoadout(mos, four, weapons));
   assert.equal(validateLoadout({ ...mos, maxLoad: 400 }, four, weapons), null, 'over maxLoad');
   // Sorted by hardpoint order whatever order it came in.
-  const sorted = validateLoadout(stuka, [{ hardpoint: 'rack-out', weapon: 'sc_50', count: 2 }, { hardpoint: 'crutch', weapon: 'sc_500', count: 1 }], weapons);
+  const sorted = validateLoadout(stuka, [{ hardpoint: 'rack-out', weapon: 'bomb_50', count: 2 }, { hardpoint: 'crutch', weapon: 'bomb_500', count: 1 }], weapons);
   assert.deepEqual(sorted.map((l) => l.hardpoint), ['crutch', 'rack-out']);
 });
 
@@ -202,16 +202,16 @@ test('a chosen loadout is what the plane is armed with and what a rearm restores
   p.state = 'ground';
   p.exitPhase = 'wait'; // standing behind the hangar doors
   assert.equal(p.loadout, null, 'default until chosen');
-  const light = [{ hardpoint: 'crutch', weapon: 'sc_250', count: 1 }];
+  const light = [{ hardpoint: 'crutch', weapon: 'bomb_250', count: 1 }];
   assert.equal(setLoadout(p, light, world.weapons), true);
-  assert.deepEqual(p.stations.map((s) => [s.hp, s.def === world.weapons.sc_250, s.loaded]), [['crutch', true, 1]]);
+  assert.deepEqual(p.stations.map((s) => [s.hp, s.def === world.weapons.bomb_250, s.loaded]), [['crutch', true, 1]]);
   assert.equal(bombsFull(p), 1);
   assert.equal(bombsLeft(p), 1);
   assert.ok(Math.abs(loadFraction(p) - 250 / p.def.maxLoad) < 1e-9, 'the weight follows the choice');
   p.stations[0].loaded = 0;
   rearmFully(p);
   assert.equal(bombsLeft(p), 1, 'rearm restores the chosen load, not the default');
-  assert.equal(setLoadout(p, [{ hardpoint: 'rack-in', weapon: 'sc_250', count: 1 }], world.weapons), false, 'invalid is refused');
+  assert.equal(setLoadout(p, [{ hardpoint: 'rack-in', weapon: 'bomb_250', count: 1 }], world.weapons), false, 'invalid is refused');
   assert.deepEqual(p.loadout, light, 'and changes nothing');
   assert.equal(setLoadout(p, [], world.weapons), true, 'clean');
   assert.equal(bombsFull(p), 0);
@@ -227,10 +227,10 @@ test('the choice is locked once the plane rolls out of the hangar, and open agai
   assert.deepEqual(p.loadout, []);
   p.state = 'ground';
   p.exitPhase = 'out';
-  assert.equal(changeSeat(world, p, { loadout: [{ hardpoint: 'centre', weapon: 'gp_250', count: 1 }] }, dt), 'locked');
+  assert.equal(changeSeat(world, p, { loadout: [{ hardpoint: 'centre', weapon: 'bomb_113', count: 1 }] }, dt), 'locked');
   assert.deepEqual(p.loadout, [], 'unchanged');
   p.exitPhase = 'wait';
-  assert.equal(changeSeat(world, p, { loadout: [{ hardpoint: 'centre', weapon: 'gp_250', count: 9 }] }, dt), 'invalid');
+  assert.equal(changeSeat(world, p, { loadout: [{ hardpoint: 'centre', weapon: 'bomb_113', count: 9 }] }, dt), 'invalid');
 });
 
 test('switching plane takes the loadout along if it fits the new one, else the new default', () => {
@@ -239,11 +239,11 @@ test('switching plane takes the loadout along if it fits the new one, else the n
   p.state = 'ground';
   p.exitPhase = 'wait';
   p.fresh = true;
-  assert.equal(changeSeat(world, p, { defId: 'ju87', loadout: [{ hardpoint: 'crutch', weapon: 'sc_250', count: 1 }] }, dt), null);
+  assert.equal(changeSeat(world, p, { defId: 'ju87', loadout: [{ hardpoint: 'crutch', weapon: 'bomb_250', count: 1 }] }, dt), null);
   assert.equal(p.def, world.planeDefs.ju87);
-  assert.deepEqual(p.loadout, [{ hardpoint: 'crutch', weapon: 'sc_250', count: 1 }]);
+  assert.deepEqual(p.loadout, [{ hardpoint: 'crutch', weapon: 'bomb_250', count: 1 }]);
   assert.equal(bombsFull(p), 1);
-  assert.equal(changeSeat(world, p, { defId: 'bf109g6', loadout: [{ hardpoint: 'crutch', weapon: 'sc_250', count: 1 }] }, dt), null);
+  assert.equal(changeSeat(world, p, { defId: 'bf109g6', loadout: [{ hardpoint: 'crutch', weapon: 'bomb_250', count: 1 }] }, dt), null);
   assert.equal(p.loadout, null, 'the Bf 109 has no "crutch": default');
   assert.equal(bombsFull(p), 1);
   assert.equal(changeSeat(world, p, { defId: 'spitfire' }, dt), null);

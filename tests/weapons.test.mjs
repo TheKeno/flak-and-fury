@@ -81,7 +81,7 @@ test('with friendly fire on, a bomb strikes the plane that dropped it, but not a
     const { world, p } = makeWorld();
     world.rules.friendlyFire = friendlyFire;
     Object.assign(p, { state: 'air', x: 3000, y: world.terrain.heightAt(3000) + 400, vx: 0, vy: 0 });
-    world.bombsInFlight.push({ id: world.nextId++, owner: p.id, team: p.team, def: world.weapons.sc_250, x: p.x, y: p.y, vx: 0, vy: 0, age });
+    world.bombsInFlight.push({ id: world.nextId++, owner: p.id, team: p.team, def: world.weapons.bomb_250, x: p.x, y: p.y, vx: 0, vy: 0, age });
     stepWorld(world, {});
     return world.bombsInFlight.length === 0; // gone = it struck
   };

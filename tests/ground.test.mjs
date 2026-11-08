@@ -75,7 +75,7 @@ test('buildings shrug off bullets but a bomb flattens them', () => {
   run(world, 1);
   assert.equal(house.alive, true);
   const [, , , top] = groundBox(world, house);
-  world.bombsInFlight.push({ id: world.nextId++, owner: player.id, team: 0, def: world.weapons.sc_250, x: house.x, y: top + 60, vx: 0, vy: -50 });
+  world.bombsInFlight.push({ id: world.nextId++, owner: player.id, team: 0, def: world.weapons.bomb_250, x: house.x, y: top + 60, vx: 0, vy: -50 });
   run(world, 2);
   assert.equal(house.alive, false);
 });
@@ -115,7 +115,7 @@ test('radar health follows the radar station and fails when it is destroyed', as
   assert.equal(radarHealth(world, 1), 0.5);
   assert.equal(radarHealth(world, 0), 1, 'the other side is unaffected');
   const [, , , top] = groundBox(world, station);
-  world.bombsInFlight.push({ id: world.nextId++, owner: player.id, team: 0, def: world.weapons.sc_250, x: station.x, y: top + 40, vx: 0, vy: -50 });
+  world.bombsInFlight.push({ id: world.nextId++, owner: player.id, team: 0, def: world.weapons.bomb_250, x: station.x, y: top + 40, vx: 0, vy: -50 });
   run(world, 2);
   assert.equal(station.alive, false);
   assert.equal(radarHealth(world, 1), 0);

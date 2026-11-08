@@ -50,13 +50,13 @@ test('hardpoint choices obey maxKg and rows built from any choice validate', () 
 test('over maxLoad trims the other rows first, keeping the edited one', () => {
   const def = planes.ju87;
   const rows = [
-    { hardpoint: 'crutch', weapon: 'sc_500', count: 1 },
-    { hardpoint: 'rack-in', weapon: 'sc_50', count: 2 },
-    { hardpoint: 'rack-out', weapon: 'sc_50', count: 2 },
+    { hardpoint: 'crutch', weapon: 'bomb_500', count: 1 },
+    { hardpoint: 'rack-in', weapon: 'bomb_50', count: 2 },
+    { hardpoint: 'rack-out', weapon: 'bomb_50', count: 2 },
   ];
   assert.equal(loadKg(buildLoadout(def, rows, weapons, 'crutch'), weapons), 700);
   const mos = planes.mosquito; // maxLoad 500: two racks of 2 x 250 lb GP (113) fit; force heavy
-  const heavy = rowsOf(mos, []).map((r) => ({ ...r, weapon: 'sc_250', count: 2 }));
+  const heavy = rowsOf(mos, []).map((r) => ({ ...r, weapon: 'bomb_250', count: 2 }));
   const out = buildLoadout(mos, heavy, weapons, 'bay');
   assert.ok(loadKg(out, weapons) <= 500);
   assert.equal(out.find((e) => e.hardpoint === 'bay').count, 2);
@@ -96,7 +96,7 @@ test('saved choices: last plane, per-plane load, bad data falls back', () => {
   assert.equal(back.defId, 'ju87');
   assert.deepEqual(back.loadout, validateLoadout(def, load2, weapons));
   // a tampered load and unknown plane
-  mem.set('flak-hangar', JSON.stringify({ defId: 'nope', loads: { ju87: [{ hardpoint: 'x', weapon: 'sc_50', count: 1 }] } }));
+  mem.set('flak-hangar', JSON.stringify({ defId: 'nope', loads: { ju87: [{ hardpoint: 'x', weapon: 'bomb_50', count: 1 }] } }));
   const bad = sanitizeChoice(planes, weapons, readSaved(st), 'ju87');
   assert.equal(bad.defId, 'ju87');
   assert.deepEqual(bad.loadout, validateLoadout(def, presetsOf(def)[0].loadout, weapons));

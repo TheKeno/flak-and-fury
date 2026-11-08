@@ -70,7 +70,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `roundKg` | Guns: kg per round including its link. **All guesses from calibre:** 7.9 / .303 mm 0.025; 12.7 / .50 0.12; MG 131 0.075; 20 mm 0.25; MK 108 0.45. |
 | `blastRadius`, `blastDamage` | Bomb explosion size and damage at the centre. |
 | `craterRadius`, `craterDepth` | Size of the hole a bomb digs. |
-| `sc_50` | The 50 kg bomb (Stuka wing racks): blast radius 22, damage 70, crater 10 × 5, drag 0.12 (crater and drag are guesses). |
+| `bomb_50` … `bomb_500` | Bombs are named by weight in kg (`bomb_113` is the 250 lb, `bomb_227` the 500 lb). Blast radius and crater radius scale with the cube root of weight, blast damage with weight^0.456, crater depth with weight^0.255, anchored at the 50 kg (22 / 70 / 10 × 5) and 500 kg (47 / 200 / 22 × 9) bombs. Drag is set by hand (0.12 light, 0.10 mid, 0.09 for 500 kg). Crater and drag are guesses. |
 
 ## Hangar page: `hangar.html`
 

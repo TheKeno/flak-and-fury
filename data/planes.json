@@ -53,7 +53,7 @@
     "loadout": [
       {
         "hardpoint": "centre",
-        "weapon": "sc_250",
+        "weapon": "bomb_250",
         "count": 1
       }
     ],
@@ -63,7 +63,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "sc_250",
+            "weapon": "bomb_250",
             "count": 1
           }
         ]
@@ -73,7 +73,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "sc_50",
+            "weapon": "bomb_50",
             "count": 1
           }
         ]
@@ -229,7 +229,7 @@
     "loadout": [
       {
         "hardpoint": "centre",
-        "weapon": "gp_250",
+        "weapon": "bomb_113",
         "count": 2
       }
     ],
@@ -239,7 +239,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           }
         ]
@@ -249,7 +249,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 1
           }
         ]
@@ -403,7 +403,7 @@
     "loadout": [
       {
         "hardpoint": "centre",
-        "weapon": "gp_500",
+        "weapon": "bomb_227",
         "count": 2
       }
     ],
@@ -413,7 +413,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "gp_500",
+            "weapon": "bomb_227",
             "count": 2
           }
         ]
@@ -423,7 +423,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           }
         ]
@@ -544,7 +544,7 @@
     "loadout": [
       {
         "hardpoint": "centre",
-        "weapon": "fab_100",
+        "weapon": "bomb_100",
         "count": 2
       }
     ],
@@ -554,7 +554,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "fab_100",
+            "weapon": "bomb_100",
             "count": 2
           }
         ]
@@ -564,7 +564,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "fab_100",
+            "weapon": "bomb_100",
             "count": 1
           }
         ]
@@ -686,7 +686,7 @@
     "loadout": [
       {
         "hardpoint": "centre",
-        "weapon": "army_100",
+        "weapon": "bomb_100",
         "count": 2
       }
     ],
@@ -696,7 +696,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "army_100",
+            "weapon": "bomb_100",
             "count": 2
           }
         ]
@@ -706,7 +706,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "army_100",
+            "weapon": "bomb_100",
             "count": 1
           }
         ]
@@ -936,7 +936,7 @@
     "loadout": [
       {
         "hardpoint": "centre",
-        "weapon": "sc_250",
+        "weapon": "bomb_250",
         "count": 2
       }
     ],
@@ -946,7 +946,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "sc_250",
+            "weapon": "bomb_250",
             "count": 2
           }
         ]
@@ -956,7 +956,7 @@
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "sc_250",
+            "weapon": "bomb_250",
             "count": 1
           }
         ]
@@ -1126,12 +1126,12 @@
     "loadout": [
       {
         "hardpoint": "bay",
-        "weapon": "gp_250",
+        "weapon": "bomb_113",
         "count": 2
       },
       {
         "hardpoint": "rack",
-        "weapon": "gp_250",
+        "weapon": "bomb_113",
         "count": 2
       }
     ],
@@ -1141,12 +1141,12 @@
         "loadout": [
           {
             "hardpoint": "bay",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           },
           {
             "hardpoint": "rack",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           }
         ]
@@ -1156,7 +1156,7 @@
         "loadout": [
           {
             "hardpoint": "bay",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           }
         ]
@@ -1166,7 +1166,7 @@
         "loadout": [
           {
             "hardpoint": "rack",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           }
         ]
@@ -1320,17 +1320,17 @@
     "loadout": [
       {
         "hardpoint": "crutch",
-        "weapon": "sc_500",
+        "weapon": "bomb_500",
         "count": 1
       },
       {
         "hardpoint": "rack-in",
-        "weapon": "sc_50",
+        "weapon": "bomb_50",
         "count": 2
       },
       {
         "hardpoint": "rack-out",
-        "weapon": "sc_50",
+        "weapon": "bomb_50",
         "count": 2
       }
     ],
@@ -1340,17 +1340,17 @@
         "loadout": [
           {
             "hardpoint": "crutch",
-            "weapon": "sc_500",
+            "weapon": "bomb_500",
             "count": 1
           },
           {
             "hardpoint": "rack-in",
-            "weapon": "sc_50",
+            "weapon": "bomb_50",
             "count": 2
           },
           {
             "hardpoint": "rack-out",
-            "weapon": "sc_50",
+            "weapon": "bomb_50",
             "count": 2
           }
         ]
@@ -1360,17 +1360,17 @@
         "loadout": [
           {
             "hardpoint": "crutch",
-            "weapon": "sc_250",
+            "weapon": "bomb_250",
             "count": 1
           },
           {
             "hardpoint": "rack-in",
-            "weapon": "sc_50",
+            "weapon": "bomb_50",
             "count": 2
           },
           {
             "hardpoint": "rack-out",
-            "weapon": "sc_50",
+            "weapon": "bomb_50",
             "count": 2
           }
         ]
@@ -1380,7 +1380,7 @@
         "loadout": [
           {
             "hardpoint": "crutch",
-            "weapon": "sc_250",
+            "weapon": "bomb_250",
             "count": 1
           }
         ]
@@ -1524,7 +1524,7 @@
     "loadout": [
       {
         "hardpoint": "wing",
-        "weapon": "gp_500",
+        "weapon": "bomb_227",
         "count": 2
       }
     ],
@@ -1534,7 +1534,7 @@
         "loadout": [
           {
             "hardpoint": "wing",
-            "weapon": "gp_500",
+            "weapon": "bomb_227",
             "count": 2
           }
         ]
@@ -1544,7 +1544,7 @@
         "loadout": [
           {
             "hardpoint": "wing",
-            "weapon": "gp_500",
+            "weapon": "bomb_227",
             "count": 1
           }
         ]
@@ -1678,7 +1678,7 @@
     "loadout": [
       {
         "hardpoint": "wing",
-        "weapon": "fab_100",
+        "weapon": "bomb_100",
         "count": 4
       }
     ],
@@ -1688,7 +1688,7 @@
         "loadout": [
           {
             "hardpoint": "wing",
-            "weapon": "fab_100",
+            "weapon": "bomb_100",
             "count": 4
           }
         ]
@@ -1698,7 +1698,7 @@
         "loadout": [
           {
             "hardpoint": "wing",
-            "weapon": "fab_100",
+            "weapon": "bomb_100",
             "count": 2
           }
         ]
@@ -1846,7 +1846,7 @@
     "loadout": [
       {
         "hardpoint": "wing",
-        "weapon": "gp_250",
+        "weapon": "bomb_113",
         "count": 2
       }
     ],
@@ -1856,7 +1856,7 @@
         "loadout": [
           {
             "hardpoint": "wing",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           }
         ]
@@ -1866,7 +1866,7 @@
         "loadout": [
           {
             "hardpoint": "wing",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 1
           }
         ]
@@ -2026,12 +2026,12 @@
     "loadout": [
       {
         "hardpoint": "bay",
-        "weapon": "gp_250",
+        "weapon": "bomb_113",
         "count": 4
       },
       {
         "hardpoint": "rack",
-        "weapon": "gp_250",
+        "weapon": "bomb_113",
         "count": 2
       }
     ],
@@ -2041,12 +2041,12 @@
         "loadout": [
           {
             "hardpoint": "bay",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 4
           },
           {
             "hardpoint": "rack",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 2
           }
         ]
@@ -2056,7 +2056,7 @@
         "loadout": [
           {
             "hardpoint": "bay",
-            "weapon": "gp_250",
+            "weapon": "bomb_113",
             "count": 4
           }
         ]

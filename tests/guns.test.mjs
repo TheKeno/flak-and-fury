@@ -114,7 +114,7 @@ test('validateGuns accepts options and refuses the rest', () => {
     [{ mount: 'cowl', weapon: 'mg131', count: 2, ammo: 9999 }],
     [{ mount: 'cowl', weapon: 'mg131', count: 2, ammo: 0 }],
     [{ mount: 'cowl', weapon: 'hispano_20', count: 1 }], // not an option here
-    [{ mount: 'cowl', weapon: 'sc_250', count: 1 }], // a bomb
+    [{ mount: 'cowl', weapon: 'bomb_250', count: 1 }], // a bomb
     [{ mount: 'cowl', weapon: '__proto__', count: 1 }],
     [{ mount: 'nowhere', weapon: 'mg131', count: 1 }],
     [{ mount: 'cowl', weapon: 'mg131', count: 1 }, { mount: 'cowl', weapon: 'mg131', count: 1 }], // twice

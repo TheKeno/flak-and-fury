@@ -184,68 +184,8 @@
     "roundKg": 0.45,
     "voice": "cannon30"
   },
-  "fab_100": {
-    "name": "FAB-100 bomb",
-    "type": "bomb",
-    "blastRadius": 28,
-    "blastDamage": 90,
-    "craterRadius": 13,
-    "craterDepth": 6,
-    "drag": 0.12,
-    "weight": 100
-  },
-  "army_100": {
-    "name": "Army 100 kg bomb",
-    "type": "bomb",
-    "blastRadius": 28,
-    "blastDamage": 90,
-    "craterRadius": 13,
-    "craterDepth": 6,
-    "drag": 0.12,
-    "weight": 100
-  },
-  "gp_250": {
-    "name": "250 lb GP bomb",
-    "type": "bomb",
-    "blastRadius": 34,
-    "blastDamage": 120,
-    "craterRadius": 16,
-    "craterDepth": 7,
-    "drag": 0.12,
-    "weight": 113
-  },
-  "gp_500": {
-    "name": "500 lb GP bomb",
-    "type": "bomb",
-    "blastRadius": 42,
-    "blastDamage": 160,
-    "craterRadius": 18,
-    "craterDepth": 8,
-    "drag": 0.1,
-    "weight": 227
-  },
-  "sc_500": {
-    "name": "SC 500 bomb",
-    "type": "bomb",
-    "blastRadius": 50,
-    "blastDamage": 200,
-    "craterRadius": 21,
-    "craterDepth": 9,
-    "drag": 0.09,
-    "weight": 500
-  },
-  "sc_250": {
-    "name": "SC 250 bomb",
-    "type": "bomb",
-    "blastRadius": 42,
-    "blastDamage": 160,
-    "craterRadius": 18,
-    "craterDepth": 8,
-    "drag": 0.1,
-    "weight": 250
-  },
-  "sc_50": {
-    "name": "SC 50 bomb",
+  "bomb_50": {
+    "name": "50 kg bomb",
     "type": "bomb",
     "blastRadius": 22,
     "blastDamage": 70,
@@ -253,5 +193,55 @@
     "craterDepth": 5,
     "drag": 0.12,
     "weight": 50
+  },
+  "bomb_100": {
+    "name": "100 kg bomb",
+    "type": "bomb",
+    "blastRadius": 28,
+    "blastDamage": 96,
+    "craterRadius": 13,
+    "craterDepth": 6,
+    "drag": 0.12,
+    "weight": 100
+  },
+  "bomb_113": {
+    "name": "113 kg bomb",
+    "type": "bomb",
+    "blastRadius": 29,
+    "blastDamage": 102,
+    "craterRadius": 13,
+    "craterDepth": 6,
+    "drag": 0.12,
+    "weight": 113
+  },
+  "bomb_227": {
+    "name": "227 kg bomb",
+    "type": "bomb",
+    "blastRadius": 36,
+    "blastDamage": 140,
+    "craterRadius": 17,
+    "craterDepth": 7,
+    "drag": 0.1,
+    "weight": 227
+  },
+  "bomb_250": {
+    "name": "250 kg bomb",
+    "type": "bomb",
+    "blastRadius": 38,
+    "blastDamage": 146,
+    "craterRadius": 17,
+    "craterDepth": 8,
+    "drag": 0.1,
+    "weight": 250
+  },
+  "bomb_500": {
+    "name": "500 kg bomb",
+    "type": "bomb",
+    "blastRadius": 47,
+    "blastDamage": 200,
+    "craterRadius": 22,
+    "craterDepth": 9,
+    "drag": 0.09,
+    "weight": 500
   }
 }
