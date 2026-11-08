@@ -436,30 +436,6 @@ export function explode(world, x, y, def, ownerId, team) {
   if (y - world.terrain.heightAt(x) < def.craterRadius) digCrater(world, x, def.craterRadius, def.craterDepth, ownerId);
 }
 
-// Where the next bomb would land if released now, flown as stepBombs does: { x, y, t, path } or null
-// (no bomb left, or no ground within 12 s). Only the bomb sight uses it, so `path` is a short list of
-// points along the fall.
-export function bombSightPath(world, p) {
-  const st = nextStation(p);
-  if (!st || !st.loaded) return null;
-  const k = st.def.drag;
-  let [x, y] = localToWorld(p, hardpointOf(p, st).offset);
-  let vx = p.vx;
-  let vy = p.vy - 6;
-  const h = 1 / 30;
-  const path = [];
-  for (let t = 0, i = 0; t < 12; t += h, i++) {
-    vx -= vx * k * h;
-    vy -= (GRAVITY + vy * k) * h;
-    x += vx * h;
-    y += vy * h;
-    if (i % 6 === 0) path.push([x, y]);
-    const ground = world.terrain.heightAt(x);
-    if (y <= ground) return { x, y: ground, t, path };
-  }
-  return null;
-}
-
 export function stepBombs(world, dt) {
   const list = world.bombsInFlight;
   for (let i = list.length - 1; i >= 0; i--) {

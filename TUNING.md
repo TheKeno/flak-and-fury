@@ -96,7 +96,7 @@ about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns a
 
 `camera.lookSensitivity` is the mouse travel (pixels) for a full look; `camera.lookReturn` the seconds
 without moving the mouse before the view eases back to looking ahead, when `camera.lookReturnOn` is true.
-`camera.bombLookRange` is how far down the camera drops (share of the view) while the bomb view is held; the plane always stays on screen. `camera.bombSightReach` is the share of the next bomb's fall the sight shows (0.5 = it stops halfway down, in the air; 1 = the impact point). `camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
+`camera.bombLookRange` is how far down the camera drops (share of the view) while the bomb view is held; the plane always stays on screen. `camera.bombSightAhead` and `camera.bombSightDown` fix the bomb sight relative to the plane (world units in front of and below it); it does not predict the fall. `camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
 none). `wobble` (drawing only) leans the wings in the air using the roll frames, 22.5 degrees (one step) apart.
 `leanSteps` is how many steps the wings lean at the hardest turn (turn rate against the plane's `turnRate`):
 pulling up shows the belly, pushing down the top (decided when the turn starts and held to its end, even through a 180), a tap a little. `flutterSteps` is how many steps that lean
@@ -150,7 +150,10 @@ runs at its max rpm with `boost` extra power (0.2 = +20%; a worn engine gets les
 `baseWear` engine damage per second (1 = wrecked), rising to `peakWear` as the engine heats; heat takes
 `heatTime` seconds to reach full and `coolTime` to drain once switched off, so switching on again while hot
 starts at a higher wear (defaults: 5 s of use costs about 15% engine damage, 10 s about 40%). The HUD shows a TEMP meter
-while the engine is hotter than normal. The wear is ordinary engine damage: it stays until the ground crew repair it. A dark
+while the engine is hotter than normal. At full heat the engine **seizes**: it stops at once with `seizeDamage` more
+wear (about 50% in all), emergency power goes off, and the plane glides until heat has dropped to `restartHeat`, when the
+engine starts again by itself (not if it is burning, out of fuel or on its belly). From 85% heat the engine misses as a
+warning. The wear is ordinary engine damage: it stays until the ground crew repair it. A dark
 smoke trail shows from the first moment, to everyone. Bots use it only to survive (breaking away from a plane
 on the tail, or limping home with an enemy within `bots.emergencyRange`) and stop once their engine damage
 reaches `bots.emergencyWear`.

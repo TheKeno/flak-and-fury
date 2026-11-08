@@ -171,6 +171,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     emergency: false, // war emergency power is on (src/sim/emergency.js)
     heat: 0, // 0..1: how hot emergency power has run the engine
     prevEmergency: false,
+    heatStopped: false, // engine seized by full heat: it starts again once cool
     burning: false,
     fireLeft: 0, // seconds until a fire finishes the plane
     fireOut: 0, // seconds spent putting a fire out
@@ -230,6 +231,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.engineDamage = 0;
   p.emergency = false;
   p.heat = 0;
+  p.heatStopped = false;
   p.burning = p.dying = false;
   p.fireLeft = p.fireOut = 0;
   p.fireCough = p.fireStopped = false;

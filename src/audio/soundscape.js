@@ -89,6 +89,8 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
   const whereAt = (x, y, range = hearing()) => spatialize(listener, x, y, 0, 0, range);
   const BANGS = new Set(['crash', 'shot', 'hit', 'flakFire', 'flakBurst', 'tankFire', 'tankShellBurst', 'groundDestroyed', 'explosion', 'bombExplode', 'groundShot']);
 
+  // Emergency power running too hot: from 85% heat the engine misses more and more, a warning before it seizes.
+  const overheat = (p) => (p.emergency ? Math.max(0, (p.heat - 0.85) / 0.15) : 0);
   function updateEngines(dt) {
     for (const p of world.planes) {
       const v = engineFor(p);
@@ -98,9 +100,9 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
       v.update({
         rpm: p.rpm,
         load: p.load,
-        roughness: 0.08 + 0.25 * Math.max(0, 1 - p.rpm / cruise) + p.engineDamage * 0.5,
+        roughness: 0.08 + 0.25 * Math.max(0, 1 - p.rpm / cruise) + p.engineDamage * 0.5 + overheat(p) * 0.4,
         // Out of fuel nothing fires (only the windmilling prop is heard); starving, it coughs.
-        misfire: !p.engineRunning ? 1 : p.starved ? 0.95 : p.engineDamage * 0.22 + (p.dying ? 0.55 : 0),
+        misfire: !p.engineRunning ? 1 : p.starved ? 0.95 : p.engineDamage * 0.22 + overheat(p) * 0.5 + (p.dying ? 0.55 : 0),
         gain: where.gain,
         // Turning your head shifts your own engine slightly to the other ear.
         pan: p.id === focusId ? -lookX * 0.25 : where.pan,

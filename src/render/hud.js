@@ -83,7 +83,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   if (plane.heat > 0.02) {
     // Engine temperature, only while it is hotter than normal (emergency power).
     const hot = plane.heat > 0.7;
-    const flash = hot && plane.emergency && Math.floor(performance.now() / 200) % 2 === 0;
+    const flash = plane.heat > 0.8 && plane.emergency && Math.floor(performance.now() / 200) % 2 === 0;
     meter('TEMP', plane.heat, hot ? '#e05040' : plane.heat > 0.4 ? '#e0a040' : '#c8aa58', flash ? '#ff7040' : LABEL);
     y += L;
   }
@@ -255,7 +255,8 @@ export function damageLines(plane) {
     lines.push([`${torn ? 'WING TORN' : 'WING DAMAGED'} - PULLS, ${counter}`, torn ? RED : AMBER]);
   }
   if (plane.propBent) lines.push(['PROPELLER BENT', AMBER]);
-  if (!plane.engineRunning && !plane.belly) lines.push([plane.fuel <= 0 ? 'OUT OF FUEL' : 'ENGINE DEAD', RED]);
+  if (plane.heatStopped && !plane.engineRunning) lines.push(['ENGINE SEIZED - RESTARTS WHEN COOL', RED]);
+  else if (!plane.engineRunning && !plane.belly) lines.push([plane.fuel <= 0 ? 'OUT OF FUEL' : 'ENGINE DEAD', RED]);
   else if (plane.engineDamage > 0.5) lines.push(['ENGINE BADLY HIT', RED]);
   else if (plane.engineDamage > 0.1) lines.push(['ENGINE DAMAGED', AMBER]);
   if (plane.belly) lines.push(['ON ITS BELLY', AMBER]);

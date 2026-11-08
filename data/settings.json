@@ -12,7 +12,8 @@
     "zoomSpeed": 1.2,
     "lookRange": 0.33,
     "bombLookRange": 0.5,
-    "bombSightReach": 0.5,
+    "bombSightAhead": 70,
+    "bombSightDown": 60,
     "lookSpeed": 4.5,
     "lookZoom": 0.12,
     "lookSensitivity": 200,
@@ -112,7 +113,9 @@
     "baseWear": 0.015,
     "peakWear": 0.06,
     "heatTime": 8,
-    "coolTime": 12
+    "coolTime": 12,
+    "seizeDamage": 0.2,
+    "restartHeat": 0.3
   },
   "waves": {
     "first": 15,

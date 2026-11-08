@@ -20,7 +20,7 @@ import { prof } from '../ui/perfstats.js';
 import { fireStage } from '../sim/fire.js';
 import { drawSightShape } from './sight.js';
 import { surfaceAt } from '../sim/ground.js';
-import { localToWorld, bombSightPath } from '../sim/weapons.js';
+import { localToWorld } from '../sim/weapons.js';
 import { attitude, mainWheelContact, isUpright, wheelGeometry, DEFAULT_WHEELS } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
@@ -1354,26 +1354,16 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // Bomb sight (bomb view held): the first part of the next bomb's fall as dots in the world, ending in the
-  // player's own gunsight (same shape, colour, size and opacity as the options set) up in the air. It stops
-  // camera.bombSightReach of the way to the ground (share of the fall's time), so the rest of the drop is
-  // the pilot's judgement. The ordinary gunsight is hidden meanwhile.
-  let bombEnd = null; // [x, y] world point the sight sits at this frame
-  function drawBombPath(p) {
-    bombEnd = null;
-    if (!p || p.state === 'dead' || p.bailout) return;
-    const hit = bombSightPath(world, p);
-    if (!hit) return;
-    const n = Math.max(1, Math.floor(hit.path.length * clamp(camCfg.bombSightReach, 0, 1)));
-    const shown = hit.path.slice(0, n);
-    ctx.fillStyle = 'rgba(200,184,112,0.55)';
-    for (const [x, y] of shown) ctx.fillRect(Math.round(toScreenX(x)), Math.round(toScreenY(y)), 1, 1);
-    bombEnd = shown[shown.length - 1];
-  }
-  function drawBombSight() {
-    if (!bombEnd || !hudCfg.crosshair || hudCfg.crosshairAlpha <= 0) return;
-    const x = ((bombEnd[0] - cam.x) * SCALE / bw) * W;
-    const y = ((bh - (bombEnd[1] - cam.y) * SCALE) / bh) * H;
+  // Bomb sight (bomb view held): the player's own gunsight (same shape, colour, size and opacity as the
+  // options set), fixed relative to the plane: camera.bombSightAhead in front and bombSightDown below it.
+  // It does not predict the fall, so how far ahead to release is the pilot's judgement. The ordinary
+  // gunsight is hidden meanwhile.
+  function drawBombSight(p) {
+    if (!p || p.state === 'dead' || p.bailout || !hudCfg.crosshair || hudCfg.crosshairAlpha <= 0) return;
+    const wx = p.x + (Math.cos(p.angle) >= 0 ? 1 : -1) * camCfg.bombSightAhead;
+    const wy = p.y - camCfg.bombSightDown;
+    const x = ((wx - cam.x) * SCALE / bw) * W;
+    const y = ((bh - (wy - cam.y) * SCALE) / bh) * H;
     if (x < 0 || y < 0 || x >= W || y >= H) return;
     drawSightShape(hud, x, y, hudCfg);
   }
@@ -1577,8 +1567,6 @@ export function createRenderer(canvas, world, assets) {
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       prof.mark('particles');
       drawProjectiles();
-      bombEnd = null;
-      if (bombView && !free) drawBombPath(focus);
       prof.mark('shots');
       if (!skip.has('planes')) for (const p of world.planes) drawPlane(p, focus);
       prof.mark('planes');
@@ -1617,7 +1605,7 @@ export function createRenderer(canvas, world, assets) {
         else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
       }
       if (focus) gore.drawSpatters(hud, focus.id);
-      if (focus && !free) (bombView ? drawBombSight() : drawSight(focus));
+      if (focus && !free) (bombView ? drawBombSight(focus) : drawSight(focus));
       hud.globalAlpha = hudCfg.opacity ?? 1;
       if (!skip.has('hud')) drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
       drawMessages();

@@ -61,7 +61,8 @@ const CAMERA_FIELDS = [
   ['height', 'Plane height on screen', 0.2, 0.8, 0.01, 'Where the plane sits vertically (0 = bottom, 1 = top).'],
   ['lookRange', 'Mouse look: reach', 0, 0.5, 0.01, 'How far the camera slides when you hold right mouse and point (share of the view).'],
   ['bombLookRange', 'Bomb view: reach down', 0.2, 0.6, 0.01, 'How far the camera drops while the bomb view is held (share of the view). The plane always stays on screen.'],
-  ['bombSightReach', 'Bomb sight: reach', 0.1, 1, 0.05, 'How far down the fall of a bomb the sight shows (share of the fall). Lower = more guesswork; 1 = shows the impact point.'],
+  ['bombSightAhead', 'Bomb sight: ahead', 0, 300, 5, 'World units in front of the plane where the bomb sight sits (fixed to the plane).'],
+  ['bombSightDown', 'Bomb sight: below', 0, 300, 5, 'World units below the plane where the bomb sight sits (fixed to the plane).'],
   ['lookSensitivity', 'Mouse look: travel for full look', 40, 600, 10, 'How far (screen pixels) you move the mouse to turn your head all the way. Lower = more sensitive.'],
   ['lookReturn', 'Mouse look: back to front after', 1, 30, 0.5, 'Seconds without moving the mouse before the view eases back to looking ahead.'],
   ['lookSpeed', 'Mouse look: speed', 0.5, 12, 0.1, 'How quickly the view follows the pointer and eases back. Lower = heavier, more resistance.'],
@@ -165,6 +166,8 @@ const EMERGENCY_FIELDS = [
   ['baseWear', 'Wear at once (per s)', 0, 0.1, 0.001, 'Engine damage per second from the moment it is switched on (1 = wrecked). Stays until the ground crew repair it.'],
   ['peakWear', 'Wear when hot (per s)', 0, 0.2, 0.001, 'Engine damage per second once the engine is fully heated.'],
   ['heatTime', 'Time to full heat', 2, 60, 1, 'Seconds of emergency power until the engine is fully heated and wears at the top rate.'],
+  ['seizeDamage', 'Seize: extra damage', 0, 0.6, 0.05, 'Engine damage added when full heat stops the engine.'],
+  ['restartHeat', 'Seize: restart at heat', 0, 1, 0.05, 'The seized engine starts again by itself once heat has dropped to this.'],
   ['coolTime', 'Time to cool', 2, 60, 1, 'Seconds to cool fully once switched off. Switching on again while hot starts at a higher wear rate.'],
 ];
 const RADAR_FIELDS = [

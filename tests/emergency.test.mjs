@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
+import { ignite } from '../src/sim/fire.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
@@ -62,9 +63,9 @@ test('wear starts at once, grows with heat, and cools off afterwards', () => {
   run(world, 60 * 4);
   assert.ok(p.engineDamage > 0.12 && p.engineDamage < 0.18, `about 15% after 5 s: ${p.engineDamage}`);
   assert.ok(p.engineDamage > 0.1, 'enough for the engine damaged warning');
-  run(world, 60 * 5);
-  assert.ok(p.engineDamage > 0.35, `severe after 10 s: ${p.engineDamage}`);
-  assert.ok(p.heat > 0.95);
+  run(world, 60 * 2.5);
+  assert.ok(p.engineDamage > 0.25, `severe after 7.5 s: ${p.engineDamage}`);
+  assert.ok(p.heat > 0.9);
   press(world);
   const worn = p.engineDamage;
   run(world, 60 * 13);
@@ -125,4 +126,33 @@ test('a bot uses it to break away from a plane on its tail, not to attack', () =
   // Chasing or patrolling never switches it on.
   for (let i = 0; i < 300; i++) stepWorld(world, {});
   assert.equal(bot.emergency, false);
+});
+
+test('full heat seizes the engine, which restarts by itself once cool', () => {
+  const { world, p } = makeWorld();
+  press(world);
+  run(world, 60 * 7);
+  assert.equal(p.engineRunning, true, 'still running just before full heat');
+  run(world, 60 * 2);
+  assert.equal(p.engineRunning, false, 'seized');
+  assert.equal(p.emergency, false);
+  assert.ok(world.events.some((e) => e.type === 'engineSeized') || p.heatStopped);
+  assert.ok(p.engineDamage > 0.45 && p.engineDamage < 0.6, `heavy damage left: ${p.engineDamage}`);
+  run(world, 60 * 4);
+  assert.equal(p.engineRunning, false, 'still cooling');
+  run(world, 60 * 6);
+  assert.equal(p.engineRunning, true, 'restarted once heat was down');
+  assert.equal(p.emergency, false, 'emergency power stays off');
+});
+
+test('a seized engine stays dead when burning, out of fuel or on its belly', () => {
+  for (const spoil of [(p, world) => ignite(world, p), (p) => (p.fuel = 0), (p) => (p.belly = true)]) {
+    const { world, p } = makeWorld();
+    press(world);
+    run(world, 60 * 9);
+    assert.equal(p.engineRunning, false);
+    spoil(p, world);
+    run(world, 60 * 12);
+    assert.equal(p.engineRunning, false);
+  }
 });
