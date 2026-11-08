@@ -148,7 +148,7 @@ test('weight: the loaded take-off roll fits the runway the plane says it needs',
       stepWorld(world, { p1: { ...CMD, turn: p.speed >= flyingDef(p, world).takeoffSpeed ? 1 : 0 } });
     }
     assert.equal(p.state, 'air', `${id} took off loaded`);
-    assert.ok(Math.abs(p.x - x0) <= d.runwayNeeded, `${id}: rolled ${Math.round(Math.abs(p.x - x0))}, runwayNeeded ${d.runwayNeeded}`);
+    assert.ok(Math.abs(p.x - x0) <= 420, `${id}: rolled ${Math.round(Math.abs(p.x - x0))}, the runway is 420`);
   }
 });
 

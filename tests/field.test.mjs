@@ -111,7 +111,6 @@ test('diving into an enemy tank destroys it along with the plane', () => {
   steps(world, 3);
   assert.equal(p.state, 'dead');
   assert.equal(tank.alive, false, 'tank destroyed');
-  assert.equal(p.score, tank.def.points);
 });
 
 test('flying low through enemy infantry cuts them down', () => {

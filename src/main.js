@@ -43,7 +43,6 @@ const world = createWorld({
   waves: content.settings.waves,
   pads: content.settings.pads,
   zones: content.settings.zones,
-  runway: content.settings.runway,
   landing: content.settings.landing,
   takeoff: content.settings.takeoff,
   weight: content.settings.weight,
@@ -435,8 +434,8 @@ function handleEvents() {
       else if (e.taran) renderer.message('RAMMED! TAIL SHREDDED', '#ff8070');
       else renderer.message(e.severity === 'hard' ? 'COLLISION!' : 'GRAZED!', '#ffb070');
     }
-    if (e.by === player.id && e.type === 'groundDestroyed' && e.points > 0) {
-      renderer.message(`${world.groundDefs[e.kind].name.toUpperCase()} DESTROYED +${e.points}`, '#e8c860');
+    if (e.by === player.id && e.type === 'groundDestroyed' && !world.groundDefs[e.kind].decor && e.kind !== 'bridge') {
+      renderer.message(`${world.groundDefs[e.kind].name.toUpperCase()} DESTROYED`, '#e8c860');
     }
     if (e.type === 'groundDestroyed' && e.kind === 'radar') {
       const ours = world.ground.find((o) => o.id === e.id)?.team === player.team;
@@ -467,12 +466,6 @@ function handleEvents() {
         hangarWarnAt = performance.now() + 10000;
       }
     }
-    if (e.type === 'runwayCratered' && e.by === player.id && e.points > 0) {
-      renderer.message(e.closed ? `ENEMY RUNWAY CLOSED +${e.points}` : `RUNWAY HIT +${e.points}`, '#e8c860');
-    }
-    if (e.type === 'runwayClosed' && e.team === player.team) renderer.message('OUR RUNWAY IS CLOSED!', '#ff8070');
-    else if (e.type === 'runwayClosed' && e.by !== player.id) renderer.message('ENEMY RUNWAY CLOSED', '#e8c860');
-    if (e.type === 'runwayReopened') renderer.message(e.team === player.team ? 'OUR RUNWAY IS OPEN AGAIN' : 'ENEMY RUNWAY REOPENED', e.team === player.team ? '#a8e090' : '#ffb070');
     if (e.by === player.id && e.type === 'squadWiped') renderer.message(e.kind === 'engineers' ? 'ENGINEERS WIPED OUT' : 'INFANTRY SQUAD WIPED OUT', '#e8c860');
     if (e.type === 'shotDown') {
       const m = shotDownMessage(world, e, player);

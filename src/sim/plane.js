@@ -1,10 +1,8 @@
 import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './weapons.js';
 import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
-import { clearRunway } from './runway.js';
 import { crashShockwave } from './ground.js';
 
-export { clearRunway };
 
 export const GRAVITY = 90;
 const GEAR_HEIGHT = 4; // pivot height above the ground when parked
@@ -30,7 +28,7 @@ const BELLY_SPEED_MARGIN = 1.15; // a belly landing survives up to 115% of the n
 const STRANDED_TIME = 5; // seconds before the crew tow a plane stuck on its own airfield out
 const TAXI_ROLL_SPEED = 5; // below this, Shift turns the plane round on the ground; above, it ground-loops (and crashes)
 const LOOP_SLOWDOWN = 2.5; // a ground-looping plane sheds this share of its speed per second, skidding round
-const SPAWN_INSET = 15; // a plane starts this far into the clear stretch (counted in def.runwayNeeded)
+const SPAWN_INSET = 15; // a plane starts this far into the runway
 const GRASS_FRICTION = 1.6; // rolling on grass off the runway drags more
 const GRASS_TAKEOFF_MARGIN = 1.08; // ...but never so much that full throttle tops out below take-off speed (+8%; the test asks for 5%) ...
 const GRASS_SLOPE = 0.05; // ...while climbing a gentle grass slope this steep (rad, about 3 degrees)
@@ -178,7 +176,6 @@ export function createPlane(id, def, { team, nation, seats }) {
     lastHitBy: null,
     kills: 0,
     deaths: 0,
-    score: 0, // points for destroyed ground targets
     guns: [],
     gunChoice: null, // the pilot's chosen guns [{mount, weapon, count, ammo}] (null: the standard fit, gunsOf)
     stdGunKg: 0, // weight of the standard guns and ammunition, the zero point of the weight model (armPlane)
@@ -212,24 +209,8 @@ export function createPlane(id, def, { team, nation, seats }) {
 export function spawnAtAirfield(p, world, fromHangar = false) {
   const af = world.map.airfields.find((a) => a.team === p.team) ?? world.map.airfields[0];
   const facingRight = af.x + af.width / 2 < world.map.width / 2;
-  // Never in a crater: at the start (in the take-off direction) of the longest clear stretch.
-  const clear = af.height != null ? clearRunway(world, af) : null;
-  const length = clear ? clear.to - clear.from : 0;
-  if (af.height != null && length < (p.def.runwayNeeded ?? 0)) {
-    // Too short to take off: the plane waits off the runway (not counted as lost) until the crew have
-    // filled enough craters. stepPlane tries again every tick.
-    p.state = 'dead';
-    p.waiting = true;
-    p.respawnTimer = 0;
-    p.x = facingRight ? af.x + 50 : af.x + af.width - 50;
-    p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
-    p.speed = p.vx = p.vy = p.sink = 0;
-    p.service = null;
-    p.burning = p.dying = false;
-    return false;
-  }
-  p.waiting = false;
-  if (clear && length > 40) p.x = facingRight ? clear.from + SPAWN_INSET : clear.to - SPAWN_INSET;
+  // At the start of the runway, in the take-off direction.
+  if (af.height != null) p.x = facingRight ? af.x + SPAWN_INSET : af.x + af.width - SPAWN_INSET;
   else p.x = facingRight ? af.x + 50 : af.x + af.width - 50;
   p.y = world.terrain.heightAt(p.x) + GEAR_HEIGHT;
   p.angle = facingRight ? 0 : Math.PI;
@@ -1093,7 +1074,7 @@ function recover(p, world) {
   };
   const ammo = allGuns(p).map((g) => g.ammo);
   const bombs = p.stations.map((s) => s.loaded);
-  if (!spawnAtAirfield(p, world)) return; // runway closed: it waits, and comes back new
+  spawnAtAirfield(p, world);
   Object.assign(p, kept);
   allGuns(p).forEach((g, i) => (g.ammo = ammo[i]));
   p.stations.forEach((s, i) => (s.loaded = bombs[i]));

@@ -36,7 +36,7 @@ export function freeSide(world, teams) {
 
 // Turns p into a fresh plane of the given type and side, keeping who flies it and their record.
 function refit(world, p, def, team, loadout = null, guns = null) {
-  const keep = { kills: p.kills, deaths: p.deaths, score: p.score, callsign: p.callsign, switchedAt: p.switchedAt, fresh: p.fresh, bailout: p.bailout };
+  const keep = { kills: p.kills, deaths: p.deaths, callsign: p.callsign, switchedAt: p.switchedAt, fresh: p.fresh, bailout: p.bailout };
   Object.assign(p, createPlane(p.id, def, { team, nation: def.nation, seats: p.seats }), keep);
   p.loadout = loadout && validateLoadout(def, loadout, world.weapons);
   p.gunChoice = guns && validateGuns(def, guns, world.weapons);

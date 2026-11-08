@@ -13,7 +13,6 @@ import { angleDiff, clamp } from './math.js';
 import { isUpright, GRAVITY } from './plane.js';
 import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
-import { clearRunway } from './runway.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 
 const DT = 1 / 60;
@@ -171,10 +170,11 @@ function groundCommand(world, p, b) {
   }
 
   // Take off towards the enemy if the runway allows; otherwise taxi to the far end and turn round.
-  const need = (p.def.runwayNeeded ?? 150) + 10;
+  // The whole runway is clear now: take off from the far end unless most of it lies ahead.
+  const need = home ? home.width - 60 : 0;
   const toward = enemyDir(world, p.team);
   if (home && home.height != null && p.speed < 25) {
-    const clear = clearRunway(world, home) ?? { from: home.x, to: home.x + home.width };
+    const clear = { from: home.x, to: home.x + home.width };
     const run = (d) => (d > 0 ? clear.to - p.x : p.x - clear.from);
     // Room enough towards the enemy but facing the other way (after a landing roll): turn round.
     if (!b.taxi && dir !== toward && run(toward) >= need && p.speed < 4) {
@@ -385,12 +385,11 @@ const ammoShare = (p) => {
 };
 
 // Where a side's planes touch down: inside the clear stretch at the end facing the enemy, rolling
-// out towards the hangar. null if the runway is too broken to land on.
+// out towards the hangar.
 function touchdown(world, team) {
   const af = homeField(world, team);
   const dir = enemyDir(world, team);
-  const clear = af.height != null ? clearRunway(world, af) : { from: af.x, to: af.x + af.width };
-  if (!clear || clear.to - clear.from < 140) return null;
+  const clear = { from: af.x, to: af.x + af.width };
   // end: the far end of the clear stretch, where the roll-out must have stopped.
   return { x: dir > 0 ? clear.to - 20 : clear.from + 20, y: (af.height ?? world.terrain.heightAt(af.x)) + 4, roll: -dir, end: dir > 0 ? clear.from : clear.to };
 }

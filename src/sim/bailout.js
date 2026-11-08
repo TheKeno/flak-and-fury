@@ -31,7 +31,7 @@ const FLAK_REACH = 30;
 export function makeWreck(world, p) {
   const w = createPlane(world.nextId++, p.def, { team: p.team, nation: p.nation, seats: [{ role: 'pilot', controller: 'wreck' }] });
   for (const k of Object.keys(p)) {
-    if (k === 'id' || k === 'callsign' || k === 'kills' || k === 'deaths' || k === 'score') continue;
+    if (k === 'id' || k === 'callsign' || k === 'kills' || k === 'deaths') continue;
     if (['number', 'boolean', 'string'].includes(typeof p[k])) w[k] = p[k];
   }
   armPlane(w, world.weapons);

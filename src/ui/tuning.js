@@ -21,7 +21,6 @@ const PLANE_FIELDS = [
   ['takeoffSpeed', 'Take-off speed', 30, 90, 1, 'Speed needed to lift off the runway.'],
   ['emptyWeight', 'Empty weight (kg)', 1000, 20000, 50, 'The plane without bombs. Informational for now (the hangar editor’s weight budget).'],
   ['maxLoad', 'Max bomb load (kg)', 0, 3000, 25, 'Bomb weight at which the load effects below are at full strength. 0 = weight has no effect on this plane.'],
-  ['runwayNeeded', 'Runway needed', 60, 420, 5, 'Crater-free runway this plane needs to take off (it starts 15 in). Shorter and its runway counts as closed: it waits for the crew to fill craters. The runway is 420.'],
   ['maxLandingSpeed', 'Max landing speed', 50, 160, 1, 'Touching down faster than this is a crash.'],
   ['groundThrust', 'Ground acceleration', 0.1, 1.5, 0.05, 'Share of engine pull you get while rolling on the wheels. Lower = longer take-off roll.'],
   ['tailUpSpeed', 'Tail lifts at', 0.2, 1, 0.05, 'Share of take-off speed at which the tail has fully lifted during the take-off roll.'],
@@ -129,13 +128,6 @@ const TAKEOFF_FIELDS = [
   ['levelRate', 'Map-edge level-out rate', 0.3, 3, 0.05, 'How fast the nose may move (rad/s) when the plane levels out before the swing at the invisible wall. A steep entry takes longer: about 1.5 x the angle / this rate (80 degrees at 1.2 takes 1.7 s). Near the ground or the ceiling it goes up to twice as fast if it has to.'],
   ['edgeTurnTime', 'Map-edge turn time', 0.2, 2, 0.05, 'Seconds the plane takes at the invisible wall: it drifts on, stops at the half way mark (the turn-round frames show it head-on), then speeds back into the fight. The swing starts early enough that the plane stops at the edge, so a longer time starts it further out.'],
 ];
-const RUNWAY_FIELDS = [
-  ['concreteRadius', 'Crater size on concrete', 0.1, 1.5, 0.05, 'How wide a crater is dug in a runway, as a share (1 = as on grass). Smaller = more hits needed to close it.'],
-  ['concreteDepth', 'Crater depth on concrete', 0.1, 1.5, 0.05, 'How deep a crater is dug in a runway, as a share.'],
-  ['fillTime', 'Time to fill a crater', 2, 120, 1, 'Seconds the ground crew take to fill one runway crater with the hangar undamaged. A damaged hangar is slower; a destroyed one fills none.'],
-  ['craterPoints', 'Points per runway crater', 0, 200, 5, 'For each crater you put in the enemy runway.'],
-  ['closePoints', 'Bonus for closing it', 0, 500, 5, 'Extra for the hit that closes the enemy runway (too short for any of their planes).'],
-];
 const COLLISION_FIELDS = [
   ['taxiBump', 'Ground bump below', 0, 80, 1, 'Rolling on the ground slower than this, running into a building or tank is a bump (damage, the plane stops), not a wreck.'],
   ['bumpDamage', 'Bump damage', 0, 60, 1, 'Hit points a bump costs the plane and the thing it ran into.'],
@@ -193,7 +185,6 @@ const BAILOUT_FIELDS = [
 ];
 const GROUND_FIELDS = [
   ['hp', 'Hit points', 1, 400, 1, 'Damage it takes to destroy (infantry: per soldier). Applies when targets are restored.'],
-  ['points', 'Points', 0, 50, 1, 'Score for destroying it (infantry: per soldier).'],
   ['bulletFactor', 'Bullet damage taken', 0, 1, 0.05, 'Share of bullet damage it takes. Bombs always do full damage. Low = bombs only.'],
 ];
 // Extra sliders for the ground objects that shoot.
@@ -607,7 +598,6 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   const landingSection = section('Landing', false, ...LANDING_FIELDS.map((f) => add(slider(settings.landing, f))));
   const takeoffSection = section('Take-off', false, ...TAKEOFF_FIELDS.map((f) => add(slider(settings.takeoff, f))));
   const weightSection = section('Bomb and gun load', false, ...WEIGHT_FIELDS.map((f) => add(slider(settings.weight, f))));
-  const runwaySection = section('Runway damage', false, ...RUNWAY_FIELDS.map((f) => add(slider(settings.runway, f))));
   const audioSection = section(
     'Sound',
     true,
@@ -659,7 +649,6 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.camera, saved.settings.camera);
     Object.assign(settings.audio, saved.settings.audio);
     Object.assign(settings.servicing, saved.settings.servicing);
-    Object.assign(settings.runway, saved.settings.runway);
     Object.assign(settings.landing, saved.settings.landing);
     Object.assign(settings.takeoff, saved.settings.takeoff);
     Object.assign(settings.weight, saved.settings.weight);
@@ -752,7 +741,6 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     decorSection,
     padSection,
     servicingSection,
-    runwaySection,
     cameraSection,
     wobbleSection,
     freeSection,

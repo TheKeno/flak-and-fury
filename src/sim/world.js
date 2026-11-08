@@ -12,7 +12,6 @@ import { createGround, planesHitStructures, stepHangarDoors } from './ground.js'
 import { stepDefences, stepShells } from './defences.js';
 import { DEFAULT_FIRE } from './fire.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
-import { stepRunways, DEFAULT_RUNWAY } from './runway.js';
 import { DEFAULT_DECOR } from './decor.js';
 import { changeSeat } from './seats.js';
 import { DEFAULT_BAILOUT, bailOut, stepBailedPilot, stepGroundWreck, stepParachutes } from './bailout.js';
@@ -41,7 +40,6 @@ export const DEFAULT_RULES = {
 // decor: hedges, walls and trees placed from the map's zones (src/sim/decor.js).
 // landing: how forgiving touchdowns are (src/sim/plane.js).
 // takeoff: how the nose rotates and the plane eases into flight (src/sim/plane.js).
-// runway: crater sizes on concrete, crater filling and runway points (src/sim/runway.js).
 // bots: bot pilots' numbers and difficulty levels (src/sim/ai.js); radar: what their radar picture sees.
 // groundDefs: ground object types (data/ground.json), shared the same way.
 export function createWorld({
@@ -57,7 +55,6 @@ export function createWorld({
   waves = { ...DEFAULT_WAVES },
   pads = { ...DEFAULT_PADS },
   zones = { ...DEFAULT_ZONES },
-  runway = { ...DEFAULT_RUNWAY },
   landing = { ...DEFAULT_LANDING },
   takeoff = { ...DEFAULT_TAKEOFF },
   weight = { ...DEFAULT_WEIGHT },
@@ -79,7 +76,6 @@ export function createWorld({
     collisions,
     fire,
     waves,
-    runway,
     landing,
     takeoff,
     weight,
@@ -215,7 +211,6 @@ export function stepWorld(world, commands) {
   stepShells(world, DT);
   stepBombs(world, DT);
   stepParachutes(world, DT);
-  stepRunways(world, DT);
   collide(world);
   planesHitStructures(world, crash);
 }

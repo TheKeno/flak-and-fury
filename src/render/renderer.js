@@ -1283,7 +1283,7 @@ export function createRenderer(canvas, world, assets) {
   let sightFadeAt = 0;
   function drawSight(p) {
     if (!hudCfg.crosshair || hudCfg.crosshairAlpha <= 0 || !p.guns.length) return;
-    if (p.state === 'dead' || p.dying || p.waiting) return;
+    if (p.state === 'dead' || p.dying) return;
     const now = performance.now();
     const dt = Math.min(0.1, (now - sightFadeAt) / 1000);
     sightFadeAt = now;
@@ -1493,8 +1493,6 @@ export function createRenderer(canvas, world, assets) {
         particles.sparks(e.x, e.y, 8);
       }
       if (e.type === 'shrapnel') particles.sparks(e.x, e.y, 3 + Math.min(6, e.damage / 3));
-      // The crew shovel a crater full: a little dust over the patch.
-      if (e.type === 'runwayFilled') for (let i = 0; i < 6; i++) particles.spawn('dust', e.x + (Math.random() - 0.5) * e.width, world.terrain.heightAt(e.x) + 1, (Math.random() - 0.5) * 10, 6 + Math.random() * 8, 0.6, 0.8);
       if ((e.type === 'soldierKilled' || e.type === 'crewKilled') && !gore.on) particles.spawn('dust', e.x, e.y + 2, 0, 8, 0.5, 0.7);
       if (e.type === 'collision') {
         if (e.severity === 'fatal') particles.explosion(e.x, e.y, 1.2);

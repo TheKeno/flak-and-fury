@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
-import { isUpright, spawnAtAirfield, clearRunway, mainWheelContact } from '../src/sim/plane.js';
+import { isUpright, spawnAtAirfield, mainWheelContact } from '../src/sim/plane.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 
@@ -73,18 +73,14 @@ test('rolling while taxiing ground-loops the plane: a wreck when the wingtip hit
   assert.ok(Math.abs(ticks + 1 - p.def.groundLoopTime * 60) <= 1, `crashed after groundLoopTime (${ticks + 1} ticks)`);
 });
 
-test('planes never spawn in a crater; one stuck in a crater is recovered', () => {
+test('a plane stuck in a crater is recovered', () => {
   const { world, p } = makeWorld();
-  const af = world.map.airfields.find((a) => a.team === p.team);
   const start = p.x;
   world.terrain.crater(start, 12, 6); // a bomb right on the spawn point
   spawnAtAirfield(p, world, true);
   for (let i = 0; i < 60 * 15 && p.exitTo != null; i++) stepWorld(world, { p1: IDLE }); // rolls out of the hangar first
-  const clear = clearRunway(world, af);
-  assert.ok(p.x >= clear.from && p.x <= clear.to, `spawned on the clear runway (${p.x.toFixed(0)} in ${clear.from}..${clear.to})`);
-  assert.ok(Math.abs(p.x - start) > 12, 'not in the crater');
 
-  // Now drop it in the crater, throttle open: it's going nowhere, so it's towed out.
+  // Drop it in the crater, throttle open: it's going nowhere, so it's towed out.
   p.x = start;
   p.y = world.terrain.heightAt(start) + 3;
   let recovered = false;

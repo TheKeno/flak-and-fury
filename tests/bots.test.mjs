@@ -7,7 +7,6 @@ import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, setBots, stepWorld, randomPlane } from '../src/sim/world.js';
 import { autopilotCommand } from '../src/sim/ai.js';
 import { makeGroundObject } from '../src/sim/ground.js';
-import { clearRunway } from '../src/sim/runway.js';
 import { ignite } from '../src/sim/fire.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
@@ -30,7 +29,6 @@ function makeWorld({ seed = 0 } = {}) {
     fire: { ...settings.fire },
     pads: settings.pads,
     zones: settings.zones,
-    runway: { ...settings.runway },
     landing: { ...settings.landing },
     decor: settings.decor,
     bots: structuredClone(settings.bots),
@@ -140,8 +138,7 @@ test('a bot bombs an enemy tank closing on its hangar, without cratering its own
   assert.deepEqual(crashesOf(events, p), [], describe(crashesOf(events, p)));
   assert.ok(events.some((e) => e.type === 'bombRelease' && e.plane === p.id), 'it dropped a bomb');
   assert.equal(tank.alive, false, 'the tank is destroyed');
-  const clear = clearRunway(world, home);
-  assert.equal(clear.to - clear.from, home.width, 'the runway has no craters');
+  assert.equal(world.terrain.heightAt(home.x + home.width / 2), home.height, 'the runway has no craters');
 });
 
 test('with its radar station destroyed, a bot no longer hears about planes beyond its own lookout', () => {

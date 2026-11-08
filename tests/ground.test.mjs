@@ -51,13 +51,12 @@ test('the LDtk map imports with airfields and both sides\' ground objects', () =
   assert.ok(map.ground.every((o) => !map.airfields.some((a) => o.x > a.x && o.x < a.x + a.width)), 'nothing placed on a runway');
 });
 
-test('bullets destroy an enemy tent and score its points', () => {
+test('bullets destroy an enemy tent', () => {
   const { world, player } = makeWorld();
   const tent = find(world, 'tent', 1);
   strafe(world, player, tent, 30);
   run(world, 1);
   assert.equal(tent.alive, false);
-  assert.equal(player.score, world.groundDefs.tent.points);
 });
 
 test('your own side\'s objects are safe from your rounds', () => {
@@ -79,7 +78,6 @@ test('buildings shrug off bullets but a bomb flattens them', () => {
   world.bombsInFlight.push({ id: world.nextId++, owner: player.id, team: 0, def: world.weapons.sc_250, x: house.x, y: top + 60, vx: 0, vy: -50 });
   run(world, 2);
   assert.equal(house.alive, false);
-  assert.ok(player.score >= world.groundDefs.building.points);
 });
 
 test('infantry fall one by one and the squad is wiped out', () => {
@@ -89,7 +87,6 @@ test('infantry fall one by one and the squad is wiped out', () => {
   strafe(world, player, squad, n, 10);
   run(world, 1);
   assert.equal(squad.alive, false);
-  assert.equal(player.score, n * world.groundDefs.infantry.points);
 });
 
 test('flying into a watchtower wrecks the plane', () => {
@@ -122,7 +119,6 @@ test('radar health follows the radar station and fails when it is destroyed', as
   run(world, 2);
   assert.equal(station.alive, false);
   assert.equal(radarHealth(world, 1), 0);
-  assert.equal(player.score, world.groundDefs.radar.points);
 });
 
 test('structures stand on level ground; squads and decor on the natural slope', () => {
@@ -155,5 +151,4 @@ test('a crashing plane hurts nearby infantry of either side, and not those far a
   assert.ok(hpBefore(near) < nearHp, 'enemy infantry hurt');
   assert.ok(hpBefore(friend) < friendHp, 'friendly infantry hurt too');
   assert.equal(hpBefore(far), farHp, 'infantry out of reach untouched');
-  assert.equal(player.score, 0, 'no score for a shockwave');
 });

@@ -28,7 +28,6 @@ function makeWorld() {
     fire: { ...settings.fire },
     pads: settings.pads,
     zones: settings.zones,
-    runway: { ...settings.runway },
     landing: { ...settings.landing },
     decor: settings.decor,
     bots: structuredClone(settings.bots),

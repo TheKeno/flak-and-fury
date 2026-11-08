@@ -125,18 +125,12 @@ export function radarHealth(world, team) {
 
 const isEnemy = (world, obj, team) => world.rules.friendlyFire || obj.team !== team;
 
-function award(world, byId, obj, points) {
-  const by = world.planes.find((p) => p.id === byId);
-  if (by && by.team !== obj.team) by.score += points;
-}
-
 function destroy(world, obj, byId) {
   obj.alive = false;
   obj.hp = 0;
   obj.wreckedAt = world.tick;
-  award(world, byId, obj, obj.def.points);
   const [, bottom, , top] = groundBox(world, obj);
-  world.events.push({ type: 'groundDestroyed', id: obj.id, kind: obj.type, x: obj.x, y: (bottom + top) / 2, by: byId ?? null, points: obj.def.points });
+  world.events.push({ type: 'groundDestroyed', id: obj.id, kind: obj.type, x: obj.x, y: (bottom + top) / 2, by: byId ?? null });
 }
 
 // Damage to one soldier of a squad; the squad is gone once the last one falls. `how` says what did it
@@ -147,9 +141,8 @@ function hurtSoldier(world, obj, s, amount, byId, how = {}) {
   s.hp -= amount;
   if (s.hp > 0) return;
   s.hp = 0;
-  award(world, byId, obj, obj.def.points);
   world.events.push({
-    type: 'soldierKilled', id: obj.id, x: obj.x + s.dx, y: surfaceAt(world, obj.x + s.dx), by: byId ?? null, points: obj.def.points,
+    type: 'soldierKilled', id: obj.id, x: obj.x + s.dx, y: surfaceAt(world, obj.x + s.dx), by: byId ?? null,
     cause: how.cause ?? 'other', dir: how.dir ?? 0, force: amount / obj.def.hp,
   });
   obj.hp = obj.soldiers.reduce((n, o) => n + o.hp, 0);

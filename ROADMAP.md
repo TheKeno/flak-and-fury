@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Ground rules reset before the MOBA discussion (decided 2026-11-08, discussion; not built):** the owner wants
+- **Ground rules reset before the MOBA discussion (decided 2026-11-08, discussion; built 2026-11-08):** the owner wants
   the damage and scoring rules taken out now and decided again, in one place, in the MOBA discussion. Three
   changes, built in this order in one session (they share `ground.js`, `plane.js`, `hud.js`, `main.js`, the
   data files and the tests):
@@ -281,6 +281,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Ground rules reset (Gameplay, 2026-11-08):** built from the Decisions entry of the same name. Terrain: `crater()` in `src/sim/terrain.js` keeps the original heights in a closure and lowers a column only to its own bowl below them (`min(current, original - bowl)`), so the deepest single crater wins; the rim obeys the same rule on undug ground. Runways: `digCrater` (`src/sim/runway.js`, now 12 lines) does nothing on a runway; removed the open/damaged/closed states, crater filling, runway events and messages, `runwayNeeded`, the `runway` settings block, the HUD RWY lamp and waiting messages, the spawn wait (`p.waiting`); a plane starts `SPAWN_INSET` into the runway, bots take off from the far end (`need` = runway width - 60). Scoring: removed `plane.score`, `award()`, `points` in `ground.json`, the +N in messages and SCORE in the HUD (KILLS and LOST stay). Hangar and ground crew untouched. Tests: `tests/crater-cap.test.mjs` is new, `tests/runway.test.mjs` deleted, others edited; 284 pass. **Stutter:** not measured in the browser (the pane was hidden, so no frames ran). Counted instead in Node: a 20 s bombing run over 10 spots repainted terrain chunks 259 times before and 53 times now (only while the scorch is still building), and the ground bottomed out at the 4-unit floor before and at 51 now. Owner to check by eye on the 120 Hz screen; if it still stutters, repaint only the changed columns and keep spare rows so the canvas does not resize.
 - **FPS dropped again (Gameplay, 2026-11-07):** owner saw about 50 fps on the runway, 60-70 in clear air and 25-40 in a dogfight on a 120 Hz screen. Headless sim with 8 bots costs about 0.25 ms a tick and the pane showed about 2 ms CPU a frame, so the game was not the limit; the fps came back to a steady 120 on its own. Cause (owner is quite sure): other sessions running the game in browser panes at the same time, competing for the GPU. No code changed. If it returns, close other panes first, then send F3 numbers from a fight (`rollbuild /s`, `cacheclr /s`, ms per part). Untested idea: roll frames are rotated on demand (about 0.8 ms each), so a fight with many planes rolling could build several in one frame; pre-build if `rollbuild` is high.
 - **Nametag hop in runway turns (UI, 2026-11-07):** the name was pinned to `p.x`, which the sim moves by two wheel offsets at the end of a ground turn, and switched between tilted and untilted angle at the turn's ends. `drawPlaneName` (`src/render/renderer.js`) now keeps the tilt and slides the name across with the turn to the mirrored position. Owner: good enough. Rolls, loops and map-edge turns were not checked.
 - **Ground crew bars (Gameplay, 2026-11-07):** the service bars showed absolute hp and fuel, so they began wherever the damage or tank level was. Each job's bar now runs 0 to 1 over that job (`serviceProgress`, `s.span` in `src/sim/airfield.js`; `tests/servicebar.test.mjs`). A sim trace showed tasks already run strictly one after another and crew sounds follow each job; no sound or order fault found, so none changed (owner may report a specific moment later).
@@ -530,7 +531,6 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass. Session: "Gameplay — Stutter over bombed terrain" (discussion settled 2026-11-08; see Decisions, "Ground rules reset"; build in a new session).
 
 
 
@@ -568,9 +568,6 @@ Then: more themes, co-op missions, matchmaking.
   ways round (the Finnish hakaristi, the German fin swastika) show mirrored when a plane flies left.
 - **Bots raid the enemy base:** bombing radar, flak, the runway and the hangar, and knocking down the
   bridge to stop a tank column. For match rules (milestone 9); for now bots only defend and support.
-- **Advise a plane that can take off:** when your runway is too short for your plane but long enough
-  for another type, the game should suggest switching to it (needs plane switching, milestone 6/8).
-  For now the waiting message only says the runway is too short for your plane.
 - **Buildings fit the time and place:** 1943 architecture for the country the map is fought in
   (e.g. Karelian log houses and saunas, Russian izbas, Normandy stone farms, English villages, Pacific
   huts), and military buildings (hangars, depots, radar, bunkers) styled after the nation that owns them.

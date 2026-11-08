@@ -2,7 +2,6 @@ import { drawText, textWidth, lineHeight } from './font.js';
 import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
 import { bombsLeft } from '../sim/weapons.js';
 import { hangarHealth } from '../sim/ground.js';
-import { homeRunway, runwayState, nextFill } from '../sim/runway.js';
 import { approach, recoveryTime } from '../sim/plane.js';
 
 const APPROACH_ALT = 80; // landing cues show below this height, gear down and descending
@@ -78,7 +77,6 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   const gearColour = plane.belly ? '#e05040' : plane.gear >= 1 ? '#80d070' : plane.gear <= 0 ? '#d06050' : '#e0b040';
   lamp(ctx, 'GEAR', gearText + (plane.gearManual ? ' (MAN)' : ''), gearColour, x, col, y);
   y += L;
-  y = runwayLamp(ctx, world, plane, x, col, y);
   const cue = onApproach(world, plane) ? approach(plane, world) : null;
   if (cue) {
     drawText(ctx, 'LDG', x, y, LABEL);
@@ -87,7 +85,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
     y += L;
   }
   y += L * 0.2;
-  drawText(ctx, `KILLS ${plane.kills}  LOST ${plane.deaths}  SCORE ${plane.score}`, x, y, '#c8aa58');
+  drawText(ctx, `KILLS ${plane.kills}  LOST ${plane.deaths}`, x, y, '#c8aa58');
   y += L;
   if (plane.consciousness < 1) {
     meter('PLT', plane.consciousness, plane.consciousness < 0.4 ? '#e05040' : '#80c0e0');
@@ -97,8 +95,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   const blink = Math.floor(performance.now() / 300) % 2 === 0;
   // In free look the camera is elsewhere: your plane's calls and bars would only cover the view.
   const centre = (str, line, colour) => !freeLook && drawText(ctx, str, (W - textWidth(str)) / 2, 58 + line * L, colour);
-  if (plane.waiting) waitingMessage(world, plane, centre);
-  else if (plane.bailout) {
+  if (plane.bailout) {
     const b = plane.bailout;
     const alive = b.chute != null || world.ground.some((o) => o.id === b.soldier && o.alive);
     centre(alive ? (b.chute != null ? 'YOU BAILED OUT' : 'YOU ARE A FOOT SOLDIER NOW') : 'YOUR PILOT IS DEAD', 0, alive ? '#f0e8c0' : '#ff9070');
@@ -155,40 +152,6 @@ function lamp(ctx, label, text, colour, x, col, y) {
   ctx.fillStyle = colour;
   ctx.fillRect(col, y + L * 0.18, L * 0.45, L * 0.45);
   drawText(ctx, text, col + L * 0.8, y, colour);
-}
-
-// Your own runway: open, damaged (with the clear length) or closed for your plane.
-function runwayLamp(ctx, world, plane, x, col, y) {
-  const af = homeRunway(world, plane.team);
-  if (!af) return y;
-  const { state, length } = runwayState(world, af, plane.def.runwayNeeded ?? 0);
-  const colour = state === 'open' ? '#80d070' : state === 'damaged' ? '#e0b040' : '#d06050';
-  let text = state.toUpperCase();
-  if (state === 'damaged') text += ` ${Math.floor(length)}`;
-  if (state !== 'open') {
-    const t = nextFill(world, af);
-    text += Number.isFinite(t) ? `  FILL ${Math.ceil(t)}S` : '  NO CREW';
-  }
-  lamp(ctx, 'RWY', text, colour, x, col, y);
-  return y + lineHeight();
-}
-
-// Waiting at home for a runway long enough to take off from.
-function waitingMessage(world, plane, centre) {
-  const af = homeRunway(world, plane.team);
-  if (!af) return;
-  const needed = plane.def.runwayNeeded ?? 0;
-  const { length } = runwayState(world, af, needed);
-  if (hangarHealth(world, plane.team) <= 0) {
-    centre('AIRFIELD CLOSED - HANGAR DESTROYED', 0, '#ff7060');
-    centre('NO CREW TO FILL THE CRATERS. YOU ARE GROUNDED', 1, '#ffb090');
-    return;
-  }
-  // Would a plane with a shorter take-off run get off this runway? (Switching planes comes later.)
-  const shorter = Object.values(world.planeDefs).some((d) => (d.runwayNeeded ?? 0) <= length);
-  if (shorter) centre(`RUNWAY TOO SHORT FOR THE ${plane.def.name.toUpperCase()} - NEEDS ${needed}, ${Math.floor(length)} CLEAR`, 0, '#ffb090');
-  else centre('AIRFIELD CLOSED - CREWS FILLING CRATERS', 0, '#ffb090');
-  centre(`NEXT CRATER FILLED IN ${Math.ceil(nextFill(world, af))}S`, 1, '#f0e8c0');
 }
 
 function groundMessage(ctx, world, plane, centre) {

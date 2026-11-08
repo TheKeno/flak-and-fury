@@ -29,7 +29,6 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `stallSpeed` | Below this the wings stop lifting and the nose drops. | 40 – 70 |
 | `takeoffSpeed` | Speed needed to lift off the runway. | 45 – 65 |
 | `emptyWeight`, `maxLoad` | Optional, kg: the plane empty (for the hangar editor's weight budget later) and the bomb weight at which the load effects are at full strength (see `weight` below). Without `maxLoad` weight does nothing. | |
-| `runwayNeeded` | Crater-free runway the plane needs to take off, counted from the start of the clear stretch (it spawns 15 in). Shorter, and its runway counts as closed for it: it waits for the crew. Set from the measured roll plus a margin: Bf 109 F-4 rolls about 111 after the 15, the G-6 about 121, the Spitfire about 92, the P-47D about 178, the La-5FN about 118, the Ki-43-II about 89, the B-239 about 112, the Bf 110 G-2 about 184, the Mosquito FB.VI about 127, the Ju 87 D-5 about 114, the P-38J set to 260 by estimate (not yet measured). The runway is 420. | 120 – 220 |
 | `maxLandingSpeed` | Touching down faster than this is a crash. | 80 – 120 |
 | `groundThrust` | Share of engine pull while rolling on the wheels. Lower = longer take-off roll. Grass off the runway adds drag (up to 1.6× friction), eased off per plane so it can still climb a 3° slope on grass; a plane with too little ground thrust gets no grass cost and fails the slope test in `tests/grass-takeoff.test.mjs`. | 0.3 – 1 |
 | `tailUpSpeed` | Share of take-off speed at which the tail has lifted (visual). | 0.6 – 1 |
@@ -156,17 +155,9 @@ landing. A stall just above the ground sinking slower than `stallSink` is a tail
 the gear down, low and descending, the HUD shows LDG SPD / ANG lamps (green clean, amber hard, red
 crash) and calls TOO FAST or NOSE DOWN close to the ground.
 
-`runway` (tuning panel: Runway damage): a runway's state is its longest crater-free stretch. Open: no
-craters. Damaged: cratered, but at least the plane's `runwayNeeded` is clear (you spawn at the start of
-that stretch: a short, risky take-off). Closed: shorter than that, and a plane that's shot down or
-recovered waits off the runway until the crew have filled enough craters. `concreteRadius` and
-`concreteDepth` shrink craters dug in a runway (tank shells too) as a share of their size on grass;
-at 0.6 / 0.7 a 250 lb bomb leaves a hole about 23 wide, so one stray bomb only damages a runway, two
-well-spaced hits close it and three close it for sure. The crew fill one hole (the one that frees the
-longest stretch) every `fillTime` seconds, divided by the hangar's health: half-wrecked takes twice as
-long, destroyed fills none, and with the runway closed that side is grounded. `craterPoints` for each
-crater in the enemy runway, plus `closePoints` for the hit that closes it (too short for any of their
-planes).
+Runways are untouchable for now: a bomb or shell landing on one digs nothing (`digCrater`, `src/sim/runway.js`). The damage, closing, crater-filling and runway-score systems, and the per-plane `runwayNeeded`, were removed to be decided again in the MOBA discussion.
+
+Terrain damage: the deepest single crater wins. Each ground column remembers its original height and a hit lowers it only to its own bowl (`craterDepth` × (1 − d²)) below that, so repeated hits on one spot add nothing, a bigger bomb deepens the hole to its own depth and no more, and the rim never stacks. A bigger bomb is just a bigger `craterDepth` in `weapons.json`.
 
 `radar`: `sweepTime` (seconds for the beam to cross the map), `afterglow` (seconds a plot glows),
 `lowGap` (planes lower than this above the ground drop off the radar, friend or foe).
@@ -199,10 +190,10 @@ hit. Damage is split between the planes: `driveWeight` puts more on whoever drov
 `evadeBonus` removes some from a plane turning away. `propStrikes` turns the propeller-into-tail
 "taran" on or off. Planes and ground objects: in the air (or rolling fast) a solid building is a crash;
 rolling slower than `taxiBump` it is a bump costing plane and object `bumpDamage`, and the plane stops.
-Diving into a tank destroys it with the plane (the points go to the plane). Flying low through enemy
+Diving into a tank destroys it with the plane. Flying low through enemy
 infantry kills the soldiers it strikes, `runDownDamage` hit points each. Any crash throws a shockwave:
 soldiers (either side) within `crashBlastRadius` of the wreck take `crashBlastForce` × their hit
-points at the wreck, falling off linearly to nothing at the radius; no score for it. All of these are also in the
+points at the wreck, falling off linearly to nothing at the radius. All of these are also in the
 tuning panel's Collisions section.
 
 ## Bots: `data/settings.json` → `bots`, `rules`
@@ -305,7 +296,6 @@ clears the tank columns and starts the waves again.
 | Field | What it does | Try |
 |---|---|---|
 | `hp` | Hit points. For infantry, per soldier. A 250 lb bomb does about 120 at the centre. | 3 – 200 |
-| `points` | Score for destroying it (infantry: per soldier). | 1 – 20 |
 | `bulletFactor` | Share of bullet damage it takes; bombs always do full damage. 0.15 = bombs only, in practice. | 0 – 1 |
 | `width`, `height` | Size in world units, also the hit box. Sprites don't stretch with it. | |
 | `solid` | Planes that fly into it crash (and damage it). | |

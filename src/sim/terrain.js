@@ -156,11 +156,17 @@ export function buildTerrain(map, pads = [], zones = DEFAULT_ZONES) {
 
   // Destructible ground: explosions dig bowl-shaped craters and scorch the earth around them.
   const scorch = new Uint8Array(width + 1);
+  // The deepest single crater wins: a hit lowers the ground to its own bowl below the original ground, never
+  // further than that, so a second bomb on the same spot digs nothing new, a bigger bomb deepens the hole
+  // to its own depth and no more, and offset hits merge into a trench no deeper than the biggest bomb. The
+  // rim obeys the same rule (only on ground not dug, and never stacked), so rims can't pile into spikes
+  // or refill a pit. Closure, not a property: it never changes, so it stays out of the snapshots.
+  const original = heights.slice();
   const crater = (cx, radius, depth) => {
     for (let x = Math.max(0, Math.floor(cx - radius * 1.6)); x <= Math.min(width, Math.ceil(cx + radius * 1.6)); x++) {
       const d = Math.abs(x - cx) / radius;
-      if (d < 1) heights[x] = Math.max(4, heights[x] - depth * (1 - d * d));
-      else heights[x] += depth * 0.25 * Math.max(0, 1 - (d - 1) / 0.6); // thrown-up rim
+      if (d < 1) heights[x] = Math.min(heights[x], Math.max(4, original[x] - depth * (1 - d * d)));
+      else if (heights[x] >= original[x]) heights[x] = Math.max(heights[x], original[x] + depth * 0.25 * Math.max(0, 1 - (d - 1) / 0.6)); // thrown-up rim
       scorch[x] = Math.min(255, scorch[x] + Math.round(200 * Math.max(0, 1 - d / 1.6)));
     }
   };
