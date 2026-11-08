@@ -10,7 +10,8 @@ export const ACTIONS = [
   ['throttleDown', 'Throttle down', ['KeyS', null]],
   ['roll', 'Roll / turn on the ground', ['ShiftLeft', null]],
   ['fire', 'Guns', ['Space', 'Mouse0']],
-  ['bomb', 'Bombs (hold: bomb view, release: drop)', ['KeyQ', 'Mouse2']],
+  ['bomb', 'Drop bomb', ['KeyQ', null]],
+  ['bombView', 'Bomb view (hold; the guns key then drops bombs)', ['Mouse2', null]],
   ['gear', 'Landing gear', ['KeyG', null]],
   ['abandon', 'Bail out', ['KeyB', null]],
   ['emergency', 'Emergency power (on / off)', ['KeyE', null]],
@@ -92,7 +93,6 @@ export function codeName(code) {
 export function createKeyboard(bindings = defaultBindings()) {
   attach();
   const any = (codes) => codes.some((c) => c && held.has(c));
-  let bombWas = false; // was the bomb key down at the last read
   return {
     bindings,
     held: (code) => held.has(code),
@@ -106,14 +106,9 @@ export function createKeyboard(bindings = defaultBindings()) {
         turn: (any(bindings.turnCcw) ? 1 : 0) - (any(bindings.turnCw) ? 1 : 0),
         throttle: (any(bindings.throttleUp) ? 1 : 0) - (any(bindings.throttleDown) ? 1 : 0),
         roll: any(bindings.roll),
-        fire: any(bindings.fire),
-        // Bomb view: holding the key only looks down (readLook); letting go drops the bomb, for one tick.
-        bomb: (() => {
-          const down = any(bindings.bomb);
-          const released = bombWas && !down;
-          bombWas = down;
-          return released;
-        })(),
+        // Bomb view (key held): the guns key drops bombs instead of firing.
+        fire: any(bindings.fire) && !any(bindings.bombView),
+        bomb: any(bindings.bomb) || (any(bindings.bombView) && any(bindings.fire)),
         gear: any(bindings.gear),
         abandon: any(bindings.abandon),
         emergency: any(bindings.emergency), // a toggle: the sim acts on the press
@@ -122,11 +117,13 @@ export function createKeyboard(bindings = defaultBindings()) {
     },
     // Arrow-key look, in the same form as mouse look: a vector of length 0..1, y down. Held keys
     // look all the way; the camera's spring eases the head round.
+    // The bomb view key is held: the camera looks down and the bomb sight shows.
+    bombView: () => any(bindings.bombView),
     readLook() {
       let x = (any(bindings.lookRight) ? 1 : 0) - (any(bindings.lookLeft) ? 1 : 0);
       let y = (any(bindings.lookDown) ? 1 : 0) - (any(bindings.lookUp) ? 1 : 0);
-      // Bomb view: while the bomb key is held the camera drops straight below the plane.
-      if (any(bindings.bomb)) {
+      // Bomb view: while its key is held the camera drops straight below the plane.
+      if (any(bindings.bombView)) {
         x = 0;
         y = 1;
       }

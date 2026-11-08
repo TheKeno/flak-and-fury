@@ -20,7 +20,7 @@ import { prof } from '../ui/perfstats.js';
 import { fireStage } from '../sim/fire.js';
 import { drawSightShape } from './sight.js';
 import { surfaceAt } from '../sim/ground.js';
-import { localToWorld } from '../sim/weapons.js';
+import { localToWorld, bombSightPath } from '../sim/weapons.js';
 import { attitude, mainWheelContact, isUpright, wheelGeometry, DEFAULT_WHEELS } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
@@ -162,7 +162,7 @@ export function createRenderer(canvas, world, assets) {
   const particles = createParticles();
   const radar = createRadar(world, assets.settings.radar);
   let shake = 0; // screen shake strength in buffer pixels, decays quickly
-  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, rest: 0, restX: 0, turnStart: null, turnLead: 0 };
+  const cam = { x: 0, y: 0, leadX: 0, leadY: 0, lookX: 0, lookY: 0, lookVX: 0, lookVY: 0, bombK: 0, snapped: false, fight: 0, fightHold: 0, fightX: 0, fightY: 0, fightZoom: 1, wheel: 1, wheelV: 0, wheelTarget: 1, wasAir: false, wasDown: false, rest: 0, restX: 0, turnStart: null, turnLead: 0 };
   const camCfg = assets.settings.camera; // live: the tuning panel edits this object
   let frame = 0;
 
@@ -251,7 +251,7 @@ export function createRenderer(canvas, world, assets) {
   }
 
   // free: free look, { x, y, zoom } for the centre of the view; the camera goes where it's sent.
-  function updateCamera(focus, dt, look, free) {
+  function updateCamera(focus, dt, look, free, bombView) {
     // While a plane swings round at a map edge the view rests where it was (the follow and look-ahead would
     // swing with the flip), eased in when the turn starts and eased back out to following when it ends.
     const turning = !free && focus && focus.state === 'air' && focus.edgeTurn != null;
@@ -266,6 +266,7 @@ export function createRenderer(canvas, world, assets) {
     } else if (!focus) return;
     if (!free && (focus.state !== 'dead' || focus.bailout)) {
       updateLook(focus, dt, look);
+      cam.bombK += ((bombView ? 1 : 0) - cam.bombK) * (1 - Math.exp(-Math.min(dt, 0.1) * 6)); // eases the deeper look in and out
       updateFight(focus, dt);
       updateZoom(focus, dt);
       // Sideways the view leads where the nose points; up and down it leads along the flight path,
@@ -315,7 +316,7 @@ export function createRenderer(canvas, world, assets) {
       cam.x = fx + softOff - vw / 2;
       const restY = vh * (0.5 - camCfg.height); // the view centre above the plane outside a fight
       const centreY = cam.leadY * leadShare + restY * (1 - fight) + cam.fightY * fight;
-      cam.y = focus.y + centreY + cam.lookY * vh * camCfg.lookRange - vh / 2;
+      cam.y = focus.y + centreY + cam.lookY * vh * (camCfg.lookRange + (camCfg.bombLookRange - camCfg.lookRange) * cam.bombK) - vh / 2;
       cam.x = clamp(cam.x, fx - vw * (1 - margin), fx - vw * margin);
       cam.y = clamp(cam.y, focus.y - vh * (1 - margin), focus.y - vh * margin);
       cam.snapped = true;
@@ -1353,6 +1354,31 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
+  // Bomb sight (bomb view held): the fall of the next bomb as dots, ending in a ring and cross where it
+  // would hit the ground if released now. Dim and empty when nothing is left to drop.
+  function drawBombSight(p) {
+    if (!p || p.state === 'dead' || p.bailout) return;
+    const hit = bombSightPath(world, p);
+    if (!hit) return;
+    ctx.fillStyle = 'rgba(200,184,112,0.55)';
+    for (const [x, y] of hit.path) ctx.fillRect(Math.round(toScreenX(x)), Math.round(toScreenY(y)), 1, 1);
+    const sx = Math.round(toScreenX(hit.x));
+    const sy = Math.round(toScreenY(hit.y));
+    ctx.strokeStyle = 'rgba(214,196,120,0.9)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(sx + 0.5, sy + 0.5, 6, 0, Math.PI * 2);
+    ctx.moveTo(sx - 10, sy + 0.5);
+    ctx.lineTo(sx - 3, sy + 0.5);
+    ctx.moveTo(sx + 4, sy + 0.5);
+    ctx.lineTo(sx + 11, sy + 0.5);
+    ctx.moveTo(sx + 0.5, sy - 10);
+    ctx.lineTo(sx + 0.5, sy - 3);
+    ctx.moveTo(sx + 0.5, sy + 4);
+    ctx.lineTo(sx + 0.5, sy + 11);
+    ctx.stroke();
+  }
+
   function drawMessages() {
     const now = performance.now();
     for (let i = messages.length - 1; i >= 0; i--) if (messages[i].until < now) messages.splice(i, 1);
@@ -1526,14 +1552,14 @@ export function createRenderer(canvas, world, assets) {
         for (let i = 0; i < 6; i++) particles.spawn('dust', e.x, e.y - 3, (Math.random() - 0.5) * 30, 8, 0.8, 0.8);
       }
     },
-    render(focus, dt, { showHelp, look, free, paused }) {
+    render(focus, dt, { showHelp, look, free, paused, bombView }) {
       frame++;
       lastFocus = focus;
       fitDisplay();
       ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
       ctx.imageSmoothingEnabled = false;
       prof.mark('other');
-      updateCamera(focus, dt, look, free);
+      updateCamera(focus, dt, look, free, bombView);
       for (const p of world.planes) updateWobble(p, dt);
       for (const p of world.planes) emitEffects(p, dt);
       emitGroundEffects(dt);
@@ -1552,6 +1578,7 @@ export function createRenderer(canvas, world, assets) {
       particles.draw(ctx, toScreenX, toScreenY, SCALE);
       prof.mark('particles');
       drawProjectiles();
+      if (bombView && !free) drawBombSight(focus);
       prof.mark('shots');
       if (!skip.has('planes')) for (const p of world.planes) drawPlane(p, focus);
       prof.mark('planes');

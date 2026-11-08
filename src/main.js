@@ -558,7 +558,7 @@ function frame(now) {
   const keys = keyboard.readLook();
   const view = free.on ? null : keys.active ? keys : mouse;
   const shown = free.on ? { x: free.x, y: free.y, zoom: free.zoom, speed: SPEEDS[free.speed] } : null;
-  renderer.render(player, dt, { showHelp, look: view, free: shown, paused });
+  renderer.render(player, dt, { showHelp, look: view, free: shown, paused, bombView: !free.on && keyboard.bombView() });
   sound?.setLook(renderer.cam.lookX, Boolean(view?.active));
   if (renderer.radarSweeps !== lastSweeps) {
     lastSweeps = renderer.radarSweeps;
@@ -643,7 +643,8 @@ function showControls() {
     `${k('throttleUp')}/${k('throttleDown')}: throttle`,
     `${k('roll')}: roll`,
     `${k('fire')}: guns`,
-    `${k('bomb')}: bombs`,
+    `${k('bomb')}: drop bomb`,
+    `${k('bombView')}: bomb view (then ${k('fire')} drops)`,
     `${k('gear')}: gear`,
     'mouse: look',
     `${k('menu')}: menu`,
