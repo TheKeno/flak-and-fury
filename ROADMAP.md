@@ -535,6 +535,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
