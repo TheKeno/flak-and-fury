@@ -39,6 +39,7 @@ function pickTarget(world, obj, x, y, def = obj.def) {
   let bestD = def.range;
   for (const p of world.planes) {
     if (p.team === obj.team || p.state === 'dead' || p.dying || p.wreck) continue;
+    if (obj.crew === 'in') continue; // a tank in a ground fight: the crew will not expose themselves
     const height = p.y - world.terrain.heightAt(p.x);
     if (def.minAltitude && height < def.minAltitude) continue;
     if (def.mgAltitude && height > def.mgAltitude) continue;

@@ -91,6 +91,22 @@ function holdUp(world, u) {
   return null;
 }
 
+// The tank's one crewman (commander and MG gunner): 'in' while in combat with tanks or infantry (and
+// for combatHold seconds after), 'gunner' while the roof MG fires at planes (gunnerHold seconds after
+// it last did), else 'out' as commander. The MG never fires at planes while 'in' (see pickTarget).
+// u.crew is for the sprites; the event is for sound.
+function stepCrew(world, u, dt, why) {
+  const d = u.def;
+  if (why === 'fight' || u.hasShot || gunTargets(world, u).length) u.combat = d.combatHold ?? 4;
+  else u.combat = Math.max(0, (u.combat ?? 0) - dt);
+  if (u.aa?.firing > 0) u.gunnerFor = d.gunnerHold ?? 2.5;
+  else u.gunnerFor = Math.max(0, (u.gunnerFor ?? 0) - dt);
+  const crew = u.combat > 0 ? 'in' : u.gunnerFor > 0 ? 'gunner' : 'out';
+  if (crew === u.crew) return;
+  if (u.crew) world.events.push({ type: 'tankCrew', id: u.id, x: u.x, state: crew });
+  u.crew = crew;
+}
+
 // Clear distance to the nearest enemy on the ground ahead (Infinity if none).
 function enemyAhead(world, u) {
   let best = Infinity;
@@ -315,6 +331,7 @@ export function stepArmy(world, dt) {
         u.hasShot = fireGun(world, u);
         u.gunCooldown = u.hasShot ? u.def.gunInterval * world.rng.range(0.85, 1.15) : 0.5;
       }
+      stepCrew(world, u, dt, why);
     }
   }
   stepTankShells(world, dt);

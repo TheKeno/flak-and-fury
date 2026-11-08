@@ -237,6 +237,8 @@ const DEFENCE_FIELDS = {
     ['wreckBlock', 'Wreck blocks the way', 0, 120, 1, 'Seconds a knocked-out tank blocks the road for the tanks behind it. 0: they drive over wrecks.'],
     ['creepSpeed', 'Creep speed while fighting', 0, 1, 0.05, 'Share of its speed a lead tank keeps rolling forward at while it fights, so the tanks behind get into range. 0: it stops.'],
     ['creepHold', 'Closest it creeps to the enemy', 0, 150, 5, 'A fighting tank stops creeping this close to the nearest enemy.'],
+    ['combatHold', 'Crew stays inside after combat', 0, 15, 0.5, 'Seconds the commander stays inside after the last ground fight; the MG will not fire at planes meanwhile.'],
+    ['gunnerHold', 'Gunner stays at the MG', 0, 10, 0.5, 'Seconds the crewman stays at the machine gun after it last fired at a plane.'],
     ['aaRange', 'Roof MG: reach', 0, 400, 5, 'How far the roof (anti-aircraft) MG reaches. 0 takes it off.'],
     ['aaAltitude', 'Roof MG: planes below', 0, 400, 5, 'It only shoots at planes lower than this above the ground.'],
     ['aaDamage', 'Roof MG: damage per round', 0, 2, 0.05, 'Mostly for show: keep it low.'],
