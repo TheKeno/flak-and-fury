@@ -519,6 +519,7 @@ function updateConsciousness(p, cmd, world, dt) {
 // wait: hidden inside until the doors are open, nobody else is on the way out and there is room in the
 // line. out: pushed towards the camera (drawn bigger). turn: round into the runway. roll: pushed to its
 // place in the line. A plane idling in the way is shoved up the line (phase shove) to make room.
+const START_BOT_DELAY = 3; // seconds from game start before a bot may leave its hangar
 function stepHangarExit(p, world, dt) {
   const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === p.team);
   const cfg = hangar?.def ?? {};
@@ -542,6 +543,9 @@ function stepHangarExit(p, world, dt) {
   if (p.exitPhase === 'wait') {
     if (p.hold) return; // parked in: stays inside until the pilot lets it out
     if ((hangar.door ?? 1) < 1) return; // doors still opening
+    // At the start of a game the bots hold back so the human pilot gets out first.
+    const isBot = !p.seats?.[0]?.controller || p.seats[0].controller.startsWith('bot');
+    if (isBot && world.tick * dt < START_BOT_DELAY) return;
     const shoves = canLeaveHangar(p, world, cfg);
     if (!shoves) return;
     for (const [o, to] of shoves) {
