@@ -7,6 +7,41 @@ later.
 
 ## Decisions
 
+- **Ground rules reset before the MOBA discussion (decided 2026-11-08, discussion; not built):** the owner wants
+  the damage and scoring rules taken out now and decided again, in one place, in the MOBA discussion. Three
+  changes, built in this order in one session (they share `ground.js`, `plane.js`, `hud.js`, `main.js`, the
+  data files and the tests):
+  1. **Terrain damage cap: the deepest single crater wins.** `terrain.js` keeps the map's original heights
+     (never changed after load, kept out of the snapshot). A crater's bowl is `craterDepth * (1 - d^2)` below
+     the original ground, and a hit sets the height to `min(current, original - bowl)`: a second bomb on the
+     same spot digs nothing new, a bigger bomb deepens the hole to its own depth and no further, offset hits
+     merge into a trench no deeper than the biggest bomb. Order-independent, no new tunable (a bigger bomb
+     is just a bigger `craterDepth` in `weapons.json`). The thrown-up rim gets the same rule,
+     `max(current, original + rim)`, applied only to columns not dug, so rims cannot stack into spikes or
+     refill a pit. The floor of 4 units stays. Check every `craterDepth` in `weapons.json` (some small
+     weapons may dig more than intended). Tests: repeated hits, small then large bomb, trench.
+  2. **Runway untouchable; runway damage and take-off numbers removed.** A crater whose x is on a runway does
+     nothing (`digCrater` shrinks to that one rule). Remove: the open/damaged/closed states, clear-stretch
+     maths, crater filling and `stepRunways` (`runway.js`), the `runway` block in `settings.json`, its
+     tuning-panel rows and TUNING.md entries, the runway score and the events `runwayCratered`,
+     `runwayClosed`, `runwayReopened`, `runwayFilled` (messages in `main.js`, dust in `renderer.js`),
+     `runwayNeeded` on all planes in `planes.json` and in the tuning panel, the "runway too short" spawn
+     check (`plane.js` ~216; a plane still starts `SPAWN_INSET` into the runway), the HUD runway lines
+     (`hud.js` ~164-197) and the bots' clear-stretch use (`ai.js` ~174, ~392: they use the whole runway).
+     Delete `tests/runway.test.mjs`; edit the tests that use `clearRunway`/`runwayNeeded` (`bots`,
+     `ground-handling`, `stations`). Drop the backlog item "Advise a plane that can take off".
+     **Stays:** the hangar and ground crew (servicing, fire-fighting, bots waiting for the crew, all driven by
+     `hangarHealth`) are untouched until the MOBA discussion.
+  3. **Scoring removed.** Delete `plane.score` (also in `seats.js`, `bailout.js`), `award()` in `ground.js`,
+     `points` in `data/ground.json` and the events, the "+N" in the destroyed messages (`main.js` ~438; the
+     message itself stays), the "Points" tuning row and TUNING.md, and `SCORE` in the HUD line. **Kills and
+     lost counters stay:** the HUD reads `KILLS n  LOST n`. The `score` variables in `ai.js` are target
+     picking, not points: they stay. Update `ground.test.mjs` and `field.test.mjs` to check destruction only.
+  Last step: re-measure the stutter over heavily bombed terrain (F3 overlay, a scripted batch of craters,
+  `?skip=terraincache` for comparison); with the cap, a fully bombed area stops changing, so chunk repaints
+  should stop. If it still stutters, the fix is repainting only the changed columns of a chunk and keeping
+  spare rows so the canvas does not resize. Nothing in the MOBA discussion is decided by this.
+
 - **Remove the Bf 109 F-4 completely (decided 2026-11-07, discussion; built 2026-11-07):** the G-6 already fills
   Germany's fighter slot, the F-4 is a 1941–42 type outside the 1943 setting, and its model predates
   measuring. Remove `bf109` from the game, delete the backlog item "Rebuild the Bf 109 F-4".
@@ -495,7 +530,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass. Session: "Gameplay — Stutter over bombed terrain" (discussion first).
+- **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass. Session: "Gameplay — Stutter over bombed terrain" (discussion settled 2026-11-08; see Decisions, "Ground rules reset"; build in a new session).
 
 
 
