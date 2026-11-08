@@ -312,8 +312,73 @@ function planSegments(key) {
   return segs;
 }
 
-// The points of the selected part: { ref, which, pos() -> [d, h], set(d, h), remove?() }.
+// The points of the selected part: { ref, which, pos() -> [d, h], set(d, h), remove?() }. Every part with more
+// than one point also gets a 'move' handle in its middle that carries the whole part (side and plan view).
 function handlesFor(key) {
+  const hs = rawHandles(key);
+  moveHandle(key, hs);
+  return hs;
+}
+function moveHandle(key, hs) {
+  const s = S.o[key];
+  if (!s || hs.length < 2 || key === 'points' || key === 'gear') return;
+  const own = [...hs];
+  const centre = () => {
+    const ps = own.map((h) => h.pos());
+    const [ds, hh] = [ps.map((p) => p[0]), ps.map((p) => p[1])];
+    return [(Math.min(...ds) + Math.max(...ds)) / 2, (Math.min(...hh) + Math.max(...hh)) / 2];
+  };
+  hs.push({
+    ref: s,
+    which: 'move',
+    pos: centre,
+    set: (d, h) => {
+      const [cd, ch] = centre();
+      shiftPart(key, d - cd, h - ch);
+    },
+  });
+}
+// Moves every point of a part by dd along the vehicle and dh up (side view) or out from the centre line (plan view).
+function shiftPart(key, dd, dh) {
+  const s = S.o[key];
+  const plan = isPlan();
+  const sh = (v, by) => r4(v + by);
+  if (BODY_KEYS.includes(key)) {
+    for (const r of s.stations) {
+      r[0] = sh(r[0], dd);
+      if (!plan) {
+        r[1] = sh(r[1], dh);
+        r[2] = sh(r[2], dh);
+      }
+    }
+    if (s.pivot) s.pivot = [sh(s.pivot[0], dd), plan ? s.pivot[1] : sh(s.pivot[1], dh)]; // the gun's pivot goes with it
+    if (plan && s.z !== undefined) s.z = r4(Math.max(0, s.z + dh)); // a mirrored pair moves in or out
+  } else if (key === 'tracks') {
+    for (const p of s.loop) [p[0], p[1]] = [sh(p[0], dd), sh(p[1], dh)];
+  } else if (key === 'wheels') {
+    for (const w of s) [w.d, w.h] = [sh(w.d, dd), sh(w.h, dh)];
+  } else if (key === 'wing' || key === 'tailplane') {
+    if (s.le) {
+      for (const edge of ['le', 'te']) for (const row of s[edge]) row[1] = sh(row[1], dd);
+      if (!plan) s.at = sh(s.at, dh);
+      fitPlanform(s, false);
+    } else {
+      s.root = s.root.map((v) => sh(v, dd));
+      if (s.tip) s.tip = s.tip.map((v) => sh(v, dd));
+      if (!plan) s.at = sh(s.at, dh);
+    }
+  } else if (verticalOf(key)) {
+    if (s.le) {
+      for (const edge of ['le', 'te']) for (const row of s[edge]) [row[0], row[1]] = [sh(row[0], dh), sh(row[1], dd)];
+      fitFin(s);
+    } else {
+      s.root = s.root.map((v) => sh(v, dd));
+      if (s.tip) s.tip = s.tip.map((v) => sh(v, dd));
+      s.at = sh(s.at, dh);
+    }
+  }
+}
+function rawHandles(key) {
   if (isPlan()) return planHandles(key);
   const o = S.o;
   const hs = [];
@@ -1061,7 +1126,13 @@ function draw() {
       ctx.lineWidth = 1;
       ctx.beginPath();
       if (h.which === 'radius' || h.which.startsWith('arc')) ctx.arc(px, py, r, 0, Math.PI * 2);
-      else ctx.rect(px - r, py - r, r * 2, r * 2);
+      else if (h.which === 'move') {
+        ctx.moveTo(px, py - r * 1.5);
+        ctx.lineTo(px + r * 1.5, py);
+        ctx.lineTo(px, py + r * 1.5);
+        ctx.lineTo(px - r * 1.5, py);
+        ctx.closePath();
+      } else ctx.rect(px - r, py - r, r * 2, r * 2);
       ctx.fill();
       ctx.stroke();
     }
@@ -1114,7 +1185,7 @@ function hitHandle(p) {
   for (const key of keys) {
     for (const h of handlesFor(key)) {
       const [sx, sy] = toScreen(T, ...h.pos());
-      const dist = Math.hypot(sx - p[0], sy - p[1]) + (key === S.part ? 0 : 3); // the active part wins close calls
+      const dist = Math.hypot(sx - p[0], sy - p[1]) + (key === S.part ? 0 : 3) + (h.which === 'move' ? 2 : 0); // the active part wins close calls; a real point beats the move handle
       if (dist <= bestD) {
         bestD = dist;
         best = { ...h, key };
@@ -2366,10 +2437,12 @@ async function newPlane() {
 const realPlanes = () => [...$('plane').options].map((o) => o.value);
 // A plane's name in the list, as in the New plane picker: "Spitfire Mk IX (UK)". Value stays the short id.
 const NATION = { germany: 'Germany', uk: 'UK', usa: 'USA', ussr: 'USSR', japan: 'Japan', finland: 'Finland' };
+// Ground vehicles have no entry in planes.json yet; their list names are kept here, in the same form.
+const VEHICLES = [{ id: 'panzer4h', label: 'Panzer IV Ausf. H (Germany)' }];
 function planeLabel(id) {
   const d = Object.values(S.planes).find((x) => x && x.sprite === id && x.name);
   if (d) return `${d.name}${NATION[d.nation] ? ` (${NATION[d.nation]})` : ''}`;
-  return PLANNED.find((p) => p.id === id)?.label ?? id;
+  return VEHICLES.find((v) => v.id === id)?.label ?? PLANNED.find((p) => p.id === id)?.label ?? id;
 }
 async function createPlane({ id, L, W, tmpl, sheet }) {
   const base = await (await fetch(`data/outlines/${tmpl}.json`, { cache: 'no-store' })).json();
