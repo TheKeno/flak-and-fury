@@ -592,6 +592,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Draw the tank crew** (Gameplay): the renderer picks the hull sprite from `tank.crew` (`out` commander, `in` hull only, `gunner` at the MG). Waits for the tank crew sprites and `tankcrew` dot from the Lab session; sim side is done (owner, 2026-11-08).
 - **Trucks and infantry logic** (Gameplay): trucks carry infantry (loading, driving, dismounting at the `exit` point, bots, tarp blown off by blasts with the cloth-style flying tarp). Waits for the truck outlines and sprites from the Lab session; see Decisions, "Ground vehicles in the Outline Lab" (owner, 2026-11-08).
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).

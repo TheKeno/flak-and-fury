@@ -400,8 +400,9 @@ function normalAt(part, p) {
 
 // Renders a model in a pose into a w x h grid of palette keys, the anchor at pixel (ax, ay).
 // opts.gear: include the landing gear; opts.res: pixels per model unit. Returns rows of keys.
-export function render(model, ps, w, h, [ax, ay], { gear = true, res = 1 } = {}) {
-  const parts = model.parts.filter((p) => gear || !p.gear);
+export function render(model, ps, w, h, [ax, ay], { gear = true, res = 1, layer = null } = {}) {
+  // layer: only the parts of one layer (ground vehicles: hull, turret, gun, crew; a part without one is hull)
+  const parts = model.parts.filter((p) => (gear || !p.gear) && (!layer || (p.layer ?? 'hull') === layer));
   const kinds = Array.from({ length: h }, () => Array(w).fill(null));
   const shade = Array.from({ length: h }, () => Array(w).fill(0));
   const depth = Array.from({ length: h }, () => Array(w).fill(-Infinity));
@@ -1610,17 +1611,34 @@ function ju87(o) {
 // `spine`. Each is a plain solid made from body-part stations; the outline may set its surface `kind`. A plane
 // whose model already draws a key is not drawn twice: the model is built through a proxy that notes what it
 // reads, so a finished plane is built exactly as before.
-const EXTRA_PARTS = { bump: 'dark', bump2: 'dark', bump3: 'dark', spat: 'paint', radiators: 'under', gunTray: 'under', nacelle: 'paint', spine: 'paint' };
+const EXTRA_PARTS = { ...Object.fromEntries(BUMP_KEYS.map((k) => [k, 'dark'])), spat: 'paint', radiators: 'under', gunTray: 'under', nacelle: 'paint', spine: 'paint' };
 // Crew and gun positions: outline.points is a list of dots {type, d, h, z?, r?} in the outline's metres (d back from the
 // nose point, h up). `pilot` is a crew sphere. `gunner` is a crew sphere plus a gun barrel {at: [dd, dh] from the dot,
 // aim (degrees, 0 ahead, 90 up, 180 back), len, r, z?} and a mount: `open` (nothing), `box` (size [half length, half
 // height, half width]) or `dome` (size = radius, glass bubble). `arc` [from, to] is the field of fire the game uses
 // (planes.json armament.turrets[i].arc, i = the gunner's place among the gunners); the sprite does not show it.
-const pointParts = (o) => {
+const pointParts = (o, opts = {}) => {
   const { X, Y, M } = kit(o);
   const plain = (kind) => () => ({ kind });
   const parts = [];
   for (const pt of o.points ?? []) {
+    if (pt.type === 'tankcrew') {
+      // One man, three looks (opts.crew): none, standing up as commander, or lowered behind his machine gun.
+      if (opts.crew !== 'commander' && opts.crew !== 'gunner') continue;
+      const gunner = opts.crew === 'gunner';
+      const c = [X(pt.d), Y(pt.h - (gunner ? pt.lower ?? 0.12 : 0)), (pt.z ?? 0) * M];
+      const r = (pt.r ?? 0.14) * M;
+      parts.push({ ...sphere(c, r), layer: 'crew', material: plain('pilot') });
+      parts.push({ ...box([c[0], c[1] - r * 1.9, c[2]], [r * 1.5, r * 1.1, r * 1.4]), layer: 'crew', material: plain('pilot') });
+      const g = gunner ? pt.mg : null;
+      if (g) {
+        const a = (g.aim * Math.PI) / 180;
+        const d0 = pt.d + g.at[0];
+        const h0 = pt.h - (pt.lower ?? 0.12) + g.at[1];
+        parts.push({ ...strut([X(d0), Y(h0), 0], [X(d0 - Math.cos(a) * g.len), Y(h0 + Math.sin(a) * g.len), 0], g.r * M), layer: 'crew', material: plain('dark') });
+      }
+      continue;
+    }
     const c = [X(pt.d), Y(pt.h), (pt.z ?? 0) * M];
     if (pt.type === 'gunner') {
       const m = pt.mount ?? 'open';
@@ -1639,17 +1657,21 @@ const pointParts = (o) => {
   }
   return parts;
 };
-const withBumps = (build) => (o) => {
+const withBumps = (build) => (o, opts = {}) => {
   const read = new Set();
-  const model = build(new Proxy(o, { get: (t, k) => (read.add(k), t[k]) }));
+  const model = build(new Proxy(o, { get: (t, k) => (read.add(k), t[k]) }), opts);
   const { bodyOf } = kit(o);
-  model.parts.push(...pointParts(o));
+  model.parts.push(...pointParts(o, opts));
   for (const [key, kind] of Object.entries(EXTRA_PARTS)) {
-    if (o[key] && !read.has(key)) model.parts.push({ ...bodyOf(o[key]), material: () => ({ kind: o[key].kind ?? kind }) });
+    // `layer` (ground vehicles) says which sprite the detail belongs to: hull (default) or turret.
+    if (o[key] && !read.has(key)) model.parts.push({ ...bodyOf(o[key]), layer: o[key].layer, material: () => ({ kind: o[key].kind ?? kind }) });
   }
   return model;
 };
 export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim }).map(([k, f]) => [k, withBumps(f)]));
+// Ground vehicles: an outline with `vehicle: 'tank'` is built by the tank model (VEHICLE_BUILDERS).
+export const VEHICLE_BUILDERS = { tank: withBumps(tank) };
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
-// model code through outline.template, so its outline can be traced and previewed.
-export const buildModel = (name, outline) => BUILDERS[outline.template ?? name](outline);
+// model code through outline.template, so its outline can be traced and previewed. opts: ground vehicles
+// take { phase } (running gear, 0..1 of a track link) and { crew } ('commander' or 'gunner').
+export const buildModel = (name, outline, opts = {}) => (outline.vehicle ? VEHICLE_BUILDERS[outline.vehicle](outline, opts) : BUILDERS[outline.template ?? name](outline, opts));
