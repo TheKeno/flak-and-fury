@@ -96,7 +96,7 @@ about 480 wide); `audio.bangRange` is the same for explosions, flak, tank guns a
 
 `camera.lookSensitivity` is the mouse travel (pixels) for a full look; `camera.lookReturn` the seconds
 without moving the mouse before the view eases back to looking ahead, when `camera.lookReturnOn` is true.
-`camera.bombLookRange` is how far down the camera drops (share of the view) while the bomb view is held; the plane always stays on screen. `camera.bombSightAhead` and `camera.bombSightDown` fix the bomb sight relative to the plane (world units in front of and below it); it does not predict the fall. `camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
+`camera.bombLookRange` is how far down the camera drops (share of the view) while the bomb view is held; the plane always stays on screen. `camera.bombSightRange` is the fixed distance from the plane to the bomb sight, whose angle below the horizon is an angle gauge worked out from the plane's speed and height (the angle to where a bomb released now would land, over level ground; it does not show the place). `camera.bombSightSpeed` is how quickly it eases to a new angle. `camera.mouseLook` false leaves looking to the keys. `camera.shake` multiplies every screen shake (0 =
 none). `wobble` (drawing only) leans the wings in the air using the roll frames, 22.5 degrees (one step) apart.
 `leanSteps` is how many steps the wings lean at the hardest turn (turn rate against the plane's `turnRate`):
 pulling up shows the belly, pushing down the top (decided when the turn starts and held to its end, even through a 180), a tap a little. `flutterSteps` is how many steps that lean

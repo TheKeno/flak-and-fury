@@ -45,3 +45,17 @@ test('a bomb dropped upright falls free; dropped upside down it kills the plane'
     assert.equal(world.bombsInFlight.length, inverted ? 0 : 1);
   }
 });
+
+test('the bomb sight angle falls with speed and rises with height', async () => {
+  const { bombDepression } = await import('../src/sim/weapons.js');
+  const at = (speed, height) => {
+    const { world, p } = makeWorld();
+    p.stations[0].loaded = 1;
+    p.vx = speed;
+    p.y = world.terrain.heightAt(p.x) + height;
+    return bombDepression(world, p);
+  };
+  assert.ok(at(60, 300) > at(120, 300), 'slower: steeper');
+  assert.ok(at(120, 600) > at(120, 300), 'higher: steeper');
+  assert.equal(bombDepression(makeWorld().world, makeWorld().p), null, 'no bomb: no angle');
+});

@@ -20,7 +20,7 @@ import { prof } from '../ui/perfstats.js';
 import { fireStage } from '../sim/fire.js';
 import { drawSightShape } from './sight.js';
 import { surfaceAt } from '../sim/ground.js';
-import { localToWorld } from '../sim/weapons.js';
+import { localToWorld, bombDepression } from '../sim/weapons.js';
 import { attitude, mainWheelContact, isUpright, wheelGeometry, DEFAULT_WHEELS } from '../sim/plane.js';
 
 export const W = 480; // view width in world units at zoom 1
@@ -1355,13 +1355,22 @@ export function createRenderer(canvas, world, assets) {
   }
 
   // Bomb sight (bomb view held): the player's own gunsight (same shape, colour, size and opacity as the
-  // options set), fixed relative to the plane: camera.bombSightAhead in front and bombSightDown below it.
-  // It does not predict the fall, so how far ahead to release is the pilot's judgement. The ordinary
-  // gunsight is hidden meanwhile.
-  function drawBombSight(p) {
-    if (!p || p.state === 'dead' || p.bailout || !isUpright(p) || !hudCfg.crosshair || hudCfg.crosshairAlpha <= 0) return;
-    const wx = p.x + (Math.cos(p.angle) >= 0 ? 1 : -1) * camCfg.bombSightAhead;
-    const wy = p.y - camCfg.bombSightDown;
+  // options set) at a fixed camera.bombSightRange from the plane, below the horizon at an angle gauge: the
+  // angle at which a target must sit to be hit by a bomb released now, from the plane's speed and height.
+  // It eases to the new angle (camera.bombSightSpeed) so it changes smoothly. It shows the angle only, not
+  // where the line meets the ground, and none at all with no bomb left. The ordinary gunsight is hidden.
+  let bombAngle = null;
+  function drawBombSight(p, dt) {
+    const want = !p || p.state === 'dead' || p.bailout || !isUpright(p) ? null : bombDepression(world, p);
+    if (want == null) {
+      bombAngle = null;
+      return;
+    }
+    bombAngle = bombAngle == null ? want : bombAngle + (want - bombAngle) * (1 - Math.exp(-Math.min(dt, 0.1) * camCfg.bombSightSpeed));
+    if (!hudCfg.crosshair || hudCfg.crosshairAlpha <= 0) return;
+    const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
+    const wx = p.x + dir * Math.cos(bombAngle) * camCfg.bombSightRange;
+    const wy = p.y - Math.sin(bombAngle) * camCfg.bombSightRange;
     const x = ((wx - cam.x) * SCALE / bw) * W;
     const y = ((bh - (wy - cam.y) * SCALE) / bh) * H;
     if (x < 0 || y < 0 || x >= W || y >= H) return;
@@ -1605,7 +1614,7 @@ export function createRenderer(canvas, world, assets) {
         else shownFlight = { ...lastFlight, alpha: Math.min(1, left / 1500) };
       }
       if (focus) gore.drawSpatters(hud, focus.id);
-      if (focus && !free) (bombView ? drawBombSight(focus) : drawSight(focus));
+      if (focus && !free) (bombView ? drawBombSight(focus, dt) : (bombAngle = null, drawSight(focus)));
       hud.globalAlpha = hudCfg.opacity ?? 1;
       if (!skip.has('hud')) drawHud(hud, world, focus, W, H, { showHelp, lastFlight: shownFlight, freeLook: Boolean(free) });
       drawMessages();

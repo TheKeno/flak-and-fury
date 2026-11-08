@@ -443,6 +443,30 @@ export function explode(world, x, y, def, ownerId, team) {
   if (y - world.terrain.heightAt(x) < def.craterRadius) digCrater(world, x, def.craterRadius, def.craterDepth, ownerId);
 }
 
+// The bomb sight's angle gauge: how far below the horizon (rad, 5 to 85 degrees) a point must sit, seen from
+// the plane, to be where the next bomb lands if released now. Flown as stepBombs does, over level ground at
+// the plane's own height above the ground beneath it, so bumpy terrain doesn't make it twitch. Gives the angle
+// only, not the place: the pilot still judges where that line meets the ground. null with no bomb left.
+export function bombDepression(world, p) {
+  const st = nextStation(p);
+  if (!st || !st.loaded) return null;
+  const k = st.def.drag;
+  const dir = Math.cos(p.angle) >= 0 ? 1 : -1;
+  const height = Math.max(5, p.y - world.terrain.heightAt(p.x));
+  let dx = 0;
+  let y = height;
+  let vx = p.vx * dir;
+  let vy = p.vy - 6;
+  const h = 1 / 30;
+  for (let t = 0; t < 12 && y > 0; t += h) {
+    vx -= vx * k * h;
+    vy -= (GRAVITY + vy * k) * h;
+    dx += vx * h;
+    y += vy * h;
+  }
+  return clamp(Math.atan2(height, Math.max(0, dx)), 0.087, 1.484);
+}
+
 export function stepBombs(world, dt) {
   const list = world.bombsInFlight;
   for (let i = list.length - 1; i >= 0; i--) {
