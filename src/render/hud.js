@@ -25,6 +25,22 @@ export function setKeyNames(fn) {
 }
 const turnKeys = () => `${keyOf('turnCcw')}/${keyOf('turnCw')}`;
 
+// Frames drawn per second, counted over half-second windows. A debug read-out: to be
+// discussed for removal at 1.0 (see ROADMAP.md).
+let fpsFrames = 0;
+let fpsStart = 0;
+let fpsShown = 0;
+function fpsNow() {
+  const now = performance.now();
+  fpsFrames++;
+  if (now - fpsStart >= 500) {
+    fpsShown = Math.round((fpsFrames * 1000) / (now - fpsStart));
+    fpsFrames = 0;
+    fpsStart = now;
+  }
+  return fpsShown;
+}
+
 function bar(ctx, x, y, w, value, colour) {
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.fillRect(x, y, w + 1.6, 3);
@@ -49,6 +65,8 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
     drawText(ctx, label, x, y, labelColour);
     bar(ctx, col, y + L * 0.2, barW, value, colour);
   };
+  stat('FPS', fpsNow(), VALUE);
+  y += L * 0.2;
   stat('SPD', speedText(plane.speed));
   stat('ALT', `${Math.max(0, Math.round((plane.y - world.terrain.heightAt(plane.x)) * 4))} M`);
   stat('RPM', Math.round(plane.rpm / 10) * 10);
