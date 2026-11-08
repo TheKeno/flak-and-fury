@@ -235,7 +235,7 @@ export function createRenderer(canvas, world, assets) {
 
   // Dogfight camera: with enemy planes about, the view eases over to frame them. cam.fight is how far
   // into that we are (0 to 1). The hold keeps it from letting go the moment someone flies out of range.
-  function updateFight(focus, dt) {
+  function updateFight(focus, dt, bombView) {
     const flying = camCfg.fightOn && focus.state === 'air' && !focus.dying;
     const frame = flying && frameFight(focus, world.planes, camCfg, cam.fightHold > 0 ? camCfg.fightExit : camCfg.fightEnter, W, H);
     cam.fightHold = !flying ? 0 : frame ? camCfg.fightHold : Math.max(0, cam.fightHold - dt);
@@ -247,7 +247,8 @@ export function createRenderer(canvas, world, assets) {
       cam.fightY += (frame.y - cam.fightY) * (start ? 1 : k);
       cam.fightZoom += (frame.zoom - cam.fightZoom) * (start ? 1 : k);
     }
-    cam.fight += ((cam.fightHold > 0 ? 1 : 0) - cam.fight) * (1 - Math.exp(-dt * camCfg.fightBlend));
+    // Bomb view looks straight down, so the fight framing eases out while it is held (and back in after).
+    cam.fight += ((cam.fightHold > 0 && !bombView ? 1 : 0) - cam.fight) * (1 - Math.exp(-dt * camCfg.fightBlend));
   }
 
   // free: free look, { x, y, zoom } for the centre of the view; the camera goes where it's sent.
@@ -267,7 +268,7 @@ export function createRenderer(canvas, world, assets) {
     if (!free && (focus.state !== 'dead' || focus.bailout)) {
       updateLook(focus, dt, look);
       cam.bombK += ((bombView ? 1 : 0) - cam.bombK) * (1 - Math.exp(-Math.min(dt, 0.1) * 6)); // eases the deeper look in and out
-      updateFight(focus, dt);
+      updateFight(focus, dt, bombView);
       updateZoom(focus, dt);
       // Sideways the view leads where the nose points; up and down it leads along the flight path,
       // so a stalling plane that's sinking nose-up still shows the ground it's falling towards.
