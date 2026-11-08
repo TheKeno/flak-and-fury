@@ -609,7 +609,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). The owner's new sheets (Panzer IV Ausf. H and six trucks) are in the library; hull and turret fitted by Fit to drawing, gun measured from the sheet; the owner finished the Panzer IV H outline by hand (2026-11-08) and it is wired into the game (stop 2 done: `drawVehicle` in `renderer.js`, the tank def in `data/ground.json` has `sprite: panzer4h` and `layers: true`, width 15 and height 7 units = the real 5.92 m at 0.4 m a unit; crew drawn from `tank.crew`; wreck = burnt hull with the turret knocked crooked). Still to do: other tanks as scaled copies, a real turret toss, trucks (stop 3).
+- **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). The owner's new sheets (Panzer IV Ausf. H and six trucks) are in the library; hull and turret fitted by Fit to drawing, gun measured from the sheet; the owner finished the Panzer IV H outline by hand (2026-11-08) and it is wired into the game (stop 2 done: `drawVehicle` in `renderer.js`, the tank def in `data/ground.json` has `sprite: panzer4h` and `layers: true`, `spriteScale` 1.5 (the infantry are drawn 1.5 times too big, so the tank is too; width 22, height 10; drop it when the infantry get real-scale sprites); crew drawn from `tank.crew`; wreck = burnt hull with the turret knocked crooked). Still to do: other tanks as scaled copies, a real turret toss, trucks (stop 3).
 
 
 

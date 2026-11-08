@@ -546,7 +546,8 @@ export function createRenderer(canvas, world, assets) {
     ctx.save();
     ctx.translate(sx, by);
     ctx.rotate(-tilt);
-    ctx.scale(dir / DETAIL, 1 / DETAIL);
+    const big = obj.def.spriteScale ?? 1; // drawn this much bigger than the real scale, to stand right beside the infantry
+    ctx.scale((dir * big) / DETAIL, big / DETAIL);
     ctx.translate(-mid, -Math.round(m.ground));
     if (!obj.alive) {
       ctx.drawImage(L.wreck, 0, 0);
@@ -554,7 +555,7 @@ export function createRenderer(canvas, world, assets) {
       return;
     }
     // The tracks run with the ground: a quarter of a cycle for every half unit driven.
-    const f = (((Math.floor((obj.x * dir) / 0.5) % m.frames) + m.frames) % m.frames);
+    const f = (((Math.floor((obj.x * dir) / (0.5 * big)) % m.frames) + m.frames) % m.frames);
     ctx.drawImage(L.hull, f * cw, 0, cw, ch, 0, 0, cw, ch);
     ctx.drawImage(L.turret, 0, 0);
     // The gun swings about its pivot; its aim is kept relative to the hull, mirrored for a tank facing left.
