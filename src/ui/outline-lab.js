@@ -2450,6 +2450,7 @@ const VEHICLES = [
   { id: 'panzer4h', label: 'Panzer IV Ausf. H (Germany)', nation: 'germany', kind: 'tank' },
   { id: 't34-76', label: 'T-34/76 Model 1943 (USSR)', nation: 'ussr', kind: 'tank' },
   { id: 'm4a1', label: 'M4A1 Sherman (USA)', nation: 'usa', kind: 'tank' },
+  { id: 'churchill', label: 'Churchill Mk III (UK)', nation: 'uk', kind: 'tank' },
 ];
 // The list as the hangar has it: a heading over each role group (fighters, heavy fighters ...), then Tanks, then
 // Trucks, each sorted by nation then name. Outlines of planes not in the hangar yet go last.
