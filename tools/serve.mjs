@@ -29,7 +29,7 @@ const TYPES = {
 
 const SAVABLE = /^\/data\/[a-z_]+\.json$/;
 // The Outline Lab may also create a plane's outline file.
-const OUTLINE = /^\/data\/outlines\/[a-z0-9_]+\.json$/;
+const OUTLINE = /^\/data\/outlines\/[a-z0-9_-]+\.json$/;
 
 const AUDIO = 'assets/audio';
 const hashOf = (buf) => createHash('sha256').update(buf).digest('hex');
@@ -106,7 +106,7 @@ async function save(req, res, path) {
 
 // The Outline Lab's Build sprites button: runs the sprite generator for one plane (or all).
 function buildSprites(res, plane) {
-  if (plane && !/^[a-z0-9_]+$/.test(plane)) throw new Error('bad plane name');
+  if (plane && !/^[a-z0-9_-]+$/.test(plane)) throw new Error('bad plane name');
   execFile(process.execPath, ['tools/make-sprites.mjs', ...(plane ? [plane] : [])], { cwd: root, timeout: 300_000 }, (err, stdout, stderr) => {
     res.writeHead(err ? 500 : 200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ ok: !err, output: String(stdout) + String(stderr) + (err ? `
