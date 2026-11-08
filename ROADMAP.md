@@ -606,7 +606,7 @@ Then: more themes, co-op missions, matchmaking.
 ## In progress
 - **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Discussion settled 2026-11-08 (see Decisions, "Emergency power"); build waits for its own session.
 
-- **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). Waiting for the owner to trace the Panzer IV H hull over the sheet in the Lab (and say what to do about the gun and skirts: the sheet is an F-34 version without skirts). Then: wire the layers into the renderer (also "Draw the tank crew" in the Backlog), New plane picker for tanks, trucks.
+- **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). The owner's new sheets (Panzer IV Ausf. H and six trucks) are in the library; hull and turret fitted by Fit to drawing, gun measured from the sheet; waiting for the owner to check and correct the Panzer IV H outline by hand in the Lab (hull corners, skirts, wheels). Then: wire the layers into the renderer (also "Draw the tank crew" in the Backlog), New plane picker for tanks, trucks.
 
 
 

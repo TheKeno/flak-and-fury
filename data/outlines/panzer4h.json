@@ -4,7 +4,7 @@
     "size": [80, 36],
     "pivot": [64, 32]
   },
-  "_notes": "Ground vehicle (tank), side view only. Metres. d = back from the front of the hull (the gun reaches out to negative d), h = up from the ground (the track bottom). Stations are [d, top h, bottom h, half width]. fuselage = the hull, turret and gun are stations like a plane's parts; the gun swings about gun.pivot [d, h] and is painted from gun.mantlet back (d above it is mantlet, d below it barrel). tracks.loop is the closed band round the running gear, wheels are circles at the track's z. Details: bump..bump12, layer 'turret' puts one on the turret sprite, z makes a pair out at +-z (skirts). First guess from known Panzer IV Ausf. H dimensions (hull 5.92 m, 2.68 m high), to be fitted to the sheet in the Outline Lab. scale = model units per metre (5 = the planes' 0.1 m pixel).",
+  "_notes": "Ground vehicle (tank), side view only. Metres. d = back from the front of the hull (the gun reaches out to negative d), h = up from the ground (the track bottom). Stations are [d, top h, bottom h, half width]. fuselage = the hull, turret and gun are stations like a plane's parts; the gun swings about gun.pivot [d, h] and is painted from gun.mantlet back (d above it is mantlet, d below it barrel). tracks.loop is the closed band round the running gear, wheels are circles at the track's z. Details: bump..bump12, layer 'turret' puts one on the turret sprite, z makes a pair out at +-z (skirts). Fitted over the sheet Panzer IV Ausf. H.jpg (calibrate: front of the tracks and the rear end, both on the ground line, 5.92 m); hull and turret by Fit to drawing, the gun measured off the sheet; still to be checked by hand. scale = model units per metre (5 = the planes' 0.1 m pixel).",
   "length": 5.92,
   "width": 2.88,
   "scale": 5,
@@ -15,40 +15,44 @@
   "fuselage": {
     "n": 5,
     "stations": [
-      [0.15, 1.1, 0.45, 1.1],
-      [0.4, 1.2, 0.42, 1.18],
-      [1.1, 1.45, 0.4, 1.2],
-      [1.75, 1.5, 0.4, 1.2],
-      [4.2, 1.5, 0.4, 1.2],
-      [4.4, 1.35, 0.4, 1.2],
-      [5, 1.28, 0.4, 1.15],
-      [5.85, 1.18, 0.45, 1.1]
+      [0.15, 1.1383, 0.4542, 1.1],
+      [0.55, 1.1872, 0.4029, 1.1843],
+      [1.1, 1.4406, 0.3885, 1.2],
+      [1.65, 1.5197, 0.4013, 1.2],
+      [3.8, 1.5159, 0.4013, 1.2],
+      [4.2, 1.508, 0.3783, 1.2],
+      [4.4, 1.354, 0.3796, 1.2],
+      [4.7, 1.3143, 0.3668, 1.175],
+      [4.95, 1.2835, 0.4204, 1.1542],
+      [5.3, 1.24, 0.3525, 1.1324],
+      [5.45, 1.2213, 0.3652, 1.1235],
+      [5.85, 1.0587, 0.5074, 1.1]
     ]
   },
   "turret": {
     "n": 4,
     "stations": [
-      [2.05, 2.2986, 1.4662, 0.8],
-      [2.1474, 2.3126, 1.489, 0.83],
-      [2.391, 2.3465, 1.7282, 0.9049],
-      [2.8295, 2.3982, 1.5837, 1],
-      [3.1218, 2.4286, 1.5816, 1],
-      [3.2192, 2.4016, 1.5937, 1],
-      [3.609, 2.3383, 1.7155, 0.9523],
-      [3.95, 2.2831, 1.5, 0.85]
+      [2.05, 2.2113, 1.6449, 0.8],
+      [2.391, 2.2635, 1.8711, 0.9049],
+      [2.7321, 2.3612, 1.7974, 0.9789],
+      [2.8295, 2.3586, 1.7828, 1],
+      [3.609, 2.3894, 1.8496, 0.9523],
+      [3.95, 2.3682, 1.6915, 0.85]
     ]
   },
   "gun": {
     "n": 2,
-    "pivot": [2.05, 1.95],
-    "mantlet": 1.9,
+    "pivot": [1.95, 2.02],
+    "mantlet": 1.55,
     "stations": [
-      [-1.05, 2.02, 1.88, 0.07],
-      [-0.85, 2.04, 1.86, 0.1],
-      [-0.8, 2.02, 1.88, 0.07],
-      [1.9, 2.02, 1.88, 0.07],
-      [1.92, 2.2, 1.7, 0.3],
-      [2.25, 2.2, 1.7, 0.3]
+      [-1.24, 2.09, 1.95, 0.07],
+      [-1.05, 2.09, 1.95, 0.07],
+      [-1.04, 2.07, 1.97, 0.05],
+      [1.04, 2.07, 1.97, 0.05],
+      [1.06, 2.13, 1.91, 0.11],
+      [1.54, 2.13, 1.91, 0.11],
+      [1.56, 2.3, 1.74, 0.3],
+      [2.05, 2.3, 1.74, 0.3]
     ]
   },
   "tracks": {
