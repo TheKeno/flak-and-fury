@@ -31,7 +31,8 @@
       header strong { margin-right: 6px; }
       #space { flex: 1; }
       #status { color: var(--dim); }
-      #status.warn { color: var(--warn); }
+      /* Errors are bright red, whatever else is dim. */
+      #status.warn, .bad { color: #ff3030; font-weight: 600; }
       #work { flex: 1; min-height: 0; display: flex; }
       #side { width: 330px; flex: none; overflow: auto; border-right: 1px solid var(--line); padding: 8px 10px; }
       #centre { flex: 1; min-width: 0; display: flex; flex-direction: column; }

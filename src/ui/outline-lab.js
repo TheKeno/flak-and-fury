@@ -2112,13 +2112,14 @@ $('file').onchange = async () => {
 
 // ---------- Blueprint library (folder on the dev server, outside the repo) ----------
 const lib = $('libPanel');
-const libMsg = (text) => {
+const libMsg = (text, bad = false) => {
   lib.hidden = false;
   lib.textContent = text;
+  lib.classList.toggle('bad', bad);
 };
 async function libPick(name) {
   const r = await fetch(`/api/blueprints/${encodeURIComponent(name)}`);
-  if (!r.ok) return libMsg(`Could not read ${name}`);
+  if (!r.ok) return libMsg(`Could not read ${name}`, true);
   const blob = await r.blob();
   if (usePicture(blob, await createImageBitmap(blob), name)) lib.hidden = true;
 }
@@ -2128,9 +2129,9 @@ $('libPick').onclick = async () => {
   try {
     info = await (await fetch('/api/blueprints')).json();
   } catch {
-    return libMsg('The library needs the local server: node tools/serve.mjs');
+    return libMsg('The library needs the local server: node tools/serve.mjs', true);
   }
-  if (!info.configured) return libMsg('Library folder not set: put its path on one line in .blueprints-path in the game folder (git-ignored), or set the BLUEPRINTS variable, then restart the server.');
+  if (!info.configured) return libMsg('Library folder not set: put its path on one line in .blueprints-path in the game folder (git-ignored), or set the BLUEPRINTS variable, then restart the server.', true);
   lib.replaceChildren();
   const head = document.createElement('div');
   head.className = 'dim';
@@ -2153,7 +2154,7 @@ $('fileLib').onchange = async () => {
   const img = await createImageBitmap(f);
   const r = await fetch(`/api/blueprints/${encodeURIComponent(f.name)}`, { method: 'PUT', body: f }).catch(() => null);
   const out = r && (await r.json().catch(() => ({})));
-  if (!r?.ok) return libMsg(`Not saved: ${out?.error ?? 'the library needs the local server'}`);
+  if (!r?.ok) return libMsg(`Not saved: ${out?.error ?? 'the library needs the local server'}`, true);
   if (usePicture(f, img, out.name)) libMsg(`Saved to the library as ${out.name}`);
   else libMsg(`Saved to the library as ${out.name} (not loaded)`);
 };
@@ -2497,12 +2498,12 @@ async function loadLibrarySheet(name) {
   if (!name) return;
   try {
     const r = await fetch(`/api/blueprints/${encodeURIComponent(name)}`);
-    if (!r.ok) return libMsg(`Sheet "${name}" is not in the library: load one by hand.`);
+    if (!r.ok) return libMsg(`Sheet "${name}" is not in the library: load one by hand.`, true);
     const blob = await r.blob();
     if (S.mode !== 'side') setMode('side');
     if (usePicture(blob, await createImageBitmap(blob), name)) libMsg(`Loaded ${name} from the library: click the nose tip, then the tail end.`);
   } catch {
-    libMsg(`Could not load ${name} from the library.`);
+    libMsg(`Could not load ${name} from the library.`, true);
   }
 }
 const BASES = ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239', 'bf110'];
