@@ -207,6 +207,9 @@ const TONES = {
   glass: ['c', 'C', 'C'],
   pilot: ['P', 'p', 'p'],
   metal: ['i', 'I', 'I'],
+  canvas: ['K', 'z', 'q'], // an off-colour tarp: dull khaki canvas (tarp.kind, the default), not a paint key
+  drab: ['v', 'V', 'V'], // olive drab canvas
+  grey: ['i', 'I', 'I'], // grey canvas
   wood: ['T', 'a', 'A'], // dark weathered timber: a cargo bed's boards (bed.wood), not a paint key
   tyre: ['e', 'e', 'o'],
   dark: ['e', 'e', 'e'],
@@ -1961,7 +1964,9 @@ function truck(o, opts = {}) {
       layer: 'cover',
       material: (p, n) => {
         const d = dOf(p);
-        if (!side(n)) return { kind: 'paint' };
+        // A tarp is off-colour canvas (tarp.kind: canvas | drab | grey | paint to match the truck); a box body is painted.
+        const kind = box ? 'paint' : tarp.kind ?? 'canvas';
+        if (!side(n)) return { kind };
         let dark = 0;
         if (crease) dark = Math.sin(d * 13 + (opts.loose ?? 0) * Math.PI * 2) > 0.75 ? 1 : 0;
         else if (box) dark = near(d, tarp.stations.at(-1)[0] - 0.03, 0.03) || near(d, d0 + 0.06, 0.03) ? 1 : 0;
@@ -1969,7 +1974,7 @@ function truck(o, opts = {}) {
           if ((d - d0 - 0.4) % 0.95 < 0.07) dark = 1; // the bows
           if (hOf(p) - stationAt(rows, d, 2) < 0.1) dark = 1; // the lower hem
         }
-        return { kind: 'paint', dark };
+        return { kind, dark };
       },
     });
   }

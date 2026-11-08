@@ -1887,6 +1887,17 @@ function rebuildPanel() {
       row(lbl);
       note('The cargo bed with its side boards (open truck). Passengers sit in it: add Passenger dots under + add part.');
     }
+    if (isTruck() && S.part === 'tarp') {
+      const kind = document.createElement('select');
+      for (const v of ['canvas', 'drab', 'grey', 'paint']) kind.append(new Option(v === 'canvas' ? 'canvas (dull khaki)' : v === 'drab' ? 'olive drab' : v === 'grey' ? 'grey' : "painted like the truck", v));
+      kind.value = s.kind ?? 'canvas';
+      kind.onchange = () => {
+        pushUndo();
+        s.kind = kind.value;
+        changed();
+      };
+      row('tarp colour', kind);
+    }
     if (isTruck() && S.part === 'tarp') note('The canvas over its bows (cover: tarp) and the same outline drawn as a solid box with rear doors (cover: closed). The Lab draws it with the cover switch at the top; Build sprites makes the truck without it, with it and as a box, plus four frames of the tarp flapping loose and one crumpled on the ground, all from these stations. Make the bottom of the tarp reach down over the top of the side boards.');
     if (isVehicle() && BUMP_KEYS.includes(S.part)) {
       const pick = (title, options, get, set) => {

@@ -140,3 +140,19 @@ test('trucks: a timber bed (bed.wood) looks different from a painted one', () =>
     assert.ok(/[TaA]/.test(pic(timber)), 'timber tones in the sprite');
   }
 });
+
+test('trucks: the tarp is off-colour canvas unless its kind says paint', () => {
+  for (const id of truckIds) {
+    const o = loadOutline(id);
+    const [w, h] = o.sprite.size;
+    const pic = (oo) => renderVehicle(buildModel(id, oo, { cover: 'tarp' }), w, h, oo.sprite.pivot, { res: 2 }).join('\n');
+    const canvas = structuredClone(o);
+    delete canvas.tarp.kind;
+    const painted = structuredClone(o);
+    painted.tarp.kind = 'paint';
+    assert.notEqual(pic(canvas), pic(painted));
+    assert.ok(/[Kzq]/.test(pic(canvas)), 'canvas tones in the sprite');
+    const box = (oo) => renderVehicle(buildModel(id, oo, { cover: 'closed' }), w, h, oo.sprite.pivot, { res: 2 }).join('\n');
+    assert.equal(box(canvas), box(painted), 'a box body stays painted');
+  }
+});
