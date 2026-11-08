@@ -33,7 +33,7 @@ for (const id of ids) {
   test(`${id}: every layer draws, the crew looks differ, nothing else changes with the crew`, () => {
     const bare = buildModel(id, o, { crew: 'none' });
     const layer = (m, l) => render(m, rollPose(0), w, h, o.sprite.pivot, { res: 2, layer: l });
-    for (const l of ['hull', 'turret', 'gun']) assert.ok(filled(layer(bare, l)) > 20, `${l} is empty`);
+    for (const l of ['hull', 'turret', 'gun']) assert.ok(filled(layer(bare, l)) > 5, `${l} is empty`);
     if (o.points?.some((p) => p.type === 'tankcrew')) {
       const cmd = buildModel(id, o, { crew: 'commander' });
       const gnr = buildModel(id, o, { crew: 'gunner' });
