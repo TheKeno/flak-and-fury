@@ -2624,6 +2624,7 @@ const VEHICLES = [
   { id: 'gmc-cckw', label: 'GMC CCKW 2.5-ton 6x6 (USA)', nation: 'usa', kind: 'truck' },
   { id: 'zis-5', label: 'ZIS-5 3-ton (USSR)', nation: 'ussr', kind: 'truck' },
   { id: 'isuzu-type94', label: 'Isuzu Type 94 6-wheel (Japan)', nation: 'japan', kind: 'truck' },
+  { id: 'ford-v3000s', label: 'Ford V3000S (Finland)', nation: 'finland', kind: 'truck' },
 ];
 // The list as the hangar has it: a heading over each role group (fighters, heavy fighters ...), then Tanks, then
 // Trucks, each sorted by nation then name. Outlines of planes not in the hangar yet go last.
