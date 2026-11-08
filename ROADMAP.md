@@ -16,11 +16,26 @@ later.
     work, as with planes). Then the other tanks as scaled copies: Sherman, T-34/76, Churchill, Chi-Ha, BT-42. Sheets for
     all six are already in the blueprint library (check which are real 3-views). Tanks and trucks go in the New vehicle
     picker (`PLANNED`).
+  - **Scoped down (discussion, 2026-11-08): only what the player sees in the side view or the game uses.** Side view only for
+    tanks and trucks: no plan or underside view (the side sprite shows width only as shading), so a vehicle's overall width is
+    one number in the panel. Calibrate the side view from overall length. No separate skirt or mudguard parts (they are part of
+    the hull profile).
   - **Reused from planes:** blueprint library and calibration, draggable points, Fit to drawing, bumps, mirrored pairs, crew
-    dots. Plan view is calibrated from hull length and track width (no wingtips); no underside view.
-  - **New tank parts:** hull (stations, sloped glacis as extra stations), turret (stations plus d, h on the hull), gun (length,
-    radius, mantlet, pivot), running gear (track outline plus a list of circles: sprocket, idler, road wheels, return rollers),
-    skirts and mudguards.
+    dots.
+  - **New tank parts:** hull (stations, sloped glacis as extra stations, skirts and mudguards inside the profile), turret as
+    its own sprite (so it can be tossed when the tank is destroyed: the turret toss in the Backlog's "Tank wrecks and ways to
+    die"; stations plus d, h on the hull), gun (length, radius, mantlet, pivot; separate sprite so the game can aim it;
+    muzzle point where shells start), running gear (track outline plus a list of circles: sprocket, idler, road wheels,
+    return rollers). **The wheels and tracks animate when the tank moves** (a `-frames.png` sheet like the plane roll
+    frames).
+  - **Tank crew: one person, three states** (owner, 2026-11-08). One crew dot per tank (commander and gunner are the same
+    man, one hatch or MG mount position). Sprites: the hull without him, with him standing up as commander, with him
+    manning the machine gun. *Commander* is shown while the tank is not in combat; as soon as combat with other tanks or
+    infantry starts he goes inside. *Gunner* shows when the machine gun starts firing at planes. The machine gun never
+    fires at planes while the tank is in combat with infantry or tanks (the crew will not expose themselves). Lab: one
+    crew dot of a new `tankcrew` type with the commander pose, the gunner pose and the MG (mount, gun position, arc); the
+    state logic belongs to the Gameplay session. Open point: whether "when the gun starts firing" can also mean the main gun
+    (my reading: only the machine gun).
   - **Trucks (same part of the editor):** shared `wheels` part (circles, front and rear axle, body height above ground), cab
     (profile with windscreen, door, roof), cargo bed. First truck: Opel Blitz 3-ton (forces the new parts), then one per
     nation as scaled copies (Bedford QL, GMC CCKW, ZIS-5 or GAZ-AA, Isuzu Type 94 or Toyota GB, Finland to decide). No truck
@@ -576,6 +591,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Tank crew behaviour** (Gameplay): commander out while not in combat, inside once combat with tanks or infantry starts, machine gunner shown when the MG fires at planes, and no MG fire at planes while engaged on the ground. Needs the `tankcrew` dot and the crew sprites from the Lab session; see Decisions, "Ground vehicles in the Outline Lab" (owner, 2026-11-08).
 - **Trucks and infantry logic** (Gameplay): trucks carry infantry (loading, driving, dismounting at the `exit` point, bots, tarp blown off by blasts with the cloth-style flying tarp). Waits for the truck outlines and sprites from the Lab session; see Decisions, "Ground vehicles in the Outline Lab" (owner, 2026-11-08).
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
