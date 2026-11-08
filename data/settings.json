@@ -118,13 +118,14 @@
     "restartHeat": 0.3
   },
   "waves": {
-    "first": 15,
-    "interval": 75,
+    "first": 10,
+    "interval": 60,
     "tanks": 2,
     "maxTanks": 4,
-    "squads": 1,
-    "squadSize": 4,
-    "engineers": 3
+    "squads": 2,
+    "squadSize": 6,
+    "engineers": 0,
+    "openTrucks": 0.25
   },
   "pads": {
     "margin": 4,
@@ -198,7 +199,28 @@
     "refShare": 0.15
   },
   "bots": {
-    "names": ["NewmaN", "Majsmannen", "Liquide", "Low-Life", "Totti", "Svett", "Hackbard", "Heiner", "ODEE", "Thrasher", "Snakey", "Sakai", "tagg", "RaideN", "SpadEs", "Deman", "Keno", "Ireaper", "Zlaxzzor", "Zatarra"],
+    "names": [
+      "NewmaN",
+      "Majsmannen",
+      "Liquide",
+      "Low-Life",
+      "Totti",
+      "Svett",
+      "Hackbard",
+      "Heiner",
+      "ODEE",
+      "Thrasher",
+      "Snakey",
+      "Sakai",
+      "tagg",
+      "RaideN",
+      "SpadEs",
+      "Deman",
+      "Keno",
+      "Ireaper",
+      "Zlaxzzor",
+      "Zatarra"
+    ],
     "cruiseHeight": 220,
     "terrainClear": 55,
     "patrolSpan": 500,

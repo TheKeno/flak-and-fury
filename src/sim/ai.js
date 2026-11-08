@@ -482,7 +482,7 @@ function pickEnemy(world, p, skill, known) {
   return best;
 }
 
-// Enemy ground units worth a pass: tanks for bombs, soldiers for the guns. Closer to home counts more,
+// Enemy ground units worth a pass: tanks for bombs, soldiers and loaded trucks for the guns. Closer to home counts more,
 // and anything near our own engineers or on the bridge. Never under enemy flak, never on or by our own
 // runway (we'd crater it), and no bombs on a tank by a standing bridge (the bridge would go too).
 function pickGroundTarget(world, p, b) {
@@ -499,13 +499,14 @@ function pickGroundTarget(world, p, b) {
   for (const o of world.ground) {
     if (!o.alive || !o.mobile || o.team == null || o.team === p.team) continue;
     const tank = o.type === 'tank';
-    if (tank ? bombs === 0 : !guns || !o.soldiers) continue;
+    const loaded = o.type === 'truck' && o.passengers?.length > 0;
+    if (tank ? bombs === 0 : !guns || !(o.soldiers || loaded)) continue;
     const fromHome = Math.abs(o.x - homeX);
     if (fromHome > cfg.groundRange) continue;
     if (o.x > af.x - 40 && o.x < af.x + af.width + 40) continue;
     if (tank && bridge?.alive && Math.abs(o.x - bridge.x) < bridge.def.width / 2 + 50) continue;
     if (flakDepth(world, p.team, o.x, surfaceAt(world, o.x) + cfg.bombHeight) > 0) continue;
-    let score = (tank ? 3 : 1) + (1 - fromHome / cfg.groundRange) * 3;
+    let score = (tank ? 3 : loaded ? 2 : 1) + (1 - fromHome / cfg.groundRange) * 3;
     if (engineers.some((e) => Math.abs(e.x - o.x) < 250)) score += 2;
     if (o.type === 'engineers' && bridge && Math.abs(o.x - bridge.x) < 200) score += 2;
     if (o.id === b.target) score += 1; // finish what we started

@@ -1,8 +1,8 @@
 // Ground objects placed on the map: defences, infantry and targets. Each has hit points, a team and a
 // score for destroying it. Bullets and bomb blasts damage them; a destroyed one stays as a wreck.
 // Solid ones (towers, buildings, radar masts) also stop bombs and wreck planes that fly into them.
-// Each airfield gets a hangar too. Tanks, marching infantry and engineers are ground objects that move
-// (obj.mobile; see army.js).
+// Each airfield gets a hangar too. Tanks, trucks, marching infantry and engineers are ground objects
+// that move (obj.mobile; see army.js).
 import { clamp } from './math.js';
 import { armGround } from './defences.js';
 import { addDecor } from './decor.js';
@@ -93,12 +93,15 @@ export function mountPoint(world, obj, forward, up) {
   return [obj.x + Math.cos(t) * fx - Math.sin(t) * up, y + Math.sin(t) * fx + Math.cos(t) * up];
 }
 
+// Half a squad's length: its men stand either side of its x (while forming up, not evenly).
+export const squadHalf = (obj) => obj.soldiers.reduce((m, s) => Math.max(m, Math.abs(s.dx)), 0) + obj.def.width / 2;
+
 const riverOf = (world, obj) => world.map.rivers?.find((rv) => Math.abs(rv.x + rv.width / 2 - obj.x) < 1);
 
 // Hit box: [left, bottom, right, top] in world units, standing on the ground (which craters can lower).
 // A bridge's box is its deck.
 export function groundBox(world, obj) {
-  const half = obj.soldiers ? Math.abs(obj.soldiers[0].dx) + obj.def.width / 2 : (obj.width ?? obj.def.width) / 2;
+  const half = obj.soldiers ? squadHalf(obj) : (obj.width ?? obj.def.width) / 2;
   if (obj.type === 'bridge') {
     const bank = riverOf(world, obj)?.bank ?? world.terrain.heightAt(obj.x);
     return [obj.x - half, bank - obj.def.height, obj.x + half, bank + 1];
@@ -129,6 +132,7 @@ function destroy(world, obj, byId) {
   obj.alive = false;
   obj.hp = 0;
   obj.wreckedAt = world.tick;
+  obj.by = byId ?? null; // who gets the men still aboard a truck (army.js)
   const [, bottom, , top] = groundBox(world, obj);
   world.events.push({ type: 'groundDestroyed', id: obj.id, kind: obj.type, x: obj.x, y: (bottom + top) / 2, by: byId ?? null });
 }
@@ -156,6 +160,22 @@ function hurtSoldier(world, obj, s, amount, byId, how = {}) {
 // Damage to every soldier of a squad (Infinity: the whole squad is lost).
 export function hurtSquad(world, obj, amount, byId) {
   for (const s of obj.soldiers) if (obj.alive) hurtSoldier(world, obj, s, amount, byId);
+}
+
+// Where the i-th man sits in a truck's bed, along the ground (the bed is the back half).
+const seatX = (obj, i) => obj.x - (obj.dir ?? 1) * (obj.def.width * 0.1 + i * 2);
+
+// Damage to a man riding in a truck (obj.passengers: each man's hit points).
+export function hurtPassenger(world, obj, i, amount, byId, how = {}) {
+  if (!(obj.passengers[i] > 0)) return;
+  obj.passengers[i] -= amount;
+  if (obj.passengers[i] > 0) return;
+  obj.passengers.splice(i, 1);
+  const x = seatX(obj, i);
+  world.events.push({
+    type: 'soldierKilled', id: obj.id, x, y: surfaceAt(world, x) + obj.def.height * 0.5, by: byId ?? null,
+    cause: how.cause ?? 'other', dir: how.dir ?? 0, force: amount / world.groundDefs.infantry.hp,
+  });
 }
 
 export function damageGround(world, obj, amount, byId) {
@@ -199,6 +219,9 @@ export function bulletHitsGround(world, b, ox, oy) {
       const s = obj.soldiers.find((o) => o.hp > 0 && Math.abs(obj.x + o.dx - hx) < obj.def.width);
       if (!s) continue;
       hurtSoldier(world, obj, s, dmg, b.owner, { cause: 'bullet', dir: Math.sign(b.vx) });
+    } else if (obj.open && obj.passengers?.length && world.rng.next() < obj.def.openHit * obj.passengers.length / obj.def.seats) {
+      // An open truck: the round finds a man on the benches instead of the truck.
+      hurtPassenger(world, obj, Math.floor(world.rng.next() * obj.passengers.length), b.damage * world.rng.range(0.5, 1.5), b.owner, { cause: 'bullet', dir: Math.sign(b.vx) });
     } else damageGround(world, obj, dmg, b.owner);
     world.events.push({ type: 'groundHit', id: obj.id, kind: obj.type, x: hx, y: hy, damage: dmg, dir: Math.sign(b.vx) });
     return true;
@@ -234,6 +257,11 @@ export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = fa
     if (d >= def.blastRadius) continue;
     const dmg = def.blastDamage * (1 - d / def.blastRadius);
     world.events.push({ type: 'groundHit', id: obj.id, kind: obj.type, x: clamp(x, l, r), y: clamp(y, b, t), damage: dmg });
+    // Men in a truck feel it too: fully in an open one, less under a tarp.
+    if (obj.passengers) {
+      const share = obj.open ? 1 : obj.def.tarpShield ?? 0.5;
+      for (let i = obj.passengers.length - 1; i >= 0; i--) hurtPassenger(world, obj, i, dmg * share, ownerId, { cause: 'blast', dir: Math.sign(obj.x - x) });
+    }
     damageGround(world, obj, dmg, ownerId);
   }
 }

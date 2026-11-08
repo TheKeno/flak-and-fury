@@ -103,7 +103,20 @@ export async function loadContent(mapName) {
     }),
   );
 
+  // Trucks from the Outline Lab, one per nation (a def's `sprites`): the open truck and the one with its tarp up.
+  const trucks = {};
+  await Promise.all(
+    [...new Set(Object.values(groundDefs).flatMap((d) => Object.values(d.sprites ?? {})))].map(async (n) => {
+      try {
+        const [meta, open, tarp] = await Promise.all([json(`assets/sprites/${n}.json`), loadImage(`assets/sprites/${n}.png`), loadImage(`assets/sprites/${n}-tarp.png`)]);
+        trucks[n] = { meta, open, tarp };
+      } catch {
+        /* not built yet: the truck isn't drawn */
+      }
+    }),
+  );
+
   const bombSprite = buildRotations(toCanvas(images.bomb), [7, 3]);
 
-  return { planeDefs, nations, weapons, settings, groundDefs, sound, notes, map, images, vehicles, planeSprite, planeFrames, bombSprite };
+  return { planeDefs, nations, weapons, settings, groundDefs, sound, notes, map, images, vehicles, trucks, planeSprite, planeFrames, bombSprite };
 }

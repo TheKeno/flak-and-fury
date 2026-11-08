@@ -1,17 +1,18 @@
-// The ground war: each side's tank depot sends out waves of tanks with infantry behind them, marching
-// slowly towards the enemy's airfield. They stop to fight any enemy they meet and shell what they
+// The ground war: each side's tank depot sends out waves of tanks with infantry in trucks behind them,
+// heading for the enemy's airfield. A truck drives its squad up to the front, the men climb out at the
+// back one by one and form up, and the empty truck goes home. They stop to fight any enemy they meet and shell what they
 // find: defences, buildings, the depot, the radar station, at last the hangar. Planes are the answer:
 // bombs (a near miss will do) and, a little, guns from a steep dive onto the thin roof.
 // A knocked-out tank blocks the way for a while. A river can only be crossed while its bridge stands;
 // when it's down, each side sends engineers with its next wave to rebuild it.
 // Damaging a depot slows and shrinks its waves; destroyed, it sends no more.
 import { GRAVITY } from './plane.js';
-import { makeGroundObject, surfaceAt, groundBox, blastGround, hurtSquad, damageGround, settleHull, mountPoint } from './ground.js';
+import { makeGroundObject, surfaceAt, groundBox, blastGround, hurtSquad, damageGround, settleHull, mountPoint, squadHalf } from './ground.js';
 import { angleDiff } from './math.js';
 import { damagePlane } from './weapons.js';
 import { digCrater } from './runway.js';
 
-export const DEFAULT_WAVES = { first: 15, interval: 75, tanks: 2, maxTanks: 4, squads: 1, squadSize: 4, engineers: 3 };
+export const DEFAULT_WAVES = { first: 10, interval: 60, tanks: 2, maxTanks: 4, squads: 2, squadSize: 6, engineers: 0, openTrucks: 0.25 };
 
 const TANK_GUN = [12, 8]; // muzzle ahead of and above the tank's centre at the ground (along the hull)
 const SHELL_DROP = 0.25;
@@ -24,7 +25,10 @@ const AIM_TRIES = [0, 0.04, 0.08, 0.14, -0.03]; // gun raised (or dipped) from t
 const MAX_CANDIDATES = 4; // targets a gunner considers before giving up for now
 
 // Half the length of a ground object along the ground.
-const halfLength = (o) => (o.soldiers ? Math.abs(o.soldiers[0].dx) + o.def.width / 2 : (o.width ?? o.def.width) / 2);
+const halfLength = (o) => (o.soldiers ? squadHalf(o) : (o.width ?? o.def.width) / 2);
+
+// The own unit a queueing unit waits behind (set by holdUp), so it can keep pace instead of stop-go.
+let blocker = null;
 
 const bridgeOver = (world, river) =>
   world.ground.find((o) => o.type === 'bridge' && Math.abs(o.x - (river.x + river.width / 2)) < 1);
@@ -48,7 +52,9 @@ function spawnWave(world, team, side, depot) {
   const out = world.ground.filter((o) => o.type === 'tank' && o.mobile && o.alive && o.team === team).length;
   const tanks = Math.min(Math.max(1, Math.round(cfg.tanks * health)), (cfg.maxTanks ?? Infinity) - out);
   for (let i = 0; i < tanks; i++) units.push(['tank']);
-  for (let i = 0; i < Math.round(cfg.squads * health); i++) units.push(['infantry', cfg.squadSize]);
+  // Infantry ride in trucks, one squad each; on foot if there are no trucks in the data.
+  const carrier = world.groundDefs.truck ? 'truck' : 'infantry';
+  for (let i = 0; i < Math.round(cfg.squads * health); i++) units.push([carrier, cfg.squadSize]);
   const bridgeDown = world.ground.some((o) => o.type === 'bridge' && !o.alive);
   const engineersOut = world.ground.some((o) => o.type === 'engineers' && o.team === team && o.alive);
   if (bridgeDown && !engineersOut && cfg.engineers > 0) units.push(['engineers', cfg.engineers]);
@@ -58,6 +64,11 @@ function spawnWave(world, team, side, depot) {
     const u = makeGroundObject(world, type, team, x, { squad, mobile: true });
     u.dir = side.dir;
     u.moving = false;
+    if (type === 'truck') {
+      u.passengers = Array.from({ length: squad }, () => world.groundDefs.infantry.hp);
+      u.open = world.rng.next() < (cfg.openTrucks ?? 0); // most have the tarp up; men on an open bed can be shot
+      u.held = 0;
+    }
     x -= side.dir * (halfLength(u) * 2 + u.def.gap + 4);
     u.x = Math.min(world.map.width - 5, Math.max(5, u.x));
     world.ground.push(u);
@@ -75,7 +86,10 @@ function holdUp(world, u) {
     if (ahead <= 0) continue;
     const clear = ahead - halfLength(u) - halfLength(o);
     // Engineers slip through their own column, and nobody queues behind them.
-    if (o.mobile && o.alive && o.team === u.team && !engineers && o.type !== 'engineers' && clear < u.def.gap) return 'queue';
+    if (o.mobile && o.alive && o.team === u.team && !engineers && o.type !== 'engineers' && !o.returning && clear < u.def.gap) {
+      blocker = o;
+      return 'queue';
+    }
     if (o.type === 'tank' && !o.alive && world.tick - o.wreckedAt < o.def.wreckBlock * 60 && clear < 1) return 'wreck';
     // Stop to fight only with something to shoot at from here; otherwise push on to a better spot
     // (over the crest, onto the bridge) until nose to nose.
@@ -279,6 +293,99 @@ function dropOffBridges(world) {
   }
 }
 
+// A squad growing behind a truck: centred where all its men will stand, each man appearing at the
+// truck's tailgate and walking to his place (s.to) before the squad moves off.
+function joinSquad(world, truck, total) {
+  let sq = world.ground.find((o) => o.id === truck.squadId && o.alive);
+  if (sq) return sq;
+  const def = world.groundDefs.infantry;
+  const span = (total - 1) * def.spacing;
+  const x = truck.x - truck.dir * (truck.def.width / 2 + def.gap + span / 2 + 2);
+  sq = makeGroundObject(world, 'infantry', truck.team, x, { squad: 1, mobile: true });
+  sq.soldiers = [];
+  sq.hp = sq.maxHp = 0;
+  sq.dir = truck.dir;
+  sq.moving = false;
+  sq.forming = true;
+  sq.slots = total; // places in the line, filled front first
+  truck.squadId = sq.id;
+  world.ground.push(sq);
+  return sq;
+}
+
+function addSoldier(world, sq, hp, fromX) {
+  const def = sq.def;
+  const k = Math.min(sq.soldiers.length, sq.slots - 1);
+  sq.soldiers.push({ dx: fromX - sq.x, hp, to: sq.dir * ((sq.slots - 1) / 2 - k) * def.spacing, cooldown: world.rng.range(0, def.interval) });
+  sq.hp += hp;
+  sq.maxHp += def.hp;
+}
+
+// Time to get out: close to the enemy, stuck behind the column for a while, or badly hit.
+function shouldUnload(world, u) {
+  const d = u.def;
+  return enemyAhead(world, u) < d.dismountRange || u.held > d.holdDismount || u.hp < u.maxHp * d.hurtDismount;
+}
+
+// The men climb out over the tailgate one every dismountTime seconds; then the truck turns for home.
+function stepUnload(world, u, dt) {
+  u.unloadTimer = (u.unloadTimer ?? 0) - dt;
+  if (u.unloadTimer > 0) return;
+  u.unloadTimer = u.def.dismountTime;
+  if (u.passengers.length) {
+    const sq = joinSquad(world, u, u.passengers.length);
+    addSoldier(world, sq, u.passengers.shift(), u.x - u.dir * (u.def.width / 2 - 1));
+  }
+  if (!u.passengers.length) {
+    u.unloading = false;
+    u.returning = true;
+    u.dir = -u.dir;
+    world.events.push({ type: 'truckUnloaded', id: u.id, team: u.team, x: u.x });
+  }
+}
+
+// A truck knocked out with men aboard: some die in it, the rest jump clear and form up beside it.
+function bailOutOfTruck(world, u) {
+  const loss = u.def.passengerLoss ?? 0.6;
+  const survivors = [];
+  for (const [i, hp] of u.passengers.entries()) {
+    if (world.rng.next() >= loss) survivors.push(hp);
+    else {
+      const x = u.x - u.dir * (u.def.width * 0.1 + i * 2);
+      world.events.push({ type: 'soldierKilled', id: u.id, x, y: surfaceAt(world, x) + 2, by: u.by ?? null, cause: 'blast', dir: world.rng.sign(), force: 3 });
+    }
+  }
+  u.passengers = [];
+  if (!survivors.length) return;
+  const sq = joinSquad(world, u, survivors.length);
+  survivors.forEach((hp, i) => addSoldier(world, sq, hp, u.x + world.rng.range(-1, 1) * u.def.width * 0.4 - u.dir * i));
+}
+
+// Men of a forming squad walk to their places; the squad is formed once all are there and nobody is
+// still to come out of its truck.
+function stepForming(world, sq, dt) {
+  let walking = false;
+  for (const s of sq.soldiers) {
+    if (s.to == null) continue;
+    if (s.hp <= 0) {
+      s.to = null;
+      continue;
+    }
+    const gap = s.to - s.dx;
+    const step = sq.def.speed * dt;
+    if (Math.abs(gap) <= step) {
+      s.dx = s.to;
+      s.to = null;
+    } else {
+      s.dx += Math.sign(gap) * step;
+      walking = true;
+    }
+  }
+  const coming = world.ground.some((t) => t.squadId === sq.id && t.alive && t.passengers?.length);
+  if (!walking && !coming) sq.forming = false;
+  sq.walking = walking; // for the drawing: legs move while men walk to their places
+}
+
 export function stepArmy(world, dt) {
   if (!world.army) return;
   for (const [teamKey, side] of Object.entries(world.army)) {
@@ -297,6 +404,7 @@ export function stepArmy(world, dt) {
     const u = world.ground[i];
     if (!u.mobile) continue;
     if (!u.alive) {
+      if (u.passengers?.length) bailOutOfTruck(world, u);
       // Old wrecks and fallen squads are cleared away, so a long match doesn't fill up.
       if (world.tick - u.wreckedAt > (u.soldiers ? CLEAR_SQUAD : CLEAR_WRECK) * 60) world.ground.splice(i, 1);
       continue;
@@ -310,17 +418,33 @@ export function stepArmy(world, dt) {
         continue;
       }
     }
-    const why = u.working ? 'working' : u.returning ? null : holdUp(world, u);
+    if (u.forming) stepForming(world, u, dt);
+    if (u.type === 'truck' && !u.returning && !u.unloading && (!u.passengers.length || shouldUnload(world, u))) u.unloading = true;
+    if (u.unloading) stepUnload(world, u, dt);
+    blocker = null;
+    const why = u.working ? 'working' : u.forming ? 'forming' : u.unloading ? 'unloading' : u.returning ? null : holdUp(world, u);
     // A lead tank in a firefight keeps creeping forward as it shoots, making room for the tanks
     // behind to come into range, until it's close to the enemy.
     const creep = why === 'fight' && u.type === 'tank' && u.hasShot && enemyAhead(world, u) > (u.def.creepHold ?? Infinity);
-    const pace = !why ? 1 : creep ? u.def.creepSpeed ?? 0 : 0;
+    // Queued behind a slower unit on the move: keep pace with it (no further than it went last step)
+    // rather than stop and go.
+    const follow = why === 'queue' && blocker.moving ? 1 : 0;
+    const pace = !why ? 1 : creep ? u.def.creepSpeed ?? 0 : follow;
     u.moving = pace > 0;
     u.why = why; // for debugging: what holds it up
+    u.step = 0;
     if (u.moving) {
       // Slower uphill, a little quicker downhill.
       const slope = world.terrain.slopeAngle(u.x) * u.dir;
-      u.x += u.dir * u.def.speed * pace * Math.min(1.3, Math.max(0.3, 1 - slope * 2)) * dt;
+      let step = u.def.speed * pace * Math.min(1.3, Math.max(0.3, 1 - slope * 2)) * dt;
+      if (follow) step = Math.min(step, blocker.step ?? 0);
+      u.x += u.dir * step;
+      u.step = step;
+      u.moving = step > 0;
+    }
+    if (u.type === 'truck') {
+      u.held = u.moving || u.unloading ? 0 : (u.held ?? 0) + dt;
+      settleHull(world, u, dt);
     }
     if (u.type === 'tank') {
       settleHull(world, u, dt);

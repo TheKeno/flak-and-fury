@@ -258,6 +258,17 @@ const DEFENCE_FIELDS = {
     ['aaBurst', 'Roof MG: burst length', 0.1, 2, 0.05, 'Seconds of fire per burst.'],
     ['aaPause', 'Roof MG: pause between bursts', 0, 8, 0.1, 'Seconds of rest between bursts (varies a little).'],
   ],
+  truck: [
+    ['speed', 'Speed', 1, 40, 0.5, 'How fast trucks drive (world units per second). Behind a slower unit they keep its pace.'],
+    ['dismountRange', 'Men get out at', 0, 800, 10, 'The truck stops and unloads when an enemy is this close ahead.'],
+    ['dismountTime', 'Time per man getting out', 0.1, 3, 0.1, 'Seconds between men climbing out over the tailgate.'],
+    ['holdDismount', 'Unload when stuck for', 0, 20, 0.5, 'Seconds held up behind its column before the men get out and walk.'],
+    ['hurtDismount', 'Unload when hit below', 0, 1, 0.05, 'Share of its hit points below which the men get out at once.'],
+    ['passengerLoss', 'Men lost with the truck', 0, 1, 0.05, 'Chance each man aboard dies when the truck is knocked out; the rest jump clear.'],
+    ['openHit', 'Open bed: rounds hit men', 0, 1, 0.05, 'Open truck: chance a bullet that strikes it hits a man on the bed (times the share of seats taken).'],
+    ['tarpShield', 'Tarp: blast to men', 0, 1, 0.05, 'Share of a blast the men under a tarp take (in an open truck: all of it).'],
+    ['tiltRate', 'Settling', 0.5, 20, 0.5, 'How quickly the truck tilts to the slope of the ground.'],
+  ],
   engineers: [
     ['speed', 'Speed', 1, 20, 0.5, 'How fast engineers march to the river.'],
   ],
@@ -300,8 +311,9 @@ const WAVE_FIELDS = [
   ['interval', 'Time between waves', 10, 400, 5, 'Seconds between waves from an undamaged depot. A damaged depot takes up to 2.5 times as long.'],
   ['tanks', 'Tanks per wave', 0, 8, 1, 'Fewer from a damaged depot (at least one while it stands, unless the side is at its cap).'],
   ['maxTanks', 'Max tanks per side', 0, 20, 1, 'Tanks support the infantry: a wave only sends tanks while the side has fewer than this out.'],
-  ['squads', 'Infantry squads per wave', 0, 6, 1, 'Fewer from a damaged depot.'],
-  ['squadSize', 'Soldiers per squad', 1, 12, 1, ''],
+  ['squads', 'Infantry squads per wave', 0, 6, 1, 'Fewer from a damaged depot. Each rides in its own truck.'],
+  ['squadSize', 'Soldiers per squad', 1, 12, 1, 'Men in each truck.'],
+  ['openTrucks', 'Trucks without tarp', 0, 1, 0.05, 'Chance a truck has an open bed: its men show and can be shot. The rest have the tarp up.'],
   ['engineers', 'Engineers', 0, 8, 1, 'Engineers sent with a wave when the bridge is down (0 = none).'],
 ];
 const GORE_FIELDS = [

@@ -80,6 +80,8 @@ test('a busy world arrives whole on a guest, snapshot after snapshot', () => {
   let sends = 0;
   let sawBullets = false;
   let sawTanks = false;
+  let sawTrucks = false;
+  let sawForming = false;
   for (let tick = 1; tick <= 60 * 150; tick++) {
     stepWorld(host, {});
     if (tick % 3) continue;
@@ -100,8 +102,11 @@ test('a busy world arrives whole on a guest, snapshot after snapshot', () => {
     }
     sawBullets ||= host.bullets.length > 0;
     sawTanks ||= host.ground.some((o) => o.type === 'tank');
+    sawTrucks ||= host.ground.some((o) => o.type === 'truck' && o.passengers.length);
+    sawForming ||= host.ground.some((o) => o.forming);
   }
   assert.ok(sawBullets && sawTanks, 'the test world should have seen guns and tanks');
+  assert.ok(sawTrucks && sawForming, 'and trucks with men aboard, and men getting out');
   assert.equal(guest.planes.length, host.planes.length);
   // Shared data stays the guest's own (a reference, not a copy).
   assert.equal(guest.planes[0].def, guest.planeDefs[guest.planes[0].def.id ?? 'bf109g6'] ?? guest.planes[0].def);

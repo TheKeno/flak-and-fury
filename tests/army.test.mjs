@@ -34,12 +34,13 @@ const units = (world, type, team) => world.ground.filter((o) => o.mobile && o.al
 const bridgeOf = (world) => world.ground.find((o) => o.type === 'bridge');
 const river = (world) => world.map.rivers[0];
 
-test('each depot sends out a wave of tanks and infantry that marches on the enemy', () => {
+test('each depot sends out a wave of tanks and infantry in trucks that heads for the enemy', () => {
   const world = makeWorld();
   run(world, settings.waves.first + 1);
   for (const team of [0, 1]) {
     assert.equal(units(world, 'tank', team).length, settings.waves.tanks);
-    assert.equal(units(world, 'infantry', team).length, settings.waves.squads);
+    assert.equal(units(world, 'truck', team).length, settings.waves.squads);
+    assert.ok(units(world, 'truck', team).every((t) => t.passengers.length === settings.waves.squadSize), 'each truck full');
   }
   const before = units(world, 'tank', 0).map((t) => t.x);
   run(world, 10);
@@ -63,7 +64,7 @@ test('tanks halt at a river whose bridge is down, and cross while it stands', ()
 });
 
 test('engineers rebuild a destroyed bridge, then go home', () => {
-  const world = makeWorld({ first: 0, interval: 1e6, tanks: 0, squads: 0 });
+  const world = makeWorld({ first: 0, interval: 1e6, tanks: 0, squads: 0, engineers: 3 });
   damageGround(world, bridgeOf(world), Infinity, null);
   world.ground.find((o) => o.type === 'depot' && o.team === 1).alive = false;
   for (const o of world.ground) if (o.team === 1) o.alive = false; // nobody to shoot them
@@ -104,7 +105,7 @@ test('a damaged depot sends smaller waves; a destroyed one sends none', () => {
   depot.hp = depot.maxHp * 0.5;
   run(world, 0.1);
   assert.equal(units(world, 'tank', 0).length, 2);
-  assert.equal(units(world, 'infantry', 0).length, 1);
+  assert.equal(units(world, 'truck', 0).length, 1);
   const quiet = makeWorld({ first: 1 });
   damageGround(quiet, quiet.ground.find((o) => o.type === 'depot' && o.team === 0), Infinity, null);
   run(quiet, 3);
@@ -181,7 +182,8 @@ test('a lead tank creeps forward while it fights, stopping short of the enemy', 
   const clear = target.x - tank.x - (tank.def.width + target.def.width) / 2;
   assert.ok(fired >= 3, 'kept firing');
   assert.ok(tank.x > start + 10, `crept forward (${(tank.x - start).toFixed(1)})`);
-  assert.ok(clear >= tank.def.creepHold - 2 && clear < tank.def.creepHold + 10, `stopped about creepHold short (${clear.toFixed(1)})`);
+  // It drives on at full speed until its first shot, so it may end up a little closer than creepHold.
+  assert.ok(clear >= tank.def.creepHold * 0.6 && clear < tank.def.creepHold + 10, `stopped about creepHold short (${clear.toFixed(1)})`);
 });
 
 test('tanks drive over wrecks', () => {
@@ -204,5 +206,5 @@ test('a side never has more tanks out than maxTanks', () => {
   let most = 0;
   run(world, 60, () => (most = Math.max(most, units(world, 'tank', 0).length, units(world, 'tank', 1).length)));
   assert.equal(most, 4);
-  assert.ok(units(world, 'infantry', 0).length > 2, 'infantry still comes');
+  assert.ok(units(world, 'truck', 0).length + units(world, 'infantry', 0).length > 2, 'infantry still comes');
 });

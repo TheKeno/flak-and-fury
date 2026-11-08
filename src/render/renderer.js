@@ -599,6 +599,65 @@ export function createRenderer(canvas, world, assets) {
     }
     ctx.restore();
   }
+  // Trucks: the nation's truck (def.sprites by nation; failing that, the team's place in the list), open
+  // or with its tarp up, painted once per team. A wreck is the open truck burnt black (the tarp burnt away).
+  function truckSet(obj) {
+    const sprites = obj.def.sprites ?? {};
+    const name = sprites[nationOf(obj.team)] ?? Object.values(sprites)[obj.team ?? 0];
+    const t = assets.trucks?.[name];
+    if (!t) return null;
+    const key = `truck|${name}|${obj.team}`;
+    if (!spriteCache.has(key)) {
+      const nation = assets.nations[nationOf(obj.team)] ?? assets.nations.germany;
+      const paint = nation.tankPaint ?? nation.paint;
+      const open = paintSprite(t.open, paint);
+      const wreck = makeCanvas(open.width, open.height);
+      const g = wreck.getContext('2d');
+      g.drawImage(open, 0, 0);
+      g.globalCompositeOperation = 'source-atop';
+      g.fillStyle = 'rgba(26,20,16,0.78)';
+      g.fillRect(0, 0, open.width, open.height);
+      spriteCache.set(key, { meta: t.meta, open, tarp: paintSprite(t.tarp, paint), wreck });
+    }
+    return spriteCache.get(key);
+  }
+  // Drawn like a tank, in the truck's own frame, sprite pixels (0.1 m) scaled by spriteScale. The men on an
+  // open bed are drawn first, so the side boards hide all but their heads and shoulders.
+  function drawTruck(obj, sx) {
+    const set = truckSet(obj);
+    if (!set) return;
+    const m = set.meta;
+    const dir = facingOf(obj);
+    const by = Math.round(toScreenY(obj.baseY ?? surfaceAt(world, obj.x))) + 2;
+    const mid = Math.round(m.pivot[0] - (m.length * m.pixelsPerMetre) / 2);
+    const big = obj.def.spriteScale ?? 1;
+    ctx.save();
+    ctx.translate(sx, by);
+    ctx.rotate(-(obj.tilt ?? 0));
+    ctx.scale((dir * big) / DETAIL, big / DETAIL);
+    ctx.translate(-mid, -Math.round(m.ground));
+    if (!obj.alive) {
+      ctx.drawImage(set.wreck, 0, 0);
+      ctx.restore();
+      return;
+    }
+    if (obj.open && obj.passengers?.length) {
+      const uniform = assets.nations[nationOf(obj.team)]?.uniform ?? '#6a6e5e';
+      (m.passengers ?? []).slice(0, obj.passengers.length).forEach(([hx, hy], i) => {
+        const x = Math.round(hx);
+        const y = Math.round(hy) + (obj.moving && Math.floor((frame + i * 5) / 9) % 2 ? 1 : 0); // jolting along
+        ctx.fillStyle = uniform;
+        ctx.fillRect(x - 2, y + 2, 5, 8);
+        ctx.fillStyle = '#b08a68';
+        ctx.fillRect(x - 1, y - 1, 3, 3);
+        ctx.fillStyle = '#3a3e34'; // helmet
+        ctx.fillRect(x - 2, y - 2, 5, 2);
+        ctx.fillRect(x - 1, y - 3, 3, 1);
+      });
+    }
+    ctx.drawImage(obj.open ? set.open : set.tarp, 0, 0);
+    ctx.restore();
+  }
   function flipped(name, img) {
     const key = `${name}|flip`;
     if (!spriteCache.has(key)) {
@@ -676,8 +735,9 @@ export function createRenderer(canvas, world, assets) {
       }
       const dir = facingOf(obj);
       // Marching: legs stepping in turn. Standing: shuffling feet now and then.
-      const step = obj.moving ? Math.floor((frameNo + i * 5) / 7) % 2 : Math.floor((frameNo + i * 13) / 40) % 3 === 0 ? 1 : 0;
-      const other = obj.moving ? 1 - step : 0;
+      const walking = obj.moving || (obj.walking && s.to != null); // or walking to his place behind a truck
+      const step = walking ? Math.floor((frameNo + i * 5) / 7) % 2 : Math.floor((frameNo + i * 13) / 40) % 3 === 0 ? 1 : 0;
+      const other = walking ? 1 - step : 0;
       ctx.fillStyle = '#2a2622';
       ctx.fillRect(gx - 1, gy - 3 + other, 1, 3 - other);
       ctx.fillRect(gx + 1, gy - 3 + step, 1, 3 - step);
@@ -807,6 +867,10 @@ export function createRenderer(canvas, world, assets) {
       }
       if (obj.type === 'bridge') {
         drawBridge(obj);
+        continue;
+      }
+      if (obj.type === 'truck') {
+        drawTruck(obj, sx);
         continue;
       }
       const [name, img] = spriteOf(obj);

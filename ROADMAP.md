@@ -51,7 +51,8 @@ later.
     battery in a balka); Soviet airfield. Each side's depot stands behind its forward position. The map is
     redesigned for this in LDtk (never regenerated with `tools/make-map.mjs`). Fronts for later maps: Sicily 1943
     (paratroopers, an asymmetric invasion), Tunisia 1943, Karelia 1943, New Guinea.
-  - **Build order:** (1) **pace of the ground forces first:** tanks sped up, infantry travel in trucks; (2) the
+  - **Build order:** (1) **pace of the ground forces first:** tanks sped up, infantry travel in trucks (built 2026-11-08,
+    see Done "Milestone 8 step 1"); (2) the
     target chain and its effects on the redesigned map; (3) the battle directors with paratroopers as the first
     event, the front strip and radio calls; (4) the other events; (5) the final battle and win/lose; (6) bots
     playing it. Each step its own session.
@@ -405,6 +406,18 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Milestone 8 step 1: the pace of the ground forces, infantry in trucks (Gameplay, 2026-11-08):** tanks 5 → 12 u/s
+  (`creepSpeed` 0.3 → 0.15 so the creep stays about as slow), waves every 60 s from 10 s, two squads of six per wave, each
+  in its own truck (new `truck` in `data/ground.json`, speed 20; the nation's Outline Lab truck by `sprites`: Opel Blitz,
+  ZIS-5, Bedford and so on, painted in `tankPaint`). About one truck in four (`waves.openTrucks` 0.25, rolled per
+  truck) has no tarp: its men show on the benches and bullets striking it can hit them (`openHit`); blasts hurt them
+  fully, under a tarp half (`tarpShield`). A truck behind a slower unit keeps its pace; it stops and unloads at an enemy
+  within `dismountRange` 300, after `holdDismount` 2 s stuck, or below `hurtDismount` half health; men climb out at the
+  tailgate one every 0.5 s, walk to their places and march on; the empty truck drives home. Knocked out loaded, each man
+  dies with `passengerLoss` 0.6, the rest jump clear. Engineers off (`waves.engineers` 0; the new map has no river; their
+  code stays). Bots strafe loaded trucks. Trucks use the tank engine sound for now. On the countryside map the first
+  columns now meet at about 2.5 minutes (was about 5). Tuning panel: Tank waves, Ground objects → Truck; TUNING.md
+  "Trucks". Tests: `tests/trucks.test.mjs`, trucks in `tests/net.test.mjs`.
 - **Truck outlines in the Lab: six trucks (Planes, 2026-11-08, stop 3):** Opel Blitz, Bedford QLD, GMC CCKW (white star on the door), ZIS-5, Isuzu Type 94 and Ford V3000S, all traced by the owner over their sheets, sprites built. Extras added on the owner's requests: a draggable windshield / glass part, headlights (lit at night later), a timber cargo bed option (`bed.wood`) and off-colour tarps (`tarp.kind`). Notes on the Opel (the first truck): `data/outlines/opel-blitz.json` (`vehicle: 'truck'`, a first outline read off the sheet by eye: the owner traces it in the Lab, then Build sprites again). Parts: cab with bonnet (`fuselage`, plus `cab` boxes for window, door, louvres), `bed` (stakes), `tarp`, `wheels` with any number of axles (`axles` z and half width), bumps, `passenger` dots, one `exit` dot, `cover` open/tarp/closed (switch at the top of the Lab). Build sprites writes `opel-blitz.png` (open), `-tarp`, `-closed`, `-tarpcloth` (4 frames of the loose tarp), `-tarpdown` (crumpled) and the json with wheels, passenger and exit pixels. Not in the game yet (truck and infantry logic is its own Gameplay item). Details: `notes/outline-lab.md` "Ground vehicles: trucks".
 - **Tank outlines in the Lab and the Panzer in the game (Planes, 2026-11-08):** ground vehicles in the Outline Lab (side view only; hull, turret and gun as stations, track loop, wheels, bumps, one crew dot; `notes/outline-lab.md` "Ground vehicles"). Six tanks have outlines and built layered sprites, each with its nation's marking and colours: `panzer4h`, `m4a1`, `t34-76`, `churchill` (Mk III sheet), `chiha` (Type 97 sheet), `bt42`. Lab: picker grouped like the hangar (role headings, Tanks, Trucks, by nation), a move handle in the middle of every part in side and plan view, spread N road wheels evenly, a side plate as a mirrored bump with the hull's shading and seams, surface `shade`, bright red errors. Model: running-gear animation, bogie suspension (off with `tracks.suspension: false`), the hull inside the track loop in shadow, panel detail, marking shapes (`cross`, `star`, `redstar`, `disc`, `hakaristi`), `tankPaint` per nation. Game: `drawVehicle` in `renderer.js` (tracks by distance driven, gun about its pivot, commander or MG gunner from `tank.crew`, burnt wreck with the turret knocked crooked); the tank def has `layers` and `spriteScale` 1.5. **Not done:** the game still has one tank type (the Panzer for every side); the other five are built but not drawn in play; the Churchill, Chi-Ha and BT-42 sprites are unseen in the game. Tests: `tests/vehicles.test.mjs`.
 - **Bot names really random (Gameplay, 2026-11-08):** the pick hashed the plane id with the map's fixed seed, so the same bots got the same names every game. `botName` (`src/sim/world.js`) now hashes the per-match seed (`world.seed`, fresh each game from `main.js`; tests keep a fixed one). `world.rng` still untouched. 302 tests pass; not watched in play.
@@ -635,7 +648,8 @@ later.
 8. **The front** (decided, see Decisions, "Direction: the front"): the player as air support for an AI
    ground war along a chain of five targets with real effects, battle directors launching events
    (paratrooper drops first), the final battle at the enemy airfield, mirrored and online. First map: the
-   **Kursk salient**, redesigned. First step: the pace of the ground forces (faster tanks, infantry in trucks).
+   **Kursk salient**, redesigned. Step 1, the pace of the ground forces (faster tanks, infantry in trucks), is **done**
+   (see Done); next is step 2, the target chain on the redesigned map.
    Takes in the old backlog items "Objective map features", "Bots raid the enemy base", "Trucks and infantry
    logic" and "Infantry travel to the front in trucks".
 9. **Hangar:** plane choice in the hangar screen, parking in with H and the roll-out are **done** (see Done).
@@ -679,6 +693,11 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Truck engine sound (Sound):** trucks play the tank engine for now (`updateTanks` in `src/audio/soundscape.js`); give
+  them a sound of their own in the Sound Lab (Opel Blitz and ZIS-5 first). The tank layers' `speed` driver tops out at 10,
+  below the new tank speed 12: check the tank sounds' speed range in the Lab.
+- **Empty trucks driving home overlap (Gameplay):** returning trucks skip the column queue, so two heading home can drive
+  through each other. Minor; let them keep a gap among themselves.
 - **Vehicle headlights at night (Gameplay):** when the night maps and the lighting layer (item 14) are done, light the trucks' headlamps (and tank lamps) from the `lights` list in each truck's sprite json (pixel centre and radius, beam pointing forward).
 - **A tank for each nation in the game (Gameplay):** the sim has one `tank` type drawn as the Panzer for every side. Give each nation its own (`panzer4h`, `m4a1`, `t34-76`, `churchill`, `chiha`, `bt42`), chosen by the front's two nations (Kursk: `panzer4h` against `t34-76`), with its own size and hit box (the real hull lengths are 5.55 to 7.44 m); `spriteScale` stays 1.5 until the infantry get real-scale sprites.
 - **Tank detail list (Planes):** hand-placed extras on a tank outline (tools on the mudguards, exhaust, hatches, spare track links, headlamp), rectangles and circles at d and h, edited in the Lab like the markings.

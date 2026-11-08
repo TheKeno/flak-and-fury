@@ -349,17 +349,29 @@ the doors stay open after the crew are home, 1 – 3), `exitStartScale`
 the hangar wall: 0 = right at the door, 0 – 20), `slotGap` (spacing in the line, about a plane length, 30 – 40), `queueSize` (planes in
 the line, 2 – 4).
 
-**The ground war.** Each side's `depot` sends out a wave of tanks with infantry behind them, which
-marches on the enemy airfield, stops to fight whatever enemy it meets and shells what it finds. At the
+**The ground war.** Each side's `depot` sends out a wave of tanks with infantry in trucks behind them, which
+heads for the enemy airfield, stops to fight whatever enemy it meets and shells what it finds. At the
 airfield they shell the `hangar`: as it's damaged the ground crew work slower, and destroyed it leaves
 no crew at all. Bombing a depot slows and shrinks its waves (at worst 2.5 times as long between them);
 destroyed, it sends no more. Tanks cross the river only while the `bridge` stands; when it's down,
 each side sends `engineers` with its next wave to rebuild it, and they're easy pickings while they work.
 Wave sizes and timing are in `data/settings.json` under `waves` (the tuning panel's **Tank waves**).
 
+**Trucks** (`truck` in `data/ground.json`, tuning panel: Ground objects → Truck) carry one squad each from the
+depot to the front: the nation's truck from the Outline Lab (`sprites`: Opel Blitz for Germany, ZIS-5 for the USSR,
+Bedford for the UK and so on), most with the tarp up, some open with the men on the benches (`waves.openTrucks`,
+rolled per truck). A truck behind a slower unit keeps its pace. It stops and the men climb out over the tailgate
+one by one (the sprite's `exit` dot), walk to their places behind it and march on as a squad, when an enemy is
+within `dismountRange` ahead, after `holdDismount` seconds stuck behind its column, or once hit below
+`hurtDismount` of its hit points. Then the empty truck turns and drives home, still a target. Knocked out with
+men aboard, each dies with `passengerLoss`, the rest jump clear. Rounds striking an open truck hit a man on the
+bed with `openHit` times the share of `seats` taken; a blast hurts men in an open truck fully, under a tarp
+`tarpShield` of it. Pace at the start of milestone 8: tanks 12, trucks 20, infantry on foot 5; on the countryside
+map the first columns meet at about 2.5 minutes (it was about 5).
+
 | Field | What it does | Try |
 |---|---|---|
-| `speed` | Tanks, marching infantry, engineers: world units per second. | 3 – 10 |
+| `speed` | Tanks, trucks, marching infantry, engineers: world units per second. | tanks 8 – 16, trucks 15 – 30, infantry 3 – 8 |
 | `gap` | Clear space a unit keeps behind the one ahead of it in its column. | 4 – 12 |
 | `engageRange` | An enemy this close ahead stops the unit to fight. | 60 – 200 |
 | `layers` / `spriteScale` | A tank drawn from Outline Lab layers (hull, turret, gun, crew; `assets/sprites/<sprite>.json`): `layers` turns it on, `spriteScale` draws it that many times bigger than the real scale (1.5 while the infantry are drawn 1.5 times too big). | true / 1 – 1.5 |
@@ -370,7 +382,10 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 | `shellRadius`, `shellDamage` | Tank shell blast. | 8 – 20, 15 – 50 |
 | `range`, `mgAltitude` | Tank coaxial MG: reach, and only planes lower than this above the ground. | 100 – 200, 20 – 80 |
 | `wreckBlock` | Seconds a knocked-out tank blocks the road; 0 lets tanks drive over wrecks. | 0 – 60 |
-| `creepSpeed`, `creepHold` | A lead tank keeps rolling forward at this share of its speed while it fights (so the tanks behind get into range), until this close to the enemy. | 0.2 – 0.5, 30 – 80 |
+| `creepSpeed`, `creepHold` | A lead tank keeps rolling forward at this share of its speed while it fights (so the tanks behind get into range), until this close to the enemy. | 0.1 – 0.3, 30 – 80 |
+| `dismountRange`, `dismountTime` | Truck: unloads when an enemy is this close ahead; seconds per man climbing out. | 200 – 400, 0.3 – 1 |
+| `holdDismount`, `hurtDismount` | Truck: unloads after this many seconds stuck behind its column, or below this share of its hit points. | 1 – 5, 0.3 – 0.7 |
+| `passengerLoss`, `openHit`, `tarpShield`, `seats` | Truck: chance each man aboard dies with it; open bed, chance a round that strikes it hits a man (times seats taken / `seats`); share of a blast men under a tarp take; seats for that sum. | 0.4 – 0.8, 0.3 – 0.7, 0.3 – 0.7, 6 |
 | `combatHold`, `gunnerHold` | Tank crew (one man): seconds he stays inside after the last ground fight (no MG at planes meanwhile), and seconds he stays at the MG after it last fired at a plane. | 3 – 6, 2 – 4 |
 | `aaRange`, `aaAltitude` | Roof (anti-aircraft) MG: reach, and only planes lower than this above the ground. 0 range takes it off. | 120 – 250, 80 – 200 |
 | `aaDamage`, `aaSpread` | Roof MG: damage per round (mostly for show) and how wild its aim is. | 0.1 – 0.4, 0.04 – 0.1 |
@@ -378,7 +393,7 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 | `rebuildTime` | Bridge: seconds a full squad of engineers needs to rebuild it from nothing. | 20 – 120 |
 
 `waves` (in `data/settings.json`): `first` (seconds before the first wave), `interval` (seconds between
-waves), `tanks` and `squads` per wave, `maxTanks` (a side never has more tanks out than this; waves then bring only infantry), `squadSize`, `engineers` (sent when the bridge is down; 0 = none).
+waves), `tanks` and `squads` per wave (one truck per squad), `maxTanks` (a side never has more tanks out than this; waves then bring only infantry), `squadSize` (men per truck), `openTrucks` (chance a truck has no tarp, 0.1 – 0.4), `engineers` (sent when the bridge is down; 0 = none, off since milestone 8: the new map has no river).
 
 `pads` (in `data/settings.json`, the tuning panel's **Structure pads**): every structure placed on the
 map (anything with a `sprite`: guns, tents, towers, buildings, radar, depots) stands on a level pad, so

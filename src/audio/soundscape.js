@@ -223,10 +223,10 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
     }
   }
 
-  // Engines of the nearest few tanks.
+  // Engines of the nearest few tanks, and trucks (on the tank engine until they have a sound of their own).
   function updateTanks() {
     const near = world.ground
-      .filter((o) => o.type === 'tank' && o.alive && Math.abs(o.x - listener.x) < 900)
+      .filter((o) => (o.type === 'tank' || o.type === 'truck') && o.alive && Math.abs(o.x - listener.x) < 900)
       .sort((a, b) => Math.abs(a.x - listener.x) - Math.abs(b.x - listener.x))
       .slice(0, 4);
     for (const [id, t] of tanks) {
