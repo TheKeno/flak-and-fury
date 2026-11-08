@@ -1359,7 +1359,7 @@ export function createRenderer(canvas, world, assets) {
   // It does not predict the fall, so how far ahead to release is the pilot's judgement. The ordinary
   // gunsight is hidden meanwhile.
   function drawBombSight(p) {
-    if (!p || p.state === 'dead' || p.bailout || !hudCfg.crosshair || hudCfg.crosshairAlpha <= 0) return;
+    if (!p || p.state === 'dead' || p.bailout || !isUpright(p) || !hudCfg.crosshair || hudCfg.crosshairAlpha <= 0) return;
     const wx = p.x + (Math.cos(p.angle) >= 0 ? 1 : -1) * camCfg.bombSightAhead;
     const wy = p.y - camCfg.bombSightDown;
     const x = ((wx - cam.x) * SCALE / bw) * W;

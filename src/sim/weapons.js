@@ -1,6 +1,6 @@
 // Guns, bombs, damage and explosions.
 import { clamp } from './math.js';
-import { GRAVITY, attitude } from './plane.js';
+import { GRAVITY, attitude, isUpright } from './plane.js';
 import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
 import { ignite, fireHit, stepFire } from './fire.js';
 import { digCrater } from './runway.js';
@@ -289,6 +289,13 @@ export function updateWeapons(p, cmd, world, dt) {
     st.loaded -= n;
     p.bombCooldown = hp.interval ?? BOMB_INTERVAL;
     const [x, y] = localToWorld(p, hp.offset);
+    // Dropped upside down the bomb falls into your own plane: no outrunning it, it goes off in the cockpit.
+    if (!isUpright(p)) {
+      world.events.push({ type: 'bombRelease', plane: p.id, bomb: world.nextId++, x, y });
+      explode(world, p.x, p.y, st.def, p.id, p.team);
+      if (!p.dying && p.state !== 'dead') shootDown(world, p, p.id, 'bomb');
+      return;
+    }
     for (let i = 0; i < n; i++) {
       const bomb = { id: world.nextId++, owner: p.id, team: p.team, def: st.def, x, y, vx: p.vx, vy: p.vy - 6 };
       world.bombsInFlight.push(bomb);

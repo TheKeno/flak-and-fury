@@ -762,7 +762,7 @@ function attackWant(world, p, b, skill, cmd) {
       if (impact) {
         const aimX = o.x + vx * impact.t + b.bombOff;
         const miss = (impact.x - aimX) * run.dir;
-        if (Math.abs(miss) < 3 + Math.abs(p.vx) * DT * 1.5 && Math.abs(angleDiff(p.angle, angleFor(run.dir, 0))) < 0.35) {
+        if (isUpright(p) && Math.abs(miss) < 3 + Math.abs(p.vx) * DT * 1.5 && Math.abs(angleDiff(p.angle, angleFor(run.dir, 0))) < 0.35) {
           cmd.bomb = true;
           b.bombOff = world.rng.range(-1, 1) * skill.bombError;
           run.phase = 'out';
