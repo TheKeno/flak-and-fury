@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Bomb rebalance step 1 (Planes, 2026-11-08, done):** bombs are named by weight (`bomb_50/100/113/227/250/500`, FAB-100 and Army 100 merged); blast, damage and crater scale with weight (see TUNING.md). Next: per-plane loads and weight limits.
+- **Bomb rebalance step 1 (Planes, 2026-11-08, done):** bombs are named by weight (`bomb_50/100/113/227/250/500`, FAB-100 and Army 100 merged); blast, damage and crater scale with weight (see TUNING.md). Step 2 (done 2026-11-08): loads set per plane. Spitfire 227 + 2×113 (centre + wing rack), P-47D 227 centre + 2×227 wing (maxLoad 690), Mosquito 4 bay + 2 rack ×113 (maxLoad 700), Ki-45 2×250, Ki-43 2×50, La-5FN wing rack 2×100; the rest unchanged (presets renamed to kg). Wing pairs are `rack` hardpoints, so they drop together. Still open: verify the (?) loads (Ki-43, Pe-3, Blenheim metric bombs), a 454 kg bomb for the P-47/P-38, wing/centre hardpoint offsets are guesses, Bf 109 4×50 rack and Bf 110 second crutch skipped (a hardpoint's capacity comes from the default load).
 
 - **Direction: the front, first map the Kursk salient (decided 2026-11-08, discussion; not built):** resolves the
   owner's MOBA note. This is milestone 8.

@@ -59,7 +59,7 @@
     ],
     "loadoutPresets": [
       {
-        "name": "SC 250",
+        "name": "1 × 250 kg",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -69,7 +69,7 @@
         ]
       },
       {
-        "name": "SC 50",
+        "name": "1 × 50 kg",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -224,33 +224,63 @@
         ],
         "group": 0,
         "maxKg": 250
+      },
+      {
+        "id": "wing",
+        "kind": "rack",
+        "offset": [
+          0.5,
+          -3.2
+        ],
+        "group": 1,
+        "maxKg": 113
       }
     ],
     "loadout": [
       {
         "hardpoint": "centre",
+        "weapon": "bomb_227",
+        "count": 1
+      },
+      {
+        "hardpoint": "wing",
         "weapon": "bomb_113",
         "count": 2
       }
     ],
     "loadoutPresets": [
       {
-        "name": "2 x GP 250",
+        "name": "227 kg + 2 × 113 kg",
         "loadout": [
           {
             "hardpoint": "centre",
+            "weapon": "bomb_227",
+            "count": 1
+          },
+          {
+            "hardpoint": "wing",
             "weapon": "bomb_113",
             "count": 2
           }
         ]
       },
       {
-        "name": "1 x GP 250",
+        "name": "1 × 227 kg",
         "loadout": [
           {
             "hardpoint": "centre",
-            "weapon": "bomb_113",
+            "weapon": "bomb_227",
             "count": 1
+          }
+        ]
+      },
+      {
+        "name": "2 × 113 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_113",
+            "count": 2
           }
         ]
       },
@@ -387,7 +417,7 @@
     "hitRadius": 8.5,
     "endurance": 300,
     "emptyWeight": 4500,
-    "maxLoad": 454,
+    "maxLoad": 690,
     "hardpoints": [
       {
         "id": "centre",
@@ -398,31 +428,61 @@
         ],
         "group": 0,
         "maxKg": 500
+      },
+      {
+        "id": "wing",
+        "kind": "rack",
+        "offset": [
+          0.5,
+          -4.2
+        ],
+        "group": 1,
+        "maxKg": 227
       }
     ],
     "loadout": [
       {
         "hardpoint": "centre",
         "weapon": "bomb_227",
+        "count": 1
+      },
+      {
+        "hardpoint": "wing",
+        "weapon": "bomb_227",
         "count": 2
       }
     ],
     "loadoutPresets": [
       {
-        "name": "2 x GP 500",
+        "name": "3 × 227 kg",
         "loadout": [
           {
             "hardpoint": "centre",
+            "weapon": "bomb_227",
+            "count": 1
+          },
+          {
+            "hardpoint": "wing",
             "weapon": "bomb_227",
             "count": 2
           }
         ]
       },
       {
-        "name": "2 x GP 250",
+        "name": "2 × 227 kg",
         "loadout": [
           {
-            "hardpoint": "centre",
+            "hardpoint": "wing",
+            "weapon": "bomb_227",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "2 × 113 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
             "weapon": "bomb_113",
             "count": 2
           }
@@ -531,8 +591,8 @@
     "maxLoad": 250,
     "hardpoints": [
       {
-        "id": "centre",
-        "kind": "crutch",
+        "id": "wing",
+        "kind": "rack",
         "offset": [
           0,
           -4
@@ -543,27 +603,37 @@
     ],
     "loadout": [
       {
-        "hardpoint": "centre",
+        "hardpoint": "wing",
         "weapon": "bomb_100",
         "count": 2
       }
     ],
     "loadoutPresets": [
       {
-        "name": "2 x FAB 100",
+        "name": "2 × 100 kg",
         "loadout": [
           {
-            "hardpoint": "centre",
+            "hardpoint": "wing",
             "weapon": "bomb_100",
             "count": 2
           }
         ]
       },
       {
-        "name": "1 x FAB 100",
+        "name": "2 × 50 kg",
         "loadout": [
           {
-            "hardpoint": "centre",
+            "hardpoint": "wing",
+            "weapon": "bomb_50",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "1 × 100 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
             "weapon": "bomb_100",
             "count": 1
           }
@@ -673,8 +743,8 @@
     "maxLoad": 250,
     "hardpoints": [
       {
-        "id": "centre",
-        "kind": "crutch",
+        "id": "wing",
+        "kind": "rack",
         "offset": [
           0,
           -4
@@ -685,28 +755,38 @@
     ],
     "loadout": [
       {
-        "hardpoint": "centre",
-        "weapon": "bomb_100",
+        "hardpoint": "wing",
+        "weapon": "bomb_50",
         "count": 2
       }
     ],
     "loadoutPresets": [
       {
-        "name": "2 x Army 100",
+        "name": "2 × 50 kg",
         "loadout": [
           {
-            "hardpoint": "centre",
+            "hardpoint": "wing",
+            "weapon": "bomb_50",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "2 × 100 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
             "weapon": "bomb_100",
             "count": 2
           }
         ]
       },
       {
-        "name": "1 x Army 100",
+        "name": "1 × 50 kg",
         "loadout": [
           {
-            "hardpoint": "centre",
-            "weapon": "bomb_100",
+            "hardpoint": "wing",
+            "weapon": "bomb_50",
             "count": 1
           }
         ]
@@ -942,7 +1022,7 @@
     ],
     "loadoutPresets": [
       {
-        "name": "2 x SC 250",
+        "name": "2 × 250 kg",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -952,7 +1032,7 @@
         ]
       },
       {
-        "name": "1 x SC 250",
+        "name": "1 × 250 kg",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -1098,7 +1178,7 @@
     "hitRadius": 9,
     "endurance": 360,
     "emptyWeight": 6500,
-    "maxLoad": 500,
+    "maxLoad": 700,
     "hardpoints": [
       {
         "id": "bay",
@@ -1127,7 +1207,7 @@
       {
         "hardpoint": "bay",
         "weapon": "bomb_113",
-        "count": 2
+        "count": 4
       },
       {
         "hardpoint": "rack",
@@ -1137,12 +1217,12 @@
     ],
     "loadoutPresets": [
       {
-        "name": "Bay and rack",
+        "name": "Bay and racks",
         "loadout": [
           {
             "hardpoint": "bay",
             "weapon": "bomb_113",
-            "count": 2
+            "count": 4
           },
           {
             "hardpoint": "rack",
@@ -1157,12 +1237,12 @@
           {
             "hardpoint": "bay",
             "weapon": "bomb_113",
-            "count": 2
+            "count": 4
           }
         ]
       },
       {
-        "name": "Rack only",
+        "name": "Racks only",
         "loadout": [
           {
             "hardpoint": "rack",
@@ -1530,7 +1610,7 @@
     ],
     "loadoutPresets": [
       {
-        "name": "2 x 500 lb",
+        "name": "2 × 227 kg",
         "loadout": [
           {
             "hardpoint": "wing",
@@ -1540,7 +1620,17 @@
         ]
       },
       {
-        "name": "1 x 500 lb",
+        "name": "2 × 113 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_113",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "1 × 227 kg",
         "loadout": [
           {
             "hardpoint": "wing",
@@ -1684,7 +1774,7 @@
     ],
     "loadoutPresets": [
       {
-        "name": "4 x FAB-100",
+        "name": "4 × 100 kg",
         "loadout": [
           {
             "hardpoint": "wing",
@@ -1694,7 +1784,7 @@
         ]
       },
       {
-        "name": "2 x FAB-100",
+        "name": "2 × 100 kg",
         "loadout": [
           {
             "hardpoint": "wing",
@@ -1846,28 +1936,38 @@
     "loadout": [
       {
         "hardpoint": "wing",
-        "weapon": "bomb_113",
+        "weapon": "bomb_250",
         "count": 2
       }
     ],
     "loadoutPresets": [
       {
-        "name": "2 x 250 kg",
+        "name": "2 × 250 kg",
         "loadout": [
           {
             "hardpoint": "wing",
-            "weapon": "bomb_113",
+            "weapon": "bomb_250",
             "count": 2
           }
         ]
       },
       {
-        "name": "1 x 250 kg",
+        "name": "1 × 250 kg",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_250",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "2 × 113 kg",
         "loadout": [
           {
             "hardpoint": "wing",
             "weapon": "bomb_113",
-            "count": 1
+            "count": 2
           }
         ]
       },

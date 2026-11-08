@@ -67,7 +67,7 @@ test('every bomb plane has hardpoints and a loadout that fit together, and no ol
 });
 
 test('a one-slot plane drops one bomb at a time, as before, and rearms', () => {
-  const { world, p } = make('spitfire', 'uk');
+  const { world, p } = make('bf110', 'germany');
   assert.equal(bombsFull(p), 2);
   assert.equal(bombsLeft(p), 2);
   assert.equal(press(world, 1), 1);
@@ -99,6 +99,9 @@ test('the Mosquito bay drops a salvo on a press and rips one by one while the ke
   const { world, p } = make('mosquito', 'uk');
   assert.equal(nextStation(p).hp, 'bay');
   assert.equal(press(world, 1), 2, 'a tap drops the salvo');
+  assert.equal(nextStation(p).hp, 'bay', 'four in the bay: a second salvo');
+  wait(world, 60);
+  assert.equal(press(world, 1), 2, 'a tap drops the second salvo');
   assert.equal(nextStation(p).hp, 'rack');
   wait(world, 60);
   const held = press(world, 90); // 1.5 s held
@@ -107,6 +110,8 @@ test('the Mosquito bay drops a salvo on a press and rips one by one while the ke
   rearmFully(p);
   wait(world, 60);
   press(world, 1); // bay salvo
+  wait(world, 60);
+  press(world, 1); // second bay salvo
   wait(world, 60);
   press(world, 1); // rack pair
   rearmFully(p);

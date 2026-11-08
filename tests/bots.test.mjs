@@ -191,6 +191,8 @@ test('an ace outflies an easy pilot: it does far more damage and loses fewer pla
     // Both in the Spitfire: in a few fights the heavier G-6 is too close a thing to prove the levels.
     const a = bot(world, { ...GERMAN, defId: BRITISH.defId }, 'ace');
     const b = bot(world, BRITISH, 'easy');
+    // A clean dogfight: a full bomb load slows both Spitfires and the fight is no test of skill.
+    for (const p of [a, b]) p.stations.forEach((s) => (s.loaded = 0));
     const events = run(world, 240);
     const dealt = (p) => events.filter((e) => e.type === 'hit' && e.by === p.id).reduce((sum, e) => sum + e.damage, 0);
     ace.damage += dealt(a);
