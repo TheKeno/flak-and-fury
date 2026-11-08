@@ -7,6 +7,46 @@ later.
 
 ## Decisions
 
+- **Balance Lab: bot battles to find unbalanced planes (decided 2026-11-08, discussion; not built):** a headless
+  balance tool with its own page, so the owner can run hundreds of bot matches without tokens and see which planes
+  differ from the rest. Replaces the backlog's "Balance simulation system".
+  - **The measure is the front.** With only fighters flying, the front should not move much more than in a same-plane
+    match; if it does, the matchup is unbalanced. The front = the point halfway between each side's most forward tank
+    or infantry squad, sampled every 10 game-seconds. Also count how often a side reaches the enemy depot or hangar.
+  - **First scenario:** the 6 fighters only (Bf 109 G-6, Spitfire Mk IX, P-47D, La-5FN, Ki-43-II, B-239). Heavy
+    fighters, the Mosquito and the Stuka are meant to hit ground forces harder and are balanced later. Every pairing
+    with sides swapped (cancels map bias), plus a same-plane baseline per fighter (shows the drift with no difference).
+    Bots locked to one type each (no random mix, no plane switching), 4 per side, normal skill, countryside map, 20
+    game-minute matches. Modes: quick (about 10 matches per setup), full (about 50), or one chosen matchup.
+  - **Stats per plane type:** air kills, deaths, tank kills, other ground kills (trucks, soldiers), kills per life,
+    front movement with it. The sim already credits kills (`by` on `shotDown`, `groundDestroyed`, `soldierKilled`,
+    `squadWiped`). **Strength list:** each fighter's average front push over its matchups, sorted, with a flag only when
+    the difference is bigger than the noise between seeds.
+  - **Quick analysis per matchup (no AI):** compares the two planes on extra stats (shots, hits and hit rate, damage
+    taken per life, time alive, kills from above vs level/turning, cause of death: fighter, flak, tank MG, crash or
+    stall, collision; time rearming; bombs dropped, tank kills per bomb, strafing kills), names the biggest differences
+    in plain words and links them to the values in `TUNING.md` to look at. Shows what differs, not proven causes. A few
+    small counters may be needed in the sim (keep it deterministic; new state follows the `snapshot.js` rules).
+  - **Report:** a plain-words summary on top ("explain like I'm 5", written from templates by the tool itself, saying when
+    a difference is just noise), front-over-time charts (mean line plus spread band), the stats table, a matchup grid
+    coloured by front push, and two runs side by side to compare before and after a tuning change. Raw results saved as
+    files in the repo.
+  - **Balance Lab page (`balance-lab.html`)**, like the Sound and Outline Labs, served by `tools/serve.mjs`. Matches run
+    in the browser in Web Workers (the sim has no DOM). Tabs: **Run** (pick a scenario and planes, quick/full/one
+    matchup, start, progress with time left, cancel, a **queue** of runs that go one after another), **Results** (past
+    runs, the report), **Scenarios** (shows the scenario settings; editable bots per side, match length, map; grows
+    into the setup editor). **All cores by default, a "half cores" switch** for playing during a run. The tab must stay
+    open; the owner starts runs before leaving for work. Grim look like the other labs.
+  - **Scenarios are JSON files**, built so later versions can add bot behaviour settings (aggression, bombing priority)
+    and custom setups.
+  - **Command-line version** with the same runner code (`node tools/balance.mjs <scenario>`) for runs without the browser.
+  - **Stage 2, later (not in the first build):** an auto-tuner that takes the flagged planes, nudges one allowed value a
+    small step, reruns their matchups and keeps changes that calm the front, within limits the owner sets (which values,
+    how far). Suggestions only; nothing is written to the data files without the owner's approval in the Lab.
+  - **Speed (measured):** a 5 game-minute world with ground units and no planes stepped at about 100× real time in
+    Node. Guess with 8 bots: 10–20 s per 20-minute match, so a full run (36 setups × 50) takes an hour or more on all
+    cores. Measure it first and fit the quick/full sizes to it.
+
 - **Balancing aims at fun (decided 2026-11-08):** for gameplay numbers (damage, hp, loads, timings) fun comes first; historical accuracy is secondary there and still rules the looks (also in CLAUDE.md).
 
 - **Direction: the front, first map the Kursk salient (decided 2026-11-08, discussion; not built):** resolves the
@@ -714,7 +754,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
+- **Balance Lab** (Gameplay): designed, ready to build; see the Decisions entry "Balance Lab: bot battles to find unbalanced planes".
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
