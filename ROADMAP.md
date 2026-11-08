@@ -611,7 +611,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Planes — more trucks:** the Opel Blitz is done and traced by the owner (stop 3, see Done). The Bedford QLD is done and traced by the owner (2026-11-08). The GMC CCKW has a starter outline and sprites (2026-11-08, by eye from a small sheet, three axles, white star on the door; the owner traces it). Still to do: the other trucks as copies in the same editor ( ZIS-5, Isuzu Type 94 6x4, Ford V3000S; sheets are in the library; add them to `VEHICLES` in `src/ui/outline-lab.js`), wheel-spin frames for the trucks, national markings on a truck.
+- **Planes — more trucks:** the Opel Blitz is done and traced by the owner (stop 3, see Done). The Bedford QLD is done and traced by the owner (2026-11-08). The GMC CCKW is done and traced by the owner (2026-11-08). The ZIS-5 has a starter outline and sprites (by eye, the owner traces it). Still to do: the other trucks as copies in the same editor (Isuzu Type 94 6x4, Ford V3000S; sheets are in the library; add them to `VEHICLES` in `src/ui/outline-lab.js`), wheel-spin frames for the trucks, national markings on a truck.
 
 
 
