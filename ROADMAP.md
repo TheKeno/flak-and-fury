@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Bomb rebalance step 1 (Planes, 2026-11-08, done):** bombs are named by weight (`bomb_50/100/113/227/250/500`, FAB-100 and Army 100 merged); blast, damage and crater scale with weight (see TUNING.md). Step 2 (done 2026-11-08): loads set per plane. Spitfire 227 + 2×113 (centre + wing rack), P-47D 227 centre + 2×227 wing (maxLoad 690), Mosquito 4 bay + 2 rack ×113 (maxLoad 700), Ki-45 2×250, Ki-43 2×50, La-5FN wing rack 2×100; the rest unchanged (presets renamed to kg). Wing pairs are `rack` hardpoints, so they drop together. Still open: verify the (?) loads (Ki-43, Pe-3, Blenheim metric bombs), a 454 kg bomb for the P-47/P-38, wing/centre hardpoint offsets are guesses, Bf 109 4×50 rack and Bf 110 second crutch skipped (a hardpoint's capacity comes from the default load).
+- **Balancing aims at fun (decided 2026-11-08):** for gameplay numbers (damage, hp, loads, timings) fun comes first; historical accuracy is secondary there and still rules the looks (also in CLAUDE.md).
 
 - **Direction: the front, first map the Kursk salient (decided 2026-11-08, discussion; not built):** resolves the
   owner's MOBA note. This is milestone 8.
@@ -408,6 +408,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Bomb rebalance (Planes, 2026-11-08):** bombs named by weight (`bomb_50/100/113/227/250/500`, FAB-100 and Army 100 merged); blast radius, damage and crater scale with weight (TUNING.md). Loads per plane: Spitfire 227 + 2×113 (centre crutch + wing rack), P-47D 227 + 2×227 (maxLoad 690), Mosquito 4 bay + 2 rack ×113 (maxLoad 700), Ki-45 2×250, Ki-43 2×50, La-5FN wing rack 2×100; presets named in kg; wing pairs are `rack` hardpoints and drop together. Tanks take `bombFactor` 0.6 of a bomb's blast (tank shells not cut), so a fighter's 227/250 kg direct hit no longer kills a tank, the Stuka's 500 kg still does.
 - **A tank for each nation (Gameplay, 2026-11-08):** each side drives its nation's Outline Lab tank (`tank.sprites` in `data/ground.json`: Panzer IV H, T-34/76, Churchill, M4A1, Chi-Ha, BT-42; countryside: Panzer against Churchill). Owner's call: **one shared set of numbers**, only the size differs: `tank.sizes` holds each type's real length and height (heights from memory, check against the sheets), and `makeGroundObject` in `src/sim/ground.js` sets `obj.model`, `obj.width` and `obj.height` (hit box, column spacing, bot skyline). The loader loads all six layer sets; `drawVehicle` draws `obj.model`. Seen in play muted: all six draw with their own gun and crew points. `tests/tank-types.test.mjs`. **Not done:** tanks all use one engine sound (`defaultTankBuild` in `soundscape.js`), not the Sound Lab vehicle entry per type.
 - **Milestone 8 step 1: the pace of the ground forces, infantry in trucks (Gameplay, 2026-11-08):** tanks 5 → 12 u/s
   (`creepSpeed` 0.3 → 0.15 so the creep stays about as slow), waves every 60 s from 10 s, two squads of six per wave, each
@@ -697,6 +698,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Bomb balance follow-ups (Planes):** play-test `bombFactor` 0.6 against the ground-combat stall (more if needed: longer rearm with heavy loads, stronger tank AA); Spitfire/P-47 wing-rack offsets are guesses; optional loads checked against sources (Ki-43 racks to 250 kg, Pe-3 nacelle bay + external racks with a 700 kg overload, Blenheim metric bombs) only if they help play; a 454 kg bomb for the P-47/P-38; Bf 109 4×50 rack and Bf 110 second crutch need a hardpoint capacity that isn't taken from the default load.
 - **Truck engine sound (Sound):** trucks play the tank engine for now (`updateTanks` in `src/audio/soundscape.js`); give
   them a sound of their own in the Sound Lab (Opel Blitz and ZIS-5 first). The tank layers' `speed` driver tops out at 10,
   below the new tank speed 12: check the tank sounds' speed range in the Lab.
