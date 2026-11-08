@@ -1872,6 +1872,19 @@ function rebuildPanel() {
         changed();
       };
       row('side-board posts at d', stakes);
+      const wood = document.createElement('input');
+      wood.type = 'checkbox';
+      wood.checked = !!s.wood;
+      wood.onchange = () => {
+        pushUndo();
+        if (wood.checked) s.wood = true;
+        else delete s.wood;
+        changed();
+      };
+      const lbl = document.createElement('label');
+      lbl.className = 'chk';
+      lbl.append(wood, ' timber boards (the bed looks like wood, not painted)');
+      row(lbl);
       note('The cargo bed with its side boards (open truck). Passengers sit in it: add Passenger dots under + add part.');
     }
     if (isTruck() && S.part === 'tarp') note('The canvas over its bows (cover: tarp) and the same outline drawn as a solid box with rear doors (cover: closed). The Lab draws it with the cover switch at the top; Build sprites makes the truck without it, with it and as a box, plus four frames of the tarp flapping loose and one crumpled on the ground, all from these stations. Make the bottom of the tarp reach down over the top of the side boards.');
@@ -1888,7 +1901,7 @@ function rebuildPanel() {
         row(title, sel);
       };
       if (!isTruck()) pick('on sprite', ['hull', 'turret'], () => s.layer ?? 'hull', (v) => (v === 'hull' ? delete s.layer : (s.layer = v)));
-      pick('surface', ['paint', 'shade', 'dark', 'metal', 'under', 'frame'], () => s.kind ?? 'dark', (v) => (s.kind = v));
+      pick('surface', ['paint', 'shade', 'dark', 'metal', 'under', 'frame', 'wood'], () => s.kind ?? 'dark', (v) => (s.kind = v));
     }
     if (PART_STARTERS[S.part.replace(/\d+$/, '')]) {
       const rb = document.createElement('button');

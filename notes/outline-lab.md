@@ -148,6 +148,7 @@ Decision: ROADMAP Decisions, "Ground vehicles in the Outline Lab" (Trucks, Passe
 - **ZIS-5** (`zis-5`, "ZIS-5 3-ton (USSR)"): starter by eye from `ZIS-5.gif` (side view only, faces left so mirror it, about 85 px a metre; 6.06 m, wheelbase 3.8 m, wooden cab, open bed). Traced by the owner.
 - **Isuzu Type 94** (`isuzu-type94`, "Isuzu Type 94 6-wheel (Japan)"): starter by eye from the top-right side view of `Isuzu Type 94.gif` (faces left: mirror it; about 58 px a metre; avoid the blueprint-site footer; 5.85 m, three axles, hardtop cab with a spare wheel on the roof, open bed). Traced by the owner.
 - **Ford V3000S** (`ford-v3000s`, "Ford V3000S (Finland)"): starter by eye from the upper side view of `Ford d v3000s.gif` (faces right like the sprite, so no mirroring; about 154 px a metre; 6.1 m, short bonnet, deep fenders, exhaust pipe behind the cab, open bed). Still to trace by the owner.
+- **Timber bed:** `bed.wood: true` (the "timber boards" tick in the Cargo bed panel) draws the bed in weathered timber (tones `t`/`T`, plank joints and grain streaks, iron straps for the posts) instead of paint; any bump can use surface `wood` too.
 - **Not done:** wheel-spin frames; a Lab handle for the truck's markings; a driver; the game side (draws the sprites, tarp blown off, loading, dismounting at `exit`).
 
 ## Known limits

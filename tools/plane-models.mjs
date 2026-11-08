@@ -207,6 +207,7 @@ const TONES = {
   glass: ['c', 'C', 'C'],
   pilot: ['P', 'p', 'p'],
   metal: ['i', 'I', 'I'],
+  wood: ['t', 'T', 'T'], // weathered timber: a cargo bed's boards (bed.wood), not a paint key
   tyre: ['e', 'e', 'o'],
   dark: ['e', 'e', 'e'],
   frame: ['o', 'o', 'o'],
@@ -1890,13 +1891,15 @@ function truck(o, opts = {}) {
     parts.push({
       ...bodyOf(o.bed),
       material: (p, n) => {
-        if (!side(n)) return { kind: 'paint' };
+        const wood = !!o.bed.wood; // timber boards instead of painted ones
+        if (!side(n)) return { kind: wood ? 'wood' : 'paint' };
         const d = dOf(p);
         const t = stationAt(rows, d, 1) - hOf(p);
         let dark = hOf(p) - stationAt(rows, d, 2) < 0.12 ? 1 : 0; // the underside of the floor in shade
         if (t > 0.03 && t % 0.22 < 0.035) dark = 1; // plank joints
-        if (stakes.some((s) => near(d, s, 0.04))) dark = 1; // the posts
-        return { kind: 'paint', dark };
+        if (wood && dark === 0 && Math.floor(t / 0.22) % 2 === 1 && (d * 7 + Math.floor(t / 0.22) * 2.3) % 3 < 0.5) dark = 1; // grain streaks, a different place in each board
+        if (stakes.some((s) => near(d, s, 0.04))) return wood ? { kind: 'dark' } : { kind: 'paint', dark: 1 }; // the posts (iron straps on a timber bed)
+        return { kind: wood ? 'wood' : 'paint', dark };
       },
     });
   }

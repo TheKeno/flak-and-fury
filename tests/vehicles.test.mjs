@@ -126,3 +126,17 @@ test('trucks: the glass polygon and the headlights are placed by the outline', (
     assert.notEqual(pic(lit), pic(unlit), 'a headlight is drawn');
   }
 });
+
+test('trucks: a timber bed (bed.wood) looks different from a painted one', () => {
+  for (const id of truckIds) {
+    const o = loadOutline(id);
+    const [w, h] = o.sprite.size;
+    const pic = (oo) => renderVehicle(buildModel(id, oo, { cover: 'open' }), w, h, oo.sprite.pivot, { res: 2 }).join('\n');
+    const plain = structuredClone(o);
+    delete plain.bed.wood;
+    const timber = structuredClone(o);
+    timber.bed.wood = true;
+    assert.notEqual(pic(plain), pic(timber));
+    assert.ok(/[tT]/.test(pic(timber)), 'timber tones in the sprite');
+  }
+});
