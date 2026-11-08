@@ -7,6 +7,59 @@ later.
 
 ## Decisions
 
+- **Direction: the front, first map the Kursk salient (decided 2026-11-08, discussion; not built):** resolves the
+  owner's MOBA note. This is milestone 8.
+  - **The player is air support.** Dogfighting and bombing stay the core. The AI ground war is the story, and the
+    player's job is to help the troops reach their goals. Without air support the ground war roughly stalls; the planes
+    (players, bot wingmen, enemy bots) tip it. The aim: a loop where the player is always active in the air and what
+    they choose to focus on gives different results in the battle.
+  - **The loop:** take off, read the front, pick a job, fly it, come home to rearm, repeat. Several needs come at
+    once and fuel, ammunition, bombs and one plane are limited, so choosing which job is the game.
+  - **One front, a chain of five targets, no river or bridge** (pacing). Taking a target moves the front and has a
+    concrete effect you can see; losing it reverses that. Effects: waves start from the front, so they reach the
+    next line sooner; safe sky where the enemy flak was; the enemy blind when their radar falls (built); a forward
+    airfield to rearm at; smaller, slower enemy waves when their depot is hit (built).
+  - **No currency, no requisition.** The plane chosen in the hangar at each respawn is the strategy: fighter to
+    escort and intercept, heavy fighter against transports and bombers, dive bomber against strongpoints, tanks and
+    convoys.
+  - **Battle directors, one per side, react to the state of the front** and launch overlapping events: paratrooper
+    drops (transports fly to the next target and drop behind it; escorting them is the player's choice, and they
+    die more often where enemy fighters are up or enemy flak still stands; intercept the enemy's), a strongpoint
+    (bunker, anti-tank gun) holding a column that only bombs can open, enemy ground attackers on your column, and
+    reinforcement truck convoys. Bot wingmen take what the player leaves. The player needs to know what is going
+    on: radio calls ("transports inbound for the village"), a thin front strip on the HUD (the targets and who
+    holds them), event markers on the radar, and an after-action report saying what decided the battle.
+  - **The final battle:** when the front reaches the last target, the enemy airfield, AI heavy bomber raids come
+    in (escort them; the airfield's flak hurts them) and the ground troops push on. Taking the airfield with ground
+    troops wins. **Whether bombers and troops work together or as alternatives is found out in testing.** Until the
+    heavy bombers (milestone 13) exist, existing bombers stand in.
+  - **Mirrored, and it works in multiplayer** (host-run, like everything after milestone 7). Your side can lose and
+    be pushed back to a last stand at its own field. Asymmetric maps come later.
+  - **Death costs time only.** **Match length: 8-10 minutes** as the first target, rebalanced in testing.
+    Escalation over time (bigger waves, then bombers) so a stalemate ends; no hard time limit until it has been
+    played.
+  - **Stupid decisions, funny consequences:** strafe the drop zone a second late and it's your own men under the
+    parachutes; fly escort too tight and collide with your own transport; shoot down an enemy transport over your
+    own lines and its paratroopers land in your village; a turret tossed by your bomb lands on your own infantry.
+  - **A front is a historical setting:** the front chooses the ground forces, terrain and buildings; players and bots
+    fly any nation's planes. **First front: the Kursk salient, summer 1943,** Germany against the USSR: Panzer IV H
+    and T-34/76 (rare heavies later: Tiger; KV-1S or SU-152), Opel Blitz and ZIS-5 trucks, Ju 52 and Li-2
+    transports. Open steppe and rolling grain fields, ravines (balkas), orchards, izba villages, a collective farm,
+    a railway station, trenches, anti-tank ditches; burning wheat and dust. The five targets: German airfield;
+    German forward position (izba village, Pak 40 line in the orchard); the middle (railway station, collective
+    farm and a hill, like Prokhorovka's Hill 252.2); Soviet forward position (trenches, anti-tank ditch, ZiS-3
+    battery in a balka); Soviet airfield. Each side's depot stands behind its forward position. The map is
+    redesigned for this in LDtk (never regenerated with `tools/make-map.mjs`). Fronts for later maps: Sicily 1943
+    (paratroopers, an asymmetric invasion), Tunisia 1943, Karelia 1943, New Guinea.
+  - **Build order:** (1) **pace of the ground forces first:** tanks sped up, infantry travel in trucks; (2) the
+    target chain and its effects on the redesigned map; (3) the battle directors with paratroopers as the first
+    event, the front strip and radio calls; (4) the other events; (5) the final battle and win/lose; (6) bots
+    playing it. Each step its own session.
+  - **Kept as ideas, not planned:** a smoke marker to tell your next wave to hold or push, spotting for artillery,
+    bought call-ins. The ground-rules reset entry below handed the hangar's health and the meaning of destroying
+    things to this discussion: destroying things now matters through the target effects; `hangarHealth` stays as
+    it is until the airfield target is built.
+
 - **Emergency power (decided 2026-11-08, discussion; built 2026-11-08, see Done):**
   Always available, no lockout, no grace period: every second costs something at once and the cost grows the longer it is held.
   - **Gain:** about +20% engine power (climb, top speed, acceleration), engine at `maxRpm`. Toggle key `E` (or `Shift` if `E` is
@@ -130,7 +183,7 @@ later.
 - **Bomb stations: hardpoints, loads and weight (decided 2026-11-06, discussion; steps 1 and 2 built 2026-11-06):** a plane's
   one bomb slot (`armament.bombs`, `bombOffset`) becomes a list of **hardpoints** plus a **load**, so the
   Stuka carries an SC 500 on the crutch and four SC 50 on wing racks, bombers get bays and mixed loads,
-  and the hangar editor (milestone 8) gets slots and a weight budget.
+  and the hangar editor (milestone 9) gets slots and a weight budget.
   - **Hardpoints** in `planes.json`: `hardpoints: [{id, kind, offset, group, maxKg}]`; kinds `crutch`
     (fuselage), `rack` (wing, left and right pairs drop together) and `bay`. Offsets in the plane's own
     frame like `noseOffset`, typed by hand; **`planes.json` is the single source of truth**, and `bombOffset`
@@ -147,7 +200,7 @@ later.
   - **Release:** the `bomb` key (Q) drops the next station; the bomb view is its own held key (`bombView`, right mouse), in which the guns key drops bombs instead of firing (see Done, 2026-11-08). It drops the next station in `group` order (the Stuka's
     crutch first, so the bomb clears the propeller, then the racks); a bay releases as a salvo or ripple
     (interval per hardpoint, bay doors open briefly). Holding no longer rips the whole bay; only the release counts, once.
-  - **Bomb aimer:** milestone 11 makes it a seat with its own control and the bomb indicator; until then
+  - **Bomb aimer:** milestone 12 makes it a seat with its own control and the bomb indicator; until then
     the pilot drops the bombs and AI fills empty seats. The system needs no change for it: `cmd.bomb` just
     comes from another seat.
   - **Choice:** both named presets per plane (2 to 4, e.g. "Stuka: heavy", "Stuka: light") and
@@ -217,7 +270,7 @@ later.
     be removed to save weight (a plane may fly with no guns); the weight bar covers bombs and guns; a plane lighter than
     standard flies better than today (so the current numbers are no longer the best case); guns and pods add some drag
     (speed). **Build plan: `notes/hangar-build-plan.md`** (weight model, data, stages, best-guess weights and what to look up). Engine choice only on the few planes that really had one; altitude-rated engines need an altitude power model.
-  - **Out of scope here:** paint editor (milestone 8), visible bombs and bay doors (steps 4 and 5), fuel weight.
+  - **Out of scope here:** paint editor (milestone 9), visible bombs and bay doors (steps 4 and 5), fuel weight.
   - **Build order:** (1, done 2026-11-06) sim and online: `p.loadout`, `validateLoadout`, presets, seat request, tests; (2) the
     full hangar page; (3) the roll-out overlay and plane swap in the hangar, remove the Esc plane switch;
     (4, done 2026-11-06) park-in animation and distance delay.
@@ -339,7 +392,7 @@ later.
   points (exhaust, wing roots, wingtips) for weathering later.
 - **Paint schemes, skins and weathering come later, on top of the model:** paint schemes per theatre,
   map and season (winter whitewash, desert, night black), with camouflage on the upper surfaces and a
-  separate underside colour; unlockable paints and skins (cosmetic only, milestone 10); weathering as a
+  separate underside colour; unlockable paints and skins (cosmetic only, milestone 11); weathering as a
   paint layer with a wear amount (exhaust staining, chipped wing roots).
 
 - **Sound split (built):** the shared sounds `clank`, `thunk`, `click` and `explosion` split
@@ -562,7 +615,7 @@ later.
    - **Finland** (tough): Brewster B-239, Blenheim Mk IV with gun pack (no real heavy fighter),
      Ju 88 A-4 (Finland's dive bomber from 1943); tank BT-42.
 
-   Two-seaters get a simple AI rear gun now (mouse-aimed seats come with milestone 11). Twins get two
+   Two-seaters get a simple AI rear gun now (mouse-aimed seats come with milestone 12). Twins get two
    prop discs and one engine sound until the sound pass. Plane choice from the tuning panel until the
    hangar. Build order: Spitfire IX, the other fighters, heavy fighters, dive bombers, tanks.
    **Heavy fighters done 2026-11-07** (P-38J, Pe-3, Ki-45 KAI, Blenheim Mk IV; own models, planes.json entries, owner-approved outlines, values estimated and still to check in flight). Next: the dive bombers (A-36A Apache, Il-2M3, D3A2 Val, Hurricane IID, Ju 88 A-4), then the tanks; see [notes/milestone6.md](notes/milestone6.md).
@@ -579,64 +632,70 @@ later.
    (the rules allow it: MAX_PER_SIDE in src/sim/seats.js), 3 and 4 players tried over real connections,
    the host seeing guests' ping. Mid-game plane changes move to the hangar when that's built; B stays as
    the way out of a plane in flight.
-8. **Hangar:** loadout editor (weapon catalogue, weight and slot budget) and paint editor (base colour,
-   camo, nose, markings, squadron number), saved locally.
-9. **Match setup and music:** menu, rules, scoring (win conditions include **grounding the enemy**:
-   their runway closed for a while with their hangar destroyed; the same is a **lose condition** for you), dynamic layered 1940s score (calm patrol layer,
-   combat layers fade in), radio callouts per nation in its own language.
-10. **Progression:** currency from kills and targets, unlocks as **sidegrades** (more options, not more
-   power), saved profile.
-11. **Crewed bombers:** a gunner's seat has a **crosshair aimed with the mouse** within the turret's
+8. **The front** (decided, see Decisions, "Direction: the front"): the player as air support for an AI
+   ground war along a chain of five targets with real effects, battle directors launching events
+   (paratrooper drops first), the final battle at the enemy airfield, mirrored and online. First map: the
+   **Kursk salient**, redesigned. First step: the pace of the ground forces (faster tanks, infantry in trucks).
+   Takes in the old backlog items "Objective map features", "Bots raid the enemy base", "Trucks and infantry
+   logic" and "Infantry travel to the front in trucks".
+9. **Hangar:** plane choice in the hangar screen, parking in with H and the roll-out are **done** (see Done).
+   The loadout editor is built but switched off (`LOADOUT_EDITING` in `src/ui/hangar-logic.js`). Still to do:
+   the paint editor (base colour, camo, nose, markings, squadron number, saved locally) and the roll-back
+   animation when the plane is changed after the doors have opened.
+10. **Match setup and music:** menu, rules (winning and losing as the front defines them: taking the enemy
+    airfield), dynamic layered 1940s score (calm patrol layer, combat layers fade in), radio callouts per
+    nation in its own language.
+11. **Progression:** unlocks between matches as **sidegrades** (more options, not more power), saved profile.
+    How they are earned is open (the owner is unsure about a currency).
+12. **Crewed bombers:** a gunner's seat has a **crosshair aimed with the mouse** within the turret's
     arc (left click fires; the mouse only aims turrets while you're in a gunner seat). The pilot gets a
     **bomb indicator** (where the bombs will land). Solo: you fly and bomb while AI gunners man the
     turrets; with friends, each takes a seat, and bots fill the empty ones.
-12. **Heavy bombers:** four-engined 1943 heavies per nation where they existed : B-17F, Lancaster B.I/III,
+13. **Heavy bombers:** four-engined 1943 heavies per nation where they existed : B-17F, Lancaster B.I/III,
     He 177 A-3, Pe-8 (rare), G4M1 as the closest Japanese type (a twin); Finland has none), historically accurate 3D models
     like every plane. Big, slow, tough, many gunner seats, a bomb aimer, huge loads; crews of players
-    and bots as in milestone 11. Later **selectable as a regular plane depending on the scenario**
-    (e.g. a raid map), not in every match.
-13. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
+    and bots as in milestone 12. **First use: the AI raids in the front's final battle** (milestone 8), which
+    players escort or intercept (merges the old backlog item "Bomber escort mission"). Later **selectable as
+    a regular plane depending on the scenario** (e.g. a raid map), not in every match.
+14. **Lighting and the night raid theme:** a general lighting layer, by day too: explosions and
     muzzle flashes light up the ground, planes and buildings around them; fires, burning wrecks and
     tracers glow; buildings, hangars and the airfield emit light (lit windows, runway lamps); lights
     cast onto smoke. Then the night raid: sweeping searchlights that catch and cone you (flak gets
     accurate), exhaust glow (throttle down to hide), tracers give you away, shootable searchlights,
     pathfinder flares, night-fighter radar (Lichtenstein) and Schräge Musik.
-14. **Sound pass:** Tool: the Sound Lab (`sound-lab.html`). Stage 1 done (sound list with done ticks and notes, engines, tanks, guns, mix, vehicle list, shared builds, twin engines detuned). Stage 2 done (recordings on guns, one-shots and loops, engine and tank clips, own layers in a shared library driven by game values). Stage 3 done (live link to a running game, engine under auditions). Sound Design tab done (engine picker, slots with hover help, Test Flight, recorded start-ups, synth toggle). Rpm finder done (Find rpm on engine clips, suggest only, see Decisions; measuring on upload still to be tried with a new clip). Per-file `weight` (how often it is picked at random) and `gain` (its own volume) in groups done. Next stage: sliders for synthesized one-shots and loops. The synthesized sounds so far are placeholders. Rework them properly: reshape the
+15. **Sound pass:** Tool: the Sound Lab (`sound-lab.html`). Stage 1 done (sound list with done ticks and notes, engines, tanks, guns, mix, vehicle list, shared builds, twin engines detuned). Stage 2 done (recordings on guns, one-shots and loops, engine and tank clips, own layers in a shared library driven by game values). Stage 3 done (live link to a running game, engine under auditions). Sound Design tab done (engine picker, slots with hover help, Test Flight, recorded start-ups, synth toggle). Rpm finder done (Find rpm on engine clips, suggest only, see Decisions; measuring on upload still to be tried with a new clip). Per-file `weight` (how often it is picked at random) and `gain` (its own volume) in groups done. Next stage: sliders for synthesized one-shots and loops. The synthesized sounds so far are placeholders. Rework them properly: reshape the
     generated sounds, mix them with recordings (CC0 samples, licences checked, downloads approved
     first), and add effects (per-environment reverb, filtering, distortion, compression). Also ambience
     per map, the Jericho siren and night-raid sirens. Hold off on fine-tuning sounds until then.
-15. **Polish:** balance.
+16. **Polish:** balance.
 
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 13).
+- **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 14).
 
 
 
 
 ## Backlog
-- **Vehicle headlights at night (Gameplay):** when the night maps and the lighting layer (item 13) are done, light the trucks' headlamps (and tank lamps) from the `lights` list in each truck's sprite json (pixel centre and radius, beam pointing forward).
-- **A tank for each nation in the game (Gameplay):** the sim has one `tank` type drawn as the Panzer for every side. Give each nation its own (`panzer4h`, `m4a1`, `t34-76`, `churchill`, `chiha`, `bt42`), chosen by the depot's nation, with its own size and hit box (the real hull lengths are 5.55 to 7.44 m); `spriteScale` stays 1.5 until the infantry get real-scale sprites.
+- **Vehicle headlights at night (Gameplay):** when the night maps and the lighting layer (item 14) are done, light the trucks' headlamps (and tank lamps) from the `lights` list in each truck's sprite json (pixel centre and radius, beam pointing forward).
+- **A tank for each nation in the game (Gameplay):** the sim has one `tank` type drawn as the Panzer for every side. Give each nation its own (`panzer4h`, `m4a1`, `t34-76`, `churchill`, `chiha`, `bt42`), chosen by the front's two nations (Kursk: `panzer4h` against `t34-76`), with its own size and hit box (the real hull lengths are 5.55 to 7.44 m); `spriteScale` stays 1.5 until the infantry get real-scale sprites.
 - **Tank detail list (Planes):** hand-placed extras on a tank outline (tools on the mudguards, exhaust, hatches, spare track links, headlamp), rectangles and circles at d and h, edited in the Lab like the markings.
 - **Infantry at real scale (Planes):** the squad drawing (`drawSquad`, 13 scenery pixels, 2.6 m) is 1.5 times too big for the planes' scale; redraw them as 0.1 m pixel sprites (17 px) from the Lab, then drop the tank's `spriteScale`.
 - **Review the propeller sound system** (Sound): the engine synth makes a propeller whomp (`prop`) and prop wash noise
   (`washBase`, `washLoad`) in `src/audio/engine-worklet.js`, set per shared build in the Sound Lab (`builds.<name>.synth`).
   Owner to review it; after the engine cut a dead engine keeps only the wash, which sounded synth-like. Maybe quiet or
   silence the wash on a dead engine, and check it beside the recorded clips (owner, 2026-11-08).
-- **Trucks and infantry logic** (Gameplay): trucks carry infantry (loading, driving, dismounting at the `exit` point, bots, tarp blown off by blasts with the cloth-style flying tarp). Waits for the truck outlines and sprites from the Lab session; see Decisions, "Ground vehicles in the Outline Lab" (owner, 2026-11-08).
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
 - **Balance simulation system** (Gameplay): a headless tool that runs many bot-vs-bot matches (the sim is deterministic and already runs without a screen) and reports balance data, such as win rates, kills and losses per plane type and matchup, so the numbers in `TUNING.md` can be tuned from data.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
-- **Objective map features** (Gameplay): towns, bases and other interesting places on the map to fight for, giving matches objectives beyond kills.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
 
 - **Infantry wave mission** (Gameplay): waves of enemy infantry advance on the player's base and the player has to mow them down with guns and bombs to stop the assault.
-- **Bomber escort mission** (Gameplay): AI bombers fly across the map to the other side and the player protects them, or the player's side is the raiders and the enemy defends; needs the crewed and heavy bombers (milestones 11 and 12) and bomber AI that follows a route.
 - **Stuka dive siren** (Sound): the Ju 87 D-5's Jericho siren (Jericho-Trompete) howling while it dives; a sound that rises with dive speed, needs a recording or a synthesised layer in the Sound Lab.
 - **Ground crew positions when pulling the plane from the hangar** (Gameplay): the crew look a bit off while they drag the plane out (owner, 2026-11-05); needs a look to say where they stand wrong (related: the ground crew pass below).
 - **Outline Lab: trace refinements** (Planes): ideas left from the automatic trace: fit the plan-view half widths of the fuselage under the wing and radiators (manual now), keep a fitted fuselage's top-line kink under the fin out of the station list, tune the search window and edge strength per plane after the next few traces, a "nearest/outermost" switch if cluttered sheets need it.
@@ -648,8 +707,6 @@ Then: more themes, co-op missions, matchmaking.
   (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
   variant (A6M5 fits 1943) first.
 - **Surface-dependent landing sounds** (Sound): a soft thump on grass and dirt, a clatter on pierced steel planking, and a braking skid on concrete (a loop, like the belly scrape); the tyre chirp covers runway touchdowns only.
-- **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
-  and dismount there, instead of appearing or walking all the way.
 - **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
   cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
   review the evidence (see its Done entry), the numbers and how it plays before it stays. Original ask:
@@ -658,11 +715,11 @@ Then: more themes, co-op missions, matchmaking.
   band, wingtip undersides, lower cowl) or Mediterranean white band; P-47: European white cowl ring and
   white fin and tailplane bands (its cowl ring is yellow for now). Markings that aren't the same both
   ways round (the Finnish hakaristi, the German fin swastika) show mirrored when a plane flies left.
-- **Bots raid the enemy base:** bombing radar, flak, the runway and the hangar, and knocking down the
-  bridge to stop a tank column. For match rules (milestone 9); for now bots only defend and support.
-- **Buildings fit the time and place:** 1943 architecture for the country the map is fought in
-  (e.g. Karelian log houses and saunas, Russian izbas, Normandy stone farms, English villages, Pacific
-  huts), and military buildings (hangars, depots, radar, bunkers) styled after the nation that owns them.
+- **Redo all ground building assets, fitting the time and place** (Planes; owner, 2026-11-08: at a later
+  point): 1943 architecture for the front a map is fought on (Kursk first: izbas, a collective farm, a
+  railway station, Pak and ZiS-3 positions, trenches; later Karelian log houses and saunas, Sicilian stone
+  villages, Tunisian farms, Pacific huts), and military buildings (hangars, depots, radar, bunkers) styled
+  after the nation that owns them.
 - **Dramatic crashes:** only a head-on hit kills at once. A glancing hit (a wing clipping a tree, a
   building, a hill, another plane) starts a short, dramatic death instead: the plane keeps flying for a
   few seconds, spinning or tumbling in an arc, maybe shedding a wing or trailing fire, then hits the
@@ -685,9 +742,6 @@ Then: more themes, co-op missions, matchmaking.
   block tanks but give **infantry cover**.
 
 ## Owner's notes (to discuss before building)
-
-- **Leaning towards a MOBA direction:** the ground war matters more and more, so ground combat should
-  be really cool. Discuss what that means for lanes, waves, objectives and the planes' role.
 
 - **Should the roll affect flying?** Today it is visual only (the plane flies inverted the moment Shift
   is pressed). Maybe: no pitching mid-roll, a slight sink at knife-edge.
