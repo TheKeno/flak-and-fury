@@ -1,5 +1,6 @@
 {
   "_notes": "Bot tactics per plane: how bots fight in each plane (src/sim/tactics.js, TUNING.md \"Bot tactics\"). Written by the bot trainer (Balance Lab: Train bots; node tools/train-bots.mjs); bot-tactics.previous.json holds the values before the last training, for Restore. A plane not listed flies by default.",
+  "trained": "2026-11-08T22:32:51.812Z",
   "default": {
     "style": 0,
     "heightOver": 0,
@@ -8,5 +9,54 @@
     "fireRange": 1,
     "turnThrottle": 0
   },
-  "planes": {}
+  "planes": {
+    "bf109g6": {
+      "style": 0,
+      "heightOver": 0,
+      "minFightSpeed": 1,
+      "breakOff": 0,
+      "fireRange": 1,
+      "turnThrottle": 0
+    },
+    "spitfire": {
+      "style": 0,
+      "heightOver": 0,
+      "minFightSpeed": 1,
+      "breakOff": 0,
+      "fireRange": 1.15,
+      "turnThrottle": 0
+    },
+    "p47d": {
+      "style": 0,
+      "heightOver": 0,
+      "minFightSpeed": 1,
+      "breakOff": 0,
+      "fireRange": 1.15,
+      "turnThrottle": 0
+    },
+    "la5fn": {
+      "style": 0,
+      "heightOver": 0,
+      "minFightSpeed": 1,
+      "breakOff": 0,
+      "fireRange": 1,
+      "turnThrottle": 0
+    },
+    "ki43": {
+      "style": 0,
+      "heightOver": 0,
+      "minFightSpeed": 1,
+      "breakOff": 0,
+      "fireRange": 1,
+      "turnThrottle": 0
+    },
+    "b239": {
+      "style": 0,
+      "heightOver": 0,
+      "minFightSpeed": 1,
+      "breakOff": 0,
+      "fireRange": 1.15,
+      "turnThrottle": 0
+    }
+  }
 }

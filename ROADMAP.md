@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Bot training: bots learn how to fly each plane (decided 2026-11-08, discussion; not built):** the first quick
+- **Bot training: bots learn how to fly each plane (decided 2026-11-08; built 2026-11-08, see Done):** the first quick
   Balance Lab run showed every bot flies every plane the same way (pure pursuit plus turn-fighting, `chaseWant` in
   `src/sim/ai.js`), so turn rate decides fights (kills per life 0.87 Spitfire/B-239 against 0.23-0.26 Ki-43/Bf 109/P-47)
   and about a quarter of all deaths are own-fault collisions and crashes. Calibrate the bots before balancing planes.
@@ -469,6 +469,24 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Bot training (Gameplay, 2026-11-08):** built as in the Decisions entry. **1) Own-fault deaths:** a dead-ahead
+  tie-break bug in `closeCall` sent a plane facing left up into the other; a low plane now holds level instead of both
+  climbing; pull-outs take the nose's side (after a knock the old side meant turning through straight down). Balance Lab
+  quick run, same seeds: collision deaths 1865 → 1152, crashes 1800 → 1535 (own-fault share of deaths 26% → 20%), front
+  balance unchanged. Tried and reverted: re-picking an emergency field and a longer approach check (more crashes). Most
+  crashes left are burning planes' field landings (tanks driving onto the field, trees). **2) Tactics:**
+  `data/bot-tactics.json` (`src/sim/tactics.js`, read in `chaseWant`): style (turn-fight, dive from above, boom and zoom),
+  height over the enemy, lowest fight speed, break off, firing range, throttle in turns; defaults fly exactly as before;
+  tuning panel Bots → Tactics per plane; TUNING.md "Bot tactics". Pure boom and zoom is weak against bots (kills per
+  life 0.05-0.12 against 0.3-0.9). **3) Arena:** `runMatch(..., { arena: true })`, no army, flak or MG nests; a 6-minute
+  2v2 takes about 1.5 s per core. **4) Trainer:** `src/balance/search.js` (shared with the planned auto-tuner),
+  `src/balance/trainer.js`, `node tools/train-bots.mjs` (`--restore`, `--dry`), Balance Lab Train bots + Restore,
+  training report under Results; the dev server now saves hyphenated data files. **First training** (3 rounds, 14 400
+  matches, about an hour on 16 threads): only firing range 1 → 1.15 won, for the Spitfire, P-47 and B-239; every other
+  tactic stayed within the noise. Quick run after it: no plane's front push changed beyond the noise; kills per life
+  P-47 0.26 → 0.31, B-239 0.91 → 0.98, others about the same. So with these bots turn rate still decides; the next lever
+  is plane data (Balance Lab stage 2) or richer tactics. Runs: `balance/results/2026-11-08-19-22-57` (before),
+  `-step1-safety-` (after step 1), `-21-27-55-train-bots`, `-22-32-51` (after training). Tests `tests/bot-training.test.mjs`.
 - **Balance Lab stage 1 (Gameplay, 2026-11-08):** `balance-lab.html` + `src/ui/balance-lab.js` (Run / Results /
   Scenarios tabs, Web Workers on all threads or half, a queue, progress with time left, cancel keeps the matches done,
   compare two runs) and `node tools/balance.mjs <scenario> [--full | --matchup a,b] [--half]`, both on the same runner
@@ -791,7 +809,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Bot training** (Gameplay): decided, ready to build; see the Decisions entry "Bot training: bots learn how to fly each plane". Comes before the Balance Lab's stage 2.
 - **Balance Lab stage 2: the auto-tuner** (Gameplay): stage 1 is built (see Done); stage 2 as in the Decisions entry "Balance Lab: bot battles to find unbalanced planes". First read a full fighter run.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
