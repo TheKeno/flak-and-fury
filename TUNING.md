@@ -362,6 +362,7 @@ Wave sizes and timing are in `data/settings.json` under `waves` (the tuning pane
 | `speed` | Tanks, marching infantry, engineers: world units per second. | 3 – 10 |
 | `gap` | Clear space a unit keeps behind the one ahead of it in its column. | 4 – 12 |
 | `engageRange` | An enemy this close ahead stops the unit to fight. | 60 – 200 |
+| `layers` / `spriteScale` | A tank drawn from Outline Lab layers (hull, turret, gun, crew; `assets/sprites/<sprite>.json`): `layers` turns it on, `spriteScale` draws it that many times bigger than the real scale (1.5 while the infantry are drawn 1.5 times too big). | true / 1 – 1.5 |
 | `bulletFactor` / `roofFactor` | Tank armour: share of bullet damage from the front and sides, and from a steep dive onto the roof. Bombs do full damage. | 0.02 – 0.1 / 0.2 – 0.5 |
 | `gunRange`, `gunInterval`, `gunVelocity` | Tank main gun (ground targets only): reach, seconds between shots, shell speed. | 120 – 250, 3 – 8 |
 | `gunDepression`, `gunElevation` | How far the main gun dips below and lifts above the hull (radians). The hull tilts with the ground, so a tank on a slope can't reach everything. | 0.1 – 0.3, 0.3 – 0.7 |
@@ -429,7 +430,7 @@ optional, in the tuning panel's Markings section:
 
 ## Paint and uniforms: `data/nations.json`
 
-Colours for each nation's planes (`paint`) and soldiers (`uniform`), as hex codes (`#rrggbb`).
+Colours for each nation's planes (`paint`) and soldiers (`uniform`), as hex codes (`#rrggbb`). `tankPaint` (`base`, `under`, `nose`, `marking`) is the same for that nation's tanks, in the game and in the Outline Lab; a nation without one paints its tanks like its planes. The shapes of the national markings (cross, star, red star, disc, hakaristi) belong to each tank's outline in `data/outlines/`, not here.
 
 ## Map: `maps/countryside.ldtk`
 
