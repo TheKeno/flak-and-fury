@@ -5,6 +5,7 @@ import { kit, buildModel, render, rollPose, renderVehicle, BUMP_KEYS } from '../
 import { PALETTE } from '../../tools/plane-palette.mjs';
 import { formatOutline } from '../../tools/outline-format.mjs';
 import { paintSprite } from '../render/sprites.js';
+import { groupPlanes } from './hangar-logic.js';
 import { samplePlanform, fitPlanform, sortNear, convertPlanform, sampleVertical, fitFin, splitFin, convertFin } from '../../tools/planform.mjs';
 import { edgeMap, fitPart, FIT_ALL } from '../../tools/edgefit.mjs';
 
@@ -2438,9 +2439,39 @@ const realPlanes = () => [...$('plane').options].map((o) => o.value);
 // A plane's name in the list, as in the New plane picker: "Spitfire Mk IX (UK)". Value stays the short id.
 const NATION = { germany: 'Germany', uk: 'UK', usa: 'USA', ussr: 'USSR', japan: 'Japan', finland: 'Finland' };
 // Ground vehicles have no entry in planes.json yet; their list names are kept here, in the same form.
-const VEHICLES = [{ id: 'panzer4h', label: 'Panzer IV Ausf. H (Germany)' },
-  { id: 't34-76', label: 'T-34/76 Model 1943 (USSR)' },
-  { id: 'm4a1', label: 'M4A1 Sherman (USA)' }];
+// kind: 'tank' or 'truck', the headings of the list; nation sorts them as in the hangar.
+const VEHICLES = [
+  { id: 'panzer4h', label: 'Panzer IV Ausf. H (Germany)', nation: 'germany', kind: 'tank' },
+  { id: 't34-76', label: 'T-34/76 Model 1943 (USSR)', nation: 'ussr', kind: 'tank' },
+  { id: 'm4a1', label: 'M4A1 Sherman (USA)', nation: 'usa', kind: 'tank' },
+];
+// The list as the hangar has it: a heading over each role group (fighters, heavy fighters ...), then Tanks, then
+// Trucks, each sorted by nation then name. Outlines of planes not in the hangar yet go last.
+function fillPlaneList(ids) {
+  const sel = $('plane');
+  const keep = sel.value;
+  sel.replaceChildren();
+  const group = (title, list) => {
+    if (!list.length) return;
+    const g = document.createElement('optgroup');
+    g.label = title;
+    for (const id of list) g.append(new Option(planeLabel(id), id));
+    sel.append(g);
+  };
+  const used = new Set();
+  for (const g of groupPlanes(S.planes)) {
+    const list = [...new Set(g.ids.map((k) => S.planes[k].sprite))].filter((id) => ids.includes(id) && !used.has(id));
+    list.forEach((id) => used.add(id));
+    group(g.group, list);
+  }
+  for (const [kind, title] of [['tank', 'Tanks'], ['truck', 'Trucks']]) {
+    const list = VEHICLES.filter((v) => v.kind === kind && ids.includes(v.id)).sort((a, b) => (a.nation + a.label).localeCompare(b.nation + b.label)).map((v) => v.id);
+    list.forEach((id) => used.add(id));
+    group(title, list);
+  }
+  group('Not in the hangar yet', ids.filter((id) => !used.has(id)));
+  if (keep) sel.value = keep;
+}
 function planeLabel(id) {
   const d = Object.values(S.planes).find((x) => x && x.sprite === id && x.name);
   if (d) return `${d.name}${NATION[d.nation] ? ` (${NATION[d.nation]})` : ''}`;
@@ -2451,7 +2482,7 @@ async function createPlane({ id, L, W, tmpl, sheet }) {
   const o = scaledOutline(base, id, tmpl, L, W);
   await openPlane(id, o);
   if (S.name !== id) return void ($('plane').value = S.name); // unsaved changes in the open plane were kept
-  $('plane').append(new Option(planeLabel(id), id));
+  fillPlaneList([...realPlanes(), id]);
   $('plane').value = id;
   status(`${id}: new, unsaved (a copy of ${tmpl} scaled to ${L} m)`);
   await loadLibrarySheet(sheet);
@@ -2527,7 +2558,7 @@ async function start() {
   const res = await fetch('/api/outlines', { cache: 'no-store' });
   if (!res.ok) throw new Error('the dev server is the old version: stop it and start it again (node tools/serve.mjs 8080)');
   const list = await res.json();
-  for (const n of list) $('plane').append(new Option(planeLabel(n), n));
+  fillPlaneList(list);
   $('plane').onchange = () => openPlane($('plane').value);
   $('newPlane').onclick = newPlane;
   new ResizeObserver(resizeCanvas).observe($('stage'));

@@ -1708,12 +1708,48 @@ function tank(o, opts = {}) {
     const c = [X(w.d), Y(w.h), tr.z * M];
     return { ...wheel(c, w.r * M, tr.half * M * 0.8), material: wheelMat(w.kind ?? 'road', c, w.r * M) };
   });
+  // Suspension in the gap above the road wheels: the wheels go in pairs on bogies (an arm from each hub up to a
+  // housing under the hull, a spring from each arm to the hull, a leaf pack across the pair). tracks.suspension = false
+  // leaves it out (a tank whose springs are inside the hull).
+  const hullBottom = (d) => {
+    const st = o.fuselage.stations;
+    if (d <= st[0][0]) return st[0][2];
+    for (let i = 1; i < st.length; i++) {
+      if (d <= st[i][0]) return st[i - 1][2] + ((st[i][2] - st[i - 1][2]) * (d - st[i - 1][0])) / Math.max(1e-6, st[i][0] - st[i - 1][0]);
+    }
+    return st.at(-1)[2];
+  };
+  const suspension = [];
+  if (tr.suspension !== false) {
+    const road = (o.wheels ?? []).filter((w) => !w.kind || w.kind === 'road').sort((a, b) => a.d - b.d);
+    const zs = tr.z * M;
+    const loopTop = Math.max(...tr.loop.map((q) => q[1]));
+    for (let i = 0; i < road.length; i += 2) {
+      const pair = road.slice(i, i + 2);
+      const dMid = pair.reduce((s, w) => s + w.d, 0) / pair.length;
+      const wheelTop = Math.max(...pair.map((w) => w.h + w.r));
+      const hb = hullBottom(dMid);
+      // The housing sits under the hull, but never lower than just above the wheels nor above the track's top run.
+      const py = Math.min(Math.max(hb, wheelTop + 0.1), Math.max(wheelTop + 0.1, loopTop - 0.12));
+      const pivot = [X(dMid), Y(py), zs];
+      suspension.push({ ...box(pivot, [0.16 * M, 0.07 * M, 0.1 * M]), material: plain('metal') });
+      for (const w of pair) {
+        const hub = [X(w.d), Y(w.h), zs];
+        suspension.push({ ...strut(hub, pivot, 0.04 * M), material: plain('metal') });
+        const mid = [(hub[0] * 2 + pivot[0]) / 3, (hub[1] * 2 + pivot[1]) / 3, zs];
+        const top = [mid[0], Y(Math.max(hb, py) + 0.12), zs];
+        suspension.push({ ...strut(mid, top, 0.03 * M), material: plain('frame') });
+      }
+      if (pair.length === 2) suspension.push({ ...box([pivot[0], pivot[1] + 0.09 * M, zs], [Math.abs(pair[1].d - pair[0].d) * 0.45 * M, 0.025 * M, 0.08 * M]), material: plain('frame') });
+    }
+  }
   const barrelFrom = X(o.gun.mantlet ?? Infinity);
   const [gd, gh] = o.gun.pivot;
   const ring = o.turret.stations;
   const parts = [
     { ...hull, material: (p, n) => mark('hull')(p, n) ?? (inLoop(p[0], p[1]) ? { kind: 'dark' } : { kind: 'paint' }) },
     { ...band, material: bandMat },
+    ...suspension,
     ...wheels,
     { ...turret, layer: 'turret', material: (p, n) => mark('turret')(p, n) ?? { kind: 'paint' } },
     { ...gun, layer: 'gun', material: (p) => ({ kind: p[0] > barrelFrom ? 'dark' : 'paint' }) },
