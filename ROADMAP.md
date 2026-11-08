@@ -611,7 +611,7 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Planes — more trucks:** the Opel Blitz is done and traced by the owner (stop 3, see Done). Still to do: the other trucks as copies in the same editor (Bedford QL 4x4 with tarp, GMC CCKW 6x4, ZIS-5, Isuzu Type 94 6x4, Ford V3000S; sheets are in the library; add them to `VEHICLES` in `src/ui/outline-lab.js`), wheel-spin frames for the trucks, national markings on a truck.
+- **Planes — more trucks:** the Opel Blitz is done and traced by the owner (stop 3, see Done). The Bedford QLD has a starter outline and sprites (2026-11-08, read off the sheet by eye, tarp as default cover; the owner traces it). Still to do: the other trucks as copies in the same editor (GMC CCKW 6x4, ZIS-5, Isuzu Type 94 6x4, Ford V3000S; sheets are in the library; add them to `VEHICLES` in `src/ui/outline-lab.js`), wheel-spin frames for the trucks, national markings on a truck.
 
 
 
