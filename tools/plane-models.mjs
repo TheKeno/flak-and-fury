@@ -1846,10 +1846,36 @@ function truck(o, opts = {}) {
     }
     return inside;
   };
+  // National marks on the cab door: markings [{ on: 'cab', d, h, r, shape }], shapes as on tanks: star (white, the US), redstar,
+  // disc (Japan), hakaristi (Finland), cross (the Balkenkreuz).
+  const markOf = (p) => {
+    for (const m of o.markings ?? []) {
+      if ((m.on ?? 'cab') !== 'cab') continue;
+      const du = p[0] - X(m.d);
+      const dv = p[1] - Y(m.h);
+      const r = m.r * M;
+      if (m.shape === 'star' || m.shape === 'redstar') {
+        if (starRatio(du, dv, r, 0.5) <= 1) return m.shape === 'star' ? 'white' : 'red';
+      } else if (m.shape === 'disc') {
+        if (Math.hypot(du, dv) <= r) return 'red';
+      } else if (m.shape === 'hakaristi') {
+        const k = hakaristi(du, dv, r);
+        if (k) return k;
+      } else {
+        const a = Math.abs(du) / r;
+        const b = Math.abs(dv) / r;
+        if ((a <= 0.55 && b <= 1.6) || (b <= 0.55 && a <= 1.6)) return 'marking';
+        if ((a <= 0.95 && b <= 2) || (b <= 0.95 && a <= 2)) return 'white';
+      }
+    }
+    return null;
+  };
   const cabMat = (p, n) => {
     if (!side(n)) return { kind: 'paint' };
     const d = dOf(p);
     const h = hOf(p);
+    const mk = markOf(p);
+    if (mk) return { kind: mk };
     if (glass && inPoly(glass, d, h)) return { kind: 'glass' };
     let dark = h - stationAt(o.fuselage.stations, d, 2) < 0.12 ? 1 : 0;
     if (inBox(c.louvres, d, h) && (d - c.louvres[0]) % 0.1 < 0.04) return { kind: 'dark' };
