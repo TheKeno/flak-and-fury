@@ -7,6 +7,27 @@ later.
 
 ## Decisions
 
+- **Bot training: bots learn how to fly each plane (decided 2026-11-08, discussion; not built):** the first quick
+  Balance Lab run showed every bot flies every plane the same way (pure pursuit plus turn-fighting, `chaseWant` in
+  `src/sim/ai.js`), so turn rate decides fights (kills per life 0.87 Spitfire/B-239 against 0.23-0.26 Ki-43/Bf 109/P-47)
+  and about a quarter of all deaths are own-fault collisions and crashes. Calibrate the bots before balancing planes.
+  - **Tuned settings, not a neural network:** each plane gets a few bot settings; a trainer searches for the values
+    that win most. It can only choose among tactics written into the bot code, so those come first.
+  - **Hands-off for the owner:** one "Train bots" button in the Balance Lab (and a CLI command), run e.g. overnight,
+    ending with a short plain-words summary per plane (what it learned, kills per life before and after, own-fault
+    deaths). Settings go in their own file, `data/bot-tactics.json`, applied directly with no approval step (they are
+    bot behaviour, not plane data); one click restores the previous settings. Plane data is never changed by it.
+  - **Choices made:** one setting set per plane (not per opponent); air-only arena, 2v2, a few minutes, no ground war
+    (much faster; measure first); each plane trains against all six flying their current best settings, a few rounds;
+    win measure kills per life with a penalty for crashes and collisions, every setting within limits; a change is kept
+    only when better than the noise. Afterwards the trainer starts a quick Balance Lab run by itself.
+  - **Settings to learn (first set):** fighting style (turn-fight to dive-and-climb boom-and-zoom), height kept over
+    the enemy, lowest speed allowed in a fight, when to break off a losing fight, firing range, throttle in turns.
+  - **Build order:** 1) fewer own-fault collisions and crashes (all planes); 2) the new tactics in `ai.js`, each behind
+    a setting read per plane from `data/bot-tactics.json` (deterministic, tuning panel, TUNING.md); 3) the air-only
+    arena, speed measured; 4) the trainer (shares the search loop with the Balance Lab's planned stage 2 auto-tuner),
+    the button, the summary, the restore. The owner then test-flies against the trained bots.
+
 - **Balance Lab: bot battles to find unbalanced planes (decided 2026-11-08; stage 1 built 2026-11-08, see Done):** a headless
   balance tool with its own page, so the owner can run hundreds of bot matches without tokens and see which planes
   differ from the rest. Replaces the backlog's "Balance simulation system".
@@ -770,6 +791,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
+- **Bot training** (Gameplay): decided, ready to build; see the Decisions entry "Bot training: bots learn how to fly each plane". Comes before the Balance Lab's stage 2.
 - **Balance Lab stage 2: the auto-tuner** (Gameplay): stage 1 is built (see Done); stage 2 as in the Decisions entry "Balance Lab: bot battles to find unbalanced planes". First read a full fighter run.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
