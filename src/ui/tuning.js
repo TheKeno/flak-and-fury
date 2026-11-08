@@ -7,6 +7,7 @@ import { rearmFully } from '../sim/airfield.js';
 import { ignite } from '../sim/fire.js';
 import { createGround } from '../sim/ground.js';
 import { createArmy } from '../sim/army.js';
+import { TACTIC_FIELDS, tacticsIn } from '../sim/tactics.js';
 
 // [key, label, min, max, step, help]
 const PLANE_FIELDS = [
@@ -402,6 +403,9 @@ const BOT_LEVELS = [
   ['ace', 'Ace'],
 ];
 
+// Slider steps for the bot tactics (their limits are the trainer's choices in src/sim/tactics.js).
+const TACTIC_STEP = { style: 0.5, heightOver: 10, minFightSpeed: 0.05, breakOff: 0.5, fireRange: 0.05, turnThrottle: 0.05 };
+
 const BOT_MODES = [
   ['on', 'On: fly and fight'],
   ['passive', 'Passive: fly, never shoot'],
@@ -444,8 +448,12 @@ function slider(obj, [key, label, min, max, step, help], onChange) {
 
 export function createTuningPanel({ content, world, player, choice, placeBots, getMixer, onPause }) {
   const { planeDefs, weapons, settings, groundDefs, notes } = content;
+  // Bot tactics: every named plane gets its own full set, so each can be edited (data/bot-tactics.json).
+  const tactics = (content.tactics ??= { default: {}, planes: {} });
+  tactics.planes ??= {};
+  for (const id of Object.keys(planeDefs)) if (planeDefs[id]?.name) tactics.planes[id] = tacticsIn(tactics, id);
   // What Reset returns to: the values last loaded from or saved to the files.
-  const snapshot = () => structuredClone({ planeDefs, weapons, settings, groundDefs });
+  const snapshot = () => structuredClone({ planeDefs, weapons, settings, groundDefs, tactics });
   let saved = snapshot();
   const rows = [];
   const add = (row) => (rows.push(row), row);
@@ -583,6 +591,12 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     false,
     ...BOT_FIELDS.map((f) => add(slider(settings.bots, f))),
     ...BOT_LEVELS.map(([level, name]) => section(name, false, ...BOT_LEVEL_FIELDS.map((f) => add(slider(settings.bots.levels[level], f))))),
+    section(
+      'Tactics per plane',
+      false,
+      el('div', { class: 'info' }, 'How bots fight in each plane (data/bot-tactics.json). Written by Train bots in the Balance Lab.'),
+      ...Object.keys(tactics.planes).map((id) => section(planeDefs[id].name, false, ...TACTIC_FIELDS.map(([key, label, choices, , help]) => add(slider(tactics.planes[id], [key, label, choices[0], choices[choices.length - 1], TACTIC_STEP[key], help]))))),
+    ),
   );
   const restoreTargets = () => {
     createGround(world);
@@ -653,6 +667,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
       'data/weapons.json': { ...notes.weapons, ...weapons },
       'data/settings.json': { ...notes.settings, ...settings },
       'data/ground.json': { ...notes.ground, ...groundDefs },
+      'data/bot-tactics.json': { ...notes.tactics, ...tactics },
     };
     // On the public web build (GitHub Pages) there's no dev server to write to: download the files.
     if (!LOCAL) {
@@ -676,6 +691,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     for (const [k, v] of Object.entries(saved.planeDefs)) Object.assign(planeDefs[k], structuredClone(v));
     for (const [k, v] of Object.entries(saved.weapons)) Object.assign(weapons[k], structuredClone(v));
     for (const [k, v] of Object.entries(saved.groundDefs)) Object.assign(groundDefs[k], structuredClone(v));
+    for (const [k, v] of Object.entries(saved.tactics.planes)) Object.assign(tactics.planes[k], v);
     Object.assign(settings.camera, saved.settings.camera);
     Object.assign(settings.audio, saved.settings.audio);
     Object.assign(settings.servicing, saved.settings.servicing);
@@ -746,7 +762,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     { id: 'tuning', class: 'hidden' },
     el('div', { class: 'head' }, el('strong', {}, 'Tuning'), el('span', {}, 'T to close · hover a slider for help')),
     el('div', { class: 'buttons' },
-      el('button', { onclick: save, title: 'Write the current values into data/planes.json, weapons.json, settings.json and ground.json' }, 'Save to files'),
+      el('button', { onclick: save, title: 'Write the current values into data/planes.json, weapons.json, settings.json, ground.json and bot-tactics.json' }, 'Save to files'),
       el('button', { onclick: reset, title: 'Go back to the values last loaded from the files' }, 'Reset'),
       el('button', { onclick: refill, title: 'Repair, refuel and rearm your plane' }, 'Repair & rearm'),
       pauseBtn,

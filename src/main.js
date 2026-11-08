@@ -51,6 +51,7 @@ const world = createWorld({
   bots: content.settings.bots,
   radar: content.settings.radar,
   bailout: content.settings.bailout,
+  tactics: content.tactics,
   rules: content.settings.rules,
 });
 // Share the world's rules object with the settings so the tuning panel saves the Testing switches.

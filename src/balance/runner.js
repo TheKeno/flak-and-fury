@@ -12,13 +12,14 @@ const REACH = 140;
 // The units that make the front: tanks and infantry squads (trucks only carry them).
 const FRONT_KINDS = new Set(['tank', 'infantry']);
 
-// content: { planeDefs, weapons, groundDefs, settings, maps: { name: ldtk project } } as loaded from the
-// data files (notes removed). Kept untouched: each match takes its own copies of what the sim edits.
-export function buildWorld(content, { map = 'countryside', seed = 1 } = {}) {
+// content: { planeDefs, weapons, groundDefs, settings, maps: { name: ldtk project }, tactics } as loaded
+// from the data files (notes removed). Kept untouched: each match takes its own copies of what the sim
+// edits. tactics: bot tactics to fly by instead of content.tactics (a table, or one per team).
+export function buildWorld(content, { map = 'countryside', seed = 1, tactics = content.tactics ?? null, arena = false } = {}) {
   const s = content.settings;
   const project = content.maps[map];
   if (!project) throw new Error(`Unknown map "${map}"`);
-  return createWorld({
+  const world = createWorld({
     hangarStart: true, // like the game: planes come out of the hangar one by one
     seed: seed >>> 0,
     map: importLdtk(project),
@@ -39,8 +40,19 @@ export function buildWorld(content, { map = 'countryside', seed = 1 } = {}) {
     bots: structuredClone(s.bots),
     radar: { ...s.radar },
     bailout: { ...s.bailout },
+    tactics,
     rules: { ...s.rules, bots: 'on' },
   });
+  if (arena) clearForArena(world);
+  return world;
+}
+
+// The bot trainer's air-only arena: the same map and airfields, but no ground war (no tank waves, no
+// troops) and no flak or MG nests, so only the planes decide a fight and a match runs much faster.
+const ARMED_GROUND = new Set(['flak', 'mgNest']);
+export function clearForArena(world) {
+  world.army = null;
+  world.ground = world.ground.filter((o) => !o.mobile && !ARMED_GROUND.has(o.type));
 }
 
 const emptyStats = () => ({
@@ -57,7 +69,7 @@ function frontOf(world, home) {
   const fwd = [null, null];
   for (const o of world.ground) {
     if (!o.mobile || !o.alive || o.returning || !FRONT_KINDS.has(o.type) || (o.team !== 0 && o.team !== 1)) continue;
-    const dir = world.army[o.team].dir;
+    const dir = Math.sign(home[1 - o.team] - home[o.team]) || 1;
     if (fwd[o.team] == null || o.x * dir > fwd[o.team] * dir) fwd[o.team] = o.x;
   }
   const a = fwd[0] ?? home[0];
@@ -67,8 +79,9 @@ function frontOf(world, home) {
 
 // Runs one match. a, b: plane ids for team 0 and team 1. Returns plain data (JSON-safe).
 // onProgress(share 0..1) is called about once per game-second.
-export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, onProgress } = {}) {
-  const world = buildWorld(content, { map, seed });
+// arena: the air-only arena (no ground war); tactics: bot tactics instead of content.tactics.
+export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, arena = false, tactics, onProgress } = {}) {
+  const world = buildWorld(content, { map, seed, arena, ...(tactics !== undefined && { tactics }) });
   for (const [team, defId] of [[0, a], [1, b]]) {
     const def = content.planeDefs[defId];
     if (!def) throw new Error(`Unknown plane "${defId}"`);
@@ -77,7 +90,7 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
   const teamOf = new Map(world.planes.map((p) => [p.id, p.team]));
   const depot = (team) => world.ground.find((o) => o.type === 'depot' && o.team === team);
   const hangar = (team) => world.ground.find((o) => o.type === 'hangar' && o.team === team);
-  const home = [depot(0).x, depot(1).x];
+  const home = [depot(0)?.x ?? hangar(0).x, depot(1)?.x ?? hangar(1).x];
   const middle = (home[0] + home[1]) / 2;
   const dir0 = Math.sign(home[1] - home[0]);
   const stats = [emptyStats(), emptyStats()];
@@ -103,7 +116,7 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
       front.push(Math.round((f.x - middle) * dir0 * 10) / 10);
       for (const team of [0, 1]) {
         const enemy = 1 - team;
-        const dir = world.army[team].dir;
+        const dir = Math.sign(home[enemy] - home[team]) || 1;
         const ahead = (target) => target && (target.x - f.fwd[team]) * dir < REACH && f.fwd[team] !== home[team];
         if (reached[team].depot == null && ahead(depot(enemy))) reached[team].depot = world.tick / TICK_RATE;
         if (reached[team].hangar == null && ahead(hangar(enemy))) reached[team].hangar = world.tick / TICK_RATE;
@@ -195,5 +208,5 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
   const idOf = (def) => Object.keys(content.planeDefs).find((id) => content.planeDefs[id] === def) ?? null;
   // What each side ended up flying: a check that the bots stayed locked to their type.
   const flown = [0, 1].map((team) => [...new Set(world.planes.filter((p) => p.team === team && !p.wreck).map((p) => idOf(p.def)))]);
-  return { a, b, seed, minutes, perSide, skill, map, sample, front, reached, destroyed, stats, flown };
+  return { a, b, seed, minutes, perSide, skill, map, sample, arena, front, reached, destroyed, stats, flown };
 }

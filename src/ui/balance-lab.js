@@ -3,6 +3,8 @@
 // (src/balance/analyse.js). Open as balance-lab.html on the dev server.
 import { cleanContent, newRun, planMatches, runFileName, withDefaults } from '../balance/plan.js';
 import { analyse, compareRuns } from '../balance/analyse.js';
+import { train, plannedMatches, tacticsFile, summariseTraining, TRAIN_DEFAULTS } from '../balance/trainer.js';
+import { TACTIC_FIELDS, tacticsIn, describeTactics } from '../sim/tactics.js';
 
 const $ = (id) => document.getElementById(id);
 const CORES = navigator.hardwareConcurrency || 4;
@@ -13,7 +15,9 @@ const getJson = async (path) => {
   return r.json();
 };
 const putJson = async (path, obj) => {
-  const r = await fetch(path, { method: 'PUT', body: JSON.stringify(obj) });
+  // Data files stay readable (and diff well); run files are kept compact.
+  const body = path.startsWith('data/') ? JSON.stringify(obj, null, 2) + '\n' : JSON.stringify(obj);
+  const r = await fetch(path, { method: 'PUT', body });
   if (!r.ok) throw new Error(`Saving ${path}: ${await r.text()}`);
 };
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -39,8 +43,8 @@ const S = {
 
 // ---- loading ----
 async function loadData() {
-  const [planes, weapons, ground, settings] = await Promise.all(['planes', 'weapons', 'ground', 'settings'].map((f) => getJson(`data/${f}.json`)));
-  S.raw = { planes, weapons, ground, settings, maps: {} };
+  const [planes, weapons, ground, settings, tactics] = await Promise.all(['planes', 'weapons', 'ground', 'settings', 'bot-tactics'].map((f) => getJson(`data/${f}.json`)));
+  S.raw = { planes, weapons, ground, settings, tactics, maps: {} };
   S.names = Object.fromEntries(Object.entries(planes).filter(([, d]) => d?.name).map(([id, d]) => [id, d.name]));
 }
 async function loadMap(name) {
@@ -122,7 +126,11 @@ function estimate() {
   }
 }
 $('scenario').onchange = fillRunForm;
-for (const el of document.querySelectorAll('input[name=mode], #mx, #my, #half')) el.onchange = estimate;
+for (const el of document.querySelectorAll('input[name=mode], #mx, #my')) el.onchange = estimate;
+$('half').onchange = () => {
+  estimate();
+  trainEstimate();
+};
 $('start').onclick = () => {
   S.queue.push({ ...chosenRun(), half: $('half').checked });
   showQueue();
@@ -132,6 +140,7 @@ $('cancel').onclick = () => {
   if (S.active) S.active.cancel();
 };
 function describe(q) {
+  if (q.kind === 'train') return `Train bots: ${q.opts.rounds} rounds, ${q.opts.seeds} matches per opponent${q.half ? ', half cores' : ''}`;
   const what = q.mode === 'matchup' ? `${S.names[q.matchup[0]]} v ${S.names[q.matchup[1]]}` : `${q.mode}, ${q.scenario.planes.length} planes`;
   return `${q.scenario.title ?? q.scenario.name}: ${what}${q.half ? ', half cores' : ''}`;
 }
@@ -159,7 +168,7 @@ async function nextRun() {
   if (!q) return;
   S.active = { cancel: () => {} }; // busy from now on, so Start only queues
   try {
-    await runOne(q);
+    await (q.kind === 'train' ? trainOne(q) : runOne(q));
   } catch (e) {
     status(String(e.message ?? e), true);
   }
@@ -169,48 +178,22 @@ async function nextRun() {
   nextRun();
 }
 
-async function runOne(q) {
-  const s = withDefaults(q.scenario);
-  await loadMap(s.map);
-  const run = newRun(s, { mode: q.mode, matchup: q.matchup, names: S.names });
-  const file = `balance/results/${runFileName(run)}`;
-  const jobs = planMatches(s, q.mode, q.matchup).map((j, index) => ({ ...j, index }));
-  const results = new Array(jobs.length);
-  const partial = new Map(); // index -> share done of a match in progress
-  const n = Math.min(jobs.length, q.half ? Math.max(1, Math.floor(CORES / 2)) : CORES);
-  const content = cleanContent(S.raw);
-  const t0 = performance.now();
+// Runs jobs on n Web Workers (src/balance/worker.js): onResult(index, result) as each match ends,
+// onPartial(index, share) while one runs. Resolves when all are done, or at once when cancelled
+// (S.active.cancel), leaving the matches in progress unfinished. Shared by runs and the bot training.
+function pool(jobs, n, content, { onResult, onPartial }) {
   let next = 0;
-  let done = 0;
   let cancelled = false;
-  const save = async () => {
-    run.matches = results.filter(Boolean);
-    await putJson(file, run);
-  };
-  $('cancel').disabled = false;
-  $('current').className = '';
-  const show = () => {
-    const spent = (performance.now() - t0) / 1000;
-    const progress = done + [...partial.values()].reduce((a, b) => a + b, 0);
-    const left = progress > 0.2 ? (spent / progress) * (jobs.length - progress) : null;
-    $('current').textContent = `${describe(q)} — ${done} of ${jobs.length} matches on ${n} workers, ${clock(spent)} spent${left != null ? `, about ${clock(left)} left` : ''}${cancelled ? ' — stopping' : ''}`;
-    $('progress').firstElementChild.style.width = `${(100 * progress) / jobs.length}%`;
-    $('busy').textContent = `running ${Math.floor((100 * progress) / jobs.length)}%`;
-    document.title = `${Math.floor((100 * progress) / jobs.length)}% Balance Lab`;
-  };
-  const tick = setInterval(show, 1000);
-  await new Promise((resolve, reject) => {
-    const workers = [];
-    let live = n;
-    S.active = {
-      cancel: () => {
-        cancelled = true;
-        for (const w of workers) w.terminate();
-        partial.clear();
-        resolve();
-      },
+  const workers = [];
+  return new Promise((resolve, reject) => {
+    S.active.cancel = () => {
+      cancelled = true;
+      for (const w of workers) w.terminate();
+      resolve();
     };
-    for (let i = 0; i < n; i++) {
+    let live = Math.max(1, Math.min(n, jobs.length));
+    if (!jobs.length) return resolve();
+    for (let i = 0, k = live; i < k; i++) {
       const w = new Worker(new URL('../balance/worker.js', import.meta.url), { type: 'module' });
       workers.push(w);
       w.postMessage({ content });
@@ -221,39 +204,189 @@ async function runOne(q) {
           if (--live === 0) resolve();
           return;
         }
-        w.postMessage({ job: jobs[next++] });
+        const index = next++;
+        w.postMessage({ job: { ...jobs[index], index } });
       };
       w.onmessage = ({ data }) => {
-        if (data.progress != null) partial.set(data.index, data.progress);
+        if (data.progress != null) onPartial?.(data.index, data.progress);
         else if (data.error) {
           for (const o of workers) o.terminate();
           reject(new Error(data.error));
         } else {
-          partial.delete(data.index);
-          results[data.index] = data.result;
-          done++;
-          if (done % SAVE_EVERY === 0) save().catch((e) => status(e.message, true));
+          onResult(data.index, data.result);
           feed();
         }
       };
       w.onerror = (e) => reject(new Error(e.message || 'worker failed'));
       feed();
     }
+  });
+}
+
+async function runOne(q) {
+  const s = withDefaults(q.scenario);
+  await loadMap(s.map);
+  const run = newRun(s, { mode: q.mode, matchup: q.matchup, names: S.names });
+  const file = `balance/results/${runFileName(run)}`;
+  const jobs = planMatches(s, q.mode, q.matchup);
+  const results = new Array(jobs.length);
+  const partial = new Map(); // index -> share done of a match in progress
+  const n = Math.min(jobs.length, q.half ? Math.max(1, Math.floor(CORES / 2)) : CORES);
+  const content = cleanContent(S.raw);
+  const t0 = performance.now();
+  let done = 0;
+  const save = async () => {
+    run.matches = results.filter(Boolean);
+    await putJson(file, run);
+  };
+  $('cancel').disabled = false;
+  $('current').className = '';
+  const show = () => {
+    const spent = (performance.now() - t0) / 1000;
+    const progress = done + [...partial.values()].reduce((a, b) => a + b, 0);
+    const left = progress > 0.2 ? (spent / progress) * (jobs.length - progress) : null;
+    $('current').textContent = `${describe(q)} — ${done} of ${jobs.length} matches on ${n} workers, ${clock(spent)} spent${left != null ? `, about ${clock(left)} left` : ''}`;
+    $('progress').firstElementChild.style.width = `${(100 * progress) / jobs.length}%`;
+    $('busy').textContent = `running ${Math.floor((100 * progress) / jobs.length)}%`;
+    document.title = `${Math.floor((100 * progress) / jobs.length)}% Balance Lab`;
+  };
+  const tick = setInterval(show, 1000);
+  await pool(jobs, n, content, {
+    onPartial: (i, share) => partial.set(i, share),
+    onResult: (i, result) => {
+      partial.delete(i);
+      results[i] = result;
+      done++;
+      if (done % SAVE_EVERY === 0) save().catch((e) => status(e.message, true));
+    },
   }).finally(() => clearInterval(tick));
+  partial.clear();
   show();
   run.finished = new Date().toISOString();
   await save();
   const spent = (performance.now() - t0) / 1000;
-  if (done && !cancelled) {
+  if (done === jobs.length) {
     try {
       localStorage.setItem('balanceLab.secPerGameMinute', String((spent * speedOf(n)) / done / s.minutes));
     } catch {}
   }
   document.title = 'Balance Lab';
   status(`Saved ${file} (${done} matches, ${clock(spent)})`);
-  $('current').textContent = `Last: ${describe(q)} — ${done} matches${cancelled ? ' (cancelled)' : ''}, saved to ${file}.`;
+  $('current').textContent = `Last: ${describe(q)} — ${done} matches${done < jobs.length ? ' (cancelled)' : ''}, saved to ${file}.`;
   S.lastFile = file.split('/').pop();
   estimate();
+}
+
+// ---- Bot training ----
+// Train bots: the trainer (src/balance/trainer.js) on the same workers; then the tactics go straight
+// into data/bot-tactics.json (the old ones into bot-tactics.previous.json for Restore), the record into
+// balance/results/, and a quick run of the fighters starts to show the effect on the battle.
+const trainOpts = () => ({ rounds: Number($('trRounds').value) || TRAIN_DEFAULTS.rounds, seeds: Number($('trSeeds').value) || TRAIN_DEFAULTS.seeds });
+// An arena match: 2 a side, no ground war; measured about 0.25 s per game-minute on one worker.
+const ARENA_SEC_PER_MINUTE = 0.25;
+function trainEstimate() {
+  const n = plannedMatches(trainOpts(), S.raw?.tactics);
+  const secs = (n * TRAIN_DEFAULTS.minutes * ARENA_SEC_PER_MINUTE) / speedOf($('half').checked ? Math.max(1, Math.floor(CORES / 2)) : CORES);
+  $('trEstimate').textContent = `about ${n} short air-only matches, roughly ${clock(secs)}, then a quick run`;
+}
+for (const id of ['trRounds', 'trSeeds']) $(id).onchange = trainEstimate;
+$('train').onclick = () => {
+  S.queue.push({ kind: 'train', opts: trainOpts(), half: $('half').checked });
+  showQueue();
+  if (!S.active) nextRun();
+};
+$('restore').onclick = async () => {
+  if (S.active?.training) return status('Wait for the training to finish first.', true);
+  try {
+    const [cur, prev] = await Promise.all([getJson('data/bot-tactics.json'), getJson('data/bot-tactics.previous.json')]);
+    await putJson('data/bot-tactics.json', prev);
+    await putJson('data/bot-tactics.previous.json', cur);
+    S.raw.tactics = prev;
+    status('Restored the previous bot tactics (press Restore again to undo).');
+    showTactics();
+  } catch (e) {
+    status(e.message, true);
+  }
+};
+function showTactics() {
+  const t = S.raw?.tactics;
+  if (!t) return;
+  const rows = TRAIN_DEFAULTS.planes.map((id) => `<tr><td>${esc(S.names[id] ?? id)}</td><td class="dim" style="white-space:normal">${esc(describeTactics(tacticsIn(t, id)))}</td></tr>`).join('');
+  const when = t.trained ? `<p class="dim">Last trained ${esc(t.trained.slice(0, 16).replace('T', ' '))}.</p>` : '<p class="dim">Not trained yet: every plane flies the default tactics.</p>';
+  $('trNow').innerHTML = `<table><tr><th>plane</th><th>how its bots fight now</th></tr>${rows}</table>${when}`;
+}
+
+async function trainOne(q) {
+  await loadMap('countryside');
+  const content = cleanContent(S.raw);
+  const n = q.half ? Math.max(1, Math.floor(CORES / 2)) : CORES;
+  const planned = plannedMatches(q.opts, S.raw.tactics);
+  const t0 = performance.now();
+  let done = 0;
+  let stop = false;
+  S.active.training = true;
+  const lines = [];
+  const log = (text) => {
+    lines.push(text);
+    $('trLog').innerHTML = lines.slice(-12).map((l) => `<div>${esc(l)}</div>`).join('');
+  };
+  const show = () => {
+    const share = Math.min(1, done / planned);
+    const spent = (performance.now() - t0) / 1000;
+    const left = done > 20 ? (spent / done) * Math.max(0, planned - done) : null;
+    $('current').textContent = `Training bots — ${done} of about ${planned} matches on ${n} workers, ${clock(spent)} spent${left != null ? `, about ${clock(left)} left` : ''}${stop ? ' — stopping, the best so far is kept' : ''}`;
+    $('progress').firstElementChild.style.width = `${100 * share}%`;
+    $('busy').textContent = `training ${Math.floor(100 * share)}%`;
+    document.title = `${Math.floor(100 * share)}% Training bots`;
+  };
+  const tick = setInterval(show, 1000);
+  $('cancel').disabled = false;
+  // Cancel drops the step in hand at once; the trainer keeps the best tactics found so far.
+  const runJobs = async (jobs) => {
+    if (stop) return [];
+    const res = new Array(jobs.length);
+    const running = pool(jobs, n, content, {
+      onResult: (i, r) => {
+        res[i] = r;
+        done++;
+      },
+    });
+    const halt = S.active.cancel;
+    S.active.cancel = () => {
+      stop = true;
+      halt();
+    };
+    await running;
+    return res.filter(Boolean);
+  };
+  let result;
+  try {
+    result = await train(S.raw.tactics, runJobs, { ...q.opts, names: S.names, log, cancelled: () => stop });
+  } finally {
+    clearInterval(tick);
+    S.active.training = false;
+  }
+  show();
+  const before = S.raw.tactics;
+  const file = `${result.started.slice(0, 19).replace(/[T:]/g, '-')}-train-bots.json`.toLowerCase();
+  // The record first: if writing the tactics fails, the training is not lost.
+  await putJson(`balance/results/${file}`, result);
+  await putJson('data/bot-tactics.previous.json', before);
+  const now = tacticsFile(result, before._notes);
+  await putJson('data/bot-tactics.json', now);
+  S.raw.tactics = now;
+  document.title = 'Balance Lab';
+  status(`Bots trained in ${clock((performance.now() - t0) / 1000)}; tactics saved (Restore puts the old ones back). Record: balance/results/${file}`);
+  $('current').textContent = `Last: bot training — ${result.matches} matches, saved to balance/results/${file}. Its report is in Results.`;
+  $('trLog').innerHTML = result.summary.map((l) => `<p>${esc(l)}</p>`).join('');
+  S.lastFile = file;
+  showTactics();
+  // The effect on the real battle: a quick run of the fighters, started by itself.
+  const scen = Object.values(S.scenarios).find((x) => x.name === 'fighters');
+  if (scen && !stop) {
+    S.queue.unshift({ scenario: { ...scen }, mode: 'quick', matchup: null, half: q.half });
+    showQueue();
+  }
 }
 
 // ---- Results tab ----
@@ -289,6 +422,10 @@ async function showReport() {
   }
   try {
     const run = await loadRun(f);
+    if (run.kind === 'training') {
+      el.innerHTML = trainingHtml(run);
+      return;
+    }
     if (!run.matches.length) {
       el.innerHTML = '<p class="dim">This run has no matches yet.</p>';
       return;
@@ -296,6 +433,7 @@ async function showReport() {
     const other = $('runCompare').value;
     if (other && other !== f) {
       const before = await loadRun(other);
+      if (before.kind === 'training') throw new Error('Pick a Balance Lab run to compare with, not a training.');
       el.innerHTML = compareHtml(compareRuns(before, run), other, f);
       return;
     }
@@ -388,6 +526,33 @@ function reportHtml(r, run) {
   h += '<h3>Same-plane baselines</h3><canvas class="chart" id="chartBase" width="760" height="220"></canvas><p class="dim">The front when both sides fly the same plane, from the left side (all baselines together). This is how much it wanders by luck alone.</p>';
   h += '<table><tr><th>plane</th><th class="num">push (left side)</th><th class="num">spread (sd)</th><th class="num">matches</th></tr>';
   for (const b of r.baselines) if (b.n) h += `<tr><td>${esc(b.name)}</td><td class="num">${sign(b.push)} m</td><td class="num">${b.sd}</td><td class="num">${b.n}</td></tr>`;
+  h += '</table>';
+  return h;
+}
+
+// A bot training record: the plain-words summary, the tactics before and after, and each step taken.
+function trainingHtml(t) {
+  const name = (id) => esc(S.names[id] ?? id);
+  let h = `<h3>Bot training</h3><div class="summary">${summariseTraining(t, S.names).map((s) => `<p>${esc(s)}</p>`).join('')}</div>`;
+  h += `<p class="dim">Started ${esc(t.started.slice(0, 16).replace('T', ' '))}, ${t.matches} matches. Score: kills per life, each own crash or collision counted as ${t.options.penalty} kill lost.</p>`;
+  h += '<h3>Tactics before and after</h3><div class="wide"><table><tr><th>plane</th>' + TACTIC_FIELDS.map(([, label]) => `<th>${esc(label)}</th>`).join('') + '</tr>';
+  for (const id of t.options.planes) {
+    const a = tacticsIn(t.before, id);
+    const b = tacticsIn(t.after, id);
+    h += `<tr><td>${name(id)}</td>${TACTIC_FIELDS.map(([k]) => `<td class="num${a[k] === b[k] ? ' dim' : ''}">${a[k] === b[k] ? b[k] : `${a[k]} → ${b[k]}`}</td>`).join('')}</tr>`;
+  }
+  h += '</table></div>';
+  if (t.beforeStats) {
+    h += '<h3>Check: every pairing, before and after</h3><table><tr><th>plane</th><th class="num">kills/life before</th><th class="num">after</th><th class="num">own crashes+collisions per life before</th><th class="num">after</th></tr>';
+    for (const id of t.options.planes) {
+      const b = t.beforeStats[id];
+      const a = t.afterStats?.[id];
+      h += `<tr><td>${name(id)}</td><td class="num">${b.killsPerLife}</td><td class="num">${a?.killsPerLife ?? '–'}</td><td class="num">${b.ownFaultPerLife}</td><td class="num">${a?.ownFaultPerLife ?? '–'}</td></tr>`;
+    }
+    h += '</table>';
+  }
+  h += '<h3>Steps</h3><table><tr><th>round</th><th>plane</th><th>kept changes (score gain ± noise)</th></tr>';
+  for (const s of t.history) h += `<tr><td class="num">${s.round}</td><td>${name(s.plane)}</td><td class="dim" style="white-space:normal">${s.changes.length ? s.changes.map((c) => `${esc(c.key)} ${c.from} → ${c.to} (+${c.diff} ± ${Math.round(2 * c.se * 100) / 100})`).join(', ') : 'none beat the noise'}</td></tr>`;
   h += '</table>';
   return h;
 }
@@ -520,6 +685,8 @@ try {
   await loadData();
   await loadLists();
   fillScenarios();
+  trainEstimate();
+  showTactics();
   status(`${Object.keys(S.scenarios).length} scenarios, ${S.results.length} runs saved`);
 } catch (e) {
   status(`Could not load: ${e.message}. Open this page from the dev server (node tools/serve.mjs).`, true);

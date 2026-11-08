@@ -17,7 +17,7 @@ const json = async (url) => {
 };
 
 export async function loadContent(mapName) {
-  const [planeDefs, nations, weapons, settings, groundDefs, sound, project] = await Promise.all([
+  const [planeDefs, nations, weapons, settings, groundDefs, sound, project, tactics] = await Promise.all([
     json('data/planes.json'),
     json('data/nations.json'),
     json('data/weapons.json'),
@@ -25,6 +25,7 @@ export async function loadContent(mapName) {
     json('data/ground.json'),
     json('data/sound.json'),
     json(`maps/${mapName}.ldtk`),
+    json('data/bot-tactics.json'),
   ]);
   const map = importLdtk(project);
   // Notes kept aside so the tuning panel can write the files back unchanged apart from the numbers.
@@ -33,7 +34,9 @@ export async function loadContent(mapName) {
     weapons: { _notes: weapons._notes },
     settings: { _notes: settings._notes },
     ground: { _notes: groundDefs._notes },
+    tactics: { _notes: tactics._notes },
   };
+  delete tactics._notes;
   delete planeDefs._units;
   delete weapons._notes;
   delete settings._notes;
@@ -119,5 +122,5 @@ export async function loadContent(mapName) {
 
   const bombSprite = buildRotations(toCanvas(images.bomb), [7, 3]);
 
-  return { planeDefs, nations, weapons, settings, groundDefs, sound, notes, map, images, vehicles, trucks, planeSprite, planeFrames, bombSprite };
+  return { planeDefs, nations, weapons, settings, groundDefs, sound, tactics, notes, map, images, vehicles, trucks, planeSprite, planeFrames, bombSprite };
 }

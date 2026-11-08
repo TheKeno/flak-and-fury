@@ -72,13 +72,14 @@ export function runFileName(run) {
   return `${date}-${run.scenario.name ?? 'run'}-${what}.json`.toLowerCase().replace(/[^a-z0-9.-]+/g, '-');
 }
 
-// The data files as the runner wants them: notes removed. raw: { planes, weapons, ground, settings, maps }.
-export function cleanContent({ planes, weapons, ground, settings, maps }) {
+// The data files as the runner wants them: notes removed. raw: { planes, weapons, ground, settings, maps,
+// tactics (data/bot-tactics.json) }.
+export function cleanContent({ planes, weapons, ground, settings, maps, tactics = null }) {
   const strip = (o) => {
     const c = { ...o };
     delete c._notes;
     delete c._units;
     return c;
   };
-  return { planeDefs: strip(planes), weapons: strip(weapons), groundDefs: strip(ground), settings: strip(settings), maps };
+  return { planeDefs: strip(planes), weapons: strip(weapons), groundDefs: strip(ground), settings: strip(settings), maps, tactics: tactics && strip(tactics) };
 }

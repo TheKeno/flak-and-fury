@@ -29,7 +29,8 @@ const TYPES = {
   '.svg': 'image/svg+xml',
 };
 
-const SAVABLE = /^\/data\/[a-z_]+\.json$/;
+// Existing data files only; hyphens and inner dots allowed (bot-tactics.previous.json), never "..".
+const SAVABLE = /^\/data\/[a-z_-]+(\.[a-z_-]+)*\.json$/;
 // The Outline Lab may also create a plane's outline file.
 const OUTLINE = /^\/data\/outlines\/[a-z0-9_-]+\.json$/;
 

@@ -261,6 +261,48 @@ Each level (`bots.levels.easy`, `normal`, `ace`; tuning panel: Bots → Easy / N
 
 Bots between themselves rarely score kills: a badly hit pilot breaks off and goes home for repairs.
 
+### Bot tactics per plane: `data/bot-tactics.json`
+
+How bots fight in each plane (tuning panel: Bots → Tactics per plane; code `src/sim/tactics.js`, used in
+`chaseWant` in `src/sim/ai.js`). Bot behaviour, not plane data: written by the **bot trainer** (Balance
+Lab → Train bots, or `node tools/train-bots.mjs`), which keeps the values that win most for each plane;
+`data/bot-tactics.previous.json` holds the values before the last training (Lab: Restore previous
+tactics; CLI: `--restore`; both swap the two files, so a restore can be undone). `default` applies to any
+plane not listed under `planes`; `trained` is when the trainer last wrote the file. The defaults fly
+exactly as the bots did before tactics existed. The trainer only picks from the steps listed (they are
+also the limits); the tuning panel's sliders go anywhere between the first and last.
+
+| Field | What it does | Steps (default first) |
+|---|---|---|
+| `style` | 0 turn-fights (sits on the enemy's tail and turns with it). 1 boom and zoom: attacks only from above, dives through firing, runs away at full speed, climbs once clear and comes again, never turning with it (weak against bots in this game so far). 0.5 dives on it from above when it can, otherwise turn-fights. | 0; 0.5, 1 |
+| `heightOver` | Height (world units) it climbs to above the enemy before attacking: on the way in from more than 400 away, and for boom and zoom before each dive. 0 flies straight at it. | 0; 50 … 300 |
+| `minFightSpeed` | Lowest speed a fight may take it to, as a multiple of the stall speed. Slower, it stops pulling and dives to get speed back. 1: only the skill level's `stallMargin`. | 1; 1.2 … 1.9 |
+| `breakOff` | Seconds with an enemy sitting on its tail before it gives the fight up and dives away straight ahead at full (and emergency) power for 3 to 5 s. 0 never. | 0; 1.5, 3, 5, 8 |
+| `fireRange` | Opening fire range, as a share of the skill level's `fireRange`. | 1; 0.6 … 1.3 |
+| `turnThrottle` | Power kept in a hard turn after an enemy: 0 throttles back towards the tightest-turn speed (as far as the skill's `turnFight` goes), 1 keeps full power. | 0; 0.25 … 1 |
+
+**The trainer** (`src/balance/trainer.js`, search loop `src/balance/search.js`, shared later with the
+Balance Lab's stage 2 auto-tuner): each round, plane by plane, it tries every tactic one step either
+way in 2-against-2 matches in the **air-only arena** (the countryside map without tank waves, troops,
+flak or MG nests; a 6-minute match takes about 1.5 s on one core) against all six fighters, its mirror
+image included, flying their current best, sides swapped every other match. The score is kills per
+life, each own crash or collision counted as one kill lost. A step is kept only when it beats the
+current values by more than 2 standard errors of the match-by-match difference (and by at least 0.02);
+several winning steps at once are checked together. Lab settings: rounds (3) and matches per opponent
+and try (16): with these a training is about 15 000 matches, roughly 40 minutes on 16 threads.
+Afterwards it checks every pairing with the old and the new tactics (the before/after numbers in the
+summary), saves the record in `balance/results/<date>-train-bots.json` (the Lab shows it under Results)
+and starts a quick Balance Lab run of the fighters by itself. CLI options: `--rounds`, `--seeds`,
+`--minutes`, `--planes a,b`, `--half`, `--no-quick`, `--dry` (record only, data files untouched).
+
+**Collision and crash rules every bot keeps** (`fly` in `src/sim/ai.js`, not tunable): a predicted pass
+closer than 50 units within 1.8 s makes both planes turn away from each other's side; dead ahead on the
+same line the higher (or lower-numbered) plane goes up and the other down. Too low to turn down (under
+140 units), a bot holds level and leaves the climb to the other one. A head-on pass is broken 0.9 s
+before meeting, over or under; the lower plane, if under 90 units, holds level. A pull-out from a dive
+takes the side the nose points to (it used to keep its first side, which after a knock in a collision
+meant turning through straight down).
+
 ## Decor: `data/settings.json` → `decor`
 
 Hedges, stone walls, trees and barns aren't placed in LDtk: the game places them from the map's zones,

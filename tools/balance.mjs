@@ -24,6 +24,7 @@ export function loadContent(maps = ['countryside']) {
     weapons: readJson('data/weapons.json'),
     ground: readJson('data/ground.json'),
     settings: readJson('data/settings.json'),
+    tactics: readJson('data/bot-tactics.json'),
     maps: Object.fromEntries(maps.map((m) => [m, readJson(`maps/${m}.ldtk`)])),
   });
 }
@@ -88,7 +89,6 @@ async function main(args) {
   console.log(`${run.scenario.name}: ${mode}, ${jobs.length} matches of ${run.scenario.minutes} game-minutes on ${threads} threads.`);
 
   const t0 = Date.now();
-  let next = 0;
   const results = new Array(jobs.length);
   let done = 0;
   const save = () => {
@@ -102,12 +102,30 @@ async function main(args) {
     stopping = true;
     console.log('\nStopping after the matches in progress (Ctrl+C again to quit at once)...');
   });
-  await new Promise((resolve) => {
-    let live = threads;
-    for (let w = 0; w < threads; w++) {
-      const worker = new Worker(fileURLToPath(import.meta.url), { workerData: { map: run.scenario.map } });
+  await runPool(jobs, threads, run.scenario.map, (i, result) => {
+    results[i] = result;
+    done++;
+    const spent = (Date.now() - t0) / 1000;
+    process.stdout.write(`\r  ${done}/${jobs.length} matches, ${clock(spent)} spent, about ${clock((spent / done) * (jobs.length - done))} left   `);
+    if (done % 20 === 0) save();
+  }, () => stopping);
+  run.finished = new Date().toISOString();
+  save();
+  console.log(`\nSaved ${out} (${clock((Date.now() - t0) / 1000)}; ${((Date.now() - t0) / 1000 / done).toFixed(1)} s per match on ${threads} threads; front in m, 1 unit = ${METRES} m)`);
+  printReport(run);
+}
+
+// Runs jobs on worker threads: onResult(index, result) as each finishes; stop() true stops handing out
+// more (the matches in progress finish). Shared with the bot trainer (tools/train-bots.mjs).
+export function runPool(jobs, threads, map, onResult, stop = () => false) {
+  let next = 0;
+  return new Promise((resolve) => {
+    let live = Math.max(1, Math.min(threads, jobs.length));
+    if (!jobs.length) return resolve();
+    for (let w = 0, n = live; w < n; w++) {
+      const worker = new Worker(fileURLToPath(import.meta.url), { workerData: { map } });
       const feed = () => {
-        if (stopping || next >= jobs.length) {
+        if (stop() || next >= jobs.length) {
           worker.terminate();
           if (--live === 0) resolve();
           return;
@@ -116,11 +134,7 @@ async function main(args) {
         worker.postMessage({ ...jobs[i], index: i });
       };
       worker.on('message', ({ job, result }) => {
-        results[job.index] = result;
-        done++;
-        const spent = (Date.now() - t0) / 1000;
-        process.stdout.write(`\r  ${done}/${jobs.length} matches, ${clock(spent)} spent, about ${clock((spent / done) * (jobs.length - done))} left   `);
-        if (done % 20 === 0) save();
+        onResult(job.index, result);
         feed();
       });
       worker.on('error', (e) => {
@@ -130,10 +144,6 @@ async function main(args) {
       feed();
     }
   });
-  run.finished = new Date().toISOString();
-  save();
-  console.log(`\nSaved ${out} (${clock((Date.now() - t0) / 1000)}; ${((Date.now() - t0) / 1000 / done).toFixed(1)} s per match on ${threads} threads; front in m, 1 unit = ${METRES} m)`);
-  printReport(run);
 }
 
 // A worker thread runs matches; the main thread (run as a script, not imported) hands them out.

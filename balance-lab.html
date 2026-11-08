@@ -94,6 +94,12 @@
         <div class="row"><div id="progress"><i></i></div></div>
         <div class="row"><button id="cancel" disabled>Cancel (keeps the matches done)</button></div>
         <p class="dim">Keep this tab open while it runs. Runs in the queue start one after another; each is saved to balance/results/ as it goes.</p>
+        <h3>Train bots</h3>
+        <p class="dim" style="max-width: 900px">Bots learn how to fly each fighter. The trainer tries each plane's tactics (fighting style, height over the enemy, lowest fight speed, breaking off, firing range, throttle in turns) one step at a time in short 2-against-2 air fights against all six, and keeps a change only when it wins by more than luck. The new tactics are saved by themselves (data/bot-tactics.json); Restore puts the previous ones back. Plane data is never changed. A quick run of the fighters starts by itself afterwards.</p>
+        <div class="row">rounds <input type="number" id="trRounds" min="1" max="10" value="3" /> matches per opponent and try <input type="number" id="trSeeds" min="4" max="60" step="2" value="16" /> <span id="trEstimate" class="dim"></span></div>
+        <div class="row"><button id="train">Train bots</button> <button id="restore" title="Swap the current tactics with the ones before the last training (press again to undo)">Restore previous tactics</button></div>
+        <div id="trLog" class="summary dim"></div>
+        <div id="trNow"></div>
         <h3>Queue</h3>
         <div id="queue" class="queue dim">Empty.</div>
       </section>
