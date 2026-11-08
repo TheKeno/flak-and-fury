@@ -118,8 +118,11 @@ test('trucks: the glass polygon and the headlights are placed by the outline', (
     const moved = structuredClone(o);
     if (moved.glass) moved.glass.pts = moved.glass.pts.map(([d, hh]) => [d, hh - 0.25]);
     assert.notEqual(pic(moved), base, 'moving the glass changes the sprite');
-    const dark = structuredClone(o);
-    dark.points = dark.points.filter((p) => p.type !== 'headlight');
-    if (o.points.some((p) => p.type === 'headlight')) assert.notEqual(pic(dark), base, 'a headlight is drawn');
+    // A lamp placed out in the open (the owner's own may sit behind a mudguard): it shows.
+    const lit = structuredClone(o);
+    lit.points = [...lit.points.filter((p) => p.type !== 'headlight'), { type: 'headlight', d: 0.8, h: 1.3, r: 0.15, z: 1.5 }];
+    const unlit = structuredClone(lit);
+    unlit.points = unlit.points.filter((p) => p.type !== 'headlight');
+    assert.notEqual(pic(lit), pic(unlit), 'a headlight is drawn');
   }
 });
