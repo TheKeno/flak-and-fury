@@ -78,7 +78,7 @@
     {"type": "exit", "d": 5.95, "h": 1.5},
     {"type": "headlight", "d": 0.17, "h": 1.43, "r": 0.12, "z": 0.6}
   ],
-  "cover": "open",
+  "cover": "tarp",
   "glass": {
     "pts": [
       [1.85, 1.72],
