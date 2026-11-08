@@ -995,6 +995,7 @@ function allFiles() {
     r.groups?.forEach((g) => files.push(...g.files));
     if (r.clips) files.push(...r.clips);
     if (r.startup) files.push(...r.startup.files);
+    if (r.cutout) files.push(...r.cutout.files);
   }
   for (const l of Object.values(sound.layers)) files.push(...l.group.files);
   return files;
@@ -1003,7 +1004,7 @@ function allFiles() {
 function filesOf(id) {
   if (id.startsWith('layer:')) return sound.layers[id.slice(6)]?.group.files ?? [];
   const r = sound.recordings[id];
-  return [...(r?.groups ?? []).flatMap((g) => g.files), ...(r?.clips ?? []), ...(r?.startup?.files ?? [])];
+  return [...(r?.groups ?? []).flatMap((g) => g.files), ...(r?.clips ?? []), ...(r?.startup?.files ?? []), ...(r?.cutout?.files ?? [])];
 }
 
 function licenceFlag(id) {
@@ -1403,6 +1404,7 @@ const ENGINE_SLOTS = [
   ['full', 'Full', 'maxRpm', 'The same at full power and steady rpm. Avoid flypasts: the pitch changes and they cannot loop.'],
 ];
 const STARTUP_HELP = 'One whole start: starter, cough and catching, ideally 3-6 s after trimming. It should end on a running engine. Drag the pale Caught marker to where it is running.';
+const CUTOUT_HELP = 'The engine dying: a bang or cough, splutters and a falling rev, 2-4 s, ending near silence. No wind or speech. It plays when the fuel runs out, a fire stops the engine or emergency power overheats it; several files are picked at random.';
 const TANK_SLOTS = [
   ['idle', 'Standing', 'A steady loop of the engine idling with the tank still, 5-10 s.'],
   ['move', 'Moving', 'A steady loop of the engine working as the tank drives, 5-10 s, ideally without tracks.'],
@@ -1671,7 +1673,16 @@ function engineSlots(buildId, specs, locked) {
     body: [...st.files.map((f, i) => fileRow(f, locked, () => { st.files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
       slider(st, ['fade', 'Fade into the engine, s', 0.05, 3, 0.05, 'How long the clip and the running engine cross after Caught.'], null, locked)],
   });
-  return [el('h3', { textContent: 'Engine' }), ...ENGINE_SLOTS.map(row), startRow];
+  rec.cutout ??= { files: [], gain: 1 };
+  const cut = rec.cutout;
+  const cutRow = slotRow({
+    key: 'cutout', name: 'Engine cut-out', locked, stem: `${slug(id)}-cutout`, folder: 'engines', help: CUTOUT_HELP, files: cut.files,
+    level: cut.files.length ? { obj: cut, key: 'gain' } : null,
+    play: cut.files.length ? () => mixer?.recordings.playGroup({ ...newGroup(), gain: cut.gain ?? 1, pitchVar: 0, gainVar: 0, files: cut.files }, where()) : null,
+    onFiles: (added) => { for (const f of added) cut.files.push({ ...f }); },
+    body: cut.files.map((f, i) => fileRow(f, locked, () => { cut.files.splice(i, 1); drops.clear(); touch(); updateCount(); renderMain(); }, null, [])),
+  });
+  return [el('h3', { textContent: 'Engine' }), ...ENGINE_SLOTS.map(row), startRow, cutRow];
 }
 
 function tankSlots(buildId, locked) {
@@ -1809,9 +1820,9 @@ function slotCounts(buildId) {
   const kind = sound.builds[buildId].kind;
   if (kind === 'tank') return [TANK_SLOTS.filter(([k]) => rec?.clips?.some((c) => c.role === k)).length, TANK_SLOTS.length];
   const clips = ENGINE_SLOTS.filter(([k]) => rec?.clips?.some((c) => c.slot === k)).length;
-  const start = rec?.startup?.files?.length ? 1 : 0;
+  const start = (rec?.startup?.files?.length ? 1 : 0) + (rec?.cutout?.files?.length ? 1 : 0);
   const air = Object.keys(AIRFRAME_SLOTS).filter((k) => sound.layers[`slot_${k}`]?.group.files.length).length;
-  return [clips + start + air, ENGINE_SLOTS.length + 1 + Object.keys(AIRFRAME_SLOTS).length];
+  return [clips + start + air, ENGINE_SLOTS.length + 2 + Object.keys(AIRFRAME_SLOTS).length];
 }
 
 function renderPicker() {
@@ -1855,7 +1866,8 @@ function synthToggle(id, locked) {
         renderMain();
       } }), ' Synth on'),
     !on && !rec.clips?.length ? el('span', { className: 'warn', textContent: 'No clips and no synth: this engine is silent.' }) : null,
-    !on && !startup && sound.builds[id.slice(6)]?.kind === 'plane' ? el('span', { className: 'warn', textContent: 'No start-up clip: engine starts are silent.' }) : null);
+    !on && !startup && sound.builds[id.slice(6)]?.kind === 'plane' ? el('span', { className: 'warn', textContent: 'No start-up clip: engine starts are silent.' }) : null,
+    !on && !rec.cutout?.files?.length && sound.builds[id.slice(6)]?.kind === 'plane' ? el('span', { className: 'warn', textContent: 'No cut-out clip: the engine dying is silent.' }) : null);
 }
 
 // Everything on the page, together: one engine voice and the layers on it.
@@ -1917,6 +1929,7 @@ function testFlight(buildId, vehicles, kind) {
     ...usable.map((v) => el('option', { value: v.id, textContent: `${v.name}${v.count > 1 ? ` × ${v.count}` : ''}`, selected: v.id === state.vehicle })));
   box.append(el('div', { className: 'buttons' }, runBtn, 'as', pick,
     kind === 'plane' ? button('Start-up', () => running?.start(), 'Plays the start again') : null,
+    kind === 'plane' ? button('Engine cut', () => running?.cutOut?.(), 'Plays the engine dying') : null,
     button('Flyby', () => { if (mixer) flyby = mixer.now; }, 'Passes by over 6 seconds. Cockpit-only layers go quiet, as they would outside.')));
   box.append(slider(settings.audio, LEVEL_FIELDS[0], () => mixer?.applyLevels(), false));
   if (kind === 'tank') box.append(testSlider(state, 'moving', 'Moving', 0, 1, 1));
@@ -1973,11 +1986,12 @@ function renderDesign() {
   if (others.length) {
     const from = el('select', {}, el('option', { value: '', textContent: 'Copy clips from...' }), ...others.map(([k, b]) => el('option', { value: k, textContent: b.name })));
     from.onchange = () => {
-      if (!from.value || !confirm(`Replace this sound's clips and start-up with those of ${sound.builds[from.value].name}?`)) return;
+      if (!from.value || !confirm(`Replace this sound's clips, start-up and cut-out with those of ${sound.builds[from.value].name}?`)) return;
       const src = sound.recordings[`build:${from.value}`] ?? {};
       const rec = recOf(id);
       rec.clips = clone(src.clips ?? []);
       rec.startup = clone(src.startup ?? { files: [], gain: 1, fade: 0.6 });
+      rec.cutout = clone(src.cutout ?? { files: [], gain: 1 });
       rec.synth = src.synth ?? 1;
       touch();
       updateCount();

@@ -410,6 +410,11 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         case 'engineStart':
           engines.get(e.plane)?.start();
           break;
+        case 'engineOut':
+        case 'engineFire':
+        case 'engineSeized':
+          engines.get(e.plane)?.cutOut();
+          break;
         case 'serviceDone':
           sfx.play(mixer, voices.serviceDone, where, { gain: 0.5, rate: 1.1 });
           sfx.play(mixer, voices.serviceDone, where, { gain: 0.5, rate: 1.1, offset: 0.18 });

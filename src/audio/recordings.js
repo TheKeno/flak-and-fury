@@ -21,6 +21,7 @@ function pathsIn(sound) {
     r.groups?.forEach((g) => add(g.files));
     add(r.clips);
     add(r.startup?.files);
+    add(r.cutout?.files);
   }
   for (const l of Object.values(sound.layers ?? {})) add(l.group?.files);
   return paths;
@@ -348,6 +349,28 @@ export function createRecordings(mixer, sound) {
     return { caught, fade, stop() { try { src.stop(); } catch { /* already over */ } g.disconnect(); } };
   }
 
+  // A recorded engine cut-out (the engine dying): one of the files, trimmed, at its level. Returns
+  // { stop } or null when there is no recording (the voice then makes its own).
+  function playCutout(recId, dest) {
+    const cutout = sound.recordings?.[recId]?.cutout;
+    const files = (cutout?.files ?? []).filter((f) => buffers.has(f.path));
+    if (!files.length) return null;
+    const file = files[Math.floor(Math.random() * files.length)];
+    const buf = buffers.get(file.path);
+    const begin = file.start ?? 0;
+    const end = file.end ?? buf.duration;
+    const at = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    g.gain.value = cutout.gain ?? 1;
+    src.connect(g).connect(dest);
+    src.start(at, begin, Math.max(0.01, end - begin));
+    headFrom(file, begin, at, 1, end - begin, false);
+    src.addEventListener('ended', () => { heads.delete(file); g.disconnect(); });
+    return { stop() { try { src.stop(); } catch { /* already over */ } } };
+  }
+
   // A view of the mixer whose buses pass through the sound's synth level, so any synthesized
   // sound can be turned down beside its recordings without knowing about them.
   function scoped(id) {
@@ -463,6 +486,7 @@ export function createRecordings(mixer, sound) {
     createClips,
     createTankClips,
     playStartup,
+    playCutout,
     createLayerHost,
     scoped,
     synthLevel,
