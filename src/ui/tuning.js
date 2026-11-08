@@ -61,6 +61,7 @@ const CAMERA_FIELDS = [
   ['height', 'Plane height on screen', 0.2, 0.8, 0.01, 'Where the plane sits vertically (0 = bottom, 1 = top).'],
   ['lookRange', 'Mouse look: reach', 0, 0.5, 0.01, 'How far the camera slides when you hold right mouse and point (share of the view).'],
   ['bombLookRange', 'Bomb view: reach down', 0.2, 0.6, 0.01, 'How far the camera drops while the bomb view is held (share of the view). The plane always stays on screen.'],
+  ['bombSightReach', 'Bomb sight: reach', 0.1, 1, 0.05, 'How far down the bomb's fall the sight shows (share of the fall). Lower = more guesswork; 1 = shows the impact point.'],
   ['lookSensitivity', 'Mouse look: travel for full look', 40, 600, 10, 'How far (screen pixels) you move the mouse to turn your head all the way. Lower = more sensitive.'],
   ['lookReturn', 'Mouse look: back to front after', 1, 30, 0.5, 'Seconds without moving the mouse before the view eases back to looking ahead.'],
   ['lookSpeed', 'Mouse look: speed', 0.5, 12, 0.1, 'How quickly the view follows the pointer and eases back. Lower = heavier, more resistance.'],

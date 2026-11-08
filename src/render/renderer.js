@@ -1354,16 +1354,20 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // Bomb sight (bomb view held): the fall of the next bomb as dots, ending in a ring and cross where it
-  // would hit the ground if released now. Dim and empty when nothing is left to drop.
+  // Bomb sight (bomb view held): the first part of the next bomb's fall as dots, ending in a ring and
+  // cross up in the air. It stops camera.bombSightReach of the way to the ground (share of the fall's time),
+  // so the rest of the drop is the pilot's own judgement.
   function drawBombSight(p) {
     if (!p || p.state === 'dead' || p.bailout) return;
     const hit = bombSightPath(world, p);
     if (!hit) return;
+    const n = Math.max(1, Math.floor(hit.path.length * clamp(camCfg.bombSightReach, 0, 1)));
+    const shown = hit.path.slice(0, n);
     ctx.fillStyle = 'rgba(200,184,112,0.55)';
-    for (const [x, y] of hit.path) ctx.fillRect(Math.round(toScreenX(x)), Math.round(toScreenY(y)), 1, 1);
-    const sx = Math.round(toScreenX(hit.x));
-    const sy = Math.round(toScreenY(hit.y));
+    for (const [x, y] of shown) ctx.fillRect(Math.round(toScreenX(x)), Math.round(toScreenY(y)), 1, 1);
+    const [px, py] = shown[shown.length - 1];
+    const sx = Math.round(toScreenX(px));
+    const sy = Math.round(toScreenY(py));
     ctx.strokeStyle = 'rgba(214,196,120,0.9)';
     ctx.lineWidth = 1;
     ctx.beginPath();

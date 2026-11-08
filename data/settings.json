@@ -12,6 +12,7 @@
     "zoomSpeed": 1.2,
     "lookRange": 0.33,
     "bombLookRange": 0.5,
+    "bombSightReach": 0.5,
     "lookSpeed": 4.5,
     "lookZoom": 0.12,
     "lookSensitivity": 200,
