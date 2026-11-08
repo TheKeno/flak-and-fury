@@ -406,6 +406,7 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **A tank for each nation (Gameplay, 2026-11-08):** each side drives its nation's Outline Lab tank (`tank.sprites` in `data/ground.json`: Panzer IV H, T-34/76, Churchill, M4A1, Chi-Ha, BT-42; countryside: Panzer against Churchill). Owner's call: **one shared set of numbers**, only the size differs: `tank.sizes` holds each type's real length and height (heights from memory, check against the sheets), and `makeGroundObject` in `src/sim/ground.js` sets `obj.model`, `obj.width` and `obj.height` (hit box, column spacing, bot skyline). The loader loads all six layer sets; `drawVehicle` draws `obj.model`. Seen in play muted: all six draw with their own gun and crew points. `tests/tank-types.test.mjs`. **Not done:** tanks all use one engine sound (`defaultTankBuild` in `soundscape.js`), not the Sound Lab vehicle entry per type.
 - **Milestone 8 step 1: the pace of the ground forces, infantry in trucks (Gameplay, 2026-11-08):** tanks 5 → 12 u/s
   (`creepSpeed` 0.3 → 0.15 so the creep stays about as slow), waves every 60 s from 10 s, two squads of six per wave, each
   in its own truck (new `truck` in `data/ground.json`, speed 20; the nation's Outline Lab truck by `sprites`: Opel Blitz,
@@ -700,7 +701,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Empty trucks driving home overlap (Gameplay):** returning trucks skip the column queue, so two heading home can drive
   through each other. Minor; let them keep a gap among themselves.
 - **Vehicle headlights at night (Gameplay):** when the night maps and the lighting layer (item 14) are done, light the trucks' headlamps (and tank lamps) from the `lights` list in each truck's sprite json (pixel centre and radius, beam pointing forward).
-- **A tank for each nation in the game (Gameplay):** the sim has one `tank` type drawn as the Panzer for every side. Give each nation its own (`panzer4h`, `m4a1`, `t34-76`, `churchill`, `chiha`, `bt42`), chosen by the front's two nations (Kursk: `panzer4h` against `t34-76`), with its own size and hit box (the real hull lengths are 5.55 to 7.44 m); `spriteScale` stays 1.5 until the infantry get real-scale sprites.
 - **Tank detail list (Planes):** hand-placed extras on a tank outline (tools on the mudguards, exhaust, hatches, spare track links, headlamp), rectangles and circles at d and h, edited in the Lab like the markings.
 - **Infantry at real scale (Planes):** the squad drawing (`drawSquad`, 13 scenery pixels, 2.6 m) is 1.5 times too big for the planes' scale; redraw them as 0.1 m pixel sprites (17 px) from the Lab, then drop the tank's `spriteScale`.
 - **Review the propeller sound system** (Sound): the engine synth makes a propeller whomp (`prop`) and prop wash noise

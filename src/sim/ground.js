@@ -11,6 +11,8 @@ const PLANE_CRASH_DAMAGE = 60; // what a plane flying into a structure does to i
 const GEAR_REACH = 4; // the wheels hang this far below a plane's centre
 
 const SQUADS = new Set(['infantry', 'engineers']);
+// World units per metre for vehicles drawn at real scale (Lab sprites: 10 px a metre, at 4 px a world unit).
+const METRE = 2.5;
 // Where an airfield's hangar stands: at the end of the runway nearest the map edge.
 export const hangarX = (world, af) => (af.x + af.width / 2 < world.map.width / 2 ? af.x + 24 : af.x + af.width - 24);
 
@@ -22,6 +24,18 @@ export function makeGroundObject(world, type, team, x, { squad, width, mobile = 
   const obj = { id: world.nextId++, type, def, team, x, alive: true, wreckedAt: 0, mobile };
   if (type === 'hangar') Object.assign(obj, { door: 0, doorHold: 0 }); // doors shut until a plane rolls out
   if (width) obj.width = width;
+  // A vehicle with a type per nation (def.sprites; failing that, the team's place in the list) takes that
+  // type's real size from def.sizes ([length, height] in metres): one set of numbers, each its own hit box.
+  if (def.sprites && def.sizes) {
+    const nation = world.map.airfields?.find((a) => a.team === team)?.nation;
+    obj.model = def.sprites[nation] ?? Object.values(def.sprites)[team ?? 0] ?? def.sprite;
+    const size = def.sizes[obj.model];
+    if (size && !width) {
+      const k = METRE * (def.spriteScale ?? 1);
+      obj.width = size[0] * k;
+      obj.height = size[1] * k;
+    }
+  }
   if (SQUADS.has(type)) {
     const n = squad ?? 4;
     obj.soldiers = Array.from({ length: n }, (_, i) => ({ dx: (i - (n - 1) / 2) * def.spacing, hp: def.hp }));
@@ -107,7 +121,7 @@ export function groundBox(world, obj) {
     return [obj.x - half, bank - obj.def.height, obj.x + half, bank + 1];
   }
   const y = surfaceAt(world, obj.x);
-  return [obj.x - half, y - 1, obj.x + half, y + obj.def.height];
+  return [obj.x - half, y - 1, obj.x + half, y + (obj.height ?? obj.def.height)];
 }
 
 // Like radar: how well a team's ground crew can work, 0..1, from its hangar's state.

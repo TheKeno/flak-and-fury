@@ -88,9 +88,10 @@ export async function loadContent(mapName) {
   };
 
   // Ground vehicles drawn from the Outline Lab come as layers (see tools/make-sprites.mjs): the sprite's json says so.
+  // A layered def with `sprites` (tanks) has one per nation.
   const vehicles = {};
   await Promise.all(
-    [...new Set(Object.values(groundDefs).filter((d) => d.layers).map((d) => d.sprite))].map(async (n) => {
+    [...new Set(Object.values(groundDefs).filter((d) => d.layers).flatMap((d) => [d.sprite, ...Object.values(d.sprites ?? {})]))].map(async (n) => {
       try {
         const meta = await json(`assets/sprites/${n}.json`);
         if (!meta.frames) return;
@@ -106,7 +107,7 @@ export async function loadContent(mapName) {
   // Trucks from the Outline Lab, one per nation (a def's `sprites`): the open truck and the one with its tarp up.
   const trucks = {};
   await Promise.all(
-    [...new Set(Object.values(groundDefs).flatMap((d) => Object.values(d.sprites ?? {})))].map(async (n) => {
+    [...new Set(Object.values(groundDefs).filter((d) => !d.layers).flatMap((d) => Object.values(d.sprites ?? {})))].map(async (n) => {
       try {
         const [meta, open, tarp] = await Promise.all([json(`assets/sprites/${n}.json`), loadImage(`assets/sprites/${n}.png`), loadImage(`assets/sprites/${n}-tarp.png`)]);
         trucks[n] = { meta, open, tarp };

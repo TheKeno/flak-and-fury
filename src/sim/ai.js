@@ -344,7 +344,7 @@ function skyline(world, x) {
     for (const o of world.ground) {
       if (!o.alive || !o.def.solid) continue;
       const half = (o.width ?? o.def.width) / 2;
-      const top = surfaceAt(world, o.x) + o.def.height;
+      const top = surfaceAt(world, o.x) + (o.height ?? o.def.height);
       for (let c = Math.floor((o.x - half) / 10); c <= Math.floor((o.x + half) / 10); c++) if (c >= 0 && c < cols.length) cols[c] = Math.max(cols[c], top);
     }
     world.botSkyline = { cols, until: world.tick + 60 };

@@ -541,7 +541,7 @@ export function createRenderer(canvas, world, assets) {
   // Drawn in the hull's frame (x = the middle of the tracks on the ground), a sprite pixel being a buffer pixel.
   function drawVehicle(obj, v, sx, by, dir) {
     const m = v.meta;
-    const L = vehicleSet(obj.def.sprite, v, obj.team);
+    const L = vehicleSet(obj.model ?? obj.def.sprite, v, obj.team);
     const [cw, ch] = m.cell;
     const mid = Math.round(m.pivot[0] - (m.length * m.pixelsPerMetre) / 2);
     const tilt = obj.tilt ?? 0;
@@ -881,8 +881,10 @@ export function createRenderer(canvas, world, assets) {
       const dir = facingOf(obj);
       const turns = obj.type === 'flak' || obj.type === 'mgNest' || obj.type === 'tank';
       const gun = obj.type === 'flak' || obj.type === 'mgNest';
-      if (obj.type === 'tank' && assets.vehicles?.[obj.def.sprite]) {
-        drawVehicle(obj, assets.vehicles[obj.def.sprite], sx, Math.round(toScreenY(obj.baseY ?? surfaceAt(world, obj.x))) + 2, dir);
+      // Each nation's own tank (obj.model, set by the sim), drawn from its Outline Lab layers.
+      const veh = obj.type === 'tank' && assets.vehicles?.[obj.model ?? obj.def.sprite];
+      if (veh) {
+        drawVehicle(obj, veh, sx, Math.round(toScreenY(obj.baseY ?? surfaceAt(world, obj.x))) + 2, dir);
         continue;
       }
       if (obj.type === 'tank') {
@@ -935,7 +937,7 @@ export function createRenderer(canvas, world, assets) {
       if (obj.alive) {
         const hurt = 1 - obj.hp / obj.maxHp;
         if (hurt > 0.5 && Math.random() < (hurt - 0.4) * dt * 6) {
-          particles.spawn('smoke', obj.x + (Math.random() - 0.5) * obj.def.width * 0.6, gy + obj.def.height * 0.7, 0, 6, 1.6 + Math.random(), 1.2);
+          particles.spawn('smoke', obj.x + (Math.random() - 0.5) * (obj.width ?? obj.def.width) * 0.6, gy + (obj.height ?? obj.def.height) * 0.7, 0, 6, 1.6 + Math.random(), 1.2);
         }
         continue;
       }

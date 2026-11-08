@@ -375,6 +375,7 @@ map the first columns meet at about 2.5 minutes (it was about 5).
 | `gap` | Clear space a unit keeps behind the one ahead of it in its column. | 4 – 12 |
 | `engageRange` | An enemy this close ahead stops the unit to fight. | 60 – 200 |
 | `layers` / `spriteScale` | A tank drawn from Outline Lab layers (hull, turret, gun, crew; `assets/sprites/<sprite>.json`): `layers` turns it on, `spriteScale` draws it that many times bigger than the real scale (1.5 while the infantry are drawn 1.5 times too big). | true / 1 – 1.5 |
+| `sprites` / `sizes` (tank) | Each nation's tank: `sprites` by nation (failing that, the team's place in the list), `sizes` each type's real [length, height] in metres. All tanks share the other numbers; the size sets the hit box (2.5 units a metre × `spriteScale`). Edit in the file, not the panel. | Panzer IV 5.92 × 2.68 … Churchill 7.44 × 2.49 |
 | `bulletFactor` / `roofFactor` | Tank armour: share of bullet damage from the front and sides, and from a steep dive onto the roof. Bombs do full damage. | 0.02 – 0.1 / 0.2 – 0.5 |
 | `gunRange`, `gunInterval`, `gunVelocity` | Tank main gun (ground targets only): reach, seconds between shots, shell speed. | 120 – 250, 3 – 8 |
 | `gunDepression`, `gunElevation` | How far the main gun dips below and lifts above the hull (radians). The hull tilts with the ground, so a tank on a slope can't reach everything. | 0.1 – 0.3, 0.3 – 0.7 |
