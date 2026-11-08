@@ -1,0 +1,186 @@
+{
+  "vehicle": "tank",
+  "sprite": {
+    "size": [80, 36],
+    "pivot": [64, 32]
+  },
+  "_notes": "Ground vehicle (tank), side view only. Metres. d = back from the front of the hull (the gun reaches out to negative d), h = up from the ground (the track bottom). Stations are [d, top h, bottom h, half width]. fuselage = the hull, turret and gun are stations like a plane's parts; the gun swings about gun.pivot [d, h] and is painted from gun.mantlet back (d above it is mantlet, d below it barrel). tracks.loop is the closed band round the running gear, wheels are circles at the track's z. Details: bump..bump12, layer 'turret' puts one on the turret sprite, z makes a pair out at +-z (skirts). First guess from known Panzer IV Ausf. H dimensions (hull 5.92 m, 2.68 m high), to be fitted to the sheet in the Outline Lab. scale = model units per metre (5 = the planes' 0.1 m pixel).",
+  "length": 5.92,
+  "width": 2.88,
+  "scale": 5,
+  "frame": {
+    "x": 0,
+    "y": 0
+  },
+  "fuselage": {
+    "n": 5,
+    "stations": [
+      [0.15, 1.1, 0.45, 1.1],
+      [0.4, 1.2, 0.42, 1.18],
+      [1.1, 1.45, 0.4, 1.2],
+      [1.75, 1.5, 0.4, 1.2],
+      [4.2, 1.5, 0.4, 1.2],
+      [4.4, 1.35, 0.4, 1.2],
+      [5, 1.28, 0.4, 1.15],
+      [5.85, 1.18, 0.45, 1.1]
+    ]
+  },
+  "turret": {
+    "n": 4,
+    "stations": [
+      [2.05, 2.2986, 1.4662, 0.8],
+      [2.1474, 2.3126, 1.489, 0.83],
+      [2.391, 2.3465, 1.7282, 0.9049],
+      [2.8295, 2.3982, 1.5837, 1],
+      [3.1218, 2.4286, 1.5816, 1],
+      [3.2192, 2.4016, 1.5937, 1],
+      [3.609, 2.3383, 1.7155, 0.9523],
+      [3.95, 2.2831, 1.5, 0.85]
+    ]
+  },
+  "gun": {
+    "n": 2,
+    "pivot": [2.05, 1.95],
+    "mantlet": 1.9,
+    "stations": [
+      [-1.05, 2.02, 1.88, 0.07],
+      [-0.85, 2.04, 1.86, 0.1],
+      [-0.8, 2.02, 1.88, 0.07],
+      [1.9, 2.02, 1.88, 0.07],
+      [1.92, 2.2, 1.7, 0.3],
+      [2.25, 2.2, 1.7, 0.3]
+    ]
+  },
+  "tracks": {
+    "z": 1.24,
+    "half": 0.2,
+    "thick": 0.1,
+    "pitch": 0.4,
+    "loop": [
+      [0.9, 0.05],
+      [0.45, 0.17],
+      [0.2, 0.4],
+      [0.15, 0.62],
+      [0.25, 0.86],
+      [0.5, 0.98],
+      [1.2, 0.97],
+      [2.6, 0.95],
+      [4.2, 0.96],
+      [5.45, 0.95],
+      [5.78, 0.8],
+      [5.84, 0.55],
+      [5.7, 0.28],
+      [5.4, 0.12],
+      [5.2, 0.05]
+    ]
+  },
+  "wheels": [
+    {
+      "d": 0.5,
+      "h": 0.62,
+      "r": 0.33,
+      "kind": "sprocket"
+    },
+    {
+      "d": 5.5,
+      "h": 0.55,
+      "r": 0.3,
+      "kind": "idler"
+    },
+    {
+      "d": 1.3,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 1.8,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 2.3,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 2.8,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 3.3,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 3.8,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 4.3,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 4.8,
+      "h": 0.28,
+      "r": 0.235
+    },
+    {
+      "d": 1.5,
+      "h": 0.84,
+      "r": 0.09,
+      "kind": "return"
+    },
+    {
+      "d": 2.7,
+      "h": 0.84,
+      "r": 0.09,
+      "kind": "return"
+    },
+    {
+      "d": 3.9,
+      "h": 0.84,
+      "r": 0.09,
+      "kind": "return"
+    },
+    {
+      "d": 5,
+      "h": 0.84,
+      "r": 0.09,
+      "kind": "return"
+    }
+  ],
+  "bump": {
+    "n": 2.5,
+    "z": 1.5,
+    "kind": "paint",
+    "stations": [
+      [0.9, 1.2, 0.5, 0.02],
+      [3, 1.2, 0.5, 0.02],
+      [5, 1.2, 0.5, 0.02]
+    ]
+  },
+  "bump2": {
+    "n": 3,
+    "layer": "turret",
+    "kind": "paint",
+    "stations": [
+      [2.65, 2.55, 2.3, 0.22],
+      [2.9, 2.68, 2.3, 0.26],
+      [3.15, 2.55, 2.3, 0.22]
+    ]
+  },
+  "markings": [
+    {
+      "on": "turret",
+      "d": 3.35,
+      "h": 1.95,
+      "r": 0.1
+    }
+  ],
+  "points": [
+    {"type": "tankcrew", "d": 2.9, "h": 2.78, "r": 0.14, "lower": 0.2, "gun": {"at": [0.1, -0.08], "aim": 0, "len": 0.5, "r": 0.02}}
+  ]
+}

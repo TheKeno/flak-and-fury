@@ -1604,6 +1604,130 @@ function ju87(o) {
   };
 }
 
+// ----- Ground vehicles (tanks) -----
+// Outline file with `vehicle: 'tank'`, side view only, h up from the ground, d back from the front of the hull:
+//   fuselage = the hull, turret, gun (stations along d, `pivot` [d, h] it swings about, `mantlet`: d from which
+//   the part is painted, in front of it dark barrel), tracks { z, half, thick, pitch, loop: [[d, h]] } (the band
+//   round the running gear, a closed loop), wheels [{ d, h, r, kind: road | sprocket | idler | return }] (placed
+//   at the track's z, both sides), bump...bump12 for hatches, cupola and skirts (`layer: 'turret'` puts a detail
+//   on the turret sprite, `z` makes a pair out at ±z) and markings [{ on: 'turret' | 'hull', d, h, r }].
+// The sprite is made in layers (hull with its running gear, turret, gun, crew) so the game can aim the gun, toss
+// the turret and show the crew; the running gear is built for a phase (0..1 of one track link) for the
+// animation frames.
+export const BUMP_KEYS = ['bump', ...Array.from({ length: 11 }, (_, i) => `bump${i + 2}`)];
+export const VEHICLE_LAYERS = ['hull', 'turret', 'gun', 'crew'];
+
+// A closed band round a track run: a tube along the loop (points [x, y] in model units), flat across z (centred on
+// ±zc, `half` wide). near(x, y) gives the distance to the loop and how far along it the nearest point lies.
+export function belt(loop, zc, half, t) {
+  const segs = [];
+  let len = 0;
+  let area = 0;
+  loop.forEach((a, i) => {
+    const b = loop[(i + 1) % loop.length];
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    segs.push({ a, b, l, s0: len });
+    len += l;
+    area += a[0] * b[1] - b[0] * a[1];
+  });
+  const near = (x, y) => {
+    let best = { d: Infinity, s: 0 };
+    for (const g of segs) {
+      const vx = g.b[0] - g.a[0];
+      const vy = g.b[1] - g.a[1];
+      const k = g.l ? clamp(((x - g.a[0]) * vx + (y - g.a[1]) * vy) / (g.l * g.l), 0, 1) : 0;
+      const d = Math.hypot(x - (g.a[0] + vx * k), y - (g.a[1] + vy * k));
+      if (d < best.d) best = { d, s: g.s0 + g.l * k };
+    }
+    return best;
+  };
+  const xs = loop.map((p) => p[0]);
+  const ys = loop.map((p) => p[1]);
+  return {
+    box: [[Math.min(...xs) - t, Math.min(...ys) - t, -(zc + half)], [Math.max(...xs) + t, Math.max(...ys) + t, zc + half]],
+    near,
+    length: len,
+    clockwise: area < 0, // x towards the nose, y up: clockwise = the top run moves forward
+    field: ([x, y, z]) => Math.max(near(x, y).d - t, Math.abs(Math.abs(z) - zc) - half),
+  };
+}
+
+function tank(o, opts = {}) {
+  const { M, X, Y, bodyOf } = kit(o);
+  const tr = o.tracks;
+  const pitch = (tr.pitch ?? 0.4) * M;
+  // phase 0..1 is one cycle of the running-gear animation: the track moves two links (the dark and light pattern
+  // repeats every two), and each wheel turns a whole number of bolt spacings, so the cycle ends where it began.
+  const phase = opts.phase ?? 0;
+  const travel = phase * 2 * pitch; // how far the tank has rolled, model units
+  const plain = (kind) => () => ({ kind });
+  const mark = (on) => (p, n) => {
+    for (const m of o.markings ?? []) {
+      const k = m.on === on && side(n) && cross(p[0] - X(m.d), p[1] - Y(m.h), m.r * M);
+      if (k) return { kind: k };
+    }
+    return null;
+  };
+  const hull = bodyOf(o.fuselage);
+  const turret = bodyOf(o.turret);
+  const gun = bodyOf(o.gun);
+  const band = belt(tr.loop.map(([d, h]) => [X(d), Y(h)]), tr.z * M, tr.half * M, ((tr.thick ?? 0.1) * M) / 2);
+  const bandMat = (p) => {
+    const { s } = band.near(p[0], p[1]);
+    const link = Math.floor((s + (band.clockwise ? travel : -travel)) / pitch);
+    return { kind: link % 2 === 0 ? 'metal' : 'dark' };
+  };
+  // Wheels turn with the track: a bolt ring (12 bolts on a sprocket, 6 on a road wheel) shows it.
+  const wheelMat = (kind, c, r) => {
+    const per = (Math.PI * 2) / (kind === 'sprocket' ? 12 : 6);
+    const turn = phase * Math.max(1, Math.round((2 * pitch) / r / per)) * per;
+    return (p) => {
+    const dx = p[0] - c[0];
+    const dy = p[1] - c[1];
+    const rr = Math.hypot(dx, dy) / r;
+    const a = Math.atan2(dy, dx) + turn;
+    if (kind === 'return') return { kind: 'metal' };
+    if (rr < 0.2) return { kind: 'dark' };
+    if (kind === 'sprocket') return { kind: rr > 0.45 && rr < 0.68 && Math.cos(a * 12) > 0.75 ? 'dark' : 'metal' };
+    if (rr > 0.72) return { kind: kind === 'road' ? 'tyre' : 'metal' };
+    return { kind: rr > 0.38 && rr < 0.58 && Math.cos(a * 6) > 0.8 ? 'dark' : 'metal' };
+    };
+  };
+  const wheels = (o.wheels ?? []).map((w) => {
+    const c = [X(w.d), Y(w.h), tr.z * M];
+    return { ...wheel(c, w.r * M, tr.half * M * 0.8), material: wheelMat(w.kind ?? 'road', c, w.r * M) };
+  });
+  const barrelFrom = X(o.gun.mantlet ?? Infinity);
+  const [gd, gh] = o.gun.pivot;
+  const ring = o.turret.stations;
+  const parts = [
+    { ...hull, material: (p, n) => mark('hull')(p, n) ?? { kind: 'paint' } },
+    { ...band, material: bandMat },
+    ...wheels,
+    { ...turret, layer: 'turret', material: (p, n) => mark('turret')(p, n) ?? { kind: 'paint' } },
+    { ...gun, layer: 'gun', material: (p) => ({ kind: p[0] > barrelFrom ? 'dark' : 'paint' }) },
+  ];
+  return {
+    parts,
+    attach: {
+      gunPivot: [X(gd), Y(gh), 0],
+      muzzle: [X(o.gun.stations[0][0]), Y(gh), 0],
+      turretPivot: [X((ring[0][0] + ring.at(-1)[0]) / 2), Y(Math.min(...ring.map((r) => r[2]))), 0],
+    },
+  };
+}
+
+// The layers of a vehicle drawn on top of each other (hull, turret, gun, crew) into one grid of palette keys.
+export function renderVehicle(model, w, h, anchor, { res = 1, layers = VEHICLE_LAYERS } = {}) {
+  let out = null;
+  for (const layer of layers) {
+    if (!model.parts.some((p) => (p.layer ?? 'hull') === layer)) continue;
+    const rows = render(model, rollPose(0), w, h, anchor, { res, layer });
+    out = out ? out.map((r, y) => [...r].map((c, x) => (rows[y][x] !== '.' ? rows[y][x] : c)).join('')) : rows;
+  }
+  return out ?? Array.from({ length: h }, () => '.'.repeat(w));
+}
+
 // Builders by plane; each reads its outline (data/outlines/<plane>.json, see kit above).
 // Parts any plane can carry although its model code does not know them (a plane built from a template in the
 // Outline Lab): `bump`, `bump2`, `bump3` (small details: gun sight, antenna housing), `spat` (a mirrored pair
@@ -1630,7 +1754,7 @@ const pointParts = (o, opts = {}) => {
       const r = (pt.r ?? 0.14) * M;
       parts.push({ ...sphere(c, r), layer: 'crew', material: plain('pilot') });
       parts.push({ ...box([c[0], c[1] - r * 1.9, c[2]], [r * 1.5, r * 1.1, r * 1.4]), layer: 'crew', material: plain('pilot') });
-      const g = gunner ? pt.mg : null;
+      const g = gunner ? pt.gun : null;
       if (g) {
         const a = (g.aim * Math.PI) / 180;
         const d0 = pt.d + g.at[0];

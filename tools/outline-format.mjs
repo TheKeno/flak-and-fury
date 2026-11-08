@@ -1,7 +1,7 @@
 // How data/outlines/*.json is written: two-space indent, every row of numbers on one line, so a
 // station table reads like the table it is and git diffs stay small. Shared by the Outline Lab (browser)
 // and the migration tools.
-const ORDER = ['plane', 'template', 'sprite', '_notes', 'length', 'span', 'scale', 'frame', 'fuselage', 'spinner', 'spine', 'nacelle', 'gunTray', 'radiators', 'bump', 'bump2', 'bump3', 'spat', 'canopy', 'wing', 'tailplane', 'fin', 'fins', 'points', 'gear', 'touchups'];
+const ORDER = ['plane', 'vehicle', 'template', 'sprite', '_notes', 'length', 'span', 'width', 'scale', 'frame', 'fuselage', 'turret', 'gun', 'tracks', 'wheels', 'spinner', 'spine', 'nacelle', 'gunTray', 'radiators', 'bump', ...Array.from({ length: 11 }, (_, i) => `bump${i + 2}`), 'spat', 'markings', 'canopy', 'wing', 'tailplane', 'fin', 'fins', 'points', 'gear', 'touchups'];
 
 export function formatOutline(o) {
   const ordered = {};

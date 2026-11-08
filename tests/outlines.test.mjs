@@ -10,7 +10,7 @@ const names = Object.keys(BUILDERS);
 test('every finished plane has an outline file, and every other file borrows a finished plane as its template', () => {
   const files = readdirSync(new URL('../data/outlines/', import.meta.url)).map((f) => f.replace('.json', '')).sort();
   for (const n of names) assert.ok(files.includes(n), `${n} has no outline`);
-  for (const f of files.filter((f) => !names.includes(f))) assert.ok(names.includes(loadOutline(f).template), `${f} needs a template`);
+  for (const f of files.filter((f) => !names.includes(f) && !loadOutline(f).vehicle)) assert.ok(names.includes(loadOutline(f).template), `${f} needs a template`);
 });
 
 test('outline stations are sorted, in range and mirror the plane they name', () => {

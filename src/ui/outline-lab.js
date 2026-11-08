@@ -1,7 +1,7 @@
 // Outline Lab: edit a plane's outline (data/outlines/<plane>.json) over a blueprint, with the real
 // renderer (tools/plane-models.mjs) showing the finished sprite live. Side view first; open as
 // outline-lab.html (the dev server, node tools/serve.mjs, saves the files and builds the sprites).
-import { kit, buildModel, render, rollPose } from '../../tools/plane-models.mjs';
+import { kit, buildModel, render, rollPose, renderVehicle, BUMP_KEYS } from '../../tools/plane-models.mjs';
 import { PALETTE } from '../../tools/plane-palette.mjs';
 import { formatOutline } from '../../tools/outline-format.mjs';
 import { paintSprite } from '../render/sprites.js';
@@ -17,17 +17,19 @@ const round025 = (v) => Math.round(v / 0.025) * 0.025;
 
 const COLOURS = {
   fuselage: '#e0c070', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
-  gunTray: '#b0b0b0', radiators: '#90d090', bump: '#d0d0ff', bump2: '#d0d0ff', bump3: '#d0d0ff', spat: '#c0b090', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff', points: '#ff7ad9',
+  gunTray: '#b0b0b0', radiators: '#90d090', ...Object.fromEntries(BUMP_KEYS.map((k) => [k, '#d0d0ff'])), spat: '#c0b090', turret: '#70d0c0', gun: '#f0a060', tracks: '#b0b0b0', wheels: '#e0d0a0', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff', points: '#ff7ad9',
 };
 const LABELS = {
   fuselage: 'Fuselage', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
-  radiators: 'Radiators', bump: 'Bump', bump2: 'Bump 2', bump3: 'Bump 3', spat: 'Wheel spat', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear', points: 'Crew and guns',
+  radiators: 'Radiators', ...Object.fromEntries(BUMP_KEYS.map((k, i) => [k, i ? `Bump ${i + 1}` : 'Bump'])), spat: 'Wheel spat', turret: 'Turret', gun: 'Gun', tracks: 'Tracks', wheels: 'Wheels', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear', points: 'Crew and guns',
 };
 const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
 // The plan view (from above) and the underside view (from below) edit the same points, each over its own picture.
 const isPlan = () => S.mode !== 'side';
-const label = (key) => (S.mode === 'side' && (key === 'wing' || key === 'tailplane') ? `${LABELS[key]} root` : LABELS[key]);
-const BODY_KEYS = ['fuselage', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', 'bump', 'bump2', 'bump3', 'spat'];
+const label = (key) => (isVehicle() && key === 'fuselage' ? 'Hull' : S.mode === 'side' && (key === 'wing' || key === 'tailplane') ? `${LABELS[key]} root` : LABELS[key]);
+const BODY_KEYS = ['fuselage', 'turret', 'gun', 'spinner', 'spine', 'canopy', 'nacelle', 'gunTray', 'radiators', ...BUMP_KEYS, 'spat'];
+// Ground vehicles (a tank: an outline file with `vehicle`) are edited in the side view only; see the vehicle notes in plane-models.mjs.
+const isVehicle = () => !!S.o?.vehicle;
 
 const S = window.outlineLab = {
   name: null,
@@ -74,6 +76,7 @@ function showDirty() {
 // Metres: d back from the plane's reference nose point, h up. The blueprint is placed by the two
 // calibration clicks (nose = d 0, h 0; tail end = d length, h tailH), which also gives its scale and tilt.
 function tailHeight() {
+  if (isVehicle()) return 0; // the rear end of the tracks, on the ground
   if (S.bp?.tailH !== undefined && S.bp.tailH !== null) return S.bp.tailH;
   const last = S.o.fuselage.stations.at(-1);
   return r4((last[1] + last[2]) / 2);
@@ -372,6 +375,33 @@ function handlesFor(key) {
         });
       }
     }
+    // The gun swings about its pivot: where the barrel meets the mantlet.
+    if (key === 'gun' && o.gun.pivot) {
+      hs.push({ ref: o.gun, which: 'pivot', pos: () => o.gun.pivot, set: (d, h) => (o.gun.pivot = [r4(d), r4(h)]) });
+    }
+  } else if (key === 'tracks' && o.tracks) {
+    // The closed band round the running gear: one handle per corner.
+    const loop = o.tracks.loop;
+    for (const pt of loop) {
+      hs.push({
+        ref: pt,
+        which: 'loop',
+        pos: () => [pt[0], pt[1]],
+        set: (d, h) => ((pt[0] = d), (pt[1] = h)),
+        remove: () => loop.length > 4 && loop.splice(loop.indexOf(pt), 1),
+      });
+    }
+  } else if (key === 'wheels' && o.wheels) {
+    for (const w of o.wheels) {
+      hs.push({
+        ref: w,
+        which: 'centre',
+        pos: () => [w.d, w.h],
+        set: (d, h) => ((w.d = d), (w.h = h)),
+        remove: () => o.wheels.splice(o.wheels.indexOf(w), 1),
+      });
+      hs.push({ ref: w, which: 'radius', pos: () => [w.d + w.r, w.h], set: (d) => (w.r = Math.max(0.03, r4(Math.abs(d - w.d)))) });
+    }
   } else if ((key === 'wing' || key === 'tailplane') && o[key]) {
     const s = o[key];
     [0, 1].forEach((i) =>
@@ -484,7 +514,7 @@ function pointLines() {
   return lines;
 }
 const gunners = (o = S.o) => (o.points ?? []).filter((p) => p.type === 'gunner');
-const pointName = (pt) => (pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
+const pointName = (pt) => (pt.type === 'tankcrew' ? 'Tank crew (commander and MG gunner)' : pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
 function removePoint(pt) {
   const list = S.o.points;
   list.splice(list.indexOf(pt), 1);
@@ -506,6 +536,13 @@ function addPoint(type) {
   const fus = S.o.fuselage.stations;
   const d = r4((fus[0][0] + fus.at(-1)[0]) * 0.35);
   const pt = { type, d, h: r4(interpTop(fus, d) - 0.1) };
+  if (type === 'tankcrew') {
+    // One man at the commander's cupola, who also works the machine gun: placed on the turret roof.
+    const tur = S.o.turret.stations;
+    pt.d = r4((tur[0][0] + tur.at(-1)[0]) / 2);
+    pt.h = r4(Math.max(...tur.map((r) => r[1])) + 0.3);
+    Object.assign(pt, { r: 0.14, lower: 0.2, gun: { at: [0.1, -0.08], aim: 0, len: 0.5, r: 0.02 } });
+  }
   if (type === 'gunner') {
     Object.assign(pt, { arc: [95, 200], mount: 'open', gun: { at: [0.4, 0.1], aim: 155, len: 0.5, r: 0.04 } });
     pt.weapon = KNOWN_TURRET_WEAPONS[0];
@@ -535,6 +572,12 @@ function pointsPanel(panel, row, note) {
     h.textContent = pointName(pt);
     panel.append(h);
     row('d', numInput(() => pt.d, (v) => (pt.d = v)), 'h', numInput(() => pt.h, (v) => (pt.h = v)), 'z', numInput(() => pt.z ?? 0, (v) => (v ? (pt.z = v) : delete pt.z)), 'r', numInput(() => pt.r ?? 0.16, (v) => (pt.r = v)));
+    if (pt.type === 'tankcrew') {
+      row('gunner sits lower by', numInput(() => pt.lower ?? 0.12, (v) => (pt.lower = v)));
+      row('MG from', numInput(() => pt.gun.at[0], (v) => (pt.gun.at[0] = v)), numInput(() => pt.gun.at[1], (v) => (pt.gun.at[1] = v)), 'aim', numInput(() => pt.gun.aim, (v) => (pt.gun.aim = v), 1));
+      row('MG length', numInput(() => pt.gun.len, (v) => (pt.gun.len = v)), 'r', numInput(() => pt.gun.r, (v) => (pt.gun.r = v), 0.005));
+      note('One man in three looks: out as commander (not in combat), inside (not drawn), at the machine gun (the gun dot is the commander; "sits lower" is how far he drops behind it). The dot is his head; the line is the MG barrel, drawn for the gunner look only. Switch the look with the crew selector at the top.');
+    }
     if (pt.type === 'gunner') {
       row('arc from', numInput(() => pt.arc[0], (v) => (pt.arc[0] = v), 1), 'to', numInput(() => pt.arc[1], (v) => (pt.arc[1] = v), 1));
       row('mount', choice(['open', 'box', 'dome'], () => pt.mount ?? 'open', (v) => {
@@ -590,6 +633,14 @@ function linesFor(key) {
     const { le, te } = s.le ? { le: s.le, te: s.te } : sampleVertical(S.o, s);
     return [{ pts: [...le.map((r) => [r[1], r[0]]), ...te.map((r) => [r[1], r[0]]).reverse()], closed: true }];
   }
+  if (key === 'tracks') return [{ pts: o.tracks.loop.map(([d, h]) => [d, h]), closed: true }];
+  if (key === 'wheels') {
+    return o.wheels.map((w) => {
+      const pts = [];
+      for (let i = 0; i <= 24; i++) pts.push([w.d + w.r * Math.cos((i / 24) * Math.PI * 2), w.h + w.r * Math.sin((i / 24) * Math.PI * 2)]);
+      return { pts, closed: true };
+    });
+  }
   if (key === 'gear') {
     const { M } = kit(o);
     return ['main', 'tail'].map((w) => {
@@ -616,6 +667,13 @@ function segmentsFor(key) {
       segs.push({ a: [rows[i][0], rows[i][1]], b: [rows[i + 1][0], rows[i + 1][1]], insert });
       if (!sym) segs.push({ a: [rows[i][0], rows[i][2]], b: [rows[i + 1][0], rows[i + 1][2]], insert });
     }
+  } else if (key === 'tracks' && o.tracks) {
+    const loop = o.tracks.loop;
+    for (let i = 0; i < loop.length; i++) {
+      const a = loop[i];
+      const b = loop[(i + 1) % loop.length];
+      segs.push({ a: [a[0], a[1]], b: [b[0], b[1]], insert: (t) => loop.splice(i + 1, 0, [r4(a[0] + (b[0] - a[0]) * t), r4(a[1] + (b[1] - a[1]) * t)]) });
+    }
   } else if (verticalOf(key) && o[key]?.le) {
     for (const edge of ['le', 'te']) {
       const rows = o[key][edge];
@@ -633,6 +691,7 @@ function segmentsFor(key) {
 
 function partIds() {
   const crew = S.o.points?.length ? ['points'] : [];
+  if (isVehicle()) return [...BODY_KEYS.filter((k) => S.o[k]), 'tracks', 'wheels', ...crew];
   if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k]), ...crew, 'gear'];
   return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), ...crew, 'gear'];
 }
@@ -680,6 +739,22 @@ function syncDef() {
 // Grow that area, never shrink it, so the tallest and deepest points of the outline fit with a margin.
 function growSprite() {
   if (!S.def.own || !S.o.sprite) return;
+  if (isVehicle()) {
+    // Along the vehicle: the gun reaches out ahead (small d), the rear end and the idler behind. Ten pixels a metre.
+    const ds = [];
+    for (const k of BODY_KEYS) for (const r of S.o[k]?.stations ?? []) ds.push(r[0]);
+    for (const w of S.o.wheels ?? []) ds.push(w.d - w.r, w.d + w.r);
+    for (const [d] of S.o.tracks?.loop ?? []) ds.push(d);
+    const sp = S.o.sprite;
+    const front = Math.ceil(-Math.min(...ds) * 10) + 4 - (sp.size[0] - sp.pivot[0]);
+    if (front > 0) sp.size[0] += front;
+    const back = Math.ceil(Math.max(...ds) * 10) + 4 - sp.pivot[0];
+    if (back > 0) {
+      sp.size[0] += back;
+      sp.pivot[0] += back;
+    }
+    syncDef();
+  }
   let top = 0;
   let bottom = 0;
   for (const k of BODY_KEYS) for (const r of S.o[k]?.stations ?? []) {
@@ -740,11 +815,13 @@ function renderTop() {
     status(`top view render failed: ${e.message ?? e}`, true);
   }
 }
+const RUN_FRAMES = 4; // running-gear animation frames (make-sprites.mjs RUN_FRAMES)
 function renderSprite() {
   try {
     const [w, h] = spriteSize();
-    const model = buildModel(S.name, S.o);
-    const rows = render(model, rollPose(0), w, h, S.def.pivot, { gear: $('gear').checked, res: RES });
+    const veh = isVehicle();
+    const model = buildModel(S.name, S.o, veh ? { crew: $('crewView').value, phase: Number($('runFrame').value) / RUN_FRAMES } : {});
+    const rows = veh ? renderVehicle(model, w, h, S.def.pivot, { res: RES }) : render(model, rollPose(0), w, h, S.def.pivot, { gear: $('gear').checked, res: RES });
     const c = document.createElement('canvas');
     c.width = w;
     c.height = h;
@@ -1469,7 +1546,7 @@ function togglePair() {
   const s = S.o[S.part];
   if (!s) return;
   pushUndo();
-  if (s.z === undefined) s.z = r4(S.o.gear?.main?.half ?? S.o.span * 0.1); // the wheel's half track is a good first guess
+  if (s.z === undefined) s.z = r4(S.o.tracks?.z ?? S.o.gear?.main?.half ?? S.o.span * 0.1); // the wheel's half track is a good first guess
   else delete s.z;
   rebuildPanel();
   changed();
@@ -1522,7 +1599,7 @@ function makePart(key) {
   const len = rows.at(-1)[0] - d0;
   const prof = [0.35, 0.8, 1, 0.8, 0.35];
   const part = { n: st.n, stations: [] };
-  if (st.z) part.z = r4(S.o.span * 0.15);
+  if (st.z) part.z = r4((S.o.span ?? S.o.width) * 0.15);
   prof.forEach((k, i) => {
     const d = r4(d0 + len * (st.span[0] + ((st.span[1] - st.span[0]) * i) / (prof.length - 1)));
     const top = lerpCol(d, 1);
@@ -1547,7 +1624,7 @@ function makePart(key) {
   return part;
 }
 function addPart(key) {
-  if (key === 'bump') key = ['bump', 'bump2', 'bump3'].find((k) => !S.o[k]); // a general small detail: the first free slot
+  if (key === 'bump') key = BUMP_KEYS.find((k) => !S.o[k]); // a general small detail: the first free slot
   if (!key || !PART_STARTERS[key.replace(/\d+$/, '')] || S.o[key]) return;
   pushUndo();
   S.o[key] = makePart(key);
@@ -1595,8 +1672,8 @@ function rebuildPanel() {
     parts.append(b);
   }
   // 'bump' stays on offer while one of its three slots is free
-  const crewOpts = [['crew:gunner', 'Gunner (crew, gun, arc)'], ['crew:pilot', 'Pilot / crew member']];
-  const missing = BODY_KEYS.filter((k) => PART_STARTERS[k] && (k === 'bump' ? ['bump', 'bump2', 'bump3'].some((b) => !S.o[b]) : !S.o[k]));
+  const crewOpts = isVehicle() ? (S.o.points?.some((p) => p.type === 'tankcrew') ? [] : [['crew:tankcrew', 'Tank crew (commander / MG gunner)']]) : [['crew:gunner', 'Gunner (crew, gun, arc)'], ['crew:pilot', 'Pilot / crew member']];
+  const missing = BODY_KEYS.filter((k) => PART_STARTERS[k] && (k === 'bump' ? BUMP_KEYS.some((b) => !S.o[b]) : !S.o[k]));
   if (missing.length || !isPlan()) {
     const sel = document.createElement('select');
     sel.title = 'This plane lacks these parts (its template had none): add one as a starting shape, then drag its points onto the drawing';
@@ -1640,6 +1717,26 @@ function rebuildPanel() {
     const s = o[S.part];
     const nRow = row('squareness n', numInput(() => s.n, (v) => (s.n = v), 0.1));
     if (s.z !== undefined) nRow.append('z', numInput(() => s.z, (v) => (s.z = v)));
+    if (S.part === 'gun') {
+      row('pivot d', numInput(() => s.pivot[0], (v) => (s.pivot[0] = v)), 'h', numInput(() => s.pivot[1], (v) => (s.pivot[1] = v)));
+      row('barrel for d below', numInput(() => s.mantlet, (v) => (s.mantlet = v)));
+      note('The gun is its own sprite and swings about the pivot (the square). The part is drawn as the dark barrel in front of the "barrel for d below" value and as painted mantlet behind it.');
+    }
+    if (isVehicle() && BUMP_KEYS.includes(S.part)) {
+      const pick = (title, options, get, set) => {
+        const sel = document.createElement('select');
+        for (const v of options) sel.append(new Option(v, v));
+        sel.value = get();
+        sel.onchange = () => {
+          pushUndo();
+          set(sel.value);
+          changed();
+        };
+        row(title, sel);
+      };
+      pick('on sprite', ['hull', 'turret'], () => s.layer ?? 'hull', (v) => (v === 'hull' ? delete s.layer : (s.layer = v)));
+      pick('surface', ['paint', 'dark', 'metal', 'under', 'frame'], () => s.kind ?? 'dark', (v) => (s.kind = v));
+    }
     if (PART_STARTERS[S.part.replace(/\d+$/, '')]) {
       const rb = document.createElement('button');
       rb.textContent = 'Remove part';
@@ -1741,6 +1838,65 @@ function rebuildPanel() {
       p.textContent = 'Seen edge-on from the side. Its outline (planform) is edited in the Plan view.';
       panel.append(p);
     }
+  } else if (S.part === 'tracks') {
+    const tr = o.tracks;
+    row('track z', numInput(() => tr.z, (v) => (tr.z = v)), 'band half width', numInput(() => tr.half, (v) => (tr.half = v)));
+    row('band thickness', numInput(() => tr.thick ?? 0.1, (v) => (tr.thick = v)), 'link pitch', numInput(() => tr.pitch ?? 0.4, (v) => (tr.pitch = v)));
+    note('The band is the closed loop round the sprocket, road wheels, idler and return rollers; drag its corners, double-click a line to add one. z is where the track sits out from the centre line (the pair is drawn on both sides). The link pitch is the dark and light pattern the running-gear animation moves.');
+    panel.append(rowTable(tr.loop, [{ title: 'd', i: 0 }, { title: 'h', i: 1 }], (r, i, v) => (r[i] = v), (r) => {
+      if (tr.loop.length <= 4) return;
+      pushUndo();
+      tr.loop.splice(tr.loop.indexOf(r), 1);
+      rebuildPanel();
+      changed();
+    }));
+  } else if (S.part === 'wheels') {
+    note('Circles at the track z, on both sides. Drag a centre or its radius handle. The sprocket and idler are the large ones, the road wheels sit on the ground run, the return rollers carry the top run.');
+    const t = document.createElement('table');
+    t.className = 'st';
+    t.innerHTML = '<tr><th>d</th><th>h</th><th>r</th><th>kind</th><th></th></tr>';
+    for (const w of o.wheels) {
+      const tr = document.createElement('tr');
+      tr.dataset.ref = '1';
+      tr._ref = w;
+      for (const k of ['d', 'h', 'r']) {
+        const td = document.createElement('td');
+        td.append(numInput(() => w[k], (v) => (w[k] = v)));
+        tr.append(td);
+      }
+      const kd = document.createElement('td');
+      const sel = document.createElement('select');
+      for (const v of ['road', 'sprocket', 'idler', 'return']) sel.append(new Option(v, v));
+      sel.value = w.kind ?? 'road';
+      sel.onchange = () => {
+        pushUndo();
+        if (sel.value === 'road') delete w.kind;
+        else w.kind = sel.value;
+        changed();
+      };
+      kd.append(sel);
+      tr.append(kd);
+      const td = document.createElement('td');
+      const del = document.createElement('button');
+      del.textContent = '×';
+      del.onclick = () => {
+        pushUndo();
+        o.wheels.splice(o.wheels.indexOf(w), 1);
+        rebuildPanel();
+        changed();
+      };
+      td.append(del);
+      tr.append(td);
+      t.append(tr);
+    }
+    panel.append(t);
+    button('+ road wheel', () => {
+      pushUndo();
+      const last = o.wheels.filter((w) => !w.kind).at(-1) ?? { d: 1, h: 0.28, r: 0.235 };
+      o.wheels.push({ d: r4(last.d + 0.5), h: last.h, r: last.r });
+      rebuildPanel();
+      changed();
+    });
   } else if (S.part === 'gear') {
     const g = o.gear;
     const { M } = kit(o);
@@ -1832,7 +1988,7 @@ function copyFromPlan(turned) {
 $('copyPlan').onclick = () => copyFromPlan(false);
 $('copyPlan180').onclick = () => copyFromPlan(true);
 function setMode(mode) {
-  if (S.mode === mode || !S.o) return;
+  if (S.mode === mode || !S.o || (isVehicle() && mode !== 'side')) return; // vehicles: side view only
   clearGhost();
   S.mode = mode;
   S.calibrating = null;
@@ -1852,6 +2008,7 @@ $('turn').onclick = () => {
   requestDraw();
 };
 $('modeSide').onclick = () => setMode('side');
+for (const id of ['crewView', 'runFrame']) $(id).oninput = () => ((S.dirtyPreview = true), requestDraw());
 $('modePlan').onclick = () => setMode('plan');
 $('modeUnder').onclick = () => setMode('under');
 $('span').onchange = () => {
@@ -1991,6 +2148,7 @@ async function put(path, text) {
 }
 // The game's wheels (data/planes.json) in world units: half the model units, to 0.025.
 async function writeWheels() {
+  if (!S.o.gear) return false;
   const base = JSON.parse(S.baseGear);
   const now = S.o.gear;
   const changedWheels = ['main', 'tail'].filter((w) => JSON.stringify(base[w]) !== JSON.stringify(now[w]));
@@ -2083,6 +2241,9 @@ async function openPlane(name, fresh = null) {
   S.saved = fresh ? '' : formatOutline(S.o);
   S.baseGear = JSON.stringify(S.o.gear);
   S.baseTurrets = turretView(S.o);
+  for (const id of ['modePlan', 'modeUnder']) $(id).hidden = !!S.o.vehicle;
+  $('vehOpts').hidden = !S.o.vehicle;
+  $('gear').parentElement.hidden = !!S.o.vehicle;
   // After S.saved, so a fin that had drifted shows as an unsaved change to save.
   for (const k of ['fin', 'fins']) {
     if (S.o[k]?.le) Object.assign(S.o[k], splitFin(S.o[k]));
