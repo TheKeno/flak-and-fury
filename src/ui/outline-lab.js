@@ -858,7 +858,7 @@ function paintRows(rows, w, h) {
     for (let x = 0; x < w; x++) img.data.set(PALETTE[rows[y][x]] ?? [255, 0, 0, 255], (y * w + x) * 4);
   }
   cx.putImageData(img, 0, 0);
-  const paint = S.nations[S.def.nation]?.paint ?? { base: '#5b6b3f', under: '#a9b4a0', nose: '#c9c3a6', marking: '#2f4a8a' };
+  const paint = labPaint();
   return paintSprite(c, paint, { swastika: true });
 }
 // The model from above, for the plan view. Coarser while a point is being dragged, to keep it fluid.
@@ -900,7 +900,7 @@ function renderSprite() {
       }
     }
     ctx.putImageData(img, 0, 0);
-    const paint = S.nations[S.def.nation]?.paint ?? { base: '#5b6b3f', under: '#a9b4a0', nose: '#c9c3a6', marking: '#2f4a8a' };
+    const paint = labPaint();
     S.sprite = paintSprite(c, paint, { swastika: true });
     S.spriteError = '';
     for (const [id, scale] of [['pv1', 1], ['pv4', 4]]) {
@@ -2321,7 +2321,7 @@ async function openPlane(name, fresh = null) {
     if (S.o[k]?.le) Object.assign(S.o[k], splitFin(S.o[k]));
     fitFin(S.o[k]);
   }
-  S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { own: true, nation: 'germany' };
+  S.def = Object.values(S.planes).find((d) => d && d.sprite === name) ?? { own: true, nation: VEHICLES.find((v) => v.id === name)?.nation ?? 'germany' };
   syncDef();
   growSprite();
   S.part = 'fuselage';
@@ -2440,6 +2440,11 @@ const realPlanes = () => [...$('plane').options].map((o) => o.value);
 const NATION = { germany: 'Germany', uk: 'UK', usa: 'USA', ussr: 'USSR', japan: 'Japan', finland: 'Finland' };
 // Ground vehicles have no entry in planes.json yet; their list names are kept here, in the same form.
 // kind: 'tank' or 'truck', the headings of the list; nation sorts them as in the hangar.
+// The nation's paint for the sprite; a vehicle wears the nation's tank colours when it has them (as in the game).
+const labPaint = () => {
+  const n = S.nations[S.def.nation];
+  return (isVehicle() && n?.tankPaint) || n?.paint || { base: '#5b6b3f', under: '#a9b4a0', nose: '#c9c3a6', marking: '#2f4a8a' };
+};
 const VEHICLES = [
   { id: 'panzer4h', label: 'Panzer IV Ausf. H (Germany)', nation: 'germany', kind: 'tank' },
   { id: 't34-76', label: 'T-34/76 Model 1943 (USSR)', nation: 'ussr', kind: 'tank' },
