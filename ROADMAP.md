@@ -674,7 +674,8 @@ Then: more themes, co-op missions, matchmaking.
     strafed, or make it home).
   - *Brewed up:* burns for a while, ammo cooks off, leaves a scorched hulk.
   - *Catastrophic:* flame jet from the turret ring, the **turret is blown off**, spins through the air
-    and lands upside down nearby (and can land on infantry, a tank or a low plane).
+    and lands upside down nearby (and can land on infantry, a tank or a low plane). The turret is now its own sprite
+    layer (`<id>-turret.png`, pivot in `<id>.json`), ready to be thrown (owner, 2026-11-08).
   - *Mobility kill:* a thrown track; the tank is stuck but still alive and fighting.
   Per-tank chances (`turretTossChance`, burn chance) for 1943 flavour: Sherman brews up easily, Chi-Ha
   dies outright, Churchill usually just knocked out. Bombs and heavy shells make turret tosses likelier.
