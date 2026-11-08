@@ -89,6 +89,7 @@ export function createWorld({
     bailout,
     collisionGrace: new Map(), // pair of plane ids -> tick until which they can't collide again
     rng: createRng(seed),
+    seed, // for bot names (botName)
     planes: [],
     bullets: [],
     bombsInFlight: [],
@@ -111,7 +112,11 @@ function botName(world, id) {
   const names = world.bots.names ?? [];
   if (!names.length) return null;
   const used = new Set(world.planes.map((o) => o.callsign));
-  const start = (Math.imul(id + world.map.seed, 2654435761) >>> 0) % names.length;
+  // The match seed (fresh per game), not the map's: the map seed is fixed, so ids 1, 2, 3... gave the same names every game.
+  // Mix twice so neighbouring ids and seeds land far apart.
+  let h = Math.imul(world.seed ^ Math.imul(id, 2654435761), 2246822519) >>> 0;
+  h = Math.imul(h ^ (h >>> 15), 3266489917) >>> 0;
+  const start = (h ^ (h >>> 13)) % names.length;
   for (let i = 0; i < names.length; i++) {
     const n = names[(start + i) % names.length];
     if (!used.has(n)) return n;
