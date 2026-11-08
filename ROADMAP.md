@@ -7,6 +7,45 @@ later.
 
 ## Decisions
 
+- **Ground vehicles in the Outline Lab: tanks and trucks (decided 2026-11-08, discussion; not built):** the Outline Lab
+  also edits tanks and trucks (the "later tank" in the Outline Lab entry below). Build is its own session, "Planes — tank and
+  truck outlines in the Lab".
+  - **Scale:** same 0.1 m pixel as the planes, all to one scale (a Panzer IV H hull is about 60 px long, far more detail than
+    the hand-pixelled 44x20 tank in `tools/make-sprites.mjs`). Barrel stays a separate sprite with a pivot so it can aim.
+  - **First vehicle: Panzer IV Ausf. H** (the template tank; shows the outline over its sheet before any animation or data
+    work, as with planes). Then the other tanks as scaled copies: Sherman, T-34/76, Churchill, Chi-Ha, BT-42. Sheets for
+    all six are already in the blueprint library (check which are real 3-views). Tanks and trucks go in the New vehicle
+    picker (`PLANNED`).
+  - **Reused from planes:** blueprint library and calibration, draggable points, Fit to drawing, bumps, mirrored pairs, crew
+    dots. Plan view is calibrated from hull length and track width (no wingtips); no underside view.
+  - **New tank parts:** hull (stations, sloped glacis as extra stations), turret (stations plus d, h on the hull), gun (length,
+    radius, mantlet, pivot), running gear (track outline plus a list of circles: sprocket, idler, road wheels, return rollers),
+    skirts and mudguards.
+  - **Trucks (same part of the editor):** shared `wheels` part (circles, front and rear axle, body height above ground), cab
+    (profile with windscreen, door, roof), cargo bed. First truck: Opel Blitz 3-ton (forces the new parts), then one per
+    nation as scaled copies (Bedford QL, GMC CCKW, ZIS-5 or GAZ-AA, Isuzu Type 94 or Toyota GB, Finland to decide). No truck
+    sheets in the library yet: the owner supplies them.
+  - **Passenger dots:** crew dots get a `passenger` type (seats in the bed). The infantry session reads the seat positions
+    from the outline file.
+  - **Cargo cover, one setting per truck (`cover`):** `open` (side boards, passengers drawn), `tarp` (canvas over bows,
+    passengers hidden, rear open) and `closed` (box body or van, solid, rear doors). Every truck type can switch between the
+    three (one model, one setting; bots can mix them). Dots stay in the file whatever the cover; `cover` decides whether
+    passengers are drawn. Closed and tarp trucks get an `exit` point (rear door or tailgate) where infantry dismount.
+    Lab: switch cover and see the sprite change, drag the roof line, tarp bows and exit point.
+  - **Tarp blown off by a nearby explosion** (owner's idea): Lab side: the tarp and bows are their own part; Build sprites
+    makes the truck with and without tarp (bare bed shows passengers, bench, empty bows), 4 frames of the loose tarp in a
+    `-frames.png` sheet (flat, rippled, bunched, bent; started on a random frame so they do not flap in step) and a
+    crumpled landing sprite. `closed` trucks have no tarp and are not affected. Game side (truck session): a plain `tarpOn`
+    flag (net snapshot rules), cleared by a blast within a radius and above a size, event `tarpBlown` for sound (canvas
+    flap) and effect; the loose tarp is a short-lived scenery object (list item with an `id` from `world.nextId`, plain
+    data, no collisions) thrown away from the blast, speed by distance. Cloth look, all cheap: frame flutter at an uneven
+    rate, rocking tumble (about ±40° at an uneven rate, not a steady spin), strong drag so it drifts and sways down slower
+    than a solid piece, lands as the crumpled sprite with a small dust puff and no bounce, fades after a few seconds.
+    Optional later: stretch along the flight direction; tearing into 2 or 3 shreds. Without the tarp passengers are visible and
+    exposed to blasts and strafing. New values (blast radius, size threshold, chance, drag, sway, rock angle, fade time) go in
+    the data file, the tuning panel and TUNING.md.
+  - **Not here:** truck and infantry logic (driving, loading, dismounting, bots) is a separate session.
+
 - **Ground rules reset before the MOBA discussion (decided 2026-11-08, discussion; built 2026-11-08):** the owner wants
   the damage and scoring rules taken out now and decided again, in one place, in the MOBA discussion. Three
   changes, built in this order in one session (they share `ground.js`, `plane.js`, `hud.js`, `main.js`, the
@@ -537,6 +576,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Trucks and infantry logic** (Gameplay): trucks carry infantry (loading, driving, dismounting at the `exit` point, bots, tarp blown off by blasts with the cloth-style flying tarp). Waits for the truck outlines and sprites from the Lab session; see Decisions, "Ground vehicles in the Outline Lab" (owner, 2026-11-08).
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
