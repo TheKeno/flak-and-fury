@@ -137,6 +137,6 @@ test('trucks: a timber bed (bed.wood) looks different from a painted one', () =>
     const timber = structuredClone(o);
     timber.bed.wood = true;
     assert.notEqual(pic(plain), pic(timber));
-    assert.ok(/[tT]/.test(pic(timber)), 'timber tones in the sprite');
+    assert.ok(/[TaA]/.test(pic(timber)), 'timber tones in the sprite');
   }
 });

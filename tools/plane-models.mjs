@@ -207,7 +207,7 @@ const TONES = {
   glass: ['c', 'C', 'C'],
   pilot: ['P', 'p', 'p'],
   metal: ['i', 'I', 'I'],
-  wood: ['t', 'T', 'T'], // weathered timber: a cargo bed's boards (bed.wood), not a paint key
+  wood: ['T', 'a', 'A'], // dark weathered timber: a cargo bed's boards (bed.wood), not a paint key
   tyre: ['e', 'e', 'o'],
   dark: ['e', 'e', 'e'],
   frame: ['o', 'o', 'o'],
