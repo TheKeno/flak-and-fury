@@ -505,7 +505,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Objective map features** (Gameplay): towns, bases and other interesting places on the map to fight for, giving matches objectives beyond kills.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 - **Stutter over heavily bombed terrain** (Gameplay): the game stutters when flying over terrain that has taken a lot of bomb craters; see `notes/perf-findings.md` for the earlier performance pass.
-- **Weird sound from Jonatan's video** (Sound): look into the odd sound Jonatan sent the owner in a video; find out what it is and whether the game should have it.
 
 
 - **Infantry wave mission** (Gameplay): waves of enemy infantry advance on the player's base and the player has to mow them down with guns and bombs to stop the assault.
@@ -521,20 +520,12 @@ Then: more themes, co-op missions, matchmaking.
   (Ki-43-II, Ki-45 KAI, D3A2). Blocked until the Outline Lab is finished; ask the owner for the 3-view and the
   variant (A6M5 fits 1943) first.
 - **Surface-dependent landing sounds** (Sound): a soft thump on grass and dirt, a clatter on pierced steel planking, and a braking skid on concrete (a loop, like the belly scrape); the tyre chirp covers runway touchdowns only.
-- **Sound effect layering** (Sound): build sound effects from several layered sounds played together
-  (e.g. an impact or explosion made of a crack, a body and a tail), not one sample each.
 - **Infantry travel to the front in trucks** (Gameplay): infantry ride trucks from their depot to the front line
   and dismount there, instead of appearing or walking all the way.
-- **Outline Lab: move the pilots** (cockpit crew position per plane), so the owner can place them in the editor.
 - **Review the synced-gun rate change** (`f57a322`, built by mistake in a session that should only have added this line):
   cowl guns now fire at 70% of their rate at idle (was about a third), full from 60% of max RPM. Owner to
   review the evidence (see its Done entry), the numbers and how it plays before it stays. Original ask:
   revisit the shooting-through-the-propeller rule, check whether planes really did this, adjust accordingly.
-- **Smoother wing wobble** (off by default for now, see `wobble` in `data/settings.json`): more roll animation steps, above all the first ones either side of level.
-  The sheets have 16 frames (22.5 degrees apart), so the small leans and tilts jump a whole step; with
-  finer steps near level (say every 5-8 degrees) the wobble, lean and flutter (`wobble` in
-  `data/settings.json`) would ease in smoothly. Needs the roll rows in `tools/plane-models.mjs` and every
-  `-frames.png` / `.json` regenerated, and the renderer's frame lookup in `transientFrame` to follow.
 - **Theatre markings (decide the theatre per nation first):** Germany: Eastern Front yellow (fuselage
   band, wingtip undersides, lower cowl) or Mediterranean white band; P-47: European white cowl ring and
   white fin and tailplane bands (its cowl ring is yellow for now). Markings that aren't the same both
