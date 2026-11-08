@@ -1085,7 +1085,20 @@
       },
       "synthWas": 1,
       "clipLevel": 1,
-      "loadLow": 0.6
+      "loadLow": 0.6,
+      "cutout": {
+        "files": [
+          {
+            "path": "assets/audio/engines/radial-cutout-01.wav",
+            "size": 1648026,
+            "start": 0,
+            "end": 6.225770833333334,
+            "licence": "",
+            "source": "original: Radial Dies.wav"
+          }
+        ],
+        "gain": 0.81
+      }
     },
     "gun:heavy": {
       "synth": 0,
@@ -3333,11 +3346,28 @@
       },
       "synthWas": 1,
       "clipLevel": 1,
-      "loadLow": 0.6
+      "loadLow": 0.6,
+      "cutout": {
+        "files": [
+          {
+            "path": "assets/audio/engines/radial-cutout-01.wav",
+            "size": 1648026,
+            "start": 0,
+            "end": 6.225770833333334,
+            "licence": "",
+            "source": "original: Radial Dies.wav"
+          }
+        ],
+        "gain": 0.74
+      }
     },
     "build:tankRadial": {
       "synth": 1,
       "clips": []
+    },
+    "sfx:tireScreech": {
+      "synth": 1,
+      "groups": []
     }
   },
   "layers": {
