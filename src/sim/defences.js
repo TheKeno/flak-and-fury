@@ -56,6 +56,7 @@ function pickTarget(world, obj, x, y, def = obj.def) {
     for (const s of o.soldiers) {
       if (s.hp <= 0) continue;
       const sx = o.x + s.dx;
+      if (Math.abs(sx - x) >= bestD) continue; // can't be nearer: skip the ground lookup (speed)
       const sy = surfaceAt(world, sx) + 3;
       const d = Math.hypot(sx - x, sy - y);
       if (d < bestD) {

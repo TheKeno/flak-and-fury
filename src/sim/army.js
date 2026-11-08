@@ -80,11 +80,14 @@ function spawnWave(world, team, side, depot) {
 function holdUp(world, u) {
   const dir = u.dir;
   const engineers = u.type === 'engineers';
+  const half = halfLength(u);
   for (const o of world.ground) {
     if (o === u) continue;
     const ahead = (o.x - u.x) * dir;
     if (ahead <= 0) continue;
-    const clear = ahead - halfLength(u) - halfLength(o);
+    // Scenery and the side's own buildings never hold a unit up: skip them before measuring (speed).
+    if (!o.alive ? o.type !== 'tank' : o.team == null || (o.team === u.team && !o.mobile)) continue;
+    const clear = ahead - half - halfLength(o);
     // Engineers slip through their own column, and nobody queues behind them.
     if (o.mobile && o.alive && o.team === u.team && !engineers && o.type !== 'engineers' && !o.returning && clear < u.def.gap) {
       blocker = o;
@@ -98,10 +101,10 @@ function holdUp(world, u) {
   for (const river of world.map.rivers ?? []) {
     const bank = dir > 0 ? river.x : river.x + river.width;
     const ahead = (bank - u.x) * dir;
-    if (ahead > 0 && ahead < halfLength(u) + 2 && !bridgeOver(world, river)?.alive) return 'river';
+    if (ahead > 0 && ahead < half + 2 && !bridgeOver(world, river)?.alive) return 'river';
   }
   const edge = dir > 0 ? world.map.width - 8 : 8;
-  if ((edge - u.x) * dir < halfLength(u)) return 'edge';
+  if ((edge - u.x) * dir < half) return 'edge';
   return null;
 }
 
@@ -124,10 +127,11 @@ function stepCrew(world, u, dt, why) {
 // Clear distance to the nearest enemy on the ground ahead (Infinity if none).
 function enemyAhead(world, u) {
   let best = Infinity;
+  const half = halfLength(u);
   for (const o of world.ground) {
     if (!o.alive || o.team == null || o.team === u.team) continue;
     const ahead = (o.x - u.x) * u.dir;
-    if (ahead > 0) best = Math.min(best, ahead - halfLength(u) - halfLength(o));
+    if (ahead > 0) best = Math.min(best, ahead - half - halfLength(o));
   }
   return best;
 }

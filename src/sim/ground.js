@@ -110,12 +110,15 @@ export function mountPoint(world, obj, forward, up) {
 // Half a squad's length: its men stand either side of its x (while forming up, not evenly).
 export const squadHalf = (obj) => obj.soldiers.reduce((m, s) => Math.max(m, Math.abs(s.dx)), 0) + obj.def.width / 2;
 
+// Half the width of a ground object's hit box.
+const halfWidth = (obj) => (obj.soldiers ? squadHalf(obj) : (obj.width ?? obj.def.width) / 2);
+
 const riverOf = (world, obj) => world.map.rivers?.find((rv) => Math.abs(rv.x + rv.width / 2 - obj.x) < 1);
 
 // Hit box: [left, bottom, right, top] in world units, standing on the ground (which craters can lower).
 // A bridge's box is its deck.
 export function groundBox(world, obj) {
-  const half = obj.soldiers ? squadHalf(obj) : (obj.width ?? obj.def.width) / 2;
+  const half = halfWidth(obj);
   if (obj.type === 'bridge') {
     const bank = riverOf(world, obj)?.bank ?? world.terrain.heightAt(obj.x);
     return [obj.x - half, bank - obj.def.height, obj.x + half, bank + 1];
@@ -199,12 +202,17 @@ export function damageGround(world, obj, amount, byId) {
 }
 
 // Where segment a->b first enters the box, as a share of its length (Liang-Barsky), or null.
+const EDGES = new Float64Array(8); // reused (p, q) pairs: this runs for every bullet and object
 function segmentEnters(ax, ay, bx, by, [l, b, r, t]) {
   let t0 = 0;
   let t1 = 1;
   const dx = bx - ax;
   const dy = by - ay;
-  for (const [p, q] of [[-dx, ax - l], [dx, r - ax], [-dy, ay - b], [dy, t - ay]]) {
+  const e = EDGES;
+  e[0] = -dx; e[1] = ax - l; e[2] = dx; e[3] = r - ax; e[4] = -dy; e[5] = ay - b; e[6] = dy; e[7] = t - ay;
+  for (let i = 0; i < 8; i += 2) {
+    const p = e[i];
+    const q = e[i + 1];
     if (p === 0) {
       if (q < 0) return null;
     } else {
@@ -219,8 +227,13 @@ function segmentEnters(ax, ay, bx, by, [l, b, r, t]) {
 
 // A bullet's step from (ox, oy) to (b.x, b.y). Returns true if it struck something and is spent.
 export function bulletHitsGround(world, b, ox, oy) {
+  const left = Math.min(ox, b.x);
+  const right = Math.max(ox, b.x);
   for (const obj of world.ground) {
     if (!obj.alive || !isEnemy(world, obj, b.team)) continue;
+    // Nowhere near it along the ground: skip the box (speed; the 1 keeps rounding out of it).
+    const half = halfWidth(obj);
+    if (right < obj.x - half - 1 || left > obj.x + half + 1) continue;
     const k = segmentEnters(ox, oy, b.x, b.y, groundBox(world, obj));
     if (k === null) continue;
     const hx = ox + (b.x - ox) * k;
@@ -309,6 +322,8 @@ export function planesHitStructures(world, crash) {
     const margin = p.def.hitRadius * 0.6;
     for (const obj of world.ground) {
       if (!obj.alive) continue;
+      // Nowhere near it along the ground: nothing below can happen (speed; the 2 keeps rounding out).
+      if (Math.abs(p.x - obj.x) > halfWidth(obj) + margin + 2) continue;
       if (obj.soldiers) {
         if (isEnemy(world, obj, p.team)) runDown(world, p, obj, margin, crash);
         if (p.state === 'dead') break;
