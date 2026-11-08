@@ -1807,7 +1807,7 @@ function rebuildPanel() {
         row(title, sel);
       };
       pick('on sprite', ['hull', 'turret'], () => s.layer ?? 'hull', (v) => (v === 'hull' ? delete s.layer : (s.layer = v)));
-      pick('surface', ['paint', 'dark', 'metal', 'under', 'frame'], () => s.kind ?? 'dark', (v) => (s.kind = v));
+      pick('surface', ['paint', 'shade', 'dark', 'metal', 'under', 'frame'], () => s.kind ?? 'dark', (v) => (s.kind = v));
     }
     if (PART_STARTERS[S.part.replace(/\d+$/, '')]) {
       const rb = document.createElement('button');

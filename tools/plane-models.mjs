@@ -201,6 +201,7 @@ export function kit(o) {
 
 const TONES = {
   paint: ['B', 'S', 'W'],
+  shade: ['W', 'W', 'W'], // the paint's darkest tone: a tank's lower plates, a part in shadow
   under: ['U', '1', '1'],
   nose: ['N', '2', '2'],
   glass: ['c', 'C', 'C'],
