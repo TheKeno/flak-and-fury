@@ -170,3 +170,5 @@ about its pivot (`tank.gunAim`), then the crew look from `tank.crew` (`out` comm
 `in` nothing). A sprite pixel is a buffer pixel, so 1 unit = 0.4 m like the planes. The sprite's `ground` row is the
 lowest of track and wheels, wherever the outline put h = 0. Wreck: hull frame 0, turret knocked crooked, scorched.
 Not done: a flying turret on destruction, other tanks.
+
+Next tanks: `t34-76` is a starter (a copy of the Panzer, to be reshaped over `T-34-76.jpg` in the Lab; picker name "T-34/76 Model 1943 (USSR)"). The sheet `Sherman.png` is an M10 tank destroyer (open turret, no hull MG), not an M4A1: needs another sheet. Churchill, Chi-Ha and BT-42 sheets are in the library, not looked at yet.

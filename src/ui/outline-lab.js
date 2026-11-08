@@ -2438,7 +2438,8 @@ const realPlanes = () => [...$('plane').options].map((o) => o.value);
 // A plane's name in the list, as in the New plane picker: "Spitfire Mk IX (UK)". Value stays the short id.
 const NATION = { germany: 'Germany', uk: 'UK', usa: 'USA', ussr: 'USSR', japan: 'Japan', finland: 'Finland' };
 // Ground vehicles have no entry in planes.json yet; their list names are kept here, in the same form.
-const VEHICLES = [{ id: 'panzer4h', label: 'Panzer IV Ausf. H (Germany)' }];
+const VEHICLES = [{ id: 'panzer4h', label: 'Panzer IV Ausf. H (Germany)' },
+  { id: 't34-76', label: 'T-34/76 Model 1943 (USSR)' }];
 function planeLabel(id) {
   const d = Object.values(S.planes).find((x) => x && x.sprite === id && x.name);
   if (d) return `${d.name}${NATION[d.nation] ? ` (${NATION[d.nation]})` : ''}`;
