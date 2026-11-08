@@ -149,7 +149,8 @@ the tuning panel's Fire section.
 runs at its max rpm with `boost` extra power (0.2 = +20%; a worn engine gets less). Wear starts at once:
 `baseWear` engine damage per second (1 = wrecked), rising to `peakWear` as the engine heats; heat takes
 `heatTime` seconds to reach full and `coolTime` to drain once switched off, so switching on again while hot
-starts at a higher wear. The wear is ordinary engine damage: it stays until the ground crew repair it. A dark
+starts at a higher wear (defaults: 5 s of use costs about 15% engine damage, 10 s about 40%). The HUD shows a TEMP meter
+while the engine is hotter than normal. The wear is ordinary engine damage: it stays until the ground crew repair it. A dark
 smoke trail shows from the first moment, to everyone. Bots use it only to survive (breaking away from a plane
 on the tail, or limping home with an enemy within `bots.emergencyRange`) and stop once their engine damage
 reaches `bots.emergencyWear`.

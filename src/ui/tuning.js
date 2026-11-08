@@ -160,8 +160,8 @@ const FIRE_FIELDS = [
 ];
 const EMERGENCY_FIELDS = [
   ['boost', 'Extra power', 0, 0.6, 0.01, 'Extra engine power with emergency power on (0.2 = +20%). A worn engine gets less of it.'],
-  ['baseWear', 'Wear at once (per s)', 0, 0.05, 0.001, 'Engine damage per second from the moment it is switched on (1 = wrecked). Stays until the ground crew repair it.'],
-  ['peakWear', 'Wear when hot (per s)', 0, 0.1, 0.001, 'Engine damage per second once the engine is fully heated.'],
+  ['baseWear', 'Wear at once (per s)', 0, 0.1, 0.001, 'Engine damage per second from the moment it is switched on (1 = wrecked). Stays until the ground crew repair it.'],
+  ['peakWear', 'Wear when hot (per s)', 0, 0.2, 0.001, 'Engine damage per second once the engine is fully heated.'],
   ['heatTime', 'Time to full heat', 2, 60, 1, 'Seconds of emergency power until the engine is fully heated and wears at the top rate.'],
   ['coolTime', 'Time to cool', 2, 60, 1, 'Seconds to cool fully once switched off. Switching on again while hot starts at a higher wear rate.'],
 ];

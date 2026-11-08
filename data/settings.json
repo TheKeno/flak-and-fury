@@ -107,10 +107,10 @@
   },
   "emergency": {
     "boost": 0.2,
-    "baseWear": 0.005,
-    "peakWear": 0.02,
-    "heatTime": 15,
-    "coolTime": 10
+    "baseWear": 0.015,
+    "peakWear": 0.06,
+    "heatTime": 8,
+    "coolTime": 12
   },
   "waves": {
     "first": 15,

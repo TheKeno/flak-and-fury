@@ -80,6 +80,13 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   const hp = Math.max(0, plane.hp / plane.def.hp);
   meter('HULL', hp, hp < 0.35 ? '#e05040' : hp < 0.6 ? '#e0a040' : '#78b868');
   y += L;
+  if (plane.heat > 0.02) {
+    // Engine temperature, only while it is hotter than normal (emergency power).
+    const hot = plane.heat > 0.7;
+    const flash = hot && plane.emergency && Math.floor(performance.now() / 200) % 2 === 0;
+    meter('TEMP', plane.heat, hot ? '#e05040' : plane.heat > 0.4 ? '#e0a040' : '#c8aa58', flash ? '#ff7040' : LABEL);
+    y += L;
+  }
   if (plane.burning && !plane.dying) {
     // Time left before the fire finishes the plane.
     const flicker = Math.floor(performance.now() / 150) % 2 === 0;

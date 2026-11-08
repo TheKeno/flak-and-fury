@@ -7,10 +7,10 @@
 
 export const DEFAULT_EMERGENCY = {
   boost: 0.2, // extra engine power (share of full) at no wear
-  baseWear: 0.005, // engine damage per second at once (0..1 scale)
-  peakWear: 0.02, // ...and when the engine is fully heated
-  heatTime: 15, // seconds to full heat
-  coolTime: 10, // seconds to cool fully once off
+  baseWear: 0.015, // engine damage per second at once (0..1 scale); 5 s of use costs about 15%
+  peakWear: 0.06, // ...and when the engine is fully heated
+  heatTime: 8, // seconds to full heat
+  coolTime: 12, // seconds to cool fully once off
 };
 
 // One tick: take the key press (a toggle), update heat and wear. p.emergency says whether it is on.
