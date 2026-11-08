@@ -1669,6 +1669,17 @@ function tank(o, opts = {}) {
     return null;
   };
   const hull = bodyOf(o.fuselage);
+  // The hull seen between the road wheels, inside the track loop, is in the running gear's shadow.
+  const loopPts = tr.loop.map(([d, h]) => [X(d), Y(h)]);
+  const inLoop = (x, y) => {
+    let inside = false;
+    for (let i = 0, j = loopPts.length - 1; i < loopPts.length; j = i++) {
+      const [xi, yi] = loopPts[i];
+      const [xj, yj] = loopPts[j];
+      if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
   const turret = bodyOf(o.turret);
   const gun = bodyOf(o.gun);
   const band = belt(tr.loop.map(([d, h]) => [X(d), Y(h)]), tr.z * M, tr.half * M, ((tr.thick ?? 0.1) * M) / 2);
@@ -1701,7 +1712,7 @@ function tank(o, opts = {}) {
   const [gd, gh] = o.gun.pivot;
   const ring = o.turret.stations;
   const parts = [
-    { ...hull, material: (p, n) => mark('hull')(p, n) ?? { kind: 'paint' } },
+    { ...hull, material: (p, n) => mark('hull')(p, n) ?? { kind: 'paint', dark: inLoop(p[0], p[1]) ? 2 : 0 } },
     { ...band, material: bandMat },
     ...wheels,
     { ...turret, layer: 'turret', material: (p, n) => mark('turret')(p, n) ?? { kind: 'paint' } },
