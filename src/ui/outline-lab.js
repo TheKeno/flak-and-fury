@@ -1924,6 +1924,18 @@ function rebuildPanel() {
     }));
   } else if (S.part === 'wheels') {
     note('Circles at the track z, on both sides. Drag a centre or its radius handle. The sprocket and idler are the large ones, the road wheels sit on the ground run, the return rollers carry the top run.');
+    // Many equal road wheels at once: N wheels evenly from one d to another, the first road wheel's height and size.
+    const roads = o.wheels.filter((w) => !w.kind);
+    const sp = (S.spread ??= { n: roads.length || 8, from: roads[0]?.d ?? 1, to: roads.at(-1)?.d ?? 5 });
+    row('road wheels', numInput(() => sp.n, (v) => (sp.n = Math.max(1, Math.round(v))), 1), 'from d', numInput(() => sp.from, (v) => (sp.from = v)), 'to d', numInput(() => sp.to, (v) => (sp.to = v)));
+    button('Spread the road wheels evenly', () => {
+      pushUndo();
+      const first = roads[0] ?? { h: 0.28, r: 0.235 };
+      o.wheels = o.wheels.filter((w) => w.kind);
+      for (let i = 0; i < sp.n; i++) o.wheels.push({ d: r4(sp.n === 1 ? sp.from : sp.from + ((sp.to - sp.from) * i) / (sp.n - 1)), h: first.h, r: first.r });
+      rebuildPanel();
+      changed();
+    }, 'Replaces the road wheels (the sprocket, idler and return rollers stay); then drag each one if it needs it');
     const t = document.createElement('table');
     t.className = 'st';
     t.innerHTML = '<tr><th>d</th><th>h</th><th>r</th><th>kind</th><th></th></tr>';
@@ -1966,6 +1978,13 @@ function rebuildPanel() {
       pushUndo();
       const last = o.wheels.filter((w) => !w.kind).at(-1) ?? { d: 1, h: 0.28, r: 0.235 };
       o.wheels.push({ d: r4(last.d + 0.5), h: last.h, r: last.r });
+      rebuildPanel();
+      changed();
+    });
+    button('+ return roller', () => {
+      pushUndo();
+      const last = o.wheels.filter((w) => w.kind === 'return').at(-1) ?? { d: 1, h: 0.84, r: 0.09 };
+      o.wheels.push({ d: r4(last.d + 1.2), h: last.h, r: last.r, kind: 'return' });
       rebuildPanel();
       changed();
     });
@@ -2305,6 +2324,7 @@ window.addEventListener('beforeunload', (e) => {
 
 // ---------- Start ----------
 async function openPlane(name, fresh = null) {
+  S.spread = null;
   if (isDirty() && !confirm('Discard unsaved changes?')) {
     $('plane').value = S.name;
     return;
