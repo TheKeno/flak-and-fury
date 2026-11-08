@@ -1694,17 +1694,19 @@ function tank(o, opts = {}) {
   // d, h in metres (back from the front, up); t = metres below the part's top edge.
   const dOf = (p) => (X(0) - p[0]) / M;
   const hOf = (p) => (p[1] - Y(0)) / M;
-  const hullSide = (p) => {
+  // rows: the part's stations (the hull's, or a side plate's: a bump with z that covers the running gear).
+  const plateDetail = (rows, p) => {
     const d = dOf(p);
     const h = hOf(p);
-    const t = stationAt(o.fuselage.stations, d, 1) - h;
-    const low = h - stationAt(o.fuselage.stations, d, 2);
+    const t = stationAt(rows, d, 1) - h;
+    const low = h - stationAt(rows, d, 2);
     let dark = low < 0.06 ? 2 : low < 0.18 ? 1 : 0;
     if (t > 0.1 && t < 0.17) dark = Math.max(dark, 1); // the plate joint
     if (t < 0.07 && d % 0.3 < 0.06) dark = Math.max(dark, 1); // bolts along the top edge
     if (t > 0.17 && t < 0.4 && d % 1.1 < 0.05) dark = Math.max(dark, 1); // seams
     return dark;
   };
+  const hullSide = (p) => plateDetail(o.fuselage.stations, p);
   const turretSide = (p) => {
     const d = dOf(p);
     const h = hOf(p);
@@ -1796,6 +1798,13 @@ function tank(o, opts = {}) {
   ];
   return {
     parts,
+    // withBumps asks this for the material of a bump: a side plate (z) gets the hull's detail and may carry a marking.
+    bumpMaterial: (key, p, n) => {
+      const m = mark(key)(p, n);
+      if (m) return m;
+      const b = o[key];
+      return b.z && b.kind !== 'dark' && side(n) ? { kind: b.kind ?? 'paint', dark: plateDetail(b.stations, p) } : null;
+    },
     attach: {
       gunPivot: [X(gd), Y(gh), 0],
       muzzle: [X(o.gun.stations[0][0]), Y(gh), 0],
@@ -1875,7 +1884,7 @@ const withBumps = (build) => (o, opts = {}) => {
   model.parts.push(...pointParts(o, opts));
   for (const [key, kind] of Object.entries(EXTRA_PARTS)) {
     // `layer` (ground vehicles) says which sprite the detail belongs to: hull (default) or turret.
-    if (o[key] && !read.has(key)) model.parts.push({ ...bodyOf(o[key]), layer: o[key].layer, material: () => ({ kind: o[key].kind ?? kind }) });
+    if (o[key] && !read.has(key)) model.parts.push({ ...bodyOf(o[key]), layer: o[key].layer, material: (p, n) => model.bumpMaterial?.(key, p, n) ?? { kind: o[key].kind ?? kind } });
   }
   return model;
 };
