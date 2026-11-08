@@ -7,6 +7,23 @@ later.
 
 ## Decisions
 
+- **Emergency power (decided 2026-11-08, discussion; not built):** build is its own session, "Gameplay — emergency power (build)".
+  Always available, no lockout, no grace period: every second costs something at once and the cost grows the longer it is held.
+  - **Gain:** about +20% engine power (climb, top speed, acceleration), engine at `maxRpm`. Toggle key `E` (or `Shift` if `E` is
+    taken), rebindable through `ACTIONS`.
+  - **Cost, wear:** engine wear starts at second 0, about 0.5%/s, ramping with heat to about 2%/s at 15 s (3 s burst about 2%,
+    15 s hold about 20%). Wear is a **permanent engine penalty until serviced** (not plain health damage): a worn engine loses
+    top-end power, so it cannot hold emergency power for as long. Servicing on the ground repairs it; enemy hits add to it; a dead
+    engine means gliding.
+  - **Heat:** builds while on, bleeds off after switch-off (about 10 s to cool fully). Re-triggering while hot starts at a higher
+    wear rate, so spamming is a bad trade, but it can always be switched on.
+  - **Visible:** dark exhaust smoke trail from the first moment, **visible to enemies** (the immediate cost); strain/supercharger
+    sound layer driven by the Sound Lab `emergency` input.
+  - **Bots use it too, wary:** to survive fights (escape, break off when hurt), not to win them. Short bursts, never as a
+    permanent boost; they also pay wear and smoke.
+  - **Values** (all data, tuning panel and `TUNING.md`): boost +20%, base wear 0.5%/s, peak wear 2%/s at 15 s, cool-down 10 s,
+    bot trigger thresholds.
+
 - **Ground vehicles in the Outline Lab: tanks and trucks (decided 2026-11-08, discussion; not built):** the Outline Lab
   also edits tanks and trucks (the "later tank" in the Outline Lab entry below). Build is its own session, "Planes — tank and
   truck outlines in the Lab".
@@ -587,7 +604,7 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
-- **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Discussion first: decide the key, the damage rate and the cool-down. Session: "Gameplay — emergency power".
+- **Emergency power** (Gameplay, with a Sound part): the player switches on war emergency power (a key): the engine runs at `maxRpm` with extra power and, after about 10 s, starts to take damage (no real-life minutes). Sound: a strain / supercharger layer driven by an `emergency` input in the Sound Lab (the Test Flight switch exists already). Discussion settled 2026-11-08 (see Decisions, "Emergency power"); build waits for its own session.
 
 - **Planes — tank and truck outlines in the Lab (started 2026-11-08):** stop 1 done (tank parts, running-gear frames, layered sprites, crew dot, tests; `notes/outline-lab.md` "Ground vehicles"). Waiting for the owner to trace the Panzer IV H hull over the sheet in the Lab (and say what to do about the gun and skirts: the sheet is an F-34 version without skirts). Then: wire the layers into the renderer (also "Draw the tank crew" in the Backlog), New plane picker for tanks, trucks.
 
