@@ -2,12 +2,14 @@
   "uk": {
     "name": "United Kingdom",
     "uniform": "#8a7a52",
-    "paint": { "base": "#5b6b3f", "under": "#a9b4a0", "nose": "#c9c3a6", "marking": "#2f4a8a" }
+    "paint": { "base": "#5b6b3f", "under": "#a9b4a0", "nose": "#c9c3a6", "marking": "#2f4a8a" },
+    "tankPaint": { "base": "#585b42", "under": "#3f4230", "nose": "#585b42", "marking": "#2f4a8a" }
   },
   "usa": {
     "name": "United States",
     "uniform": "#6e6a48",
-    "paint": { "base": "#55553a", "under": "#83878a", "nose": "#d6c23a", "marking": "#2b3f7a" }
+    "paint": { "base": "#55553a", "under": "#83878a", "nose": "#d6c23a", "marking": "#2b3f7a" },
+    "tankPaint": { "base": "#505236", "under": "#3a3c28", "nose": "#505236", "marking": "#2b3f7a" }
   },
   "germany": {
     "name": "Germany",
@@ -18,16 +20,19 @@
   "japan": {
     "name": "Japan",
     "uniform": "#8c8250",
-    "paint": { "base": "#4d5a3a", "under": "#b8b49a", "nose": "#2a2a2a", "marking": "#c0262b" }
+    "paint": { "base": "#4d5a3a", "under": "#b8b49a", "nose": "#2a2a2a", "marking": "#c0262b" },
+    "tankPaint": { "base": "#5a5339", "under": "#413d29", "nose": "#5a5339", "marking": "#c0262b" }
   },
   "finland": {
     "name": "Finland",
     "uniform": "#7c8070",
-    "paint": { "base": "#4f5e3c", "under": "#a6b1a4", "nose": "#d9c54a", "marking": "#2d5fa8" }
+    "paint": { "base": "#4f5e3c", "under": "#a6b1a4", "nose": "#d9c54a", "marking": "#2d5fa8" },
+    "tankPaint": { "base": "#424e38", "under": "#30392a", "nose": "#424e38", "marking": "#2d5fa8" }
   },
   "ussr": {
     "name": "Soviet Union",
     "uniform": "#8a8458",
-    "paint": { "base": "#4f6040", "under": "#9db3c2", "nose": "#b8322c", "marking": "#c62a2a" }
+    "paint": { "base": "#4f6040", "under": "#9db3c2", "nose": "#b8322c", "marking": "#c62a2a" },
+    "tankPaint": { "base": "#485538", "under": "#34402a", "nose": "#485538", "marking": "#c62a2a" }
   }
 }
