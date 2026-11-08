@@ -614,6 +614,10 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Review the propeller sound system** (Sound): the engine synth makes a propeller whomp (`prop`) and prop wash noise
+  (`washBase`, `washLoad`) in `src/audio/engine-worklet.js`, set per shared build in the Sound Lab (`builds.<name>.synth`).
+  Owner to review it; after the engine cut a dead engine keeps only the wash, which sounded synth-like. Maybe quiet or
+  silence the wash on a dead engine, and check it beside the recorded clips (owner, 2026-11-08).
 - **Draw the tank crew** (Gameplay): the renderer picks the hull sprite from `tank.crew` (`out` commander, `in` hull only, `gunner` at the MG). Waits for the tank crew sprites and `tankcrew` dot from the Lab session; sim side is done (owner, 2026-11-08).
 - **Trucks and infantry logic** (Gameplay): trucks carry infantry (loading, driving, dismounting at the `exit` point, bots, tarp blown off by blasts with the cloth-style flying tarp). Waits for the truck outlines and sprites from the Lab session; see Decisions, "Ground vehicles in the Outline Lab" (owner, 2026-11-08).
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
