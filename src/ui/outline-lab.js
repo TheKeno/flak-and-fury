@@ -17,11 +17,11 @@ const r4 = (v) => Math.round(v * 1e4) / 1e4;
 const round025 = (v) => Math.round(v / 0.025) * 0.025;
 
 const COLOURS = {
-  fuselage: '#e0c070', bed: '#e0a070', tarp: '#a0d0a0', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
+  fuselage: '#e0c070', glass: '#70c0e0', bed: '#e0a070', tarp: '#a0d0a0', spinner: '#d09060', spine: '#c0a0e0', canopy: '#70c0e0', nacelle: '#e09090',
   gunTray: '#b0b0b0', radiators: '#90d090', ...Object.fromEntries(BUMP_KEYS.map((k) => [k, '#d0d0ff'])), spat: '#c0b090', turret: '#70d0c0', gun: '#f0a060', tracks: '#b0b0b0', wheels: '#e0d0a0', wing: '#e0e070', tailplane: '#a0e0a0', fin: '#e08080', fins: '#e08080', gear: '#ffffff', points: '#ff7ad9',
 };
 const LABELS = {
-  fuselage: 'Fuselage', bed: 'Cargo bed', tarp: 'Tarp / box body', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
+  fuselage: 'Fuselage', glass: 'Windshield / glass', bed: 'Cargo bed', tarp: 'Tarp / box body', spinner: 'Spinner', spine: 'Spine', canopy: 'Canopy', nacelle: 'Nacelle', gunTray: 'Gun tray',
   radiators: 'Radiators', ...Object.fromEntries(BUMP_KEYS.map((k, i) => [k, i ? `Bump ${i + 1}` : 'Bump'])), spat: 'Wheel spat', turret: 'Turret', gun: 'Gun', tracks: 'Tracks', wheels: 'Wheels', wing: 'Wing', tailplane: 'Tailplane', fin: 'Fin', fins: 'Fins', gear: 'Gear', points: 'Crew and guns',
 };
 const SEQ = { side: ['nose', 'tail'], plan: ['nose', 'tipA', 'tipB'], under: ['nose', 'tipA', 'tipB'] }; // calibration clicks per view
@@ -355,6 +355,8 @@ function shiftPart(key, dd, dh) {
     }
     if (s.pivot) s.pivot = [sh(s.pivot[0], dd), plan ? s.pivot[1] : sh(s.pivot[1], dh)]; // the gun's pivot goes with it
     if (plan && s.z !== undefined) s.z = r4(Math.max(0, s.z + dh)); // a mirrored pair moves in or out
+  } else if (key === 'glass') {
+    for (const p of s.pts) [p[0], p[1]] = [sh(p[0], dd), sh(p[1], dh)];
   } else if (key === 'tracks') {
     for (const p of s.loop) [p[0], p[1]] = [sh(p[0], dd), sh(p[1], dh)];
   } else if (key === 'wheels') {
@@ -445,6 +447,16 @@ function rawHandles(key) {
     // The gun swings about its pivot: where the barrel meets the mantlet.
     if (key === 'gun' && o.gun.pivot) {
       hs.push({ ref: o.gun, which: 'pivot', pos: () => o.gun.pivot, set: (d, h) => (o.gun.pivot = [r4(d), r4(h)]) });
+    }
+  } else if (key === 'glass' && o.glass) {
+    for (const pt of o.glass.pts) {
+      hs.push({
+        ref: pt,
+        which: 'glass',
+        pos: () => [pt[0], pt[1]],
+        set: (d, h) => ((pt[0] = d), (pt[1] = h)),
+        remove: () => o.glass.pts.length > 3 && o.glass.pts.splice(o.glass.pts.indexOf(pt), 1),
+      });
     }
   } else if (key === 'tracks' && o.tracks) {
     // The closed band round the running gear: one handle per corner.
@@ -581,7 +593,7 @@ function pointLines() {
   return lines;
 }
 const gunners = (o = S.o) => (o.points ?? []).filter((p) => p.type === 'gunner');
-const pointName = (pt) => (pt.type === 'passenger' ? `Passenger ${(S.o.points ?? []).filter((q) => q.type === 'passenger').indexOf(pt) + 1}` : pt.type === 'exit' ? 'Exit (where infantry get off)' : pt.type === 'tankcrew' ? 'Tank crew (commander and MG gunner)' : pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
+const pointName = (pt) => (pt.type === 'passenger' ? `Passenger ${(S.o.points ?? []).filter((q) => q.type === 'passenger').indexOf(pt) + 1}` : pt.type === 'exit' ? 'Exit (where infantry get off)' : pt.type === 'headlight' ? `Headlight ${(S.o.points ?? []).filter((q) => q.type === 'headlight').indexOf(pt) + 1}` : pt.type === 'tankcrew' ? 'Tank crew (commander and MG gunner)' : pt.type === 'gunner' ? `Gunner ${gunners().indexOf(pt) + 1}` : pt.label ? pt.label[0].toUpperCase() + pt.label.slice(1) : 'Pilot');
 function removePoint(pt) {
   const list = S.o.points;
   list.splice(list.indexOf(pt), 1);
@@ -603,6 +615,12 @@ function addPoint(type) {
   const fus = S.o.fuselage.stations;
   const d = r4((fus[0][0] + fus.at(-1)[0]) * 0.35);
   const pt = { type, d, h: r4(interpTop(fus, d) - 0.1) };
+  if (type === 'headlight') {
+    // On the nose: a lamp each side of the bonnet front (z), a little under the bonnet top.
+    pt.d = r4(fus[0][0] + 0.1);
+    pt.h = r4(interpTop(fus, pt.d) - 0.3);
+    Object.assign(pt, { r: 0.12, z: 0.6 });
+  }
   if (type === 'passenger' || type === 'exit') {
     // A seat in the bed (heads just above the side boards) or the tailgate at the bed's rear end.
     const bed = S.o.bed?.stations ?? fus;
@@ -630,6 +648,21 @@ function addPoint(type) {
   rebuildPanel();
   changed();
 }
+function addGlass() {
+  pushUndo();
+  const w = S.o.cab?.window;
+  // From the old window box if the outline has one, else a window just under the cab roof.
+  const fus = S.o.fuselage.stations;
+  const roof = Math.max(...fus.map((r) => r[1]));
+  const dMid = fus.find((r) => r[1] === roof)?.[0] ?? fus.at(-1)[0] - 0.4;
+  const [d0, h0, d1, h1] = w ?? [dMid - 0.4, roof - 0.55, dMid + 0.4, roof - 0.15];
+  S.o.glass = { pts: [[d0, h0], [d1, h0], [d1, h1], [d0, h1]].map(([d, h]) => [r4(d), r4(h)]) };
+  if (S.o.cab) delete S.o.cab.window;
+  S.part = 'glass';
+  S.sel = null;
+  rebuildPanel();
+  changed();
+}
 function pointsPanel(panel, row, note) {
   const choice = (opts, get, set) => {
     const el = document.createElement('select');
@@ -648,7 +681,8 @@ function pointsPanel(panel, row, note) {
     h.className = 'dim';
     h.textContent = pointName(pt);
     panel.append(h);
-    row('d', numInput(() => pt.d, (v) => (pt.d = v)), 'h', numInput(() => pt.h, (v) => (pt.h = v)), 'z', numInput(() => pt.z ?? 0, (v) => (v ? (pt.z = v) : delete pt.z)), 'r', numInput(() => pt.r ?? 0.16, (v) => (pt.r = v)));
+    row('d', numInput(() => pt.d, (v) => (pt.d = v)), 'h', numInput(() => pt.h, (v) => (pt.h = v)), 'z', numInput(() => pt.z ?? 0, (v) => (v ? (pt.z = v) : delete pt.z)), 'r', numInput(() => pt.r ?? (pt.type === 'headlight' ? 0.12 : 0.16), (v) => (pt.r = v)));
+    if (pt.type === 'headlight') note('A lamp on both sides of the truck (z is how far out from the centre line). It is drawn as a pale lens in the sprite and the game lights it on night maps: the glow starts here and the beam points forward. Build sprites writes its place into the sprite json (lights).');
     if (pt.type === 'tankcrew') {
       row('gunner sits lower by', numInput(() => pt.lower ?? 0.12, (v) => (pt.lower = v)));
       row('MG from', numInput(() => pt.gun.at[0], (v) => (pt.gun.at[0] = v)), numInput(() => pt.gun.at[1], (v) => (pt.gun.at[1] = v)), 'aim', numInput(() => pt.gun.aim, (v) => (pt.gun.aim = v), 1));
@@ -710,6 +744,7 @@ function linesFor(key) {
     const { le, te } = s.le ? { le: s.le, te: s.te } : sampleVertical(S.o, s);
     return [{ pts: [...le.map((r) => [r[1], r[0]]), ...te.map((r) => [r[1], r[0]]).reverse()], closed: true }];
   }
+  if (key === 'glass') return [{ pts: o.glass.pts.map(([d, h]) => [d, h]), closed: true }];
   if (key === 'tracks') return [{ pts: o.tracks.loop.map(([d, h]) => [d, h]), closed: true }];
   if (key === 'wheels') {
     return o.wheels.map((w) => {
@@ -744,6 +779,13 @@ function segmentsFor(key) {
       segs.push({ a: [rows[i][0], rows[i][1]], b: [rows[i + 1][0], rows[i + 1][1]], insert });
       if (!sym) segs.push({ a: [rows[i][0], rows[i][2]], b: [rows[i + 1][0], rows[i + 1][2]], insert });
     }
+  } else if (key === 'glass' && o.glass) {
+    const pts = o.glass.pts;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i];
+      const b = pts[(i + 1) % pts.length];
+      segs.push({ a: [a[0], a[1]], b: [b[0], b[1]], insert: (t) => pts.splice(i + 1, 0, [r4(a[0] + (b[0] - a[0]) * t), r4(a[1] + (b[1] - a[1]) * t)]) });
+    }
   } else if (key === 'tracks' && o.tracks) {
     const loop = o.tracks.loop;
     for (let i = 0; i < loop.length; i++) {
@@ -768,7 +810,7 @@ function segmentsFor(key) {
 
 function partIds() {
   const crew = S.o.points?.length ? ['points'] : [];
-  if (isVehicle()) return [...BODY_KEYS.filter((k) => S.o[k]), ...(S.o.tracks ? ['tracks'] : []), 'wheels', ...crew];
+  if (isVehicle()) return [...BODY_KEYS.filter((k) => S.o[k]), ...(S.o.tracks ? ['tracks'] : []), ...(S.o.glass ? ['glass'] : []), 'wheels', ...crew];
   if (isPlan()) return [...BODY_KEYS.filter((k) => S.o[k]), ...PLAN_PARTS.filter((k) => S.o[k]), ...crew, 'gear'];
   return [...BODY_KEYS.filter((k) => S.o[k]), ...['wing', 'tailplane'].filter((k) => S.o[k]), ...['fin', 'fins'].filter((k) => S.o[k]), ...crew, 'gear'];
 }
@@ -1756,7 +1798,7 @@ function rebuildPanel() {
     parts.append(b);
   }
   // 'bump' stays on offer while one of its three slots is free
-  const crewOpts = isTruck() ? [['crew:passenger', 'Passenger (a seat in the bed)'], ...(S.o.points?.some((p) => p.type === 'exit') ? [] : [['crew:exit', 'Exit point (tarp / closed)']])] : isVehicle() ? (S.o.points?.some((p) => p.type === 'tankcrew') ? [] : [['crew:tankcrew', 'Tank crew (commander / MG gunner)']]) : [['crew:gunner', 'Gunner (crew, gun, arc)'], ['crew:pilot', 'Pilot / crew member']];
+  const crewOpts = isTruck() ? [...(S.o.glass ? [] : [['glass:new', 'Windshield / glass (draggable)']]), ['crew:headlight', 'Headlight (lit at night)'], ['crew:passenger', 'Passenger (a seat in the bed)'], ...(S.o.points?.some((p) => p.type === 'exit') ? [] : [['crew:exit', 'Exit point (tarp / closed)']])] : isVehicle() ? (S.o.points?.some((p) => p.type === 'tankcrew') ? [] : [['crew:tankcrew', 'Tank crew (commander / MG gunner)']]) : [['crew:gunner', 'Gunner (crew, gun, arc)'], ['crew:pilot', 'Pilot / crew member']];
   const missing = BODY_KEYS.filter((k) => PART_STARTERS[k] && (k === 'bump' ? BUMP_KEYS.some((b) => !S.o[b]) : !S.o[k]));
   if (missing.length || !isPlan()) {
     const sel = document.createElement('select');
@@ -1764,7 +1806,7 @@ function rebuildPanel() {
     sel.append(Object.assign(document.createElement('option'), { value: '', textContent: '+ add part…' }));
     for (const k of missing) sel.append(Object.assign(document.createElement('option'), { value: k, textContent: PART_STARTERS[k].label }));
     if (!isPlan()) for (const [v, t] of crewOpts) sel.append(Object.assign(document.createElement('option'), { value: v, textContent: t }));
-    sel.onchange = () => (sel.value.startsWith('crew:') ? addPoint(sel.value.slice(5)) : addPart(sel.value));
+    sel.onchange = () => (sel.value.startsWith('crew:') ? addPoint(sel.value.slice(5)) : sel.value === 'glass:new' ? addGlass() : addPart(sel.value));
     parts.append(sel);
   }
   const panel = $('partPanel');
@@ -1808,7 +1850,7 @@ function rebuildPanel() {
     }
     if (isTruck() && S.part === 'fuselage') {
       // Boxes [d0, h0, d1, h1] the cab's paint is drawn with: the side window, the door's outline, the bonnet's louvres.
-      for (const [k, title] of [['window', 'side window'], ['door', 'door outline'], ['louvres', 'bonnet louvres']]) {
+      for (const [k, title] of [['door', 'door outline'], ['louvres', 'bonnet louvres']]) {
         const box = () => o.cab?.[k] ?? [0, 0, 0, 0];
         const set = (i, v) => {
           const b = [...box()];
@@ -1817,7 +1859,7 @@ function rebuildPanel() {
         };
         row(title, ...['d0', 'h0', 'd1', 'h1'].flatMap((n, i) => [n, numInput(() => box()[i], (v) => set(i, v))]));
       }
-      note('The cab and its bonnet in one profile (stations). The boxes are d0, h0 to d1, h1 in metres; leave a box at zeros to draw none.');
+      note('The cab and its bonnet in one profile (stations). The boxes are d0, h0 to d1, h1 in metres; leave a box at zeros to draw none. The windshield and side glass are their own part ("+ add part…" > Windshield / glass).');
     }
     if (isTruck() && S.part === 'bed') {
       const stakes = document.createElement('input');
@@ -1949,6 +1991,22 @@ function rebuildPanel() {
       p.textContent = 'Seen edge-on from the side. Its outline (planform) is edited in the Plan view.';
       panel.append(p);
     }
+  } else if (S.part === 'glass' && o.glass) {
+    note('The glass of the cab seen from the side, drawn on the cab where this outline lies (the windscreen pillar, the side window): drag its corners, double-click an edge to add a corner. In the game it is the part that gets lit or broken later.');
+    panel.append(rowTable(o.glass.pts, [{ title: 'd', i: 0 }, { title: 'h', i: 1 }], (r, i, v) => (r[i] = v), (r) => {
+      if (o.glass.pts.length <= 3) return;
+      pushUndo();
+      o.glass.pts.splice(o.glass.pts.indexOf(r), 1);
+      rebuildPanel();
+      changed();
+    }));
+    button('Remove the glass', () => {
+      pushUndo();
+      delete o.glass;
+      S.part = 'fuselage';
+      rebuildPanel();
+      changed();
+    });
   } else if (S.part === 'tracks') {
     const tr = o.tracks;
     row('track z', numInput(() => tr.z, (v) => (tr.z = v)), 'band half width', numInput(() => tr.half, (v) => (tr.half = v)));

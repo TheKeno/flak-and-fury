@@ -108,3 +108,18 @@ for (const id of truckIds) {
     assert.ok(rows.length > 2 && rows.at(-1) <= o.sprite.pivot[1] + 1 && o.sprite.pivot[1] - rows[0] < 8, 'a low heap on the ground');
   });
 }
+
+test('trucks: the glass polygon and the headlights are placed by the outline', () => {
+  for (const id of truckIds) {
+    const o = loadOutline(id);
+    const [w, h] = o.sprite.size;
+    const pic = (oo) => renderVehicle(buildModel(id, oo, {}), w, h, oo.sprite.pivot, { res: 2 }).join('\n');
+    const base = pic(o);
+    const moved = structuredClone(o);
+    if (moved.glass) moved.glass.pts = moved.glass.pts.map(([d, hh]) => [d, hh - 0.25]);
+    assert.notEqual(pic(moved), base, 'moving the glass changes the sprite');
+    const dark = structuredClone(o);
+    dark.points = dark.points.filter((p) => p.type !== 'headlight');
+    if (o.points.some((p) => p.type === 'headlight')) assert.notEqual(pic(dark), base, 'a headlight is drawn');
+  }
+});

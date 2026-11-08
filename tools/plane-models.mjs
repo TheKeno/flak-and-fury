@@ -1835,11 +1835,22 @@ function truck(o, opts = {}) {
   const inBox = (b, d, h) => b && d >= b[0] && d <= b[2] && h >= b[1] && h <= b[3];
   const near = (v, a, w) => Math.abs(v - a) < w;
   const c = o.cab ?? {};
+  // The cab's glass: a polygon [d, h] the owner places in the Lab (glass.pts); older outlines had a box (cab.window).
+  const glass = o.glass?.pts ?? (c.window ? [[c.window[0], c.window[1]], [c.window[2], c.window[1]], [c.window[2], c.window[3]], [c.window[0], c.window[3]]] : null);
+  const inPoly = (pts, d, h) => {
+    let inside = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [di, hi] = pts[i];
+      const [dj, hj] = pts[j];
+      if (hi > h !== hj > h && d < ((dj - di) * (h - hi)) / (hj - hi) + di) inside = !inside;
+    }
+    return inside;
+  };
   const cabMat = (p, n) => {
     if (!side(n)) return { kind: 'paint' };
     const d = dOf(p);
     const h = hOf(p);
-    if (inBox(c.window, d, h)) return { kind: 'glass' };
+    if (glass && inPoly(glass, d, h)) return { kind: 'glass' };
     let dark = h - stationAt(o.fuselage.stations, d, 2) < 0.12 ? 1 : 0;
     if (inBox(c.louvres, d, h) && (d - c.louvres[0]) % 0.1 < 0.04) return { kind: 'dark' };
     const b = c.door;
@@ -1980,6 +1991,11 @@ const pointParts = (o, opts = {}) => {
         const h0 = pt.h - (pt.lower ?? 0.12) + g.at[1];
         parts.push({ ...strut([X(d0), Y(h0), 0], [X(d0 - Math.cos(a) * g.len), Y(h0 + Math.sin(a) * g.len), 0], g.r * M), layer: 'crew', material: plain('dark') });
       }
+      continue;
+    }
+    if (pt.type === 'headlight') {
+      // A lamp lens on the side of the nose (z out from the centre line); the game lights it at night.
+      parts.push({ ...sphere([X(pt.d), Y(pt.h), (pt.z ?? 0.6) * M], (pt.r ?? 0.12) * M), material: plain('white') });
       continue;
     }
     if (pt.type === 'exit') continue; // a place for the game (where infantry get off), not drawn
