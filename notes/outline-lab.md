@@ -171,4 +171,4 @@ about its pivot (`tank.gunAim`), then the crew look from `tank.crew` (`out` comm
 lowest of track and wheels, wherever the outline put h = 0. Wreck: hull frame 0, turret knocked crooked, scorched.
 Not done: a flying turret on destruction, other tanks.
 
-Next tanks: `t34-76` is a starter (a copy of the Panzer, to be reshaped over `T-34-76.jpg` in the Lab; picker name "T-34/76 Model 1943 (USSR)"). The sheet `Sherman.png` is an M10 tank destroyer (open turret, no hull MG), not an M4A1: needs another sheet. Churchill, Chi-Ha and BT-42 sheets are in the library, not looked at yet.
+Next tanks: `t34-76` is a starter (a copy of the Panzer, to be reshaped over `T-34-76.jpg` in the Lab; picker name "T-34/76 Model 1943 (USSR)"). `m4a1` is a starter too (picker name "M4A1 Sherman (USA)"), over the new `Sherman.png` (the first one was an M10; this one is an M4A1 but low resolution, ~330 px wide, faces left, drawn with slight perspective: trace it carefully). Churchill, Chi-Ha and BT-42 sheets are in the library, not looked at yet.
