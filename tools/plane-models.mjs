@@ -1652,6 +1652,14 @@ export function belt(loop, zc, half, t) {
   };
 }
 
+// A station table's value at d (col 1 top, 2 bottom), straight between stations, clamped at the ends.
+function stationAt(st, d, col) {
+  if (d <= st[0][0]) return st[0][col];
+  for (let i = 1; i < st.length; i++) {
+    if (d <= st[i][0]) return st[i - 1][col] + ((st[i][col] - st[i - 1][col]) * (d - st[i - 1][0])) / Math.max(1e-6, st[i][0] - st[i - 1][0]);
+  }
+  return st.at(-1)[col];
+}
 function tank(o, opts = {}) {
   const { M, X, Y, bodyOf } = kit(o);
   const tr = o.tracks;
@@ -1669,6 +1677,33 @@ function tank(o, opts = {}) {
     return null;
   };
   const hull = bodyOf(o.fuselage);
+  // Detail on the sides, like a plane's panel lines: the hull's lower edge in shade, a plate joint just under the top
+  // edge, bolts along it and vertical seams; the turret's lower edge in shade, a seam near the back and a vision slit.
+  // d, h in metres (back from the front, up); t = metres below the part's top edge.
+  const dOf = (p) => (X(0) - p[0]) / M;
+  const hOf = (p) => (p[1] - Y(0)) / M;
+  const hullSide = (p) => {
+    const d = dOf(p);
+    const h = hOf(p);
+    const t = stationAt(o.fuselage.stations, d, 1) - h;
+    const low = h - stationAt(o.fuselage.stations, d, 2);
+    let dark = low < 0.06 ? 2 : low < 0.18 ? 1 : 0;
+    if (t > 0.1 && t < 0.17) dark = Math.max(dark, 1); // the plate joint
+    if (t < 0.07 && d % 0.3 < 0.06) dark = Math.max(dark, 1); // bolts along the top edge
+    if (t > 0.17 && t < 0.4 && d % 1.1 < 0.05) dark = Math.max(dark, 1); // seams
+    return dark;
+  };
+  const turretSide = (p) => {
+    const d = dOf(p);
+    const h = hOf(p);
+    const rows = o.turret.stations;
+    const t = stationAt(rows, d, 1) - h;
+    const dRear = rows.at(-1)[0];
+    let dark = h - stationAt(rows, d, 2) < 0.2 ? 1 : 0;
+    if (Math.abs(d - (dRear - 0.3)) < 0.04) dark = Math.max(dark, 1); // seam near the back
+    if (Math.abs(t - 0.32) < 0.04 && Math.abs(d - (rows[0][0] + 0.9)) < 0.12) return { kind: 'dark' }; // vision slit
+    return { kind: 'paint', dark };
+  };
   // The hull seen between the road wheels, inside the track loop, is in the running gear's shadow.
   const loopPts = tr.loop.map(([d, h]) => [X(d), Y(h)]);
   const inLoop = (x, y) => {
@@ -1711,14 +1746,7 @@ function tank(o, opts = {}) {
   // Suspension in the gap above the road wheels: the wheels go in pairs on bogies (an arm from each hub up to a
   // housing under the hull, a spring from each arm to the hull, a leaf pack across the pair). tracks.suspension = false
   // leaves it out (a tank whose springs are inside the hull).
-  const hullBottom = (d) => {
-    const st = o.fuselage.stations;
-    if (d <= st[0][0]) return st[0][2];
-    for (let i = 1; i < st.length; i++) {
-      if (d <= st[i][0]) return st[i - 1][2] + ((st[i][2] - st[i - 1][2]) * (d - st[i - 1][0])) / Math.max(1e-6, st[i][0] - st[i - 1][0]);
-    }
-    return st.at(-1)[2];
-  };
+  const hullBottom = (d) => stationAt(o.fuselage.stations, d, 2);
   const suspension = [];
   if (tr.suspension !== false) {
     const road = (o.wheels ?? []).filter((w) => !w.kind || w.kind === 'road').sort((a, b) => a.d - b.d);
@@ -1747,11 +1775,11 @@ function tank(o, opts = {}) {
   const [gd, gh] = o.gun.pivot;
   const ring = o.turret.stations;
   const parts = [
-    { ...hull, material: (p, n) => mark('hull')(p, n) ?? (inLoop(p[0], p[1]) ? { kind: 'dark' } : { kind: 'paint' }) },
+    { ...hull, material: (p, n) => mark('hull')(p, n) ?? (inLoop(p[0], p[1]) ? { kind: 'dark' } : { kind: 'paint', dark: side(n) ? hullSide(p) : 0 }) },
     { ...band, material: bandMat },
     ...suspension,
     ...wheels,
-    { ...turret, layer: 'turret', material: (p, n) => mark('turret')(p, n) ?? { kind: 'paint' } },
+    { ...turret, layer: 'turret', material: (p, n) => mark('turret')(p, n) ?? (side(n) ? turretSide(p) : { kind: 'paint' }) },
     { ...gun, layer: 'gun', material: (p) => ({ kind: p[0] > barrelFrom ? 'dark' : 'paint' }) },
   ];
   return {
