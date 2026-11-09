@@ -11,11 +11,35 @@ later.
   turn rate still decides every fight. **The rule:** a plane that does more on the ground is weaker in the air (shot down
   more often), and the two even out over a match; air-to-air need not be even, the front must. History sets each plane's
   fighting style (strengths, weaknesses, job), not its exact numbers; fun first. The order:
-  1. **Role and loadout sheet** (discussion only, next): per plane its style, strengths, weaknesses and job, from history,
-     and two simple loadouts (e.g. air-to-air and ground attack / dive bomb). Stuka-type planes hit the ground hard and
-     struggle in the air. The B-239 is already among the strongest in the air (kills per life about 0.9), so it may not
-     be hard to balance.
-  2. **Loadout system:** two presets per plane, bots pick by role. Built for the air-to-air loadout first.
+  1. **Role and loadout sheet (settled 2026-11-09):**
+     - **Two loadouts only, no bombs or all bombs;** every other preset is cut (players too). **Air-to-air:** no bombs
+       on any plane (escorts scrambled to meet a raid): the clean standard plane, base numbers, guns and full
+       ammunition; plane numbers already describe this, nothing to subtract. **Ground attack:** the heaviest load:
+       P-47 3×227 kg, Spitfire 227 + 2×113, Bf 109 1×250, La-5FN 2×100, Ki-43 2×100, Bf 110 2×250, P-38J 2×227,
+       Pe-3 4×100, Ki-45 2×250, Blenheim and Mosquito bay and racks, Stuka Heavy. **The Stuka is ground only** (sits
+       out the air pass); **the B-239 is air only** (no ground loadout). Removing guns for a lighter bomber is a maybe
+       for later, not in scope.
+     - **With the ground loadout (step 5), not before:** the bombs must badly hinder dogfighting: a steeper weight cost
+       (today a full load costs only about 6% turn and thrust, `world.weight`) and air resistance per external bomb
+       (bombs in a bay get none). **Jettison** (drop bombs unarmed) turns the plane back into its air-to-air form;
+       bots with bombs avoid fights while loaded and jettison when attacked.
+     - **Air-to-air roles** (shared bot tactics; planes in a role still differ by their own numbers, which the
+       auto-tuner keeps: strengths stay strengths):
+
+       | Role | Tactic | Planes |
+       |---|---|---|
+       | Turn fighter | Draw enemies into tight, slow circles and win on turning; never chase a diver | Ki-43-II, B-239 |
+       | All-rounder | Turn when it pays, climb or roll away when not; fights at any speed | Spitfire IX, La-5FN (best low) |
+       | Boom and zoom | Get height, dive, one burst, zoom back up; never stay to turn | Bf 109 G-6, P-47D, P-38J |
+       | Slasher | One fast pass with heavy nose guns, extend, come back; no turning fights | Bf 110 G-2, Ki-45 KAI, Mosquito FB.VI |
+       | Gunner defence | Run straight, let the rear gunner work; fire forward only at easy shots | Pe-3, Blenheim IV |
+
+       Air strength order for the tuner's bands: the air-only B-239 highest, the other fighters high, heavy fighters
+       middle, the Mosquito low. Boom and zoom and the slasher need step 3 to win; gunner defence needs a new "run"
+       tactic, also step 3. Kills per life at the start (2026-11-08 quick run): Spitfire and B-239 about 0.9, La-5FN
+       0.4, P-47 0.3, Bf 109 and Ki-43 about 0.2.
+  2. **Loadout system:** the two loadouts above per plane (cut the other presets), bots pick by role; each plane's air
+     role recorded in the data for the bots and the tuner. Built for the air-to-air loadout first.
   3. **Groundwork, all planes:** make dive-and-climb (boom and zoom) able to win: AI tactics plus broad flight-model
      rules (speed kept in a dive, zoom climb). Today a boom-and-zoom bot loses badly.
   4. **Auto-tuner (Balance Lab stage 2) fine-tunes each plane's numbers**, air-only arena first. Its limits come from the
@@ -832,7 +856,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Plane roles: the role and loadout sheet** (Design): next step of the Decisions entry "Plane roles and balancing plan" (a discussion: style, strengths, weaknesses and two loadouts per plane). Then loadouts, dive-and-climb groundwork and the auto-tuner (Balance Lab stage 2) as listed there.
+- **Plane roles: the loadout system** (Gameplay): step 2 of the Decisions entry "Plane roles and balancing plan" (the role sheet is settled there). Then dive-and-climb groundwork and the auto-tuner (Balance Lab stage 2) as listed there.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
