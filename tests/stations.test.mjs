@@ -163,6 +163,7 @@ test('every plane with hardpoints has valid presets (Air-to-air, Ground attack),
   const planes = load('data/planes.json');
   const weapons = load('data/weapons.json');
   for (const [id, d] of Object.entries(planes)) {
+    if (id === 'b239') { assert.deepEqual(d.loadoutPresets, [{ name: 'Air-to-air', loadout: [] }], 'the air-only B-239 has just Air-to-air'); continue; }
     if (id.startsWith('_') || !d.hardpoints) continue;
     assert.ok(d.loadoutPresets.length === (d.groundOnly ? 1 : 2), `${id}: Air-to-air and Ground attack (ground-only planes: just the ground one)`);
     assert.deepEqual(d.loadoutPresets.at(-1).loadout, d.loadout, `${id}: the ground preset is the default (the capacity)`);
