@@ -42,6 +42,7 @@ later.
      role recorded in the data for the bots and the tuner. Built for the air-to-air loadout first.
   3. **Groundwork, all planes:** make dive-and-climb (boom and zoom) able to win: AI tactics plus broad flight-model
      rules (speed kept in a dive, zoom climb). Today a boom-and-zoom bot loses badly.
+     **Goal of step 3 (owner, 2026-11-09):** broad balancing changes only, so boom and zoom is *viable* for the later tuning; not evened out. The end goal of the whole plan: a bot with no designated style, after sim training, picks the style designated for its plane (the style check in step 4). Findings: the boom-and-zoom tactic already exists (`chaseWant`, `style` 0..1) and the first training left every plane on style 0, so diagnose why it loses before changing anything.
   4. **Auto-tuner (Balance Lab stage 2) fine-tunes each plane's numbers**, air-only arena first. Its limits come from the
      role sheet by themselves (no picking by the owner): strengths stay strengths (e.g. the P-47 stays among the fastest
      and toughest), weaknesses stay weaknesses, the rest moves within a sensible range (about ±15%). Gameplay numbers
