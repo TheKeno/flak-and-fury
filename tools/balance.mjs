@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { runMatch } from '../src/balance/runner.js';
 import { cleanContent, newRun, planMatches, runFileName } from '../src/balance/plan.js';
-import { analyse, METRES } from '../src/balance/analyse.js';
+import { analyse, METRES } from '../src/balance/report.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));

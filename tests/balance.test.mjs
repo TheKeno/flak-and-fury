@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runMatch } from '../src/balance/runner.js';
 import { planMatches, setups, newRun, runFileName, cleanContent } from '../src/balance/plan.js';
-import { analyse, compareRuns, METRES } from '../src/balance/analyse.js';
+import { analyse, compareRuns, METRES } from '../src/balance/report.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const content = cleanContent({

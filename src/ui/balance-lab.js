@@ -1,8 +1,8 @@
 // Balance Lab page: runs a scenario's bot matches in Web Workers (src/balance/worker.js, the same runner
 // as tools/balance.mjs), saves each run to balance/results/ through tools/serve.mjs, and shows the report
-// (src/balance/analyse.js). Open as balance-lab.html on the dev server.
+// (src/balance/report.js). Open as balance-lab.html on the dev server.
 import { cleanContent, newRun, planMatches, runFileName, withDefaults } from '../balance/plan.js';
-import { analyse, compareRuns } from '../balance/analyse.js';
+import { analyse, compareRuns } from '../balance/report.js';
 import { train, plannedMatches, tacticsFile, summariseTraining, TRAIN_DEFAULTS } from '../balance/trainer.js';
 import { TACTIC_FIELDS, tacticsIn, describeTactics } from '../sim/tactics.js';
 
