@@ -102,6 +102,10 @@ export function validateLoadout(def, list, weapons) {
   return out.sort((a, b) => order(a) - order(b));
 }
 
+// What a bot carries, by its plane's role: every air plane flies Air-to-air (no bombs); a ground-only plane (the
+// Stuka) keeps its default bombs (null). Per-role choices come with the bot tactics.
+export const botLoadout = (def) => (def.groundOnly ? null : []);
+
 // Sets the pilot's chosen loadout, when the plane is still being prepared: waiting behind the hangar
 // doors, or down and about to come back. Returns true if taken; an invalid list or a plane already out
 // of the doors is refused (the choice is locked once it rolls out). The stations are rebuilt full.

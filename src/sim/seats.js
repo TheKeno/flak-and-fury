@@ -4,7 +4,7 @@
 // those two against two bots.
 import { createPlane, spawnAtAirfield, holdForPilot } from './plane.js';
 import { setBots } from './world.js';
-import { armPlane, validateLoadout, setLoadout, validateGuns, setGuns, canPrepare } from './weapons.js';
+import { armPlane, validateLoadout, setLoadout, validateGuns, setGuns, canPrepare, botLoadout } from './weapons.js';
 import { bailOut, makeWreck } from './bailout.js';
 
 export const MAX_PLAYERS = 4;
@@ -38,7 +38,8 @@ export function freeSide(world, teams) {
 function refit(world, p, def, team, loadout = null, guns = null) {
   const keep = { kills: p.kills, deaths: p.deaths, callsign: p.callsign, switchedAt: p.switchedAt, fresh: p.fresh, bailout: p.bailout };
   Object.assign(p, createPlane(p.id, def, { team, nation: def.nation, seats: p.seats }), keep);
-  p.loadout = loadout && validateLoadout(def, loadout, world.weapons);
+  const bot = p.seats.some((s) => s.role === 'pilot' && s.controller.startsWith('bot'));
+  p.loadout = bot ? botLoadout(def) : loadout && validateLoadout(def, loadout, world.weapons);
   p.gunChoice = guns && validateGuns(def, guns, world.weapons);
   armPlane(p, world.weapons);
 }

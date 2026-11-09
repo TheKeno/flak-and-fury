@@ -159,13 +159,14 @@ test('weight: the loaded take-off roll fits the runway the plane says it needs',
 
 // --- Hangar loadouts: presets, validation, and getting the choice into the plane ---
 
-test('every plane with hardpoints has 2 to 4 valid presets, the first being the default', () => {
+test('every plane with hardpoints has valid presets (Air-to-air, Ground attack), the last being the default', () => {
   const planes = load('data/planes.json');
   const weapons = load('data/weapons.json');
   for (const [id, d] of Object.entries(planes)) {
     if (id.startsWith('_') || !d.hardpoints) continue;
-    assert.ok(d.loadoutPresets.length >= 2 && d.loadoutPresets.length <= 4, `${id}: 2 to 4 presets`);
-    assert.deepEqual(d.loadoutPresets[0].loadout, d.loadout, `${id}: preset 0 is the default`);
+    assert.ok(d.loadoutPresets.length === (d.groundOnly ? 1 : 2), `${id}: Air-to-air and Ground attack (ground-only planes: just the ground one)`);
+    assert.deepEqual(d.loadoutPresets.at(-1).loadout, d.loadout, `${id}: the ground preset is the default (the capacity)`);
+    if (!d.groundOnly) assert.deepEqual(d.loadoutPresets[0].loadout, [], `${id}: Air-to-air is clean`);
     assert.equal(new Set(d.loadoutPresets.map((x) => x.name)).size, d.loadoutPresets.length, `${id}: names differ`);
     for (const pr of d.loadoutPresets) {
       assert.ok(pr.name, `${id}: preset has a name`);

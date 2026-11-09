@@ -8,6 +8,7 @@ import { createWorld, addPlane, setBots, stepWorld, randomPlane } from '../src/s
 import { autopilotCommand } from '../src/sim/ai.js';
 import { makeGroundObject } from '../src/sim/ground.js';
 import { ignite } from '../src/sim/fire.js';
+import { armPlane } from '../src/sim/weapons.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
@@ -129,6 +130,8 @@ test('a bot shoots down a plane flying straight and level', () => {
 test('a bot bombs an enemy tank closing on its hangar and hits it, without cratering its own runway', () => {
   const world = makeWorld();
   const p = bot(world, GERMAN);
+  p.loadout = p.def.loadout; // bots fly Air-to-air by default; this one is sent out with bombs
+  armPlane(p, world.weapons);
   const home = world.map.airfields.find((a) => a.team === 0);
   const tank = makeGroundObject(world, 'tank', 1, home.x + home.width + 300, { mobile: true });
   tank.dir = -1;
@@ -187,8 +190,8 @@ test('set on fire, a bot puts the plane down and the fire goes out', () => {
 test('an ace outflies an easy pilot: it does far more damage and loses fewer planes', () => {
   const ace = { damage: 0, deaths: 0 };
   const easy = { damage: 0, deaths: 0 };
-  // Sixteen seeds (eight once the roll-out of the hangar changed the timing): three were too few to be stable (a small change to the take-off timing flipped it).
-  for (const seed of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
+  // Sixteen seeds (seeds 16-31 since bots fly Air-to-air: 0-15 fell on the noise; eight once the roll-out of the hangar changed the timing): three were too few to be stable (a small change to the take-off timing flipped it).
+  for (const seed of [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]) {
     const world = makeWorld({ seed });
     // Both in the Spitfire: in a few fights the heavier G-6 is too close a thing to prove the levels.
     const a = bot(world, { ...GERMAN, defId: BRITISH.defId }, 'ace');

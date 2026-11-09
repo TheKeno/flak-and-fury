@@ -90,7 +90,7 @@ test('saved choices: last plane, per-plane load, bad data falls back', () => {
   let saved = readSaved(st);
   assert.deepEqual(saved, {});
   const def = planes.ju87;
-  const load2 = presetsOf(def)[2].loadout;
+  const load2 = [{ hardpoint: 'crutch', weapon: 'bomb_250', count: 1 }]; // a custom load, not a preset
   saved = writeSaved(st, saved, { defId: 'ju87', loadout: load2 });
   const back = sanitizeChoice(planes, weapons, readSaved(st), 'bf109g6');
   assert.equal(back.defId, 'ju87');
@@ -134,7 +134,7 @@ test('plane swap behind the doors: no wreck, roll-out restarts, load kept; refus
   // Let it roll out: the plane is then out of the doors and the load is locked.
   for (let i = 0; i < 60 * 20 && p.exitPhase === 'wait'; i++) stepWorld(world, { p1: { turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false } });
   assert.notEqual(p.exitPhase, 'wait');
-  assert.equal(changeSeat(world, p, { loadout: presetsOf(planes.bf109g6)[2].loadout }, DT), 'locked');
+  assert.equal(changeSeat(world, p, { loadout: presetsOf(planes.bf109g6)[0].loadout }, DT), 'locked');
 });
 
 test('the hangar key is a bindable action', () => {

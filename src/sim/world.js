@@ -4,7 +4,7 @@
 import { createRng } from './math.js';
 import { buildTerrain, structurePads, DEFAULT_PADS, DEFAULT_ZONES } from './terrain.js';
 import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LANDING, DEFAULT_TAKEOFF } from './plane.js';
-import { stepBullets, stepBombs, DEFAULT_WEIGHT } from './weapons.js';
+import { stepBullets, stepBombs, botLoadout, DEFAULT_WEIGHT } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand, DEFAULT_BOTS, DEFAULT_RADAR } from './ai.js';
 import { DEFAULT_SERVICING, stepCrew } from './airfield.js';
@@ -135,7 +135,10 @@ export function addPlane(world, { defId, team, nation, controller }) {
     nation,
     seats: [{ role: 'pilot', controller }],
   });
-  if (controller.startsWith('bot')) p.callsign = botName(world, p.id);
+  if (controller.startsWith('bot')) {
+    p.callsign = botName(world, p.id);
+    p.loadout = botLoadout(def);
+  }
   p.fresh = true; // not flown yet: can still change side or plane for free (src/sim/seats.js)
   world.planes.push(p);
   spawnAtAirfield(p, world, world.hangarStart);

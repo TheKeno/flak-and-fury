@@ -186,9 +186,18 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
       canvas.height = src.height;
       canvas.getContext('2d').drawImage(src, 0, 0);
     });
-    const bombs = (def.loadout ?? []).filter((l) => l.weapon).map((l) => `${l.count ?? 1} × ${weapons[l.weapon]?.name ?? l.weapon}`);
+    // The two loadouts (Air-to-air, Ground attack) are the one choice while free editing is off.
+    const presets = presetsOf(def);
+    const shown = hasBombs(def) ? state.loadout ?? presets[0].loadout : def.loadout ?? [];
+    const bombs = shown.filter((l) => l.weapon).map((l) => `${l.count ?? 1} × ${weapons[l.weapon]?.name ?? l.weapon}`);
     const guns = gunRows(def, weapons, null).filter((r) => r.weapon && r.count > 0).map((r) => `${r.count} × ${weapons[r.weapon]?.name ?? r.weapon}`);
-    const opts = el('div', { className: 'opts' }, el('div', { className: 'show' }, canvas), el('h3', {}, 'STANDARD LOAD'),
+    const opts = el('div', { className: 'opts' }, el('div', { className: 'show' }, canvas), el('h3', {}, 'LOADOUT'),
+      ...(hasBombs(def) && presets.length > 1 ? [el('div', { className: 'row' }, ...presets.map((p, i) => el('button', {
+        disabled: !state.editable,
+        className: i === presetIndex(def, shown) ? 'on' : '',
+        title: `key ${i + 1}`,
+        onclick: () => h.change({ loadout: buildLoadout(def, rowsOf(def, p.loadout), weapons, null) ?? [] }),
+      }, p.name)))] : []),
       ...guns.map((g) => el('div', {}, g)), ...bombs.map((b) => el('div', {}, b)),
       ...(guns.length || bombs.length ? [] : [el('div', { className: 'dim' }, 'Unarmed')]));
     const foot = el('div', { className: 'foot' });

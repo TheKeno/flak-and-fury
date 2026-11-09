@@ -1,5 +1,5 @@
 {
-  "_units": "World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count} (count is also the most that hardpoint takes). loadoutPresets: 2 to 4 named loads for the hangar, each {name, loadout}; the first is the default. armament.guns: the pilot's gun mounts, each {id, weapon, count, synced, options}: count is the standard fit (0 = an empty external mount such as a gondola), options the guns that fit, [{weapon, max (most guns), mountKg (the pod itself), drag (share of the plane's drag it adds)}], by default just the standard weapon up to count. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
+  "_units": "airRole (the air-to-air style, for the bots and the auto-tuner): turn fighter, all-rounder, boom and zoom, slasher or gunner defence; groundOnly: true = flies the ground loadout only (the Stuka). World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count} (count is also the most that hardpoint takes). loadoutPresets: 2 to 4 named loads for the hangar, each {name, loadout}; the first is the default. armament.guns: the pilot's gun mounts, each {id, weapon, count, synced, options}: count is the standard fit (0 = an empty external mount such as a gondola), options the guns that fit, [{weapon, max (most guns), mountKg (the pod itself), drag (share of the plane's drag it adds)}], by default just the standard weapon up to count. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -59,7 +59,11 @@
     ],
     "loadoutPresets": [
       {
-        "name": "1 × 250 kg",
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -67,20 +71,6 @@
             "count": 1
           }
         ]
-      },
-      {
-        "name": "1 × 50 kg",
-        "loadout": [
-          {
-            "hardpoint": "centre",
-            "weapon": "bomb_50",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 1.8,
@@ -174,7 +164,8 @@
       "propBlades": 3,
       "gearRatio": 0.593,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "boom and zoom"
   },
   "spitfire": {
     "name": "Spitfire Mk IX",
@@ -250,7 +241,11 @@
     ],
     "loadoutPresets": [
       {
-        "name": "227 kg + 2 × 113 kg",
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -263,30 +258,6 @@
             "count": 2
           }
         ]
-      },
-      {
-        "name": "1 × 227 kg",
-        "loadout": [
-          {
-            "hardpoint": "centre",
-            "weapon": "bomb_227",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "2 × 113 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_113",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 1.6,
@@ -374,7 +345,8 @@
       "propBlades": 4,
       "gearRatio": 0.477,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "all-rounder"
   },
   "p47d": {
     "name": "P-47D Thunderbolt",
@@ -454,7 +426,11 @@
     ],
     "loadoutPresets": [
       {
-        "name": "3 × 227 kg",
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -467,30 +443,6 @@
             "count": 2
           }
         ]
-      },
-      {
-        "name": "2 × 227 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_227",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "2 × 113 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_113",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 2,
@@ -549,7 +501,8 @@
       "propBlades": 4,
       "gearRatio": 0.5,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "boom and zoom"
   },
   "la5fn": {
     "name": "La-5FN",
@@ -610,38 +563,18 @@
     ],
     "loadoutPresets": [
       {
-        "name": "2 × 100 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_100",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "2 × 50 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_50",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "1 × 100 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_100",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "Clean",
+        "name": "Air-to-air",
         "loadout": []
+      },
+      {
+        "name": "Ground attack",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_100",
+            "count": 2
+          }
+        ]
       }
     ],
     "gearTime": 1.8,
@@ -701,7 +634,8 @@
       "propBlades": 3,
       "gearRatio": 0.7,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "all-rounder"
   },
   "ki43": {
     "name": "Ki-43-II Hayabusa",
@@ -762,38 +696,18 @@
     ],
     "loadoutPresets": [
       {
-        "name": "2 × 50 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_50",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "2 × 100 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_100",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "1 × 50 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_50",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "Clean",
+        "name": "Air-to-air",
         "loadout": []
+      },
+      {
+        "name": "Ground attack",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_50",
+            "count": 2
+          }
+        ]
       }
     ],
     "gearTime": 1.6,
@@ -853,7 +767,8 @@
       "propBlades": 3,
       "gearRatio": 0.7,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "turn fighter"
   },
   "b239": {
     "name": "Brewster B-239",
@@ -953,7 +868,14 @@
       "propBlades": 3,
       "gearRatio": 0.6875,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "turn fighter",
+    "loadoutPresets": [
+      {
+        "name": "Air-to-air",
+        "loadout": []
+      }
+    ]
   },
   "bf110": {
     "name": "Bf 110 G-2",
@@ -1022,7 +944,11 @@
     ],
     "loadoutPresets": [
       {
-        "name": "2 × 250 kg",
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
         "loadout": [
           {
             "hardpoint": "centre",
@@ -1030,20 +956,6 @@
             "count": 2
           }
         ]
-      },
-      {
-        "name": "1 × 250 kg",
-        "loadout": [
-          {
-            "hardpoint": "centre",
-            "weapon": "bomb_250",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 2.4,
@@ -1131,7 +1043,8 @@
       "propBlades": 3,
       "gearRatio": 0.593,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "slasher"
   },
   "mosquito": {
     "name": "Mosquito FB.VI",
@@ -1217,7 +1130,11 @@
     ],
     "loadoutPresets": [
       {
-        "name": "Bay and racks",
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
         "loadout": [
           {
             "hardpoint": "bay",
@@ -1230,30 +1147,6 @@
             "count": 2
           }
         ]
-      },
-      {
-        "name": "Bay only",
-        "loadout": [
-          {
-            "hardpoint": "bay",
-            "weapon": "bomb_113",
-            "count": 4
-          }
-        ]
-      },
-      {
-        "name": "Racks only",
-        "loadout": [
-          {
-            "hardpoint": "rack",
-            "weapon": "bomb_113",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 2.2,
@@ -1317,7 +1210,8 @@
       "propBlades": 3,
       "gearRatio": 0.42,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "slasher"
   },
   "ju87": {
     "name": "Ju 87 D-5 Stuka",
@@ -1416,7 +1310,7 @@
     ],
     "loadoutPresets": [
       {
-        "name": "Heavy",
+        "name": "Ground attack (Heavy)",
         "loadout": [
           {
             "hardpoint": "crutch",
@@ -1434,40 +1328,6 @@
             "count": 2
           }
         ]
-      },
-      {
-        "name": "Medium",
-        "loadout": [
-          {
-            "hardpoint": "crutch",
-            "weapon": "bomb_250",
-            "count": 1
-          },
-          {
-            "hardpoint": "rack-in",
-            "weapon": "bomb_50",
-            "count": 2
-          },
-          {
-            "hardpoint": "rack-out",
-            "weapon": "bomb_50",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "Light",
-        "loadout": [
-          {
-            "hardpoint": "crutch",
-            "weapon": "bomb_250",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 1.6,
@@ -1541,7 +1401,8 @@
       "propBlades": 3,
       "gearRatio": 0.645,
       "idleSource": "estimated"
-    }
+    },
+    "groundOnly": true
   },
   "p38j": {
     "name": "P-38J Lightning",
@@ -1610,38 +1471,18 @@
     ],
     "loadoutPresets": [
       {
-        "name": "2 × 227 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_227",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "2 × 113 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_113",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "1 × 227 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_227",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "Clean",
+        "name": "Air-to-air",
         "loadout": []
+      },
+      {
+        "name": "Ground attack",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_227",
+            "count": 2
+          }
+        ]
       }
     ],
     "gearTime": 2.4,
@@ -1705,7 +1546,8 @@
       "propBlades": 3,
       "gearRatio": 0.5,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "boom and zoom"
   },
   "pe3": {
     "name": "Pe-3",
@@ -1774,7 +1616,11 @@
     ],
     "loadoutPresets": [
       {
-        "name": "4 × 100 kg",
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
         "loadout": [
           {
             "hardpoint": "wing",
@@ -1782,20 +1628,6 @@
             "count": 4
           }
         ]
-      },
-      {
-        "name": "2 × 100 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_100",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 2.4,
@@ -1873,7 +1705,8 @@
       "propBlades": 3,
       "gearRatio": 0.66,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "gunner defence"
   },
   "ki45": {
     "name": "Ki-45 KAI Toryu",
@@ -1942,38 +1775,18 @@
     ],
     "loadoutPresets": [
       {
-        "name": "2 × 250 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_250",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "1 × 250 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_250",
-            "count": 1
-          }
-        ]
-      },
-      {
-        "name": "2 × 113 kg",
-        "loadout": [
-          {
-            "hardpoint": "wing",
-            "weapon": "bomb_113",
-            "count": 2
-          }
-        ]
-      },
-      {
-        "name": "Clean",
+        "name": "Air-to-air",
         "loadout": []
+      },
+      {
+        "name": "Ground attack",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_250",
+            "count": 2
+          }
+        ]
       }
     ],
     "gearTime": 2.4,
@@ -2051,7 +1864,8 @@
       "propBlades": 3,
       "gearRatio": 0.7,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "slasher"
   },
   "blenheim4": {
     "name": "Blenheim Mk IV",
@@ -2137,7 +1951,11 @@
     ],
     "loadoutPresets": [
       {
-        "name": "Bay and racks",
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
         "loadout": [
           {
             "hardpoint": "bay",
@@ -2150,20 +1968,6 @@
             "count": 2
           }
         ]
-      },
-      {
-        "name": "Bay only",
-        "loadout": [
-          {
-            "hardpoint": "bay",
-            "weapon": "bomb_113",
-            "count": 4
-          }
-        ]
-      },
-      {
-        "name": "Clean",
-        "loadout": []
       }
     ],
     "gearTime": 2.6,
@@ -2241,6 +2045,7 @@
       "propBlades": 3,
       "gearRatio": 0.5,
       "idleSource": "estimated"
-    }
+    },
+    "airRole": "gunner defence"
   }
 }

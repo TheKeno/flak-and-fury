@@ -2,7 +2,7 @@
 // with hangar.html), the rules hangar-logic.js; this only holds the game state and reports:
 // on.choose({ defId, loadout, guns }) goes to changeSeat (or the seat message online).
 import { loadImage, paintSprite } from '../render/sprites.js';
-import { buildLoadout, rowsOf, presetsOf, planeIds, readSaved, writeSaved, hasBombs, gunChoiceFor, standardGuns, gunsEqual, LOADOUT_EDITING } from './hangar-logic.js';
+import { buildLoadout, rowsOf, presetsOf, presetIndex, planeIds, readSaved, writeSaved, hasBombs, gunChoiceFor, standardGuns, gunsEqual, LOADOUT_EDITING } from './hangar-logic.js';
 import { validateLoadout } from '../sim/weapons.js';
 import { createHangarView, HANGAR_STYLE, el } from './hangar-view.js';
 
@@ -72,16 +72,19 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
   function change(c) {
     const id = idOf(plane.def);
     const loadout = c.loadout ?? load();
-    const guns = c.guns ?? gunsNow(plane);
+    const guns = LOADOUT_EDITING ? c.guns ?? gunsNow(plane) : null;
     remember(id, loadout, guns);
     choose({ defId: id, ...(loadout ? { loadout } : {}), ...(guns ? { guns } : {}) });
   }
   function pickPlane(id) {
     if (id === idOf(plane.def) || !editable()) return;
     if (!LOADOUT_EDITING) {
-      // Standard load only (changeSeat falls back to the plane's defaults).
-      saved = writeSaved(storage, saved, { defId: id, loadout: null });
-      return choose({ defId: id });
+      // Only the plane's presets (Air-to-air first): the saved one if it is a preset, else the first.
+      const d = planeDefs[id];
+      const mine = savedFor(id).loadout;
+      const loadout = hasBombs(d) ? (mine && presetIndex(d, mine) >= 0 ? mine : validateLoadout(d, presetsOf(d)[0].loadout, weapons) ?? []) : null;
+      saved = writeSaved(storage, saved, { defId: id, loadout });
+      return choose({ defId: id, ...(loadout ? { loadout } : {}) });
     }
     const def = planeDefs[id];
     const mine = savedFor(id);

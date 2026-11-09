@@ -245,7 +245,7 @@ test('a chosen loadout reaches the guest in the snapshot', () => {
   assert.deepEqual(theirs.loadout, []);
   assert.deepEqual(theirs.stations, []);
   const bot = guest.planes.find((p) => p.seats[0].controller.startsWith('bot'));
-  assert.equal(bot.loadout, null);
+  assert.deepEqual(bot.loadout, bot.def.groundOnly ? null : []); // bots fly Air-to-air unless ground-only
 });
 
 test('a chosen gun set reaches the guest in the snapshot', () => {

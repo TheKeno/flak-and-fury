@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Plane roles and balancing plan (decided 2026-11-09, discussion; not built):** after the first bot training showed
+- **Plane roles and balancing plan (decided 2026-11-09, discussion; step 2 built 2026-11-09, see Done):** after the first bot training showed
   turn rate still decides every fight. **The rule:** a plane that does more on the ground is weaker in the air (shot down
   more often), and the two even out over a match; air-to-air need not be even, the front must. History sets each plane's
   fighting style (strengths, weaknesses, job), not its exact numbers; fun first. The order:
@@ -516,6 +516,8 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+
+- **Plane roles step 2: the loadout system (Gameplay, 2026-11-09):** each plane's `loadoutPresets` cut to two, **Air-to-air** (clean, first, so the player's default) and **Ground attack** (the heaviest load of the role sheet, equal to `loadout`); the B-239 has only Air-to-air, the Ju 87 only Ground attack (Heavy, `groundOnly: true`). Each plane has an `airRole` in `data/planes.json` (a label so far; TUNING.md). Bots take Air-to-air (`botLoadout` in `src/sim/weapons.js`, applied in `addPlane` and on a seat swap; the Stuka keeps its bombs), so Balance Lab matches are air-to-air by themselves. Tests updated (preset counts, the bomb-run test arms its bot, the ace test moved to seeds 16-31 after the old ones fell on noise). Not done: weight cost, bomb drag, jettison, role tactics (steps 3 and 5).
 - **Bot training (Gameplay, 2026-11-08):** built as in the Decisions entry. **1) Own-fault deaths:** a dead-ahead
   tie-break bug in `closeCall` sent a plane facing left up into the other; a low plane now holds level instead of both
   climbing; pull-outs take the nose's side (after a knock the old side meant turning through straight down). Balance Lab
@@ -856,7 +858,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Plane roles: the loadout system** (Gameplay): step 2 of the Decisions entry "Plane roles and balancing plan" (the role sheet is settled there). Then dive-and-climb groundwork and the auto-tuner (Balance Lab stage 2) as listed there.
+- **Plane roles: dive-and-climb groundwork** (Gameplay): step 3 of the Decisions entry "Plane roles and balancing plan" (step 2, the two loadouts and `airRole`, is done). Then the auto-tuner (Balance Lab stage 2); weight cost, bomb drag, jettison and role tactics come with step 3 and step 5.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
