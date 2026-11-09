@@ -7,6 +7,29 @@ later.
 
 ## Decisions
 
+- **Plane roles and balancing plan (decided 2026-11-09, discussion; not built):** after the first bot training showed
+  turn rate still decides every fight. **The rule:** a plane that does more on the ground is weaker in the air (shot down
+  more often), and the two even out over a match; air-to-air need not be even, the front must. History sets each plane's
+  fighting style (strengths, weaknesses, job), not its exact numbers; fun first. The order:
+  1. **Role and loadout sheet** (discussion only, next): per plane its style, strengths, weaknesses and job, from history,
+     and two simple loadouts (e.g. air-to-air and ground attack / dive bomb). Stuka-type planes hit the ground hard and
+     struggle in the air. The B-239 is already among the strongest in the air (kills per life about 0.9), so it may not
+     be hard to balance.
+  2. **Loadout system:** two presets per plane, bots pick by role. Built for the air-to-air loadout first.
+  3. **Groundwork, all planes:** make dive-and-climb (boom and zoom) able to win: AI tactics plus broad flight-model
+     rules (speed kept in a dive, zoom climb). Today a boom-and-zoom bot loses badly.
+  4. **Auto-tuner (Balance Lab stage 2) fine-tunes each plane's numbers**, air-only arena first. Its limits come from the
+     role sheet by themselves (no picking by the owner): strengths stay strengths (e.g. the P-47 stays among the fastest
+     and toughest), weaknesses stay weaknesses, the rest moves within a sensible range (about ±15%). Gameplay numbers
+     only (speed, turn, climb, dive, toughness, gun damage); never outlines, sprites or real dimensions. Goal for the air
+     pass: each plane's kills per life in a band set by its role. Search: the bot trainer's loop
+     (`src/balance/search.js`), one step at a time, kept only beyond the noise; promising changes confirmed with a
+     quick run. **Style check:** after tuning, a free bot training on the plane must pick its intended style by itself
+     (e.g. the P-47 picks boom and zoom); the report says if not. Ends in suggestions and a plain-words report; nothing
+     is written to the plane data until the owner presses Apply in the Lab. A full pass is an overnight job.
+  5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
+  This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
+
 - **Bot training: bots learn how to fly each plane (decided 2026-11-08; built 2026-11-08, see Done):** the first quick
   Balance Lab run showed every bot flies every plane the same way (pure pursuit plus turn-fighting, `chaseWant` in
   `src/sim/ai.js`), so turn rate decides fights (kills per life 0.87 Spitfire/B-239 against 0.23-0.26 Ki-43/Bf 109/P-47)
@@ -809,7 +832,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Balance Lab stage 2: the auto-tuner** (Gameplay): stage 1 is built (see Done); stage 2 as in the Decisions entry "Balance Lab: bot battles to find unbalanced planes". First read a full fighter run.
+- **Plane roles: the role and loadout sheet** (Design): next step of the Decisions entry "Plane roles and balancing plan" (a discussion: style, strengths, weaknesses and two loadouts per plane). Then loadouts, dive-and-climb groundwork and the auto-tuner (Balance Lab stage 2) as listed there.
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
