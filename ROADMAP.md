@@ -1,5 +1,7 @@
 # Flak & Fury — roadmap and design notes
 
+- **Plane roles step 4, part 0: the set-piece duel tool (Gameplay, 2026-11-11):** `node tools/plane-sheet.mjs` (turn time, slow turn, climb, dive speed and turn, zoom, hp, firepower, measured from the flight model) and `node tools/duels.mjs [ids] [--seeds N] [--json file] [--brief]` (22 duels in `balance/duels.json`, 1v1 air-only arena, both sides of the map, expected winner and the sheet number behind it, pass/fail with a bot-or-plane-numbers guess; exit code 1 on a failed duel, the tuner's gate). Code `src/balance/duel.js`, `sheet.js`, test `tests/duels.test.mjs`. Output is cheap to read: progress only on a terminal, a counters line per duel (dives, passes, fire seconds, hits, stalls, own-fault, seconds per bot phase, how runs ended; same in `--json`). Today: **13 of 22 pass**; all nine failures point at the bot (6 boom-and-zoom dives and 2 chases of a diver lose, La-5FN v P-47 narrowly), with a plane-numbers lead for part 1 (B&Z planes have no dive-speed or zoom edge on the sheet). Findings: `notes/duels-findings.md`; baseline `balance/results/duels-baseline.json`.
+
 A side-scrolling WWII dogfighter for the browser, an original game in the genre of the 1996 classic
 *Triplane Turmoil* (itself descended from *Sopwith*). Pixel art, sound-first design, take-off and
 landing from your own airfield, guns and bombs, stalls and blackouts. Built so online play can be added
