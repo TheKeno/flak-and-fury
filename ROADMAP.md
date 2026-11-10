@@ -89,7 +89,10 @@ later.
        traces (the duel tool's compact counters line, `--brief`); (4) first job of 3a: a short map of `ai.js`
        in `notes/` (which function does what, line ranges) so sessions read only what they change; (5) short fresh
        sessions, each writes what it learned to `notes/` before it ends; (6) training and duel runs in the
-       background, read only the final summary; (7) Sonnet for routine parts (3c), Opus for the debugging (3b).
+       background, read only the final summary; **nights are for the machine, days for Claude:** no unattended
+       Claude session overnight; a daytime session ends by starting the long runs (retrain, full duel sweep at all
+       skill levels, a Balance Lab run) from a terminal so they outlive it, and the next morning's session reads
+       their summaries; (7) Sonnet for routine parts (3c), Opus for the debugging (3b).
      - **4. Auto-tuner (Balance Lab stage 2).** **Levers per plane** (about ±15%, strengths stay in their top ranks):
        `thrust`, `dragCoef`, `maxSpeed`, rated height, `turnRate`, `slowTurnBonus`/`slowTurnSpeed`, turn bleed,
        `stiffSpeed`, `stallSpeed`, `hp`, `toughness`, engine vulnerability, ammunition, convergence, emergency power.
