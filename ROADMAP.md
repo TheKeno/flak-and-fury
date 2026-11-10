@@ -45,16 +45,62 @@ later.
      **Goal of step 3 (owner, 2026-11-09):** broad balancing changes only, so boom and zoom is *viable* for the later tuning; not evened out. The end goal of the whole plan: a bot with no designated style, after sim training, picks the style designated for its plane (the style check in step 4). Findings: the boom-and-zoom tactic already exists (`chaseWant`, `style` 0..1) and the first training left every plane on style 0, so diagnose why it loses before changing anything.
      **Step 3 done 2026-11-10** (`notes/boom-and-zoom-diagnosis.md`): the flight model was fine (dives gain ~35% speed, the B&Z planes zoom back 94-100% of the height, turn fighters 72-84%); the trainer was stuck because style 0.5 only wins together with height, two steps it never takes at once. New `bots.boomHeight` (150) gives every dive-from-above bot that height, so one style step finds it. Same plane, style 0.5 vs 0: Bf 109 0.57 vs 0.33, P-47 0.45 vs 0.54, P-38 0.42 vs 0.62 kills per life (before: 0.0-0.07 for every B&Z setting the trainer could reach). Pure style 1 stays non-viable; turn fighters gain from diving too, so step 4's style check should count style 0.5+ as boom and zoom and the tuner must make turning pay for the Ki-43 and B-239. Bots still fly the trained style 0 tactics until the next training, so the Balance Lab numbers are unchanged.
      **Controls stiffen at high speed (owner, 2026-11-10; built same day):** each plane's `stiffSpeed`; above it the turn rate falls off, to half at 30% faster (player and bots). Light turn fighters stiffen early, the boom-and-zoom planes late, so a diver can get away from a turn fighter. In bot duels it made no clear difference yet (diving still mostly loses; the diving bot rarely gets a clean shot on its pass, a bot-aiming problem). Kept for players and as a role lever for the auto-tuner. Diving pass tuned 2026-11-10 (dive starts 350+ out, fire range x1.6, lead capped): diving no longer loses badly, mean gain about −0.03 (P-47) and 0.00 (Bf 109), Ki-43 −0.36 → −0.14; see the diagnosis note. Retrained 2026-11-10: no plane picked 0.5 (only firing range moved for Bf 109 and La-5FN); the pass gain is too small for the trainer. Next: the bot's behaviour right after the pass, or force the style in step 4.
-     **Decided 2026-11-10 (owner, discussion after step 3):** boom and zoom only has to be *viable when forced*, not found by the bot trainer (the trainer's one-step search stays blind to it; retraining after the dive-pass change picked no style 0.5). So the tuner **forces style 0.5 for the boom-and-zoom planes** (Bf 109 G-6, P-47D, P-38J) and tunes their numbers around it; the style check in this step becomes "viable when forced". No sweep of extra dive settings (`diveStart`, `diveRange`, `extendTime`, `turnRange` were discussed and dropped); an after-pass extend change stays optional and small. **The owner wants to discuss the step 4 goals further before anything is built or started.** Build only in a session of its own after that discussion.
-  4. **Auto-tuner (Balance Lab stage 2) fine-tunes each plane's numbers**, air-only arena first. Its limits come from the
-     role sheet by themselves (no picking by the owner): strengths stay strengths (e.g. the P-47 stays among the fastest
-     and toughest), weaknesses stay weaknesses, the rest moves within a sensible range (about ±15%). Gameplay numbers
-     only (speed, turn, climb, dive, toughness, gun damage); never outlines, sprites or real dimensions. Goal for the air
-     pass: each plane's kills per life in a band set by its role. Search: the bot trainer's loop
-     (`src/balance/search.js`), one step at a time, kept only beyond the noise; promising changes confirmed with a
-     quick run. **Style check:** after tuning, a free bot training on the plane must pick its intended style by itself
-     (e.g. the P-47 picks boom and zoom); the report says if not. Ends in suggestions and a plain-words report; nothing
-     is written to the plane data until the owner presses Apply in the Lab. A full pass is an overnight job.
+     **Decided 2026-11-10 (owner, discussion after step 3):** boom and zoom only has to be *viable when forced*, not found by the bot trainer (the trainer's one-step search stays blind to it; retraining after the dive-pass change picked no style 0.5). So the tuner **forces style 0.5 for the boom-and-zoom planes** (Bf 109 G-6, P-47D, P-38J) and tunes their numbers around it; the style check in this step becomes "viable when forced". No sweep of extra dive settings (`diveStart`, `diveRange`, `extendTime`, `turnRange` were discussed and dropped); an after-pass extend change stays optional and small. The step 4 goals were settled in the discussion of 2026-11-11 below.
+  4. **Step 4, settled 2026-11-11 (owner, discussion):** new mechanics and a bot pass come before the auto-tuner, so the
+     tuner tunes the finished game and never bakes bot flaws into plane data. Why: the bots fly badly in known ways
+     (weak diving pass, one tactic for all, perfect aim); a tuner fed by them would buff the plane instead of fixing the
+     bot, and humans would then fly a monster. The order, each part its own session:
+     - **0. Set-piece duel tool:** two bots started in the exact situation a role is about ("Ki-43 wins a slow turning
+       fight", "P-47 wins diving from height", "a turn fighter that chases a diver loses"). The expected result comes
+       from the plane numbers (a plain-numbers sheet per plane: turn time, climb, dive, top speed, toughness). A lasting
+       test: it proves each mechanic below does what it should, and gates the tuner.
+     - **1. Flight mechanics:** **thin air** (each plane a rated height from its real engine; above it power fades,
+       about a third less 400 units higher; slightly less drag and grip up high); **ceiling raised from 720 to about
+       1200** on all maps (blackout above stays), three bands: low 0-350 (Ki-43, B-239, La-5FN; the ground war), middle
+       350-700 (Spitfire LF, Bf 109), high 700-1200 (P-47, P-38 turbochargers); measure climb time and adjust the
+       ceiling so high planes don't miss the action; radar scale to fit; **a mark on the HUD altimeter at the plane's
+       rated height**. **The Spitfire becomes the LF Mk IX** (Merlin 66, rated low, 1943), so it gets a real weakness
+       high. **Turn bleed per plane** (speed lost in a hard turn, wing loading; one shared number today). **Negative-g
+       cutout** for carburettor engines (Spitfire, Ki-43, B-239, P-47 sputter when the nose is pushed hard down;
+       injected Bf 109 and La-5FN can bunt into a dive). **Emergency power per plane** (boost and heat time; shared
+       today). Ends with a numbers table per plane and a test flight by the owner.
+     - **2. Guns and damage:** **bullet speed, drop and spread from real muzzle velocities** (a one-off pass over
+       `weapons.json`; today all but two guns sit at speed 280-305, drop 0.10-0.15): flat fast guns hit from range on a
+       diving pass, slow heavy guns need a close, steady target. **Nose vs wing guns** (from the real layout) with a
+       **convergence distance** for wing guns. **Ammunition per plane** (historical loads differed for the same gun;
+       firing time as the firepower lever). **Engine vulnerability per plane** (about 0.7-1.3, gentle, no sudden death:
+       radials low, liquid-cooled a bit higher; maybe a slow leak that settles). **Human-like bot aim error** growing
+       with bullet flight time and target turning, per skill level (bots aim perfectly today, so gun differences would
+       not show in bot matches). Ends with a test flight. **Dropped:** a per-plane gun damage multiplier (inconsistent
+       when two planes share a gun, invisible, hides real faults; guns are balanced per weapon for all planes instead)
+       and the punishing radial vs liquid-cooled rule (a radiator hit killing the engine in a minute).
+     - **3. Bot-role pass:** role tactics: stay in its height band and pull the enemy into it; fly home or fight on
+       when damaged (a role setting the trainer learns); go after smoking enemies; bunt to escape (injected engines
+       only); fire at convergence range; climb back after a boom-and-zoom pass. Fix whatever the duels show, then
+       retrain the bots.
+     - **4. Auto-tuner (Balance Lab stage 2).** **Levers per plane** (about ±15%, strengths stay in their top ranks):
+       `thrust`, `dragCoef`, `maxSpeed`, rated height, `turnRate`, `slowTurnBonus`/`slowTurnSpeed`, turn bleed,
+       `stiffSpeed`, `stallSpeed`, `hp`, `toughness`, engine vulnerability, ammunition, convergence, emergency power.
+       **Set from history, not tuned:** gun position, negative-g cutout, the rated height's start value, the weapons'
+       ballistics. Never outlines, sprites or real dimensions. **First pass:** the six fighters plus the P-38J (its role
+       needs no new tactic); slashers and gunner defence wait for their tactics. Boom-and-zoom planes fly with style
+       0.5 forced. **Goal, roles counter each other with limits:** each plane's kills per life in a band relative to the
+       field average (start: turn fighters and all-rounders 0.8-1.25×, the B-239 at the top; boom and zoom 0.75-1.1×;
+       later heavy fighters 0.6-0.9×, Mosquito 0.5-0.7×), and the matchup grid in this shape: boom and zoom > all-rounder
+       > turn fighter while the fight stays at the boom-and-zoom plane's height, turn fighter > boom and zoom once the
+       fight is low; "slightly ahead" a kills-per-life ratio of 1.1-1.4, "ahead" 1.3-1.8, "even" 0.9-1.1, **no matchup
+       worse than 0.55**. **Style check:** boom-and-zoom planes land in their band with style 0.5 forced; a free training
+       of the turn fighters must still pick turning; all-rounders no check. **Guards:** every duel must pass before the
+       tuner starts (a failed duel is a bot problem; the report names it), duels run again after tuning and a change
+       that breaks one is thrown out; the report gives the owner a short test-flight list (about 5 minutes per changed
+       plane) before Apply. **The run (up to 16 h, hands off, no Claude, no tokens):** started from one command
+       (sturdier than a browser tab; PC kept awake), an hours setting (16 by default), stops early when settled,
+       resumes after a stop. Phases: gate (duels and a baseline, about 1 h), tuning round 1 (about 7 h, more matches per
+       trial than an overnight run allows), retrain the bots on the tuned planes (about 2 h), tuning round 2 (about 3 h),
+       confirm (duels, a full Balance Lab run with the ground war, a check at easy and ace bot skill; about 3 h). **The
+       report** in the Lab, plain words: kills per life before and after, the grid against its target shape, each
+       change and why, duel results, the test-flight list, Apply and Discard. Apply keeps the old values, one click
+       undoes it. Nothing is written to plane data before Apply.
   5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
   This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
 
@@ -864,7 +910,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Plane roles: auto-tuner** (Gameplay): step 4 of the Decisions entry "Plane roles and balancing plan" (steps 1-3 done; step 3's findings in `notes/boom-and-zoom-diagnosis.md`). Retrain the bots first (`node tools/train-bots.mjs`) so they can find the boom-and-zoom style; then the auto-tuner (Balance Lab stage 2) with the style check (style 0.5+ = boom and zoom). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
+- **Plane roles: step 4** (Gameplay): settled 2026-11-11, see the Decisions entry "Plane roles and balancing plan", step 4. Five sessions in order: 0 set-piece duel tool, 1 flight mechanics (thin air, ceiling 1200, Spitfire LF, turn bleed, negative-g, emergency power per plane), 2 guns and damage (ballistics, nose/wing guns, ammo per plane, engine vulnerability, bot aim error), 3 bot-role pass and retrain, 4 the auto-tuner (16 h hands-off run). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
