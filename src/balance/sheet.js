@@ -1,12 +1,17 @@
 // The plain-numbers sheet of a plane: what its flight model and guns give, measured by flying the real
 // sim (src/sim/plane.js) with a held command, so a later change to the flight model shows up here at
-// once. The duel tool (src/balance/duel.js) names one of these numbers as the reason a duel's winner is
+// once. Flown at LOW (the ground war, full power) unless the number says High. The duel tool (src/balance/duel.js) names one of these numbers as the reason a duel's winner is
 // expected to win. Pure (no DOM, no Node APIs).
 import { buildWorld } from './runner.js';
 import { addPlane, TICK_RATE } from '../sim/world.js';
 import { stepPlane, stiffness } from '../sim/plane.js';
 
 const DT = 1 / TICK_RATE;
+// Heights the sheet flies at (absolute world y; src/sim/air.js). LOW: the ground war, under every plane's
+// rated height, so the base numbers are full power. HIGH: the high band, where only the turbocharged
+// planes keep their power (the *High numbers).
+export const LOW = 300;
+export const HIGH = 1000;
 const NO_FIRE = { turn: 0, throttle: 1, roll: false, fire: false, bomb: false, gear: false, abandon: false, emergency: false, hangar: null };
 
 // Puts a plane into the air as the sim would have it (gear up, engine running, full throttle).
@@ -45,12 +50,12 @@ function testFlight(content, id) {
   return { world, p, step: (cmd) => { world.events.length = 0; world.tick++; stepPlane(p, cmd, world, DT); } };
 }
 
-// Steady level speed at full throttle.
-function topSpeed(content, id) {
+// Steady level speed at full throttle, at height y.
+function topSpeed(content, id, y = LOW) {
   const { p, step } = testFlight(content, id);
-  launch(p, { x: 2000, y: 800, angle: 0, speed: content.planeDefs[id].maxSpeed * 0.8 });
+  launch(p, { x: 2000, y, angle: 0, speed: content.planeDefs[id].maxSpeed * 0.8 });
   for (let i = 0; i < 40 * TICK_RATE; i++) {
-    p.y = 800; // held level: the sheet number is the speed, not the plane's altitude habits
+    p.y = y; // held level: the sheet number is the speed, not the plane's altitude habits
     p.angle = 0;
     step(NO_FIRE);
   }
@@ -58,9 +63,9 @@ function topSpeed(content, id) {
 }
 
 // Full pull at full throttle from a start speed, until a whole circle is done (or the plane stalls out).
-function turn(content, id, startSpeed) {
+function turn(content, id, startSpeed, y0 = LOW) {
   const { p, step } = testFlight(content, id);
-  launch(p, { x: 2000, y: 800, angle: 0, speed: startSpeed });
+  launch(p, { x: 2000, y: y0, angle: 0, speed: startSpeed });
   let turned = 0;
   let minSpeed = p.speed;
   let t = 0;
@@ -73,21 +78,22 @@ function turn(content, id, startSpeed) {
     minSpeed = Math.min(minSpeed, p.speed);
     t++;
   }
-  return { time: t / TICK_RATE, done: turned >= Math.PI * 2, endSpeed: p.speed, minSpeed, lostHeight: 800 - p.y };
+  return { time: t / TICK_RATE, done: turned >= Math.PI * 2, endSpeed: p.speed, minSpeed, lostHeight: y0 - p.y };
 }
 
 // Best steady climb at full throttle: the angle where speed times sine of the angle is highest, with the
-// speed that angle settles at (never below 1.15 x stall).
-function climb(content, id) {
+// speed that angle settles at (never below 1.15 x stall). Held at height y (thin air above the rated height).
+function climb(content, id, y = LOW) {
   const d = content.planeDefs[id];
   let best = { rate: 0 };
   for (let deg = 5; deg <= 60; deg += 1) {
     const a = (deg * Math.PI) / 180;
     // thrust = drag x v^2 + gravity x sin(angle), with the sim's constants
     const { p, step } = testFlight(content, id);
-    launch(p, { x: 2000, y: 800, angle: a, speed: d.maxSpeed * 0.7 });
+    launch(p, { x: 2000, y, angle: a, speed: d.maxSpeed * 0.7 });
     for (let i = 0; i < 25 * TICK_RATE; i++) {
       p.angle = a;
+      p.y = y;
       step(NO_FIRE);
     }
     if (p.speed < d.stallSpeed * 1.15) continue;
@@ -98,12 +104,13 @@ function climb(content, id) {
 }
 
 // A straight 60 degree dive from top speed until 300 units are lost, then a 60 degree zoom until the
-// speed is down to 1.3 x stall: speed after the dive and the height the zoom gives back.
+// speed is down to 1.3 x stall: speed after the dive and the height the zoom gives back. From the
+// middle band (LOW + 300) down to LOW, the dive a boom-and-zoom plane makes onto the ground war.
 function diveZoom(content, id, top) {
   const d = content.planeDefs[id];
   const { p, step } = testFlight(content, id);
   const down = (-60 * Math.PI) / 180;
-  launch(p, { x: 2000, y: 1500, angle: 0, speed: top });
+  launch(p, { x: 2000, y: LOW + 300, angle: 0, speed: top });
   const y0 = p.y;
   for (let i = 0; i < 60 * TICK_RATE && y0 - p.y < 300; i++) {
     p.angle = down;
@@ -140,6 +147,7 @@ export function planeSheet(content, id) {
   const c = climb(content, id);
   const dz = diveZoom(content, id, top);
   const fp = firepower(content, id);
+  const high = { top: topSpeed(content, id, HIGH), climb: climb(content, id, HIGH) };
   const round = (v, n = 1) => Math.round(v * 10 ** n) / 10 ** n;
   return {
     id,
@@ -153,6 +161,9 @@ export function planeSheet(content, id) {
     slowTurnSpeedLeft: round(slow.endSpeed, 0),
     climbRate: round(c.rate, 0), // units/s, best steady climb
     climbAngle: c.angle ?? null,
+    ratedHeight: d.ratedHeight ?? null, // full engine power up to here (src/sim/air.js)
+    topSpeedHigh: round(high.top, 0), // top speed and climb at HIGH: the high band, thin air
+    climbRateHigh: round(high.climb.rate ?? 0, 0),
     diveSpeed: round(dz.diveSpeed, 0), // speed after a 60 degree dive losing 300 units from top speed
     zoomHeight: round(dz.zoomed, 0), // height that speed buys back in a 60 degree zoom
     zoomShare: round(dz.zoomed / 300, 2),
@@ -168,5 +179,6 @@ export function planeSheet(content, id) {
 export const BETTER = {
   topSpeed: 'high', turnTime: 'low', slowTurnTime: 'low', climbRate: 'high', diveSpeed: 'high',
   zoomHeight: 'high', diveTurn: 'high', hp: 'high', firepower: 'high', turnSpeedLeft: 'high',
+  topSpeedHigh: 'high', climbRateHigh: 'high',
 };
 

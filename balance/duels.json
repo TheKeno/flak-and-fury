@@ -525,6 +525,81 @@
    "expect": "even",
    "basis": null,
    "seconds": 150
+  },
+  {
+   "id": "high-p47-v-spitfire",
+   "title": "p47d wins a fight high up (850 over the ground) against spitfire",
+   "why": "height decides who counters whom: up in the high band only the turbocharged (and the middle-rated) engines keep their power",
+   "a": {
+    "plane": "p47d",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -300,
+    "h": 850,
+    "face": 1,
+    "speed": 0.75
+   },
+   "b": {
+    "plane": "spitfire",
+    "x": 300,
+    "h": 850,
+    "face": -1,
+    "speed": 0.75
+   },
+   "expect": "a",
+   "basis": "topSpeedHigh",
+   "seconds": 150
+  },
+  {
+   "id": "high-p38-v-la5fn",
+   "title": "p38j wins a fight high up (850 over the ground) against la5fn",
+   "why": "height decides who counters whom: up in the high band only the turbocharged (and the middle-rated) engines keep their power",
+   "a": {
+    "plane": "p38j",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -300,
+    "h": 850,
+    "face": 1,
+    "speed": 0.75
+   },
+   "b": {
+    "plane": "la5fn",
+    "x": 300,
+    "h": 850,
+    "face": -1,
+    "speed": 0.75
+   },
+   "expect": "a",
+   "basis": "climbRateHigh",
+   "seconds": 150
+  },
+  {
+   "id": "high-bf109-v-ki43",
+   "title": "bf109g6 wins a fight high up (850 over the ground) against ki43",
+   "why": "height decides who counters whom: up in the high band only the turbocharged (and the middle-rated) engines keep their power",
+   "a": {
+    "plane": "bf109g6",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -300,
+    "h": 850,
+    "face": 1,
+    "speed": 0.75
+   },
+   "b": {
+    "plane": "ki43",
+    "x": 300,
+    "h": 850,
+    "face": -1,
+    "speed": 0.75
+   },
+   "expect": "a",
+   "basis": "topSpeedHigh",
+   "seconds": 150
   }
  ]
 }

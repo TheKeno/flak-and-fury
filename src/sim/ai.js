@@ -19,6 +19,7 @@ import { DEFAULT_FLIGHT, gripAt } from './air.js';
 
 const DT = 1 / 60;
 const GENTLE_PUSH = new Set(['patrol', 'chase', 'attack', 'evade', 'extend']); // modes where a carburettor bot avoids negative g
+const PULL_ROLL_HOLD = 90; // ticks a bot stays rolled over after rolling to pull instead of push
 
 // Shared numbers, then one block per difficulty level. Kept as the caller's object (settings.bots) so
 // the tuning panel edits them live.
@@ -1128,8 +1129,10 @@ function fly(world, p, b, skill, want, cmd) {
   const height = p.y - world.terrain.heightAt(p.x);
   if (want.gear ? !p.gearDown && p.speed < 130 : p.gearManual && p.gearDown && height > 50) cmd.gear = !p.prevGear;
 
-  // Stay the right way up (rolling only every third of a second gives the sim a clean key press).
-  if (!isUpright(p) && (world.tick + p.id) % 20 === 0) cmd.roll = true;
+  // Stay the right way up (rolling only every third of a second gives the sim a clean key press), unless
+  // just rolled over to pull instead of push (a carburettor engine, below).
+  const rolledForPull = b.pullRoll != null && world.tick - b.pullRoll < PULL_ROLL_HOLD;
+  if (!isUpright(p) && !rolledForPull && (world.tick + p.id) % 20 === 0) cmd.roll = true;
 
   let diff = angleDiff(angle, p.angle);
   // A turn right round goes over the top (a half loop), unless that's into the ceiling. It needs speed:
@@ -1157,7 +1160,14 @@ function fly(world, p, b, skill, want, cmd) {
     const hold = Math.sign(cmd.turn) === p.turnDir ? p.turnHold + DT : 0;
     const ramp = fd.fineTurn + (1 - fd.fineTurn) * clamp(hold / fd.turnRampTime, 0, 1);
     const full = fd.turnRate * gripAt(world, p.y) * turnAuthority(fd, p.speed) * ramp * Math.max(30, p.speed); // g x GRAVITY
-    cmd.turn = Math.sign(cmd.turn) * Math.min(Math.abs(cmd.turn), (0.85 * limit * GRAVITY) / full);
+    const cap = (0.85 * limit * GRAVITY) / full;
+    // A big push wanted: half-roll and pull it instead (rolling is instant in the sim; the roll back to
+    // upright waits PULL_ROLL_HOLD). Meanwhile push gently.
+    if (Math.abs(cmd.turn) > cap * 1.5 && Math.abs(diff) > 0.35 && !cmd.roll && !p.prevRoll && !rolledForPull) {
+      cmd.roll = true;
+      b.pullRoll = world.tick;
+    }
+    cmd.turn = Math.sign(cmd.turn) * Math.min(Math.abs(cmd.turn), cap);
   }
 
   // Throttle: a set level, or held to a speed (want.speed 0: closed).
