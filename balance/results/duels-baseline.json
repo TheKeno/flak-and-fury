@@ -1,0 +1,1189 @@
+{
+ "seeds": 8,
+ "date": "2026-11-10T23:13:14.401Z",
+ "sheets": {
+  "ki43": {
+   "id": "ki43",
+   "name": "Ki-43-II Hayabusa",
+   "role": "turn fighter",
+   "topSpeed": 138,
+   "stallSpeed": 50,
+   "turnTime": 3.4,
+   "turnSpeedLeft": 147,
+   "slowTurnTime": 2.8,
+   "slowTurnSpeedLeft": 142,
+   "climbRate": 48,
+   "climbAngle": 37,
+   "diveSpeed": 191,
+   "zoomHeight": 238,
+   "zoomShare": 0.79,
+   "diveTurn": 0.79,
+   "hp": 70,
+   "toughness": 0.8,
+   "firepower": 7.2,
+   "burstSeconds": 40
+  },
+  "spitfire": {
+   "id": "spitfire",
+   "name": "Spitfire Mk IX",
+   "role": "all-rounder",
+   "topSpeed": 153,
+   "stallSpeed": 54,
+   "turnTime": 3.8,
+   "turnSpeedLeft": 163,
+   "slowTurnTime": 3.3,
+   "slowTurnSpeedLeft": 161,
+   "climbRate": 55,
+   "climbAngle": 39,
+   "diveSpeed": 208,
+   "zoomHeight": 311,
+   "zoomShare": 1.04,
+   "diveTurn": 0.95,
+   "hp": 100,
+   "toughness": 1,
+   "firepower": 31.6,
+   "burstSeconds": 22
+  },
+  "bf109g6": {
+   "id": "bf109g6",
+   "name": "Bf 109 G-6",
+   "role": "boom and zoom",
+   "topSpeed": 151,
+   "stallSpeed": 59,
+   "turnTime": 4.3,
+   "turnSpeedLeft": 164,
+   "slowTurnTime": 4,
+   "slowTurnSpeedLeft": 163,
+   "climbRate": 55,
+   "climbAngle": 39,
+   "diveSpeed": 206,
+   "zoomHeight": 266,
+   "zoomShare": 0.89,
+   "diveTurn": 1.14,
+   "hp": 95,
+   "toughness": 1,
+   "firepower": 35.4,
+   "burstSeconds": 17
+  },
+  "p47d": {
+   "id": "p47d",
+   "name": "P-47D Thunderbolt",
+   "role": "boom and zoom",
+   "topSpeed": 153,
+   "stallSpeed": 62,
+   "turnTime": 4.9,
+   "turnSpeedLeft": 169,
+   "slowTurnTime": 4.6,
+   "slowTurnSpeedLeft": 169,
+   "climbRate": 51,
+   "climbAngle": 35,
+   "diveSpeed": 212,
+   "zoomHeight": 249,
+   "zoomShare": 0.83,
+   "diveTurn": 1.08,
+   "hp": 140,
+   "toughness": 1.4,
+   "firepower": 10.3,
+   "burstSeconds": 210
+  },
+  "b239": {
+   "id": "b239",
+   "name": "Brewster B-239",
+   "role": "turn fighter",
+   "topSpeed": 135,
+   "stallSpeed": 52,
+   "turnTime": 3.9,
+   "turnSpeedLeft": 148,
+   "slowTurnTime": 3.4,
+   "slowTurnSpeedLeft": 146,
+   "climbRate": 48,
+   "climbAngle": 38,
+   "diveSpeed": 186,
+   "zoomHeight": 215,
+   "zoomShare": 0.72,
+   "diveTurn": 0.71,
+   "hp": 110,
+   "toughness": 1.3,
+   "firepower": 20.5,
+   "burstSeconds": 53
+  },
+  "p38j": {
+   "id": "p38j",
+   "name": "P-38J Lightning",
+   "role": "boom and zoom",
+   "topSpeed": 157,
+   "stallSpeed": 60,
+   "turnTime": 4.9,
+   "turnSpeedLeft": 171,
+   "slowTurnTime": 4.6,
+   "slowTurnSpeedLeft": 170,
+   "climbRate": 56,
+   "climbAngle": 38,
+   "diveSpeed": 213,
+   "zoomHeight": 288,
+   "zoomShare": 0.96,
+   "diveTurn": 0.96,
+   "hp": 150,
+   "toughness": 1.4,
+   "firepower": 37.1,
+   "burstSeconds": 11
+  },
+  "la5fn": {
+   "id": "la5fn",
+   "name": "La-5FN",
+   "role": "all-rounder",
+   "topSpeed": 152,
+   "stallSpeed": 57,
+   "turnTime": 4.1,
+   "turnSpeedLeft": 164,
+   "slowTurnTime": 3.7,
+   "slowTurnSpeedLeft": 162,
+   "climbRate": 54,
+   "climbAngle": 38,
+   "diveSpeed": 207,
+   "zoomHeight": 281,
+   "zoomShare": 0.94,
+   "diveTurn": 0.84,
+   "hp": 110,
+   "toughness": 1.2,
+   "firepower": 25.5,
+   "burstSeconds": 27
+  }
+ },
+ "duels": [
+  {
+   "id": "turn-ki43-v-spitfire",
+   "title": "ki43 wins a slow turning fight against spitfire",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 14,
+   "losses": 0,
+   "draws": 2,
+   "decidedBy": {
+    "position": 14
+   },
+   "score": 0.88,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 14,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 51.9,
+     "stalled": 4.7,
+     "ownFault": 0
+    },
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 20.6,
+     "stalled": 5.9,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "ki43": 2.8,
+    "spitfire": 3.3,
+    "basis": "slowTurnTime"
+   },
+   "words": "PASS ki43 wins a slow turning fight against spitfire: expected ki43 to win (slowTurnTime: ki43 2.8, spitfire 3.3). ki43 won 14, spitfire won 0, 2 undecided, of 16 (decided by position 14)."
+  },
+  {
+   "id": "turn-ki43-v-bf109",
+   "title": "ki43 wins a slow turning fight against bf109g6",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 16,
+   "losses": 0,
+   "draws": 0,
+   "decidedBy": {
+    "position": 16
+   },
+   "score": 1,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 16,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 56,
+     "stalled": 2.9,
+     "ownFault": 0
+    },
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 16.5,
+     "stalled": 8.6,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "ki43": 2.8,
+    "bf109g6": 4,
+    "basis": "slowTurnTime"
+   },
+   "words": "PASS ki43 wins a slow turning fight against bf109g6: expected ki43 to win (slowTurnTime: ki43 2.8, bf109g6 4). ki43 won 16, bf109g6 won 0, 0 undecided, of 16 (decided by position 16)."
+  },
+  {
+   "id": "turn-ki43-v-p47",
+   "title": "ki43 wins a slow turning fight against p47d",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 16,
+   "losses": 0,
+   "draws": 0,
+   "decidedBy": {
+    "position": 16
+   },
+   "score": 1,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 16,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 66.6,
+     "stalled": 2.1,
+     "ownFault": 0
+    },
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 11.5,
+     "stalled": 12.3,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "ki43": 2.8,
+    "p47d": 4.6,
+    "basis": "slowTurnTime"
+   },
+   "words": "PASS ki43 wins a slow turning fight against p47d: expected ki43 to win (slowTurnTime: ki43 2.8, p47d 4.6). ki43 won 16, p47d won 0, 0 undecided, of 16 (decided by position 16)."
+  },
+  {
+   "id": "turn-b239-v-p47",
+   "title": "b239 wins a slow turning fight against p47d",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 15,
+   "losses": 1,
+   "draws": 0,
+   "decidedBy": {
+    "own fault": 1,
+    "position": 15
+   },
+   "score": 0.88,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 15,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 54.8,
+     "stalled": 3,
+     "ownFault": 1
+    },
+    {
+     "wins": 1,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 15.2,
+     "stalled": 8.1,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "b239": 3.4,
+    "p47d": 4.6,
+    "basis": "slowTurnTime"
+   },
+   "words": "PASS b239 wins a slow turning fight against p47d: expected b239 to win (slowTurnTime: b239 3.4, p47d 4.6). b239 won 15, p47d won 1, 0 undecided, of 16 (decided by own fault 1, position 15)."
+  },
+  {
+   "id": "turn-b239-v-bf109",
+   "title": "b239 wins a slow turning fight against bf109g6",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 13,
+   "losses": 2,
+   "draws": 1,
+   "decidedBy": {
+    "position": 13,
+    "kill": 2
+   },
+   "score": 0.69,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 13,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 54,
+     "stalled": 4,
+     "ownFault": 0
+    },
+    {
+     "wins": 2,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 17.6,
+     "stalled": 6.6,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "b239": 3.4,
+    "bf109g6": 4,
+    "basis": "slowTurnTime"
+   },
+   "words": "PASS b239 wins a slow turning fight against bf109g6: expected b239 to win (slowTurnTime: b239 3.4, bf109g6 4). b239 won 13, bf109g6 won 2, 1 undecided, of 16 (decided by position 13, kill 2)."
+  },
+  {
+   "id": "turn-spitfire-v-p47",
+   "title": "spitfire wins a slow turning fight against p47d",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 13,
+   "losses": 0,
+   "draws": 3,
+   "decidedBy": {
+    "position": 11,
+    "own fault": 2
+   },
+   "score": 0.81,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 13,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 36.6,
+     "stalled": 1,
+     "ownFault": 0
+    },
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 18.2,
+     "stalled": 9.7,
+     "ownFault": 2
+    }
+   ],
+   "numbers": {
+    "spitfire": 3.3,
+    "p47d": 4.6,
+    "basis": "slowTurnTime"
+   },
+   "words": "PASS spitfire wins a slow turning fight against p47d: expected spitfire to win (slowTurnTime: spitfire 3.3, p47d 4.6). spitfire won 13, p47d won 0, 3 undecided, of 16 (decided by position 11, own fault 2)."
+  },
+  {
+   "id": "turn-spitfire-v-p38",
+   "title": "spitfire wins a slow turning fight against p38j",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 10,
+   "losses": 2,
+   "draws": 4,
+   "decidedBy": {
+    "own fault": 5,
+    "position": 6,
+    "kill": 1
+   },
+   "score": 0.5,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 10,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 35.1,
+     "stalled": 1.4,
+     "ownFault": 1
+    },
+    {
+     "wins": 2,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 20.9,
+     "stalled": 6.9,
+     "ownFault": 4
+    }
+   ],
+   "numbers": {
+    "spitfire": 3.3,
+    "p38j": 4.6,
+    "basis": "slowTurnTime"
+   },
+   "words": "PASS spitfire wins a slow turning fight against p38j: expected spitfire to win (slowTurnTime: spitfire 3.3, p38j 4.6). spitfire won 10, p38j won 2, 4 undecided, of 16 (decided by own fault 5, position 6, kill 1)."
+  },
+  {
+   "id": "turn-la5fn-v-p47",
+   "title": "la5fn wins a slow turning fight against p47d",
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "runs": 16,
+   "wins": 7,
+   "losses": 3,
+   "draws": 6,
+   "decidedBy": {
+    "position": 6,
+    "kill": 2,
+    "own fault": 2
+   },
+   "score": 0.25,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 7,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 33.9,
+     "stalled": 2,
+     "ownFault": 1
+    },
+    {
+     "wins": 3,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 21.4,
+     "stalled": 8,
+     "ownFault": 1
+    }
+   ],
+   "numbers": {
+    "la5fn": 3.7,
+    "p47d": 4.6,
+    "basis": "slowTurnTime"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL la5fn wins a slow turning fight against p47d: expected la5fn to win (slowTurnTime: la5fn 3.7, p47d 4.6). la5fn won 7, p47d won 3, 6 undecided, of 16 (decided by position 6, kill 2, own fault 2). Points at the BOT: neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "low-ki43-on-p47-tail",
+   "title": "ki43 on the tail of a boom-and-zoom p47d low down wins",
+   "expect": "a",
+   "basis": "turnTime",
+   "runs": 16,
+   "wins": 16,
+   "losses": 0,
+   "draws": 0,
+   "decidedBy": {
+    "position": 16
+   },
+   "score": 1,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 16,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 57,
+     "stalled": 1,
+     "ownFault": 0
+    },
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 9.5,
+     "stalled": 11.1,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "ki43": 3.4,
+    "p47d": 4.9,
+    "basis": "turnTime"
+   },
+   "words": "PASS ki43 on the tail of a boom-and-zoom p47d low down wins: expected ki43 to win (turnTime: ki43 3.4, p47d 4.9). ki43 won 16, p47d won 0, 0 undecided, of 16 (decided by position 16)."
+  },
+  {
+   "id": "low-ki43-on-bf109-tail",
+   "title": "ki43 on the tail of a boom-and-zoom bf109g6 low down wins",
+   "expect": "a",
+   "basis": "turnTime",
+   "runs": 16,
+   "wins": 14,
+   "losses": 2,
+   "draws": 0,
+   "decidedBy": {
+    "position": 14,
+    "hit points": 2
+   },
+   "score": 0.75,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 14,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 57,
+     "stalled": 2.8,
+     "ownFault": 0
+    },
+    {
+     "wins": 2,
+     "damage": 1.9,
+     "fireSeconds": 0.1,
+     "hitRate": 18,
+     "cone": 13.8,
+     "stalled": 8.3,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "ki43": 3.4,
+    "bf109g6": 4.3,
+    "basis": "turnTime"
+   },
+   "words": "PASS ki43 on the tail of a boom-and-zoom bf109g6 low down wins: expected ki43 to win (turnTime: ki43 3.4, bf109g6 4.3). ki43 won 14, bf109g6 won 2, 0 undecided, of 16 (decided by position 14, hit points 2)."
+  },
+  {
+   "id": "low-b239-on-p38-tail",
+   "title": "b239 on the tail of a boom-and-zoom p38j low down wins",
+   "expect": "a",
+   "basis": "turnTime",
+   "runs": 16,
+   "wins": 13,
+   "losses": 1,
+   "draws": 2,
+   "decidedBy": {
+    "position": 13,
+    "kill": 1
+   },
+   "score": 0.75,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 13,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 54.5,
+     "stalled": 4.2,
+     "ownFault": 0
+    },
+    {
+     "wins": 1,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 19.3,
+     "stalled": 7,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "b239": 3.9,
+    "p38j": 4.9,
+    "basis": "turnTime"
+   },
+   "words": "PASS b239 on the tail of a boom-and-zoom p38j low down wins: expected b239 to win (turnTime: b239 3.9, p38j 4.9). b239 won 13, p38j won 1, 2 undecided, of 16 (decided by position 13, kill 1)."
+  },
+  {
+   "id": "boom-p47-on-ki43",
+   "title": "p47d wins diving from 300 above onto ki43",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 16,
+   "draws": 0,
+   "decidedBy": {
+    "position": 14,
+    "kill": 1,
+    "own fault": 1
+   },
+   "score": -1,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 10,
+     "stalled": 11.4,
+     "ownFault": 1
+    },
+    {
+     "wins": 16,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 58.3,
+     "stalled": 1.3,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "p47d": 1.08,
+    "ki43": 0.79,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 11.4 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 11.4 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL p47d wins diving from 300 above onto ki43: expected p47d to win (diveTurn: p47d 1.08, ki43 0.79). p47d won 0, ki43 won 16, 0 undecided, of 16 (decided by position 14, kill 1, own fault 1). Points at the BOT: the expected winner spent 11.4 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "boom-p47-on-b239",
+   "title": "p47d wins diving from 300 above onto b239",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 15,
+   "draws": 1,
+   "decidedBy": {
+    "position": 13,
+    "kill": 2
+   },
+   "score": -0.94,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 15,
+     "stalled": 10.2,
+     "ownFault": 0
+    },
+    {
+     "wins": 15,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 54,
+     "stalled": 2.7,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "p47d": 1.08,
+    "b239": 0.71,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 10.2 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 10.2 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL p47d wins diving from 300 above onto b239: expected p47d to win (diveTurn: p47d 1.08, b239 0.71). p47d won 0, b239 won 15, 1 undecided, of 16 (decided by position 13, kill 2). Points at the BOT: the expected winner spent 10.2 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "boom-p47-on-spitfire",
+   "title": "p47d wins diving from 300 above onto spitfire",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 13,
+   "draws": 3,
+   "decidedBy": {
+    "position": 12,
+    "kill": 1
+   },
+   "score": -0.81,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 20.9,
+     "stalled": 11.7,
+     "ownFault": 0
+    },
+    {
+     "wins": 13,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 36,
+     "stalled": 1.3,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "p47d": 1.08,
+    "spitfire": 0.95,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 11.7 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 11.7 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL p47d wins diving from 300 above onto spitfire: expected p47d to win (diveTurn: p47d 1.08, spitfire 0.95). p47d won 0, spitfire won 13, 3 undecided, of 16 (decided by position 12, kill 1). Points at the BOT: the expected winner spent 11.7 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "boom-bf109-on-spitfire",
+   "title": "bf109g6 wins diving from 300 above onto spitfire",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 8,
+   "draws": 8,
+   "decidedBy": {
+    "own fault": 1,
+    "position": 6,
+    "kill": 1
+   },
+   "score": -0.5,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 24,
+     "stalled": 6.3,
+     "ownFault": 1
+    },
+    {
+     "wins": 8,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 32.9,
+     "stalled": 2.2,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "bf109g6": 1.14,
+    "spitfire": 0.95,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 6.3 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 6.3 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL bf109g6 wins diving from 300 above onto spitfire: expected bf109g6 to win (diveTurn: bf109g6 1.14, spitfire 0.95). bf109g6 won 0, spitfire won 8, 8 undecided, of 16 (decided by own fault 1, position 6, kill 1). Points at the BOT: the expected winner spent 6.3 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "boom-bf109-on-la5fn",
+   "title": "bf109g6 wins diving from 300 above onto la5fn",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 2,
+   "draws": 14,
+   "decidedBy": {
+    "position": 2
+   },
+   "score": -0.12,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 29.3,
+     "stalled": 5.9,
+     "ownFault": 0
+    },
+    {
+     "wins": 2,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 33.7,
+     "stalled": 4.2,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "bf109g6": 1.14,
+    "la5fn": 0.84,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 5.9 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 5.9 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL bf109g6 wins diving from 300 above onto la5fn: expected bf109g6 to win (diveTurn: bf109g6 1.14, la5fn 0.84). bf109g6 won 0, la5fn won 2, 14 undecided, of 16 (decided by position 2). Points at the BOT: the expected winner spent 5.9 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "boom-p38-on-la5fn",
+   "title": "p38j wins diving from 300 above onto la5fn",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 8,
+   "draws": 8,
+   "decidedBy": {
+    "position": 6,
+    "own fault": 1,
+    "kill": 1
+   },
+   "score": -0.5,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 26.4,
+     "stalled": 8.5,
+     "ownFault": 1
+    },
+    {
+     "wins": 8,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 34.5,
+     "stalled": 3.4,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "p38j": 0.96,
+    "la5fn": 0.84,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 8.5 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 8.5 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL p38j wins diving from 300 above onto la5fn: expected p38j to win (diveTurn: p38j 0.96, la5fn 0.84). p38j won 0, la5fn won 8, 8 undecided, of 16 (decided by position 6, own fault 1, kill 1). Points at the BOT: the expected winner spent 8.5 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "chase-p47-diver-v-ki43",
+   "title": "a ki43 that chases a diving p47d loses",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 16,
+   "draws": 0,
+   "decidedBy": {
+    "position": 15,
+    "own fault": 1
+   },
+   "score": -1,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 9.6,
+     "stalled": 12.4,
+     "ownFault": 1
+    },
+    {
+     "wins": 16,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 66.2,
+     "stalled": 1.6,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "p47d": 1.08,
+    "ki43": 0.79,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 12.4 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 12.4 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL a ki43 that chases a diving p47d loses: expected p47d to win (diveTurn: p47d 1.08, ki43 0.79). p47d won 0, ki43 won 16, 0 undecided, of 16 (decided by position 15, own fault 1). Points at the BOT: the expected winner spent 12.4 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "chase-bf109-diver-v-b239",
+   "title": "a b239 that chases a diving bf109g6 loses",
+   "expect": "a",
+   "basis": "diveTurn",
+   "runs": 16,
+   "wins": 0,
+   "losses": 15,
+   "draws": 1,
+   "decidedBy": {
+    "own fault": 1,
+    "position": 13,
+    "kill": 1
+   },
+   "score": -0.94,
+   "pass": false,
+   "stat": [
+    {
+     "wins": 0,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 16.1,
+     "stalled": 7.7,
+     "ownFault": 1
+    },
+    {
+     "wins": 15,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 53.9,
+     "stalled": 3.8,
+     "ownFault": 0
+    }
+   ],
+   "numbers": {
+    "bf109g6": 1.14,
+    "b239": 0.71,
+    "basis": "diveTurn"
+   },
+   "blame": {
+    "kind": "bot",
+    "why": "the expected winner spent 7.7 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots",
+    "all": [
+     {
+      "kind": "bot",
+      "why": "the expected winner spent 7.7 s stalled per run: it flies the fight into stalls"
+     },
+     {
+      "kind": "bot",
+      "why": "neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots"
+     }
+    ]
+   },
+   "words": "FAIL a b239 that chases a diving bf109g6 loses: expected bf109g6 to win (diveTurn: bf109g6 1.14, b239 0.71). bf109g6 won 0, b239 won 15, 1 undecided, of 16 (decided by own fault 1, position 13, kill 1). Points at the BOT: the expected winner spent 7.7 s stalled per run: it flies the fight into stalls; neither bot fired (0 s and 0 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots."
+  },
+  {
+   "id": "control-spitfire-mirror",
+   "title": "spitfire against itself: even",
+   "expect": "even",
+   "basis": null,
+   "runs": 16,
+   "wins": 1,
+   "losses": 2,
+   "draws": 13,
+   "decidedBy": {
+    "position": 3
+   },
+   "score": -0.06,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 1,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 34.3,
+     "stalled": 4.6,
+     "ownFault": 0
+    },
+    {
+     "wins": 2,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 34.1,
+     "stalled": 3.2,
+     "ownFault": 0
+    }
+   ],
+   "numbers": null,
+   "words": "PASS spitfire against itself: even: expected even. spitfire won 1, spitfire won 2, 13 undecided, of 16 (decided by position 3)."
+  },
+  {
+   "id": "control-p47d-mirror",
+   "title": "p47d against itself: even",
+   "expect": "even",
+   "basis": null,
+   "runs": 16,
+   "wins": 4,
+   "losses": 4,
+   "draws": 8,
+   "decidedBy": {
+    "position": 7,
+    "own fault": 1
+   },
+   "score": 0,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 4,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 26.9,
+     "stalled": 4.8,
+     "ownFault": 0
+    },
+    {
+     "wins": 4,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 27.8,
+     "stalled": 5.3,
+     "ownFault": 1
+    }
+   ],
+   "numbers": null,
+   "words": "PASS p47d against itself: even: expected even. p47d won 4, p47d won 4, 8 undecided, of 16 (decided by position 7, own fault 1)."
+  },
+  {
+   "id": "control-ki43-mirror",
+   "title": "ki43 against itself: even",
+   "expect": "even",
+   "basis": null,
+   "runs": 16,
+   "wins": 3,
+   "losses": 3,
+   "draws": 10,
+   "decidedBy": {
+    "position": 5,
+    "own fault": 1
+   },
+   "score": 0,
+   "pass": true,
+   "stat": [
+    {
+     "wins": 3,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 32.7,
+     "stalled": 5.9,
+     "ownFault": 0
+    },
+    {
+     "wins": 3,
+     "damage": 0,
+     "fireSeconds": 0,
+     "hitRate": 0,
+     "cone": 31.4,
+     "stalled": 6.3,
+     "ownFault": 1
+    }
+   ],
+   "numbers": null,
+   "words": "PASS ki43 against itself: even: expected even. ki43 won 3, ki43 won 3, 10 undecided, of 16 (decided by position 5, own fault 1)."
+  }
+ ]
+}

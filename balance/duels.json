@@ -1,0 +1,530 @@
+{
+ "_notes": "Set-piece duels for src/balance/duel.js (format in its header comment): each starts two bots in the situation a plane role is about; expect is the winner the plane sheet (tools/plane-sheet.mjs) predicts, basis the sheet number that says why. Run: node tools/duels.mjs.",
+ "duels": [
+  {
+   "id": "turn-ki43-v-spitfire",
+   "title": "ki43 wins a slow turning fight against spitfire",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "ki43",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "spitfire",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "turn-ki43-v-bf109",
+   "title": "ki43 wins a slow turning fight against bf109g6",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "ki43",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "bf109g6",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "turn-ki43-v-p47",
+   "title": "ki43 wins a slow turning fight against p47d",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "ki43",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "p47d",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "turn-b239-v-p47",
+   "title": "b239 wins a slow turning fight against p47d",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "b239",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "p47d",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "turn-b239-v-bf109",
+   "title": "b239 wins a slow turning fight against bf109g6",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "b239",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "bf109g6",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "turn-spitfire-v-p47",
+   "title": "spitfire wins a slow turning fight against p47d",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "spitfire",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "p47d",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "turn-spitfire-v-p38",
+   "title": "spitfire wins a slow turning fight against p38j",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "spitfire",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "p38j",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "turn-la5fn-v-p47",
+   "title": "la5fn wins a slow turning fight against p47d",
+   "why": "turn fighters and all-rounders win by turning when the fight is slow",
+   "a": {
+    "plane": "la5fn",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "p47d",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "a",
+   "basis": "slowTurnTime",
+   "seconds": 150
+  },
+  {
+   "id": "low-ki43-on-p47-tail",
+   "title": "ki43 on the tail of a boom-and-zoom p47d low down wins",
+   "why": "turn fighters win once the fight is low (boom and zoom has no height to dive from)",
+   "a": {
+    "plane": "ki43",
+    "x": -450,
+    "h": 70,
+    "face": 1,
+    "speed": 0.65
+   },
+   "b": {
+    "plane": "p47d",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -100,
+    "h": 70,
+    "face": 1,
+    "speed": 0.6
+   },
+   "expect": "a",
+   "basis": "turnTime",
+   "seconds": 150
+  },
+  {
+   "id": "low-ki43-on-bf109-tail",
+   "title": "ki43 on the tail of a boom-and-zoom bf109g6 low down wins",
+   "why": "turn fighters win once the fight is low (boom and zoom has no height to dive from)",
+   "a": {
+    "plane": "ki43",
+    "x": -450,
+    "h": 70,
+    "face": 1,
+    "speed": 0.65
+   },
+   "b": {
+    "plane": "bf109g6",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -100,
+    "h": 70,
+    "face": 1,
+    "speed": 0.6
+   },
+   "expect": "a",
+   "basis": "turnTime",
+   "seconds": 150
+  },
+  {
+   "id": "low-b239-on-p38-tail",
+   "title": "b239 on the tail of a boom-and-zoom p38j low down wins",
+   "why": "turn fighters win once the fight is low (boom and zoom has no height to dive from)",
+   "a": {
+    "plane": "b239",
+    "x": -450,
+    "h": 70,
+    "face": 1,
+    "speed": 0.65
+   },
+   "b": {
+    "plane": "p38j",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -100,
+    "h": 70,
+    "face": 1,
+    "speed": 0.6
+   },
+   "expect": "a",
+   "basis": "turnTime",
+   "seconds": 150
+  },
+  {
+   "id": "boom-p47-on-ki43",
+   "title": "p47d wins diving from 300 above onto ki43",
+   "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
+   "a": {
+    "plane": "p47d",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -700,
+    "h": 460,
+    "face": 1,
+    "speed": 0.9,
+    "pitch": -10
+   },
+   "b": {
+    "plane": "ki43",
+    "x": -100,
+    "h": 160,
+    "face": 1,
+    "speed": 0.7
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "boom-p47-on-b239",
+   "title": "p47d wins diving from 300 above onto b239",
+   "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
+   "a": {
+    "plane": "p47d",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -700,
+    "h": 460,
+    "face": 1,
+    "speed": 0.9,
+    "pitch": -10
+   },
+   "b": {
+    "plane": "b239",
+    "x": -100,
+    "h": 160,
+    "face": 1,
+    "speed": 0.7
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "boom-p47-on-spitfire",
+   "title": "p47d wins diving from 300 above onto spitfire",
+   "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
+   "a": {
+    "plane": "p47d",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -700,
+    "h": 460,
+    "face": 1,
+    "speed": 0.9,
+    "pitch": -10
+   },
+   "b": {
+    "plane": "spitfire",
+    "x": -100,
+    "h": 160,
+    "face": 1,
+    "speed": 0.7
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "boom-bf109-on-spitfire",
+   "title": "bf109g6 wins diving from 300 above onto spitfire",
+   "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
+   "a": {
+    "plane": "bf109g6",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -700,
+    "h": 460,
+    "face": 1,
+    "speed": 0.9,
+    "pitch": -10
+   },
+   "b": {
+    "plane": "spitfire",
+    "x": -100,
+    "h": 160,
+    "face": 1,
+    "speed": 0.7
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "boom-bf109-on-la5fn",
+   "title": "bf109g6 wins diving from 300 above onto la5fn",
+   "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
+   "a": {
+    "plane": "bf109g6",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -700,
+    "h": 460,
+    "face": 1,
+    "speed": 0.9,
+    "pitch": -10
+   },
+   "b": {
+    "plane": "la5fn",
+    "x": -100,
+    "h": 160,
+    "face": 1,
+    "speed": 0.7
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "boom-p38-on-la5fn",
+   "title": "p38j wins diving from 300 above onto la5fn",
+   "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
+   "a": {
+    "plane": "p38j",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -700,
+    "h": 460,
+    "face": 1,
+    "speed": 0.9,
+    "pitch": -10
+   },
+   "b": {
+    "plane": "la5fn",
+    "x": -100,
+    "h": 160,
+    "face": 1,
+    "speed": 0.7
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "chase-p47-diver-v-ki43",
+   "title": "a ki43 that chases a diving p47d loses",
+   "why": "a turn fighter that chases a diver cannot catch it and is hit when the diver zooms back",
+   "a": {
+    "plane": "p47d",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -100,
+    "h": 420,
+    "face": 1,
+    "speed": 0.95,
+    "pitch": -25
+   },
+   "b": {
+    "plane": "ki43",
+    "x": -480,
+    "h": 440,
+    "face": 1,
+    "speed": 0.9
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "chase-bf109-diver-v-b239",
+   "title": "a b239 that chases a diving bf109g6 loses",
+   "why": "a turn fighter that chases a diver cannot catch it and is hit when the diver zooms back",
+   "a": {
+    "plane": "bf109g6",
+    "tactics": {
+     "style": 0.5
+    },
+    "x": -100,
+    "h": 420,
+    "face": 1,
+    "speed": 0.95,
+    "pitch": -25
+   },
+   "b": {
+    "plane": "b239",
+    "x": -480,
+    "h": 440,
+    "face": 1,
+    "speed": 0.9
+   },
+   "expect": "a",
+   "basis": "diveTurn",
+   "seconds": 150
+  },
+  {
+   "id": "control-spitfire-mirror",
+   "title": "spitfire against itself: even",
+   "why": "control: same plane, same tactics, so neither side may win by the arena or the start picture",
+   "a": {
+    "plane": "spitfire",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "spitfire",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "even",
+   "basis": null,
+   "seconds": 150
+  },
+  {
+   "id": "control-p47d-mirror",
+   "title": "p47d against itself: even",
+   "why": "control: same plane, same tactics, so neither side may win by the arena or the start picture",
+   "a": {
+    "plane": "p47d",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "p47d",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "even",
+   "basis": null,
+   "seconds": 150
+  },
+  {
+   "id": "control-ki43-mirror",
+   "title": "ki43 against itself: even",
+   "why": "control: same plane, same tactics, so neither side may win by the arena or the start picture",
+   "a": {
+    "plane": "ki43",
+    "x": -300,
+    "h": 220,
+    "face": 1,
+    "stall": 1.5
+   },
+   "b": {
+    "plane": "ki43",
+    "x": 300,
+    "h": 220,
+    "face": -1,
+    "stall": 1.5
+   },
+   "expect": "even",
+   "basis": null,
+   "seconds": 150
+  }
+ ]
+}
