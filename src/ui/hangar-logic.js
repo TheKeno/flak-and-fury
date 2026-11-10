@@ -1,6 +1,6 @@
 // The hangar's rules, kept apart from the page so tests can run them. Everything funnels through the sim's
 // validateLoadout, so a load built here is one the game (and the host online) accepts.
-import { validateLoadout, validateGuns, flyingDef, gunsOf, standardGunKg, mountsOf, DEFAULT_WEIGHT } from '../sim/weapons.js';
+import { validateLoadout, validateGuns, flyingDef, gunsOf, standardGunKg, mountsOf, fullAmmo, DEFAULT_WEIGHT } from '../sim/weapons.js';
 
 export const STORAGE_KEY = 'flak-hangar';
 
@@ -28,11 +28,11 @@ export function hardpointChoices(def, hp, weapons) {
 }
 
 // Gun mounts of a plane for the hangar: one row per mount, from a gun choice (null: the standard fit).
-// { mount, weapon (null = nothing), count, ammo (rounds per gun), standard, options: [{weapon, name, max, mountKg, drag}] }
+// { mount, weapon (null = nothing), count, ammo (rounds per gun), standard, options: [{weapon, name, max, full (rounds per gun), mountKg, drag}] }
 export function gunRows(def, weapons, choice = null) {
   return mountsOf(def).map((m) => {
-    const c = choice ? choice.find((e) => e.mount === m.id) : m.count > 0 ? { weapon: m.weapon, count: m.count, ammo: weapons[m.weapon].ammo } : null;
-    const options = (m.options ?? [{ weapon: m.weapon, max: m.count }]).map((o) => ({ weapon: o.weapon, name: weapons[o.weapon]?.name ?? o.weapon, max: o.max, mountKg: o.mountKg ?? 0, drag: o.drag ?? 0 }));
+    const c = choice ? choice.find((e) => e.mount === m.id) : m.count > 0 ? { weapon: m.weapon, count: m.count, ammo: fullAmmo(m, m.weapon, weapons) } : null;
+    const options = (m.options ?? [{ weapon: m.weapon, max: m.count }]).map((o) => ({ weapon: o.weapon, name: weapons[o.weapon]?.name ?? o.weapon, max: o.max, full: fullAmmo(m, o.weapon, weapons), mountKg: o.mountKg ?? 0, drag: o.drag ?? 0 }));
     return { mount: m.id, weapon: c?.weapon ?? null, count: c?.count ?? 0, ammo: c?.ammo ?? 0, standard: { weapon: m.weapon, count: m.count }, options };
   });
 }

@@ -37,6 +37,7 @@ const PLANE_FIELDS = [
   ['hp', 'Hit points', 20, 400, 5, 'How much damage the plane takes before it goes down.'],
   ['hitRadius', 'Hit size', 3, 14, 0.5, 'Size of the plane for bullets (px). Smaller = harder to hit.'],
   ['toughness', 'Airframe toughness', 0.3, 3, 0.05, 'Divides collision damage. 1 = normal, higher = sturdier.'],
+  ['engineVuln', 'Engine vulnerability', 0.3, 2, 0.05, 'How much damage a hit that finds the engine does. 1 = normal; radials about 0.7-0.85, liquid-cooled 1-1.2.'],
   ['rearView', 'Rear visibility', 0, 1, 0.05, 'How far mouse look can swing back over the tail. Cramped canopies (the 109) see less.'],
   ['endurance', 'Fuel endurance', 30, 900, 10, 'Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much.'],
 ];
@@ -47,7 +48,7 @@ const GUN_FIELDS = [
   ['spread', 'Spread', 0, 0.06, 0.001, 'Random aim error (rad). Lower = tighter grouping.'],
   ['drop', 'Bullet drop', 0, 1, 0.01, 'Share of gravity pulling the round down.'],
   ['life', 'Range (seconds)', 0.3, 2.5, 0.05, 'How long a round flies before it is spent.'],
-  ['ammo', 'Ammo per gun', 10, 1000, 10, 'Rounds per gun. Applies on the next rearm.'],
+  ['ammo', 'Default ammo per gun', 10, 1000, 10, 'Rounds per gun for a plane whose mount sets none (gondolas, gunners). Planes set their own in Ammunition. Applies on the next rearm.'],
   ['weight', 'Gun weight (kg)', 5, 400, 1, 'The gun alone. Guns and ammunition count in the plane’s weight against the standard fit: removing them makes it lighter (some guesses, see TUNING.md).'],
   ['roundKg', 'Weight per round (kg)', 0.01, 1.5, 0.005, 'One round with its link. Ammunition weighs too.'],
 ];
@@ -166,6 +167,12 @@ const FIRE_FIELDS = [
   ['pilotTime', 'Put out in a field', 0.5, 30, 0.5, 'Seconds the pilot needs to beat the fire out once stopped away from home.'],
   ['crewTime', 'Put out by ground crew', 0.2, 10, 0.1, 'Seconds the ground crew need once stopped on your own airstrip.'],
   ['engineHarm', 'Engine damage from fire', 0, 1, 0.05, 'Engine damage left behind once a fire is out.'],
+];
+const DAMAGE_FIELDS = [
+  ['engineChance', 'Engine hit chance', 0, 1, 0.01, 'Chance a hit also finds the engine. How much it harms the engine depends on the plane (Engine vulnerability).'],
+  ['engineLeak', 'Engine harm that leaks in', 0, 1, 0.05, 'Share of an engine hit that comes over the next seconds (a coolant or oil leak) instead of at once. 0 = all at once.'],
+  ['leakTime', 'Leak time', 1, 120, 1, 'Seconds over which the leak runs out (most of it early on); then it settles. The ground crew stop it.'],
+  ['depthSize', 'Target depth for wing guns', 0.5, 3, 0.05, 'How deep a target is (its inner wings) against its hit size, for wing gun rounds that pass beside it short of or past their convergence. Higher = wing guns miss less off convergence.'],
 ];
 const EMERGENCY_FIELDS = [
   ['boost', 'Extra power', 0, 0.6, 0.01, 'Extra engine power with emergency power on (0.2 = +20%). A worn engine gets less of it.'],
@@ -401,6 +408,8 @@ const BOT_LEVEL_FIELDS = [
   ['reaction', 'Reaction time', 0.05, 2, 0.05, 'Seconds between decisions: spotting a plane on its tail, picking a target, going home.'],
   ['lookout', 'Lookout range', 100, 1500, 10, "How far the pilot sees enemy planes. Beyond it, only what the side's radar shows."],
   ['aimError', 'Aim wander', 0, 0.2, 0.005, 'How far (rad) the aim drifts off the perfect lead.'],
+  ['leadError', 'Lead misjudged', 0, 0.6, 0.01, 'How far the pilot misjudges the lead and drop, as a share of the true one (wandering). The miss grows with the rounds\' flight time: slow guns miss more.'],
+  ['turnError', 'Turn misjudged', 0, 1.5, 0.05, 'How badly the pilot judges a turning target (wandering): the miss grows with how hard it turns and how long the rounds fly.'],
   ['aimTolerance', 'Fires within', 0.01, 0.3, 0.005, 'How close (rad) the nose must be to the aim point to fire. Wider = more rounds wasted.'],
   ['fireRange', 'Firing range', 80, 400, 5, 'Distance within which the bot opens fire on a plane.'],
   ['evadeChance', 'Evade chance', 0, 1, 0.05, 'Chance per decision of noticing an enemy on its tail and breaking.'],
@@ -490,12 +499,21 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
 
   const section = (title, open, ...content) => el('details', open ? { open: '' } : {}, el('summary', {}, title), ...content);
 
+  // Wing guns meet at the plane's convergence; ammunition is set per mount (each plane's own load).
+  const wingGuns = (def.armament?.guns ?? []).some((m) => m.offset?.[2]);
   const planeSection = section(
     `Plane: ${def.name}`,
     true,
     topSpeed,
     ...PLANE_FIELDS.map((f) => add(slider(def, f, showTopSpeed))),
     add(negGRow(def)),
+    ...(wingGuns ? [add(slider(def, ['convergence', 'Wing gun convergence', 50, 500, 5, 'World units ahead where the wing guns meet. Short of it or past it their rounds pass beside a target dead ahead.']))] : []),
+  );
+  const ammoSection = section(
+    'Ammunition',
+    false,
+    el('div', { class: 'info' }, 'Rounds per gun on each mount (about 60% of the historical load). Firing time is the firepower lever. Applies on the next rearm.'),
+    ...(def.armament?.guns ?? []).filter((m) => m.count > 0 && m.ammo != null).map((m) => add(slider(m, ['ammo', `${m.id}: ${m.count} × ${weapons[m.weapon].name}`, 10, 1500, 5, 'Rounds per gun on this mount.']))),
   );
 
   // Each gun of the plane once: the standard fit, then the other guns its mounts can take (empty mounts: pods).
@@ -606,6 +624,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
   const flightSection = section('Flight: thin air and negative g', false, ...FLIGHT_FIELDS.map((f) => add(slider(settings.flight, f))));
   const emergencySection = section('Emergency power', false, ...EMERGENCY_FIELDS.map((f) => add(slider(settings.emergency, f))));
+  const damageSection = section('Engine hits and wing guns', false, ...DAMAGE_FIELDS.map((f) => add(slider(settings.damage, f))));
   const decorSection = section('Decor', false, ...DECOR_FIELDS.map((f) => add(slider(settings.decor, f))));
   const zoneSection = section('Landscape zones', false, ...ZONE_FIELDS.map((f) => add(slider(settings.zones, f))));
   const padSection = section('Structure pads', false, ...PAD_FIELDS.map((f) => add(slider(settings.pads, f))));
@@ -735,6 +754,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.fire, saved.settings.fire);
     Object.assign(settings.emergency, saved.settings.emergency);
     Object.assign(settings.flight, saved.settings.flight);
+    Object.assign(settings.damage, saved.settings.damage);
     Object.assign(settings.waves, saved.settings.waves);
     Object.assign(settings.pads, saved.settings.pads);
     Object.assign(settings.zones, saved.settings.zones);
@@ -798,6 +818,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     status,
     testSection,
     planeSection,
+    ammoSection,
     ...gunSections,
     ...bombSection,
     landingSection,
@@ -807,6 +828,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     fireSection,
     flightSection,
     emergencySection,
+    damageSection,
     radarSection,
     netSection,
     bailoutSection,

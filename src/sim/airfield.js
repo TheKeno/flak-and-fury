@@ -128,7 +128,7 @@ function stepParkCrew(world, c, dt, speed) {
 // Everything done at once while the plane stands inside the hangar (no waiting for the crew).
 export function serviceFully(p) {
   p.hp = p.def.hp;
-  p.engineDamage = p.tailDamage = p.wingPull = 0;
+  p.engineDamage = p.tailDamage = p.wingPull = p.engineLeak = 0;
   p.propBent = false;
   p.fuel = 1;
   p.lowFuelWarned = false;
@@ -330,6 +330,7 @@ export function updateServicing(p, world, dt) {
   if (phase === 'repair') {
     // A fire is the crew's first job; it's put out by the fire rules (src/sim/fire.js).
     p.hp = Math.min(p.def.hp, p.hp + cfg.repairPerSec * dt);
+    p.engineLeak = 0; // the crew stop the leak first
     p.engineDamage = Math.max(0, p.engineDamage - (cfg.repairPerSec / p.def.hp) * dt);
     p.tailDamage = Math.max(0, p.tailDamage - (cfg.repairPerSec / p.def.hp) * dt);
     if (p.engineDamage <= 0) p.propBent = false; // new propeller fitted with the engine work

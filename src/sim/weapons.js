@@ -9,6 +9,11 @@ const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most thi
 const BOMB_INTERVAL = 0.35;
 const BOMB_SAFE_TIME = 0.6; // seconds a released bomb cannot hit the plane that dropped it
 const TRACER_EVERY = 3;
+const LEAK_END = 0.002; // engine damage still leaking below which the leak ends
+const DEFAULT_CONVERGENCE = 200; // world units ahead where wing guns meet, for a plane without its own
+
+// Engine hits and how a target's size counts in depth (settings.json `damage`).
+export const DEFAULT_DAMAGE = { engineChance: 0.25, engineLeak: 0.5, leakTime: 20, depthSize: 1.25 };
 
 // Firing rate of synchronized (through-the-propeller) guns, 0..1: full from SYNC_FULL of max RPM,
 // down to SYNC_MIN at idle; 0 with the propeller stopped. The gear is driven by the engine, so a
@@ -32,9 +37,10 @@ export function updateGunRates(g) {
 export function armPlane(p, weapons) {
   const arm = p.def.armament ?? { guns: [] };
   // The pilot's guns: standard, or his choice (p.gunChoice). `full` is the ammunition when rearmed.
-  p.guns = gunsOf(p, weapons).map(({ mount, weapon, count, synced, ammoPer, mountKg, drag }) => {
+  p.guns = gunsOf(p, weapons).map(({ mount, weapon, count, synced, ammoPer, mountKg, drag, at }) => {
     const w = weapons[weapon];
-    const g = { mount, weapon, def: w, count, synced, ammo: ammoPer * count, full: ammoPer * count, mountKg, drag, cooldown: 0, fired: 0 }; // ammo in rounds
+    // at: the mount's offset in the plane data (wing guns), or null for nose guns.
+    const g = { mount, weapon, def: w, count, synced, at, ammo: ammoPer * count, full: ammoPer * count, mountKg, drag, cooldown: 0, fired: 0 }; // ammo in rounds
     updateGunRates(g);
     return g;
   });
@@ -118,12 +124,18 @@ export function setLoadout(p, list, weapons) {
 }
 
 // ---- Guns: mounts, the pilot's choice and their weight ----
-// A mount is an entry of armament.guns: { id, weapon, count, synced?, options? }. `count` is the standard fit
+// A mount is an entry of armament.guns: { id, weapon, count, ammo?, offset?, synced?, options? }. `count` is the standard fit
 // (0 = an empty external mount, a gondola); `options` are the guns that fit and the most each takes:
 // [{ weapon, max, mountKg?, drag? }] (default: the standard weapon, up to `count`). mountKg is the pod's own
 // weight and drag the share of the plane's drag it adds, both only while it carries guns.
 export const mountsOf = (def) => (def.armament?.guns ?? []).map((m, i) => ({ ...m, id: m.id ?? `gun${i}` }));
 const optionsOf = (m) => m.options ?? [{ weapon: m.weapon, max: m.count }];
+// Full rounds per gun of a weapon on a mount: the option's own, the mount's for its standard weapon (each
+// plane's historical load), else the weapon's default.
+export function fullAmmo(m, weapon, weapons) {
+  const o = optionsOf(m).find((x) => x.weapon === weapon);
+  return o?.ammo ?? (weapon === m.weapon ? m.ammo : null) ?? weapons[weapon].ammo;
+}
 
 // What the plane is armed with: the pilot's choice (p.gunChoice, plain data) or the standard fit. Bots
 // never choose.
@@ -131,9 +143,9 @@ export function gunsOf(p, weapons) {
   const mounts = mountsOf(p.def);
   const fit = (m, weapon, count, ammoPer) => {
     const o = optionsOf(m).find((x) => x.weapon === weapon) ?? {};
-    return { mount: m.id, weapon, count, synced: Boolean(m.synced), ammoPer, mountKg: o.mountKg ?? 0, drag: o.drag ?? 0 };
+    return { mount: m.id, weapon, count, synced: Boolean(m.synced), ammoPer, mountKg: o.mountKg ?? 0, drag: o.drag ?? 0, at: m.offset ?? null };
   };
-  if (!p.gunChoice) return mounts.filter((m) => m.count > 0).map((m) => fit(m, m.weapon, m.count, weapons[m.weapon].ammo));
+  if (!p.gunChoice) return mounts.filter((m) => m.count > 0).map((m) => fit(m, m.weapon, m.count, fullAmmo(m, m.weapon, weapons)));
   return p.gunChoice.map((c) => fit(mounts.find((x) => x.id === c.mount), c.weapon, c.count, c.ammo));
 }
 
@@ -142,13 +154,13 @@ export const batteryKg = (w, count, rounds, mountKg = 0) => count * (w.weight ??
 
 // The standard fit (guns, full ammunition, no pods): the zero point of the weight model.
 export function standardGunKg(def, weapons) {
-  return mountsOf(def).filter((m) => m.count > 0).reduce((n, m) => n + batteryKg(weapons[m.weapon], m.count, weapons[m.weapon].ammo * m.count), 0);
+  return mountsOf(def).filter((m) => m.count > 0).reduce((n, m) => n + batteryKg(weapons[m.weapon], m.count, fullAmmo(m, m.weapon, weapons) * m.count), 0);
 }
 
 // Checks a gun choice [{mount, weapon, count, ammo}] against a plane def and returns it cleaned (only fields
 // we know, in mount order), or null if it is not allowed. Rules: every mount exists and is used once; the
 // weapon is one of the mount's options; count is a whole number from 1 to the option's max; ammo is the
-// rounds per gun, a whole number from 1 to the weapon's full load (default full). A mount left out carries
+// rounds per gun, a whole number from 1 to the full load on that mount (fullAmmo; default full). A mount left out carries
 // nothing, so [] is a plane with no guns. Untrusted guest input: everything is checked.
 export function validateGuns(def, list, weapons) {
   if (!def.armament?.guns?.length || !Array.isArray(list)) return null;
@@ -163,9 +175,10 @@ export function validateGuns(def, list, weapons) {
     const w = opt && Object.hasOwn(weapons, opt.weapon) ? weapons[opt.weapon] : null;
     if (!w || w.type !== 'gun') return null;
     const count = c.count ?? m.count;
-    const ammo = c.ammo ?? w.ammo;
+    const full = fullAmmo(m, opt.weapon, weapons);
+    const ammo = c.ammo ?? full;
     if (!Number.isInteger(count) || count < 1 || count > opt.max) return null;
-    if (!Number.isInteger(ammo) || ammo < 1 || ammo > w.ammo) return null;
+    if (!Number.isInteger(ammo) || ammo < 1 || ammo > full) return null;
     used.add(m.id);
     out.push({ mount: m.id, weapon: c.weapon, count, ammo });
   }
@@ -255,9 +268,10 @@ export function updateWeapons(p, cmd, world, dt) {
     const rounds = Math.min(g.ammo, g.roundsPerVolley);
     g.ammo -= rounds;
     const w = g.def;
-    const [x, y] = localToWorld(p, p.def.noseOffset);
+    // Nose guns fire from the nose along the line of flight; wing guns from the wing (g.at).
+    const [x, y] = localToWorld(p, g.at ?? p.def.noseOffset);
     const a = attitude(p).angle + world.rng.range(-w.spread, w.spread); // along the fuselage, nose-up on the ground
-    world.bullets.push({
+    const b = {
       id: world.nextId++,
       owner: p.id,
       team: p.team,
@@ -269,7 +283,15 @@ export function updateWeapons(p, cmd, world, dt) {
       drop: w.drop,
       damage: w.damage * rounds,
       tracer: g.fired % TRACER_EVERY === 0, // every third round per gun battery is a tracer
-    });
+    };
+    // A wing gun sits out to the side (z, the depth the side view doesn't show) and is aimed in to meet
+    // the line of flight at the plane's convergence distance: its rounds hit best there, and short of it
+    // or past it they pass to the sides of a target dead ahead.
+    if (g.at?.[2]) {
+      b.z = g.at[2];
+      b.vz = (-g.at[2] * w.velocity) / (p.def.convergence ?? DEFAULT_CONVERGENCE);
+    }
+    world.bullets.push(b);
     world.events.push({ type: 'shot', plane: p.id, voice: w.voice, x, y });
   }
   // The dry click means "nothing left to shoot": one mount running out (the cannon) while the rest
@@ -369,8 +391,16 @@ export function damagePlane(world, target, amount, byId, x, y, cause = 'guns') {
   target.hp -= amount;
   target.lastHitBy = byId;
   fireHit(world, target, amount);
-  // Some hits find the engine; badly shot-up planes may catch fire.
-  if (world.rng.next() < 0.25) target.engineDamage = clamp(target.engineDamage + amount / 90, 0, 1);
+  // Some hits find the engine, harder on some engines than others (engineVuln: a radial shrugs off more
+  // than a liquid-cooled engine). Part of the harm comes at once, the rest leaks in over the next
+  // seconds (a coolant or oil leak) and then settles: never a sudden death.
+  const cfg = world.damage ?? DEFAULT_DAMAGE;
+  if (world.rng.next() < cfg.engineChance) {
+    const harm = (amount / 90) * (target.def.engineVuln ?? 1);
+    target.engineDamage = clamp(target.engineDamage + harm * (1 - cfg.engineLeak), 0, 1);
+    target.engineLeak = (target.engineLeak ?? 0) + harm * cfg.engineLeak;
+  }
+  // Badly shot-up planes may catch fire.
   if (target.hp < 30 && world.rng.next() < amount / 70) ignite(world, target);
   if (target.hp <= 0 && !target.dying) shootDown(world, target, byId, cause);
 }
@@ -389,6 +419,14 @@ export function shootDown(world, p, byId, cause = 'guns') {
 
 export function updateDamage(p, world, dt) {
   stepFire(p, world, dt, shootDown);
+  if (p.engineLeak > 0) {
+    // The leak runs out over leakTime (most of it early on): what flows out becomes engine damage.
+    const flow = p.engineLeak * Math.min(1, dt / (world.damage ?? DEFAULT_DAMAGE).leakTime);
+    // The last trickle settles at once, so the leak ends.
+    const all = p.engineLeak - flow < LEAK_END;
+    p.engineDamage = clamp(p.engineDamage + (all ? p.engineLeak : flow), 0, 1);
+    p.engineLeak = all ? 0 : p.engineLeak - flow;
+  }
 }
 
 const canHit = (world, team, owner, p) =>
@@ -405,10 +443,12 @@ function segDist(ax, ay, bx, by, px, py) {
 
 export function stepBullets(world, dt) {
   const list = world.bullets;
+  const depth = (world.damage ?? DEFAULT_DAMAGE).depthSize;
   for (let i = list.length - 1; i >= 0; i--) {
     const b = list[i];
     const ox = b.x;
     const oy = b.y;
+    if (b.vz) b.z += b.vz * dt;
     b.vy -= GRAVITY * b.drop * dt;
     b.x += b.vx * dt;
     b.y += b.vy * dt;
@@ -418,7 +458,11 @@ export function stepBullets(world, dt) {
     if (!gone) {
       for (const p of world.planes) {
         if (!canHit(world, b.team, b.owner, p)) continue;
-        if (segDist(ox, oy, b.x, b.y, p.x, p.y) > p.def.hitRadius) continue;
+        // Wing gun rounds off to the side (z) miss: the target is depthSize times as deep
+        // (its inner wings) as high.
+        const r = p.def.hitRadius;
+        const d = segDist(ox, oy, b.x, b.y, p.x, p.y);
+        if (d > r || (b.z && (d / r) ** 2 + (b.z / (r * depth)) ** 2 > 1)) continue;
         const dmg = b.damage * world.rng.range(0.5, 1.5); // the random damage of the old classics
         damagePlane(world, p, dmg, b.owner, b.x, b.y, b.cause ?? 'guns');
         world.events.push({ type: 'hit', plane: p.id, by: b.owner, x: b.x, y: b.y, damage: dmg });

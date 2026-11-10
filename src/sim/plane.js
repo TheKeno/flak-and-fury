@@ -185,6 +185,7 @@ export function createPlane(id, def, { team, nation, seats }) {
     turnHold: 0, // seconds the current turn key has been held, for fine aiming
     hp: def.hp,
     engineDamage: 0, // 0 = healthy, 1 = wrecked: less power, rough running
+    engineLeak: 0, // engine damage still to come from a hit that found the engine (src/sim/weapons.js)
     emergency: false, // war emergency power is on (src/sim/emergency.js)
     heat: 0, // 0..1: how hot emergency power has run the engine
     prevEmergency: false,
@@ -248,6 +249,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.stalled = false;
   p.hp = p.def.hp;
   p.engineDamage = 0;
+  p.engineLeak = 0;
   p.emergency = false;
   p.heat = 0;
   p.heatStopped = false;

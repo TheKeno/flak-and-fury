@@ -132,7 +132,7 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
     const out = [el('h3', {}, 'GUNS')];
     const commit = () => h.change({ guns: buildGuns(def, rows, weapons) ?? [] });
     for (const r of rows) {
-      const full = (w) => weapons[w]?.ammo ?? 0;
+      const full = (w) => r.options.find((o) => o.weapon === w)?.full ?? 0; // full rounds per gun on this mount
       const opt = r.options.find((o) => o.weapon === r.weapon) ?? r.options[0];
       const weapon = el('select', { disabled: !state.editable, onchange: (e) => {
         const w = e.target.value;

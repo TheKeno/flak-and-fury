@@ -46,9 +46,9 @@ export const DEFAULT_BOTS = {
   emergencyWear: 0.25, // a bot stops using emergency power once its engine is this worn
   emergencyRange: 350, // limping home, a bot uses it when an enemy is this close
   levels: {
-    easy: { turnFight: 0, reaction: 0.6, lookout: 380, aimError: 0.06, aimTolerance: 0.1, fireRange: 200, evadeChance: 0.3, stallMargin: 0.35, turnHard: 0.75, flakAvoid: 0.4, bombError: 30, hpReturn: 0.25, ammoReturn: 0.05 },
-    normal: { turnFight: 0.5, reaction: 0.35, lookout: 520, aimError: 0.03, aimTolerance: 0.07, fireRange: 230, evadeChance: 0.6, stallMargin: 0.2, turnHard: 0.9, flakAvoid: 0.8, bombError: 15, hpReturn: 0.35, ammoReturn: 0.1 },
-    ace: { turnFight: 1, reaction: 0.18, lookout: 700, aimError: 0.01, aimTolerance: 0.045, fireRange: 250, evadeChance: 0.9, stallMargin: 0.1, turnHard: 1, flakAvoid: 1, bombError: 6, hpReturn: 0.45, ammoReturn: 0.15 },
+    easy: { turnFight: 0, reaction: 0.6, lookout: 380, aimError: 0.06, leadError: 0.25, turnError: 0.6, aimTolerance: 0.1, fireRange: 200, evadeChance: 0.3, stallMargin: 0.35, turnHard: 0.75, flakAvoid: 0.4, bombError: 30, hpReturn: 0.25, ammoReturn: 0.05 },
+    normal: { turnFight: 0.5, reaction: 0.35, lookout: 520, aimError: 0.03, leadError: 0.15, turnError: 0.4, aimTolerance: 0.07, fireRange: 230, evadeChance: 0.6, stallMargin: 0.2, turnHard: 0.9, flakAvoid: 0.8, bombError: 15, hpReturn: 0.35, ammoReturn: 0.1 },
+    ace: { turnFight: 1, reaction: 0.18, lookout: 700, aimError: 0.01, leadError: 0.07, turnError: 0.2, aimTolerance: 0.045, fireRange: 250, evadeChance: 0.9, stallMargin: 0.1, turnHard: 1, flakAvoid: 1, bombError: 6, hpReturn: 0.45, ammoReturn: 0.15 },
   },
 };
 
@@ -80,6 +80,12 @@ export function botCommand(world, p, skillName = 'normal') {
   const b = (p.bot ??= newMemory(world, p));
   b.skill = skill;
   b.aimOff = clamp(b.aimOff + world.rng.range(-1, 1) * skill.aimError * DT * 4, -skill.aimError, skill.aimError);
+  // The pilot's judgement of the lead wanders the same way: how far ahead the target will be (leadOff, a
+  // share of the true lead) and how much a turning target bends away (turnOff).
+  const lead = skill.leadError ?? 0;
+  const bend = skill.turnError ?? 0;
+  b.leadOff = clamp((b.leadOff ?? 0) + world.rng.range(-1, 1) * lead * DT * 4, -lead, lead);
+  b.turnOff = clamp((b.turnOff ?? 0) + world.rng.range(-1, 1) * bend * DT * 4, -bend, bend);
   if (p.state === 'ground') return groundCommand(world, p, b);
 
   b.think -= DT;
@@ -103,6 +109,8 @@ function newMemory(world, p) {
     index,
     wait: p.state === 'ground' ? world.bots.takeoffGap * (index + (humans ? 1 : 0)) : 0,
     aimOff: 0,
+    leadOff: 0,
+    turnOff: 0,
     target: null, // enemy plane id (chase, evade) or ground object id (attack)
     leg: 1, // patrol beat end, or approach leg
     run: null, // ground attack pass: { dir, phase }
@@ -694,18 +702,26 @@ function cruiseTo(world, p, x, height, throttle) {
   return { angle: angleFor(dir, pitch), throttle, clear: world.bots.terrainClear, avoidFlak: true };
 }
 
-// Aim angle and flight time for our guns to meet plane o (rounds keep our velocity and drop).
-function gunLead(p, o) {
+// Aim angle and flight time for our guns to meet plane o (rounds keep our velocity and drop). With the
+// pilot's memory b, as a human judges it: the lead and drop off by b.leadOff (a share of the flight
+// time), and a turning target (o.turn, rad/s) bending away by an error that grows with how hard it turns
+// and how long the rounds fly. So a slow gun misses more than a fast one, and a hard-turning target more
+// than a straight one.
+export function gunLead(p, o, b = null) {
   const w = (p.guns.find((g) => g.ammo > 0) ?? p.guns[0])?.def ?? { velocity: 300, drop: 0 };
   let t = Math.hypot(o.x - p.x, o.y - p.y) / w.velocity;
-  let rx = 0;
-  let ry = 0;
   for (let i = 0; i < 3; i++) {
-    rx = o.x + o.vx * t - (p.x + p.vx * t);
-    ry = o.y + o.vy * t - (p.y + p.vy * t) + 0.5 * GRAVITY * w.drop * t * t;
+    const rx = o.x + o.vx * t - (p.x + p.vx * t);
+    const ry = o.y + o.vy * t - (p.y + p.vy * t) + 0.5 * GRAVITY * w.drop * t * t;
     t = Math.hypot(rx, ry) / w.velocity;
   }
-  return { angle: Math.atan2(ry, rx), dist: Math.hypot(o.x - p.x, o.y - p.y) };
+  const tj = t * (1 + (b?.leadOff ?? 0)); // the flight time as judged
+  const rx = o.x + o.vx * tj - (p.x + p.vx * tj);
+  const ry = o.y + o.vy * tj - (p.y + p.vy * tj) + 0.5 * GRAVITY * w.drop * tj * tj;
+  // The angle a turning target's path bends away over the flight, seen from here: about its turn times
+  // the flight time, times its speed against the rounds'.
+  const bend = b ? b.turnOff * Math.abs(o.turn ?? 0) * t * (Math.hypot(o.vx, o.vy) / w.velocity) : 0;
+  return { angle: Math.atan2(ry, rx) + bend, dist: Math.hypot(o.x - p.x, o.y - p.y), t };
 }
 
 const DIVE_LEAD = 0.5; // the most the dive-from-height nose lead may swing off the line of sight (rad)
@@ -779,11 +795,17 @@ function chaseWant(world, p, b, skill, o, cmd) {
   // The pilot's picture of the target is refreshed as fast as it reacts; in between it aims at where the
   // target should be by then. A slow pilot's lead goes stale as soon as the target manoeuvres.
   const age = b.view?.id === o.id ? (world.tick - b.view.tick) / 60 : Infinity;
-  if (age >= skill.reaction) b.view = { id: o.id, tick: world.tick, x: o.x, y: o.y, vx: o.vx, vy: o.vy };
+  if (age >= skill.reaction) {
+    // How fast it is turning, from how its heading changed since the last look (none on a first look).
+    const old = b.view?.id === o.id ? b.view : null;
+    const heading = Math.atan2(o.vy, o.vx);
+    const turn = old ? angleDiff(heading, old.heading) / Math.max(age, DT) : 0;
+    b.view = { id: o.id, tick: world.tick, x: o.x, y: o.y, vx: o.vx, vy: o.vy, heading, turn };
+  }
   const v = b.view;
   const dt = (world.tick - v.tick) / 60;
-  const pictured = { x: v.x + v.vx * dt, y: v.y + v.vy * dt, vx: v.vx, vy: v.vy };
-  const lead = gunLead(p, pictured);
+  const pictured = { x: v.x + v.vx * dt, y: v.y + v.vy * dt, vx: v.vx, vy: v.vy, turn: v.turn };
+  const lead = gunLead(p, pictured, b);
   const aim = lead.angle + b.aimOff;
   let angle = d < 450 ? aim : Math.atan2(pictured.y + pictured.vy - p.y, pictured.x + pictured.vx - p.x);
   const diving = boom && b.zoom?.phase === 'dive';

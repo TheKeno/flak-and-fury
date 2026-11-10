@@ -52,7 +52,7 @@ test('the rear gunner shoots an enemy on its tail and hits it', () => {
   assert.ok(shots.length > 5, `gunner fired ${shots.length} times`);
   assert.ok(enemy.hp < enemy.def.hp, `enemy hp ${enemy.hp}`);
   assert.ok(zerstorer.turrets[0].ammo < zerstorer.turrets[0].def.ammo, 'gunner used ammunition');
-  assert.equal(zerstorer.guns[0].ammo, zerstorer.guns[0].def.ammo * zerstorer.guns[0].count, 'the pilot did not fire');
+  assert.equal(zerstorer.guns[0].ammo, zerstorer.guns[0].full, 'the pilot did not fire');
 });
 
 test('the rear gunner holds fire at an enemy ahead, outside its arc', () => {

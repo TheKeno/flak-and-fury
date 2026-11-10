@@ -192,7 +192,7 @@ test('hangar helpers: rows, building a choice, effect lines', () => {
   const light = buildGuns(def, rows.slice(0, 1), weapons);
   const lines = describeEffects(effects(def, [], weapons, settings.weight, light));
   assert.ok(lines.some((l) => /Turns tighter/.test(l)), lines.join('; '));
-  const pods = buildGuns(def, gunRows(def, weapons, null).map((r) => (r.mount === 'gondola' ? { ...r, weapon: 'mg151_20', count: 2, ammo: weapons.mg151_20.ammo } : r)), weapons);
+  const pods = buildGuns(def, gunRows(def, weapons, null).map((r) => (r.mount === 'gondola' ? { ...r, weapon: 'mg151_20', count: 2, ammo: r.options.find((o) => o.weapon === 'mg151_20').full } : r)), weapons);
   assert.ok(describeEffects(effects(def, [], weapons, settings.weight, pods)).some((l) => /Lower top speed/.test(l)));
   assert.deepEqual(sanitizeChoice(planes, weapons, { defId: 'bf109g6', guns: { bf109g6: light } }, 'bf109g6').guns, light);
   assert.equal(sanitizeChoice(planes, weapons, { defId: 'bf109g6', guns: { bf109g6: [{ mount: 'x' }] } }, 'bf109g6').guns, undefined);
@@ -201,7 +201,7 @@ test('hangar helpers: rows, building a choice, effect lines', () => {
 test('gunsOf on a plane with no choice gives the standard fit with full ammunition', () => {
   const { world, p } = waiting('spitfire');
   const g = gunsOf(p, world.weapons);
-  assert.deepEqual(g.map((x) => [x.weapon, x.count, x.ammoPer]), [['hispano_20', 2, 70], ['browning_303', 4, 180]]);
+  assert.deepEqual(g.map((x) => [x.weapon, x.count, x.ammoPer]), [['hispano_20', 2, 72], ['browning_303', 4, 210]]);
 });
 
 test('the dry-gun click plays only when every gun is empty, not when one mount ran out', () => {

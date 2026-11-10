@@ -4,7 +4,7 @@
 import { createRng } from './math.js';
 import { buildTerrain, structurePads, DEFAULT_PADS, DEFAULT_ZONES } from './terrain.js';
 import { createPlane, spawnAtAirfield, stepPlane, crash, NO_COMMAND, DEFAULT_LANDING, DEFAULT_TAKEOFF } from './plane.js';
-import { stepBullets, stepBombs, botLoadout, DEFAULT_WEIGHT } from './weapons.js';
+import { stepBullets, stepBombs, botLoadout, DEFAULT_WEIGHT, DEFAULT_DAMAGE } from './weapons.js';
 import { collide, DEFAULT_COLLISIONS } from './collision.js';
 import { botCommand, DEFAULT_BOTS, DEFAULT_RADAR } from './ai.js';
 import { DEFAULT_SERVICING, stepCrew } from './airfield.js';
@@ -41,6 +41,7 @@ export const DEFAULT_RULES = {
 // fire: how fires burn and are put out (src/sim/fire.js).
 // emergency: war emergency power, its boost, wear and heat (src/sim/emergency.js).
 // flight: thin air up high and the negative-g cutout (src/sim/air.js).
+// damage: engine hits and the target's depth for wing gun rounds (src/sim/weapons.js).
 // decor: hedges, walls and trees placed from the map's zones (src/sim/decor.js).
 // landing: how forgiving touchdowns are (src/sim/plane.js).
 // takeoff: how the nose rotates and the plane eases into flight (src/sim/plane.js).
@@ -58,6 +59,7 @@ export function createWorld({
   fire = { ...DEFAULT_FIRE },
   emergency = { ...DEFAULT_EMERGENCY },
   flight = { ...DEFAULT_FLIGHT },
+  damage = { ...DEFAULT_DAMAGE },
   waves = { ...DEFAULT_WAVES },
   pads = { ...DEFAULT_PADS },
   zones = { ...DEFAULT_ZONES },
@@ -84,6 +86,7 @@ export function createWorld({
     fire,
     emergency,
     flight,
+    damage,
     waves,
     landing,
     takeoff,

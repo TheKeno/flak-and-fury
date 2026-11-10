@@ -1,7 +1,7 @@
 {
   "_notes": [
     "Guns: rpm and ammo are per gun, set to about 60% of the historical figures for gameplay (slower, chunkier fire). The game merges a battery of guns into a few projectiles per second; damage is per round.",
-    "velocity in px/s (1 px ~ 0.4 m, scaled down for gameplay), drop = fraction of gravity felt by the round, life = seconds before the round is spent.",
+    "velocity in units/s (1 unit ~ 0.4 m), set from the real muzzle velocity (realVelocity, m/s) as 300 x (real / 770)^1.5, rounded to 5: scaled down for gameplay and the differences stretched, so flat fast guns (M2, Hispano) reach far and slow heavy ones (Type 99, MK 108) need a close target. drop = fraction of gravity felt by the round (slow guns drop more on top), life = seconds before the round is spent (velocity x life is the reach). ammo is the default rounds per gun; a plane's mount can set its own (armament.guns[].ammo).",
     "voice picks the gun sound: rifle | heavy | cannon20 | cannon30."
   ],
   "browning_303": {
@@ -17,7 +17,8 @@
     "ammo": 180,
     "weight": 10,
     "roundKg": 0.025,
-    "voice": "rifle"
+    "voice": "rifle",
+    "realVelocity": 744
   },
   "mg17": {
     "name": "MG 17",
@@ -25,14 +26,15 @@
     "class": "rifle-calibre MG",
     "rpm": 720,
     "damage": 0.413,
-    "velocity": 295,
+    "velocity": 290,
     "spread": 0.014,
     "drop": 0.12,
     "life": 1.4,
     "ammo": 300,
     "weight": 10,
     "roundKg": 0.025,
-    "voice": "rifle"
+    "voice": "rifle",
+    "realVelocity": 755
   },
   "shkas": {
     "name": "ShKAS",
@@ -40,14 +42,15 @@
     "class": "rifle-calibre MG",
     "rpm": 1080,
     "damage": 0.367,
-    "velocity": 280,
+    "velocity": 320,
     "spread": 0.0175,
     "drop": 0.12,
-    "life": 1.4,
+    "life": 1.3,
     "ammo": 450,
     "weight": 10,
     "roundKg": 0.025,
-    "voice": "rifle"
+    "voice": "rifle",
+    "realVelocity": 800
   },
   "mg81z": {
     "name": "MG 81Z (twin)",
@@ -55,14 +58,15 @@
     "class": "twin rifle-calibre MG (gunner)",
     "rpm": 1900,
     "damage": 0.39,
-    "velocity": 285,
+    "velocity": 310,
     "spread": 0.016,
     "drop": 0.12,
-    "life": 1.4,
+    "life": 1.3,
     "ammo": 480,
     "weight": 13,
     "roundKg": 0.025,
-    "voice": "rifle"
+    "voice": "rifle",
+    "realVelocity": 790
   },
   "m2_browning": {
     "name": ".50 M2 Browning",
@@ -70,14 +74,15 @@
     "class": "heavy MG",
     "rpm": 480,
     "damage": 1.283,
-    "velocity": 305,
+    "velocity": 360,
     "spread": 0.011,
-    "drop": 0.1,
-    "life": 1.68,
+    "drop": 0.09,
+    "life": 1.5,
     "ammo": 210,
     "weight": 28,
     "roundKg": 0.12,
-    "voice": "heavy"
+    "voice": "heavy",
+    "realVelocity": 870
   },
   "mg131": {
     "name": "MG 131",
@@ -85,14 +90,15 @@
     "class": "heavy MG",
     "rpm": 540,
     "damage": 0.95,
-    "velocity": 293,
+    "velocity": 290,
     "spread": 0.012,
     "drop": 0.11,
-    "life": 1.5,
+    "life": 1.45,
     "ammo": 180,
     "weight": 17,
     "roundKg": 0.075,
-    "voice": "heavy"
+    "voice": "heavy",
+    "realVelocity": 750
   },
   "ho103": {
     "name": "Ho-103 12.7 mm",
@@ -100,14 +106,15 @@
     "class": "heavy MG",
     "rpm": 480,
     "damage": 0.9,
-    "velocity": 290,
+    "velocity": 305,
     "spread": 0.013,
     "drop": 0.11,
-    "life": 1.5,
+    "life": 1.45,
     "ammo": 160,
     "weight": 23,
     "roundKg": 0.12,
-    "voice": "heavy"
+    "voice": "heavy",
+    "realVelocity": 780
   },
   "hispano_20": {
     "name": "Hispano Mk II 20 mm",
@@ -115,14 +122,15 @@
     "class": "20 mm cannon",
     "rpm": 390,
     "damage": 4.125,
-    "velocity": 285,
-    "spread": 0.015,
-    "drop": 0.15,
-    "life": 1.54,
+    "velocity": 365,
+    "spread": 0.014,
+    "drop": 0.11,
+    "life": 1.45,
     "ammo": 70,
     "weight": 45,
     "roundKg": 0.25,
-    "voice": "cannon20"
+    "voice": "cannon20",
+    "realVelocity": 880
   },
   "mg151_20": {
     "name": "MG 151/20",
@@ -130,14 +138,15 @@
     "class": "20 mm cannon (mine shells)",
     "rpm": 420,
     "damage": 3.833,
-    "velocity": 295,
-    "spread": 0.014,
-    "drop": 0.15,
-    "life": 1.54,
+    "velocity": 310,
+    "spread": 0.013,
+    "drop": 0.14,
+    "life": 1.45,
     "ammo": 120,
     "weight": 43,
     "roundKg": 0.25,
-    "voice": "cannon20"
+    "voice": "cannon20",
+    "realVelocity": 790
   },
   "type99_20": {
     "name": "Type 99 20 mm",
@@ -145,14 +154,15 @@
     "class": "20 mm cannon (low velocity)",
     "rpm": 310,
     "damage": 3.85,
-    "velocity": 195,
+    "velocity": 205,
     "spread": 0.0175,
-    "drop": 0.45,
-    "life": 1.82,
+    "drop": 0.4,
+    "life": 1.8,
     "ammo": 40,
     "weight": 23,
     "roundKg": 0.25,
-    "voice": "cannon20"
+    "voice": "cannon20",
+    "realVelocity": 600
   },
   "shvak_20": {
     "name": "ShVAK 20 mm",
@@ -160,14 +170,15 @@
     "class": "20 mm cannon",
     "rpm": 450,
     "damage": 3.4,
-    "velocity": 290,
+    "velocity": 300,
     "spread": 0.015,
-    "drop": 0.15,
-    "life": 1.54,
+    "drop": 0.14,
+    "life": 1.5,
     "ammo": 100,
     "weight": 42,
     "roundKg": 0.25,
-    "voice": "cannon20"
+    "voice": "cannon20",
+    "realVelocity": 770
   },
   "mk108_30": {
     "name": "MK 108 30 mm",
@@ -175,14 +186,15 @@
     "class": "heavy cannon",
     "rpm": 360,
     "damage": 12.833,
-    "velocity": 170,
+    "velocity": 165,
     "spread": 0.02,
     "drop": 0.55,
-    "life": 1.4,
+    "life": 1.5,
     "ammo": 40,
     "weight": 58,
     "roundKg": 0.45,
-    "voice": "cannon30"
+    "voice": "cannon30",
+    "realVelocity": 520
   },
   "bomb_50": {
     "name": "50 kg bomb",

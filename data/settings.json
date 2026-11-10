@@ -126,6 +126,12 @@
     "seizeDamage": 0.2,
     "restartHeat": 0.3
   },
+  "damage": {
+    "engineChance": 0.25,
+    "engineLeak": 0.5,
+    "leakTime": 20,
+    "depthSize": 1.25
+  },
   "waves": {
     "first": 10,
     "interval": 60,
@@ -256,6 +262,8 @@
         "reaction": 0.6,
         "lookout": 380,
         "aimError": 0.06,
+        "leadError": 0.25,
+        "turnError": 0.6,
         "aimTolerance": 0.1,
         "fireRange": 200,
         "evadeChance": 0.3,
@@ -271,6 +279,8 @@
         "reaction": 0.35,
         "lookout": 520,
         "aimError": 0.03,
+        "leadError": 0.15,
+        "turnError": 0.4,
         "aimTolerance": 0.07,
         "fireRange": 230,
         "evadeChance": 0.6,
@@ -286,6 +296,8 @@
         "reaction": 0.18,
         "lookout": 700,
         "aimError": 0.01,
+        "leadError": 0.07,
+        "turnError": 0.2,
         "aimTolerance": 0.045,
         "fireRange": 250,
         "evadeChance": 0.9,

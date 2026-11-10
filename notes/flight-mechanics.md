@@ -84,6 +84,9 @@ New height duels (both at 850 over the ground): all three fail on the bot, but t
 towards the high plane (my runs, wins-losses-undecided of 16: P-38 v La-5FN 0-11 → 4-4 with thin air,
 Bf 109 v Ki-43 0-16 → 0-12, P-47 v Spitfire 0-13 → 0-8 with trained tactics).
 
+After merging part 2 (guns and damage) on 2026-11-11: 14 of 25 duels pass, every turn and low duel
+among them; the 11 failures (dive, chase and height duels) all point at the bot.
+
 ## For step 3 (bot-role pass)
 
 - Low-band bots should keep the fight low; high-band bots should take it up (the decision's "stay in its
