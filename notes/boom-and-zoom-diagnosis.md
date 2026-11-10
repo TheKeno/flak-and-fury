@@ -66,3 +66,23 @@ The dive gains plenty of speed and the boom-and-zoom planes already zoom better 
   The style-1 code also loops toward radar plots past `lookout` and toward `heightOver` targets behind
   it (worth fixing if style 1 is wanted later). Suggest step 4's style check counts style 0.5 or more
   as boom and zoom.
+
+## Against the other planes (2026-11-10, after retraining)
+
+`node tools/bnz-duel.mjs p47d,bf109g6 --style 0.5 --over 0 --seeds 6 --vs bf109g6,spitfire,p47d,la5fn,ki43,b239`:
+the plane dives from height (style 0.5) or flies its trained tactics (turn-fighting), against each
+opponent's trained tactics. Kills per life, own vs opponent's:
+
+| | v Bf 109 | v Spitfire | v P-47 | v La-5FN | v Ki-43 | v B-239 |
+|---|---|---|---|---|---|---|
+| P-47 diving | 0.80 / 0.38 | 0.25 / 1.15 | 0.38 / 0.89 | 0.31 / 0.63 | 0.61 / 0.13 | 0.08 / 1.91 |
+| P-47 turning | 0.84 / 0.28 | 0.24 / 1.02 | 0.55 / 0.55 | 0.44 / 0.52 | 0.95 / 0.18 | 0.21 / 1.10 |
+| Bf 109 diving | 0.57 / 0.33 | 0.18 / 1.50 | 0.18 / 1.26 | 0.14 / 1.08 | 0.26 / 0.30 | 0.06 / 1.84 |
+| Bf 109 turning | 0.43 / 0.43 | 0.13 / 1.72 | 0.28 / 0.84 | 0.21 / 0.89 | 0.32 / 0.25 | 0.11 / 1.65 |
+
+Diving gains only against the Spitfire (both planes) and the Bf 109 itself; it loses against everything
+else, most against the turn fighters (P-47 v Ki-43 −0.35, v B-239 −0.13). The P-47 same-plane result
+moved from the earlier run (0.45 vs 0.54 → 0.38 vs 0.89; retrained firing range 1.3 on both sides, and
+6 seeds is noisy). So the trainer was right: against the mix, diving from height is worse. A turn
+fighter gets round onto the diver after its pass. Next lever discussed with the owner: controls that
+stiffen at high speed, low for light turn fighters, high for the boom-and-zoom planes.
