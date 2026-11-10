@@ -40,7 +40,7 @@ function strafe(world, owner, obj, rounds, damage = 2) {
 test('the LDtk map imports with airfields and both sides\' ground objects', () => {
   const map = importLdtk(load('maps/countryside.ldtk'));
   assert.equal(map.width, 4680);
-  assert.equal(map.ceiling, 720);
+  assert.equal(map.ceiling, 1200);
   assert.deepEqual(map.airfields, [
     { x: 220, width: 420, team: 0, nation: 'germany' },
     { x: 4040, width: 420, team: 1, nation: 'uk' },

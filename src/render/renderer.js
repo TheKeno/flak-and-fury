@@ -47,6 +47,11 @@ function makeCanvas(w, h) {
   return c;
 }
 
+// The sky reaches its high colour at this height (world units) and darkens on to the space colour by
+// 1.6 times it: fixed heights, not the map's ceiling, so the sky the ground war sees stays the same when
+// the ceiling moves (it was 720; at 1200 the top of the sky is nearly the space colour, the thin air).
+const SKY_HIGH = 720;
+
 // Tall, 2px-wide dithered sky strip in buffer pixels, used as a repeating pattern.
 function buildSky(ctx, map) {
   const skyH = Math.ceil((map.ceiling + 500 + H * MAX_ZOOM) * SCALE);
@@ -58,7 +63,7 @@ function buildSky(ctx, map) {
   const space = hexToRgb(map.sky.space);
   for (let r = 0; r < skyH; r++) {
     const wy = (skyH - r) / SCALE;
-    const t = wy / map.ceiling;
+    const t = wy / SKY_HIGH;
     const col = t <= 1 ? mix(low, high, t) : mix(high, space, clamp((t - 1) / 0.6, 0, 1));
     for (let x = 0; x < 2; x++) {
       const d = (BAYER[r % 2][x] - 1.5) * 3;
@@ -153,7 +158,7 @@ export function createRenderer(canvas, world, assets) {
   const farRidge = buildRidge(map.seed + 7, Math.ceil((map.width * 0.2 + W * MAX_ZOOM) * SCALE), 70, 190, 90 * SCALE);
   const nearRidge = buildRidge(map.seed + 13, Math.ceil((map.width * 0.45 + W * MAX_ZOOM) * SCALE), 40, 120, 55 * SCALE);
   const cloudRng = createRng(map.seed + 21);
-  const clouds = Array.from({ length: 22 }, () => ({
+  const clouds = Array.from({ length: Math.round((22 * map.ceiling) / 720) }, () => ({ // 22 under the old 720 ceiling, as dense now
     img: buildCloud(cloudRng),
     x: cloudRng.range(0, map.width * 0.6 + W),
     y: cloudRng.range(220, map.ceiling + 120),

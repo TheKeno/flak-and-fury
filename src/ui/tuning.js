@@ -17,6 +17,10 @@ const PLANE_FIELDS = [
   ['slowTurnBonus', 'Slow-speed turn bonus', 0, 2, 0.05, 'Extra turn rate when flying slowly, peaking just above the stall. 0.8 = 80% tighter turns at the edge of the stall.'],
   ['slowTurnSpeed', 'Slow-speed bonus starts', 60, 160, 1, 'Speed below which the turn bonus starts to build up. Must be above the stall speed.'],
   ['stiffSpeed', 'Controls stiffen above', 100, 260, 1, 'Speed above which the controls get heavy: the turn rate falls off, to half at 30% faster. Low for light turn fighters (cannot follow a diver), high for boom-and-zoom planes.'],
+  ['ratedHeight', 'Rated height', 0, 1400, 10, 'Height (world units above the bottom of the map) up to which the engine gives full power, from its real supercharger. Above it power fades: a third less 400 units higher (Flight settings). Low 0-350, middle 350-700, high (turbochargers) 700-1200.'],
+  ['turnBleed', 'Turn bleed', 0.05, 0.25, 0.001, 'Speed lost in a hard turn (per unit of turn rate x speed). From the wing loading: light wings (Ki-43) bleed little, heavy ones (P-38) a lot. Was one shared 0.12.'],
+  ['emergencyBoost', 'Emergency: extra power', 0, 0.6, 0.01, 'This plane’s extra engine power with emergency power on (0.2 = +20%). Replaces the shared Emergency power value.'],
+  ['emergencyHeatTime', 'Emergency: time to full heat', 2, 60, 1, 'This plane’s seconds of emergency power until full heat. Longer spreads the same wear over more time (the P-47’s water injection).'],
   ['thrust', 'Thrust', 50, 89, 1, 'Engine pull. Keep below 90 (gravity) or the plane can climb straight up forever.'],
   ['dragCoef', 'Drag', 0.002, 0.008, 0.0001, 'Air resistance. Top speed is about the square root of thrust / drag.'],
   ['stallSpeed', 'Stall speed', 30, 90, 1, 'Below this the wings stop lifting and the nose drops.'],
@@ -171,6 +175,15 @@ const EMERGENCY_FIELDS = [
   ['seizeDamage', 'Seize: extra damage', 0, 0.6, 0.05, 'Engine damage added when full heat stops the engine.'],
   ['restartHeat', 'Seize: restart at heat', 0, 1, 0.05, 'The seized engine starts again by itself once heat has dropped to this.'],
   ['coolTime', 'Time to cool', 2, 60, 1, 'Seconds to cool fully once switched off. Switching on again while hot starts at a higher wear rate.'],
+];
+const FLIGHT_FIELDS = [
+  ['fadeSpan', 'Thin air: power fade', 200, 3000, 10, 'Units above a plane’s rated height where its engine is down to half power (800: a third less 400 units higher).'],
+  ['thinDrag', 'Thin air: less drag', 0, 0.5, 0.01, 'Share of drag gone at the top height, for every plane (straight line from the ground up).'],
+  ['thinGrip', 'Thin air: less grip', 0, 0.5, 0.01, 'Share of turn rate gone at the top height, for every plane.'],
+  ['thinTop', 'Thin air: top height', 300, 2000, 10, 'Height where drag and grip are at their thinnest.'],
+  ['negGLimit', 'Negative g: push that cuts', 0.2, 4, 0.05, 'G of push (nose towards the pilot’s feet) that starves a carburettor engine. A full-rate push at cruise is about 2 g, a tap about 0.5.'],
+  ['negGHold', 'Negative g: push time', 0, 1, 0.01, 'Seconds of such a push before the engine cuts out.'],
+  ['negGCut', 'Negative g: sputter time', 0.2, 4, 0.05, 'Seconds the engine sputters after cutting out (half that again while the push goes on).'],
 ];
 const RADAR_FIELDS = [
   ['sweepTime', 'Sweep time', 0.3, 8, 0.1, 'Seconds for the radar beam to cross the map. Contacts only update when the beam passes them.'],
@@ -426,6 +439,15 @@ function el(tag, attrs = {}, ...children) {
   return e;
 }
 
+// The plane's negative-g cutout switch (carburettor engines cut out under a hard push).
+function negGRow(def) {
+  const box = el('input', { type: 'checkbox', onchange: () => (def.negGCutout = box.checked) });
+  box.checked = !!def.negGCutout;
+  const row = el('label', { class: 'row check', title: 'Carburettor engine: a hard push (nose down) makes it sputter for about a second. Off for injected engines (Bf 109, La-5FN), which can bunt into a dive.' }, el('span', {}, 'Negative-g cutout'), box);
+  row.refresh = () => (box.checked = !!def.negGCutout);
+  return row;
+}
+
 function slider(obj, [key, label, min, max, step, help], onChange) {
   const fmt = (v) => Number(v).toFixed(decimals(step));
   const range = el('input', { type: 'range', min, max, step, value: obj[key] });
@@ -473,6 +495,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     true,
     topSpeed,
     ...PLANE_FIELDS.map((f) => add(slider(def, f, showTopSpeed))),
+    add(negGRow(def)),
   );
 
   // Each gun of the plane once: the standard fit, then the other guns its mounts can take (empty mounts: pods).
@@ -581,6 +604,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
+  const flightSection = section('Flight: thin air and negative g', false, ...FLIGHT_FIELDS.map((f) => add(slider(settings.flight, f))));
   const emergencySection = section('Emergency power', false, ...EMERGENCY_FIELDS.map((f) => add(slider(settings.emergency, f))));
   const decorSection = section('Decor', false, ...DECOR_FIELDS.map((f) => add(slider(settings.decor, f))));
   const zoneSection = section('Landscape zones', false, ...ZONE_FIELDS.map((f) => add(slider(settings.zones, f))));
@@ -710,6 +734,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     }
     Object.assign(settings.fire, saved.settings.fire);
     Object.assign(settings.emergency, saved.settings.emergency);
+    Object.assign(settings.flight, saved.settings.flight);
     Object.assign(settings.waves, saved.settings.waves);
     Object.assign(settings.pads, saved.settings.pads);
     Object.assign(settings.zones, saved.settings.zones);
@@ -780,6 +805,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     weightSection,
     collisionSection,
     fireSection,
+    flightSection,
     emergencySection,
     radarSection,
     netSection,

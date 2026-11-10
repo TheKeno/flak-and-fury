@@ -41,6 +41,20 @@ function fpsNow() {
   return fpsShown;
 }
 
+// Height gauge beside ALT: the plane's height from the bottom of the map to the ceiling, with a tick
+// at its rated height (src/sim/air.js). Above the tick the engine is losing power: the fill turns amber.
+function altGauge(ctx, x, y, w, world, plane) {
+  const top = world.map.ceiling;
+  const k = Math.min(1, Math.max(0, plane.y / top));
+  const rated = plane.def.ratedHeight;
+  const high = rated != null && plane.y > rated;
+  bar(ctx, x, y, w, k, high ? '#d0a050' : '#8c9480');
+  if (rated != null && rated < top) {
+    ctx.fillStyle = '#e8e0c0';
+    ctx.fillRect(x + 0.8 + Math.round(w * (rated / top)), y - 1, 1, 5);
+  }
+}
+
 function bar(ctx, x, y, w, value, colour) {
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.fillRect(x, y, w + 1.6, 3);
@@ -68,6 +82,7 @@ export function drawHud(ctx, world, plane, W, H, { showHelp, lastFlight, freeLoo
   stat('FPS', fpsNow(), VALUE);
   y += L * 0.2;
   stat('SPD', speedText(plane.speed));
+  altGauge(ctx, col + textWidth('9999 M') + 3, y + L * 0.2, barW, world, plane);
   stat('ALT', `${Math.max(0, Math.round((plane.y - world.terrain.heightAt(plane.x)) * 4))} M`);
   stat('RPM', Math.round(plane.rpm / 10) * 10);
   y += L * 0.2;

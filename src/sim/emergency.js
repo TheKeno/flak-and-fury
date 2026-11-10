@@ -6,6 +6,9 @@
 // worn engine has less power to boost (see updateEngine in plane.js). At full heat the engine seizes: it
 // stops at once (with `seizeDamage` more wear) and starts again by itself once heat is down to
 // `restartHeat`, unless it is burning, out of fuel or the plane is on its belly.
+// Per plane (planes.json, from its real engine's emergency rating): `emergencyBoost` replaces boost and
+// `emergencyHeatTime` replaces heatTime. A longer heat time spreads the same wear over it (the wear
+// rates scale by heatTime / emergencyHeatTime), so the P-47's water injection runs long, not dearer.
 
 export const DEFAULT_EMERGENCY = {
   boost: 0.2, // extra engine power (share of full) at no wear
@@ -32,8 +35,9 @@ export function updateEmergency(p, cmd, world, dt) {
     world.events.push({ type: 'emergencyOff', plane: p.id, x: p.x, y: p.y });
   }
   if (p.emergency) {
-    p.heat = Math.min(1, p.heat + dt / cfg.heatTime);
-    const wear = cfg.baseWear + (cfg.peakWear - cfg.baseWear) * p.heat;
+    const heatTime = p.def.emergencyHeatTime ?? cfg.heatTime;
+    p.heat = Math.min(1, p.heat + dt / heatTime);
+    const wear = (cfg.baseWear + (cfg.peakWear - cfg.baseWear) * p.heat) * (cfg.heatTime / heatTime);
     p.engineDamage = Math.min(1, p.engineDamage + wear * dt);
     if (p.heat >= 1) {
       // Full heat: the engine seizes. Emergency power goes off and the engine cools while the plane glides.

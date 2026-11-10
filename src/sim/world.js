@@ -12,6 +12,7 @@ import { createGround, planesHitStructures, stepHangarDoors } from './ground.js'
 import { stepDefences, stepShells } from './defences.js';
 import { DEFAULT_FIRE } from './fire.js';
 import { DEFAULT_EMERGENCY } from './emergency.js';
+import { DEFAULT_FLIGHT } from './air.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
 import { DEFAULT_DECOR } from './decor.js';
 import { changeSeat } from './seats.js';
@@ -39,6 +40,7 @@ export const DEFAULT_RULES = {
 // waves: how often and how big the tank columns are (src/sim/army.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
 // emergency: war emergency power, its boost, wear and heat (src/sim/emergency.js).
+// flight: thin air up high and the negative-g cutout (src/sim/air.js).
 // decor: hedges, walls and trees placed from the map's zones (src/sim/decor.js).
 // landing: how forgiving touchdowns are (src/sim/plane.js).
 // takeoff: how the nose rotates and the plane eases into flight (src/sim/plane.js).
@@ -55,6 +57,7 @@ export function createWorld({
   collisions = { ...DEFAULT_COLLISIONS },
   fire = { ...DEFAULT_FIRE },
   emergency = { ...DEFAULT_EMERGENCY },
+  flight = { ...DEFAULT_FLIGHT },
   waves = { ...DEFAULT_WAVES },
   pads = { ...DEFAULT_PADS },
   zones = { ...DEFAULT_ZONES },
@@ -80,6 +83,7 @@ export function createWorld({
     collisions,
     fire,
     emergency,
+    flight,
     waves,
     landing,
     takeoff,

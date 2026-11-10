@@ -14,10 +14,10 @@ if (existsSync(OUT) && !process.argv.includes('--force')) {
 }
 
 const WIDTH = 3600;
-const HEIGHT = 800; // level height in the editor: the ceiling plus some room above it
+const HEIGHT = 1280; // level height in the editor: the ceiling plus some room above it
 const SETTINGS = {
   seed: 1944,
-  ceiling: 720,
+  ceiling: 1200,
   terrainBase: 30,
   terrainAmplitude: 70,
   skyLow: '#9cc4d8',

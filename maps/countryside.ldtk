@@ -1456,14 +1456,14 @@
         {
           "__identifier": "ceiling",
           "__type": "Int",
-          "__value": 720,
+          "__value": 1200,
           "__tile": null,
           "defUid": 4,
           "realEditorValues": [
             {
               "id": "V_Int",
               "params": [
-                720
+                1200
               ]
             }
           ]

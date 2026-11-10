@@ -24,6 +24,10 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `slowTurnBonus` | Extra turn rate when flying slowly, peaking just above the stall. 0 = off, 0.8 = 80% tighter. | 0 – 1.5 |
 | `slowTurnSpeed` | Speed where the slow-speed bonus starts building. Must be above `stallSpeed`. | 80 – 130 |
 | `stiffSpeed` | Speed above which the controls get heavy: the turn rate falls off, to half at 30% faster (`STIFF_SPAN` in `plane.js`). Low for light turn fighters, so they can't follow a fast diver; high for boom-and-zoom planes. Missing: never stiffens. | 135 – 205 |
+| `ratedHeight` | Height (world units above the bottom of the map, the same y as the ceiling) up to which the engine gives full power, from the real 1943 engine's supercharger. Above it power fades, to 1 / (1 + over / `flight.fadeSpan`): about a third less 400 units higher. Bands: low 0-350 (Ki-43 350, B-239 300, La-5FN 350, Ju 87 300: the top of the band, so the ground war at bot cruise height is full power), middle 350-700 (Spitfire LF 450, Bf 109 600, Bf 110 600, Mosquito 400, Pe-3 400, Ki-45 400, Blenheim 350), high 700-1200 (turbochargers: P-47 1050, P-38 1000). The HUD altimeter gauge has a tick here. Set from history; an auto-tuner lever later. | 300 – 1050 |
+| `turnBleed` | Speed lost in a hard turn: `turnBleed` × turn rate × speed per second (was one shared 0.12, `DEFAULT_TURN_BLEED` in `plane.js`). From the 1943 combat wing loading (kg/m²): 0.12 × √(loading / 175). Ki-43 121 → 0.100, B-239 124 → 0.101, Spitfire 151 → 0.111, La-5FN 188 → 0.124, Bf 109 G-6 196 → 0.127, P-47D 230 → 0.138, P-38J 261 → 0.147 (the twins and the Stuka the same way). | 0.10 – 0.15 |
+| `negGCutout` | `true` for a carburettor engine: a hard push (nose towards the pilot's feet, past `flight.negGLimit` g) starves it and it sputters for about a second (`flight.negGCut`), event `negGCutout`, the engine sound misfires. Injected engines (`false`: Bf 109, Bf 110, La-5FN, Ju 87) can bunt into a dive. Set from history: Spitfire (the 1943 Merlin's carburettor), Ki-43, B-239, P-47, P-38, Mosquito, Pe-3, Ki-45, Blenheim. Tuning panel: a tick box. | |
+| `emergencyBoost`, `emergencyHeatTime` | This plane's war emergency power (replace `emergency.boost` and `emergency.heatTime`). A longer heat time spreads the same wear over more seconds. From history: P-47 water injection 0.2 / 20 s; Spitfire LF (+18 lb) and Mosquito 0.2 / 10; La-5FN (forsazh) 0.15 / 12; P-38 0.15 / 10; Bf 109 G-6 and Bf 110 (1943, no MW 50 yet: 1.42 ata, a short rating) 0.15 / 6; Blenheim 0.15 / 8; Ki-43, Ki-45 0.12 / 8; B-239 0.12 / 7; Ju 87 0.12 / 6; Pe-3 0.1 / 8. | 0.1 – 0.2, 6 – 20 |
 | `thrust` | Engine pull. Higher = faster acceleration and climb. Must stay below 90 (gravity) or the plane can climb vertically forever. | 70 – 89 |
 | `dragCoef` | Air resistance. Top speed ≈ √(thrust ÷ dragCoef). | 0.003 – 0.005 |
 | `maxSpeed` | Used for sound and engine pitch, not a hard limit. Keep it near √(thrust ÷ dragCoef). | |
@@ -158,7 +162,17 @@ engine starts again by itself (not if it is burning, out of fuel or on its belly
 warning. The wear is ordinary engine damage: it stays until the ground crew repair it. A dark
 smoke trail shows from the first moment, to everyone. Bots use it only to survive (breaking away from a plane
 on the tail, or limping home with an enemy within `bots.emergencyRange`) and stop once their engine damage
-reaches `bots.emergencyWear`.
+reaches `bots.emergencyWear`. Each plane may have its own `emergencyBoost` and `emergencyHeatTime` (see Planes);
+then the wear rates scale by `heatTime` / the plane's heat time, so a full heat costs the same wear.
+
+`flight` (tuning panel: Flight: thin air and negative g; `src/sim/air.js`): **thin air:** above a plane's
+`ratedHeight` its power fades to 1 / (1 + over / `fadeSpan`) (800: a third less 400 units higher, half at
+800). For every plane drag falls by `thinDrag` (0.15) and the turn rate by `thinGrip` (0.1) from the ground
+up to `thinTop` (1200). **Negative g:** past `negGLimit` g of push (turn rate × speed / gravity, nose towards
+the belly; 1 g: a full-rate push at cruise is about 2 g, a fine-aim tap about 0.5) held for `negGHold` s
+(0.12), a `negGCutout` engine cuts out for `negGCut` s (1; half that again while the push goes on). Only
+the pilot's steering counts (not stalls, spins or the map-edge autopilot), and since the sim has no lift
+model, flying level upside down is 0 g and allowed.
 
 `landing` (tuning panel: Landing): touchdowns are graded. Clean: speed under the plane's
 `maxLandingSpeed` and the nose within `cleanAngle` (rad) of the ground's slope. Hard: up to
@@ -500,7 +514,9 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
 (Ctrl+S) and reload the game. One LDtk pixel is one world unit.
 
 - **Level fields** (the level's settings panel): `seed` (change for different hills), `ceiling`
-  (blackout altitude), `terrainBase`/`terrainAmplitude` (hill height) and the three sky colours. The
+  (blackout altitude; 1200 since step 4 of the plane-roles plan, so there is room above the low band for
+  the high-rated planes; it sits above the level's 800-high box in the editor, which is fine: the game only
+  uses x positions), `terrainBase`/`terrainAmplitude` (hill height) and the three sky colours. The
   level's width is the world's width.
 - **Objects layer:** `Airfield` (stretch it for a longer runway; `team` and `nation`), `Flak`,
   `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`, `Depot`

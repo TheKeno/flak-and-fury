@@ -186,7 +186,7 @@
       "checked": false
     },
     "merlin61": {
-      "name": "Rolls-Royce Merlin 61/63",
+      "name": "Rolls-Royce Merlin 61/63/66",
       "layout": "inline",
       "cylinders": 12,
       "build": "inline",
@@ -381,7 +381,7 @@
     },
     {
       "id": "spitfire",
-      "name": "Spitfire Mk IX",
+      "name": "Spitfire LF Mk IX",
       "nation": "UK",
       "kind": "plane",
       "engine": "merlin61",

@@ -155,8 +155,9 @@ test("a guest's view releases every event once, in order, and trails the host sm
       const gp = guest.planes.find((p) => p.id === hp.id);
       const d = gp ? Math.hypot(gp.x - hp.x, gp.y - hp.y) : 0;
       // A respawn is a jump on both sides, and a wreck settles with no speed to measure against; it's
-      // the gliding between snapshots that's measured.
-      if (d < 300 && hp.state === 'air') lag.push({ d, speed: Math.hypot(hp.vx, hp.vy) });
+      // the gliding between snapshots that's measured. So is the swing round at a map edge: it pivots on the
+      // main wheels at its half-way flip, at no speed (drawn unblended, see edgeFlip).
+      if (d < 300 && hp.state === 'air' && hp.edgeTurn == null) lag.push({ d, speed: Math.hypot(hp.vx, hp.vy) });
     }
   });
   // Catch up on what's left.

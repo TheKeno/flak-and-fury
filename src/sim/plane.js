@@ -3,9 +3,11 @@ import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './wea
 import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
 import { crashShockwave } from './ground.js';
 import { updateEmergency } from './emergency.js';
+import { powerAt, dragAt, gripAt, updateNegG } from './air.js';
 
 
 export const GRAVITY = 90;
+export const DEFAULT_TURN_BLEED = 0.12; // speed lost per unit of turn rate x speed, for a plane without turnBleed
 // Controls stiffen at high speed: above the plane's stiffSpeed the turn rate falls off, to half at
 // STIFF_SPAN (30%) faster. Light turn fighters stiffen early and can't follow a fast diver; the heavy
 // boom-and-zoom fighters stay controllable deep into a dive. No stiffSpeed: never stiffens.
@@ -13,6 +15,13 @@ export const STIFF_SPAN = 0.3;
 export function stiffness(d, speed) {
   const s = d.stiffSpeed;
   return !s || speed <= s ? 1 : 1 / (1 + (speed - s) / (s * STIFF_SPAN));
+}
+// Share of the turn rate the controls give at this speed: soft below the stall, the slow-speed bonus
+// near it, stiff at high speed (see stepAir).
+export function turnAuthority(d, speed) {
+  if (speed < d.stallSpeed) return clamp((speed - 15) / 70, 0.12, 1);
+  const t = clamp((d.slowTurnSpeed - speed) / Math.max(1, d.slowTurnSpeed - d.stallSpeed), 0, 1);
+  return (1 + d.slowTurnBonus * t * t * (3 - 2 * t)) * stiffness(d, speed);
 }
 const GEAR_HEIGHT = 4; // pivot height above the ground when parked
 const RESPAWN_TIME = 3;
@@ -180,6 +189,8 @@ export function createPlane(id, def, { team, nation, seats }) {
     heat: 0, // 0..1: how hot emergency power has run the engine
     prevEmergency: false,
     heatStopped: false, // engine seized by full heat: it starts again once cool
+    negG: 0, // seconds of a hard push on the stick (src/sim/air.js)
+    cutout: 0, // seconds left of a negative-g cutout: the carburettor starves and the engine sputters
     burning: false,
     fireLeft: 0, // seconds until a fire finishes the plane
     fireOut: 0, // seconds spent putting a fire out
@@ -240,6 +251,7 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.emergency = false;
   p.heat = 0;
   p.heatStopped = false;
+  p.negG = p.cutout = 0;
   p.burning = p.dying = false;
   p.fireLeft = p.fireOut = 0;
   p.fireCough = p.fireStopped = false;
@@ -417,11 +429,11 @@ function updateFuel(p, world, dt) {
 function updateEngine(p, world, dt) {
   const e = p.def.engine;
   updateFuel(p, world, dt);
-  const firing = p.engineRunning && !p.starved && !(p.burning && p.fireCough);
+  const firing = p.engineRunning && !p.starved && !(p.cutout > 0) && !(p.burning && p.fireCough);
   p.power = firing ? 1 - p.engineDamage * 0.5 : 0;
   // Emergency power: extra power, less of it as the engine wears; max rpm and full load for the sound.
   const boosted = firing && p.emergency;
-  if (boosted) p.power *= 1 + world.emergency.boost * (1 - p.engineDamage);
+  if (boosted) p.power *= 1 + (p.def.emergencyBoost ?? world.emergency.boost) * (1 - p.engineDamage);
   let target;
   if (firing) {
     target = e.idleRpm + (e.cruiseRpm - e.idleRpm) * p.throttle * (1 - p.engineDamage * 0.35);
@@ -832,14 +844,10 @@ function stepAir(p, cmd, world, dt) {
   // Slow flight turns tighter: from slowTurnSpeed down to the stall the turn rate climbs by up to
   // slowTurnBonus. Chopping the throttle to whip round is a trick, but turning bleeds speed and one
   // knot too slow is a stall. Below the stall the controls go soft.
-  let authority;
-  if (p.speed < d.stallSpeed) authority = clamp((p.speed - 15) / 70, 0.12, 1);
-  else {
-    const t = clamp((d.slowTurnSpeed - p.speed) / Math.max(1, d.slowTurnSpeed - d.stallSpeed), 0, 1);
-    authority = (1 + d.slowTurnBonus * t * t * (3 - 2 * t)) * stiffness(d, p.speed);
-  }
+  const authority = turnAuthority(d, p.speed);
   // A damaged tail answers the controls only weakly; a damaged wing drags the nose round.
-  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;
+  // Thin air up high gives the wings less grip (src/sim/air.js).
+  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * gripAt(world, p.y) * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;
   // Just after lift-off the nose keeps turning at the ground rotation rate and eases up to the full
   // flying rate over blendTime, so the climb-out has no kink where the two models meet.
   if (p.liftBlend > 0) {
@@ -871,6 +879,10 @@ function stepAir(p, cmd, world, dt) {
     const toDown = angleDiff(-Math.PI / 2, p.angle);
     turn = Math.sign(toDown) * Math.min(Math.abs(toDown), 1) * 1.6 + p.spinDir * 0.6;
   }
+  // A hard push (nose towards the pilot's feet) starves a carburettor engine. Only the pilot's own
+  // steering counts: not a stall, a spin, a tumble or the autopilot at a map edge.
+  const piloted = !(edging || p.stalled || p.blackout || p.dying || p.tumble > 0);
+  updateNegG(p, world, piloted ? (turn * (p.inverted ? -1 : 1) * p.speed) / GRAVITY : 0, dt);
 
   if (p.edgeLevel != null) {
     // Levelling out: the nose follows a smooth path to level. What the pilot is still steering in during the
@@ -885,9 +897,11 @@ function stepAir(p, cmd, world, dt) {
 
   // The autopilot holds the speed it started with (a steep climb into the wall must not stall mid-turn).
   if (!edging) {
-    const thrust = d.thrust * p.throttle * p.power;
-    const drag = d.dragCoef * p.speed * p.speed * (1 + GEAR_DRAG * p.gear);
-    const induced = Math.abs(turn) * p.speed * 0.12; // hard turns bleed speed
+    // Above its rated height the engine loses power; the thin air drags a little less (src/sim/air.js).
+    const thrust = d.thrust * p.throttle * p.power * powerAt(world, d, p.y);
+    const drag = d.dragCoef * p.speed * p.speed * (1 + GEAR_DRAG * p.gear) * dragAt(world, p.y);
+    // Hard turns bleed speed, more for a heavily loaded wing (turnBleed per plane).
+    const induced = Math.abs(turn) * p.speed * (d.turnBleed ?? DEFAULT_TURN_BLEED);
     p.speed += (thrust - drag - induced - GRAVITY * Math.sin(p.angle)) * dt;
     p.speed = Math.max(0, p.speed);
   }

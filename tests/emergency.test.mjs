@@ -10,10 +10,16 @@ import { ignite } from '../src/sim/fire.js';
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
 
-function makeWorld() {
+// shared: the Bf 109 without its own emergency rating, so the shared settings are what is tested.
+function makeWorld({ shared = true } = {}) {
+  const planeDefs = load('data/planes.json');
+  if (shared) {
+    delete planeDefs.bf109g6.emergencyBoost;
+    delete planeDefs.bf109g6.emergencyHeatTime;
+  }
   const world = createWorld({
     map: importLdtk(load('maps/countryside.ldtk')),
-    planeDefs: load('data/planes.json'),
+    planeDefs,
     weapons: load('data/weapons.json'),
     waves: { first: 1e6 },
     emergency: { ...settings.emergency },
@@ -155,4 +161,28 @@ test('a seized engine stays dead when burning, out of fuel or on its belly', () 
     run(world, 60 * 12);
     assert.equal(p.engineRunning, false);
   }
+});
+
+test('each plane has its own rating: a long heat time spreads the same wear, a bigger boost goes faster', () => {
+  const heatTime = makeWorld().world.emergency.heatTime;
+  // Full heat costs the same wear whatever the heat time (short of the seize).
+  const wearToHeat = (seconds) => {
+    const w = makeWorld({ shared: false });
+    Object.assign(w.p.def, { emergencyHeatTime: seconds });
+    press(w.world);
+    run(w.world, Math.round(60 * seconds * 0.95));
+    return w.p.engineDamage;
+  };
+  const short = wearToHeat(heatTime);
+  const long = wearToHeat(heatTime * 2.5);
+  assert.ok(Math.abs(long - short) < 0.02, `same wear: ${short} vs ${long}`);
+  // A bigger boost is faster after a few seconds.
+  const speedWith = (boost) => {
+    const w = makeWorld({ shared: false });
+    Object.assign(w.p.def, { emergencyBoost: boost, emergencyHeatTime: 30 });
+    press(w.world);
+    run(w.world, 60 * 5);
+    return w.p.speed;
+  };
+  assert.ok(speedWith(0.3) > speedWith(0.1) + 2);
 });

@@ -108,6 +108,15 @@
     "crewTime": 1.5,
     "engineHarm": 0.3
   },
+  "flight": {
+    "fadeSpan": 800,
+    "thinDrag": 0.15,
+    "thinGrip": 0.1,
+    "thinTop": 1200,
+    "negGLimit": 1.5,
+    "negGHold": 0.12,
+    "negGCut": 1
+  },
   "emergency": {
     "boost": 0.2,
     "baseWear": 0.015,

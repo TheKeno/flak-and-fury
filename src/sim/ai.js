@@ -10,13 +10,15 @@
 // Bots see enemy planes within their lookout range; further out only what their side's radar shows
 // (plotted once a sweep, missing low flyers, degraded as the radar station is damaged).
 import { angleDiff, clamp } from './math.js';
-import { isUpright, GRAVITY, stiffness } from './plane.js';
+import { isUpright, GRAVITY, stiffness, turnAuthority } from './plane.js';
 import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 import { tacticsFor } from './tactics.js';
+import { DEFAULT_FLIGHT, gripAt } from './air.js';
 
 const DT = 1 / 60;
+const GENTLE_PUSH = new Set(['patrol', 'chase', 'attack', 'evade', 'extend']); // modes where a carburettor bot avoids negative g
 
 // Shared numbers, then one block per difficulty level. Kept as the caller's object (settings.bots) so
 // the tuning panel edits them live.
@@ -1144,6 +1146,19 @@ function fly(world, p, b, skill, want, cmd) {
     diff = sign * Math.abs(diff);
   }
   cmd.turn = clamp(diff / 0.15, -1, 1) * (pulling ? 1 : skill.turnHard);
+  // A carburettor engine cuts out under a hard push (src/sim/air.js): fighting or on patrol its pilot
+  // pushes the nose down gently, staying under the limit (bunting hard to escape is for injected
+  // engines, step 3). Not on the way home and landing: the approach needs its pushes, and a second's
+  // sputter there costs little.
+  if (p.def.negGCutout && GENTLE_PUSH.has(b.mode) && cmd.turn * (p.inverted ? -1 : 1) < 0) {
+    const limit = (world.flight ?? DEFAULT_FLIGHT).negGLimit;
+    const fd = flyingDef(p, world);
+    // The push the sim would give at turn 1 next tick (as stepAir works it out, with the key's ramp).
+    const hold = Math.sign(cmd.turn) === p.turnDir ? p.turnHold + DT : 0;
+    const ramp = fd.fineTurn + (1 - fd.fineTurn) * clamp(hold / fd.turnRampTime, 0, 1);
+    const full = fd.turnRate * gripAt(world, p.y) * turnAuthority(fd, p.speed) * ramp * Math.max(30, p.speed); // g x GRAVITY
+    cmd.turn = Math.sign(cmd.turn) * Math.min(Math.abs(cmd.turn), (0.85 * limit * GRAVITY) / full);
+  }
 
   // Throttle: a set level, or held to a speed (want.speed 0: closed).
   let level = rushing ? 1 : want.throttle ?? 0.8;
