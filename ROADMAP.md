@@ -77,7 +77,22 @@ later.
      - **3. Bot-role pass:** role tactics: stay in its height band and pull the enemy into it; fly home or fight on
        when damaged (a role setting the trainer learns); go after smoking enemies; bunt to escape (injected engines
        only); fire at convergence range; climb back after a boom-and-zoom pass. Fix whatever the duels show, then
-       retrain the bots.
+       retrain the bots. Also teach the bots the part 1 and 2 mechanics (own height band, emergency power, bunt,
+       convergence range) and check the rest of bot life (cruise, patrol, return, landing, ground attack, heavies and
+       bombers) under the new ceiling, at easy, normal and ace. **About 3-4 sessions (the most uncertain part):**
+       3a role tactics and new mechanics in the bots, 3b duel failures and trainer traps, 3c retrain, skill levels
+       and the rest of bot life, 3d fixes after the owner's test flights.
+       **Token rules for step 3 (owner, 2026-11-11):** (1) **at most about three fix attempts per failing duel**, then
+       write down what was learned and move on (force the tactic for that role, or accept it for now); (2) **role
+       tactics are forced per role** (like style 0.5 for boom and zoom), the trainer only fine-tunes knobs within
+       them, and every new tactic is written with knobs the trainer can search; (3) tools report counters, not
+       traces (the duel tool's compact counters line, `--brief`); (4) first job of 3a: a short map of `ai.js`
+       in `notes/` (which function does what, line ranges) so sessions read only what they change; (5) short fresh
+       sessions, each writes what it learned to `notes/` before it ends; (6) training and duel runs in the
+       background, read only the final summary; **nights are for the machine, days for Claude:** no unattended
+       Claude session overnight; a daytime session ends by starting the long runs (retrain, full duel sweep at all
+       skill levels, a Balance Lab run) from a terminal so they outlive it, and the next morning's session reads
+       their summaries; (7) Sonnet for routine parts (3c), Opus for the debugging (3b).
      - **4. Auto-tuner (Balance Lab stage 2).** **Levers per plane** (about ±15%, strengths stay in their top ranks):
        `thrust`, `dragCoef`, `maxSpeed`, rated height, `turnRate`, `slowTurnBonus`/`slowTurnSpeed`, turn bleed,
        `stiffSpeed`, `stallSpeed`, `hp`, `toughness`, engine vulnerability, ammunition, convergence, emergency power.
