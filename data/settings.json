@@ -228,6 +228,7 @@
     "groundRange": 2300,
     "bombHeight": 110,
     "strafePullout": 40,
+    "boomHeight": 150,
     "approachLength": 500,
     "glideSlope": 0.12,
     "approachSpeed": 0.8,

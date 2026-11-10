@@ -369,6 +369,7 @@ const BOT_FIELDS = [
   ['groundRange', 'Ground attack reach', 300, 4000, 50, 'How far from their own hangar bots go after enemy tanks and troops.'],
   ['bombHeight', 'Bombing height', 60, 300, 5, 'Height of a level bombing run.'],
   ['strafePullout', 'Strafing pull-out', 20, 120, 5, 'Height at which a strafing dive on troops pulls out.'],
+  ['boomHeight', 'Boom-and-zoom height', 0, 400, 10, 'Least height over the enemy a bot climbs to before diving on it, when its tactics style is 0.5 or more (dives from above).'],
   ['approachLength', 'Approach length', 200, 1000, 25, 'Final approach: from the turn-in to the touchdown point.'],
   ['glideSlope', 'Glide slope', 0.04, 0.25, 0.01, 'Descent angle on final approach (rad).'],
   ['approachSpeed', 'Approach speed', 0.6, 1, 0.01, "Speed on final as a share of the plane's max landing speed."],

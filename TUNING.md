@@ -234,6 +234,7 @@ Shared numbers (tuning panel: Bots):
 | `groundRange` | How far from their own hangar bots go after enemy tanks and troops. | 1500 – 3000 |
 | `bombHeight` | Height of a level bombing run. The release is worked out from the bomb's real fall. | 90 – 150 |
 | `strafePullout` | Height at which a strafing dive on troops pulls out. | 30 – 60 |
+| `boomHeight` | Least height over the enemy a bot climbs to before diving on it, for tactics style 0.5 and up (raises a lower `heightOver`). Without it a dive-from-above style is no dive and the bot trainer never finds it. | 100 – 200 |
 | `approachLength` | Final approach: from the turn-in to the touchdown point. | 400 – 700 |
 | `glideSlope` | Descent angle on final (rad). | 0.08 – 0.15 |
 | `approachSpeed` | Speed on final, as a share of the plane's `maxLandingSpeed`. | 0.75 – 0.9 |

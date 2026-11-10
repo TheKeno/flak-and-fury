@@ -42,10 +42,27 @@ The dive gains plenty of speed and the boom-and-zoom planes already zoom better 
 3. **Threats are met with a break turn** (`evade`, 1-2 s at full deflection), the worst move for a
    plane that should keep its speed: it bleeds 40-90 speed per break and ends slow, below the enemy.
 
-## Fix plan (tactic, `ai.js`, style ≥ 0.5 only)
+## What was found next (the fix)
 
-- Turn back into the dive by rotating the nose down (wingover / split-S) when there is height, not over
-  the top, so the dive starts at once and gains speed.
-- Zoom only once clear; near the enemy extend level/down at full power first (already there for d < 450,
-  check it).
-- Style 1: a threat on the tail is answered by extending (dive away straight), not a break turn.
+- **Style 0.5 with height already wins.** Style 0.5 (dive from above, turn-fight when no free zoom)
+  with `heightOver` 150 beat style 0 in the same plane on the old code: P-47 0.51 vs 0.46, Bf 109 0.63
+  vs 0.33. But each half alone loses: style 0.5 at height 0 (0.43 vs 0.72, 0.35 vs 0.74), style 0 at
+  height 150 (0.33 vs 0.76, 0.17 vs 0.77). The trainer moves one setting one step at a time, so it can
+  never reach the winning pair: a local-search trap, which is why every plane stayed on style 0.
+- **Fix (built):** `settings.bots.boomHeight` (150): a bot with style 0.5 or more climbs at least that
+  far over the enemy before diving (raises a lower `heightOver`). Now one step of `style` is the whole
+  boom-and-zoom package. Tuning panel and TUNING.md. No flight-model change.
+- **Result, style 0.5 vs style 0, same plane, height 0 setting (6 seeds × 2 sides):** Bf 109 0.57 vs
+  0.33, P-47 0.45 vs 0.54, P-38 0.42 vs 0.62. Holds its own (Bf 109 wins, P-47 about even, P-38 a bit
+  behind): viable, not even. Turn fighters also gain from it in a quick 4-seed check (Ki-43 0.30 vs
+  0.21, B-239 0.65 vs 0.32; Spitfire 0.63 vs 0.76), so diving from height is now simply a strong
+  tactic. Making turn fighters prefer turning is step 4's job (the auto-tuner and its style check).
+- **Pure style 1 is still not viable** (about 0.0-0.05 kills per life). Tried and dropped (each made
+  survival better but kills stayed near 0, and some hurt style 0.5): running straight on instead of a
+  half loop in front of the enemy, an Immelmann reversal when clear, extending instead of a break turn,
+  diving only on targets not coming at it, snap shots in the climb, a stronger turn bleed (`plane.js`
+  induced drag 0.12 → 0.3, no effect). Why: in side view a pure zoom is a slow, straight climb with an
+  equal chaser behind it, and every reversal is a half loop; an equal-speed turn fighter just follows.
+  The style-1 code also loops toward radar plots past `lookout` and toward `heightOver` targets behind
+  it (worth fixing if style 1 is wanted later). Suggest step 4's style check counts style 0.5 or more
+  as boom and zoom.

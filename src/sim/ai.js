@@ -29,6 +29,7 @@ export const DEFAULT_BOTS = {
   groundRange: 2300, // how far from their hangar bots go after ground targets
   bombHeight: 110, // level bombing height
   strafePullout: 40, // height at which a strafing dive pulls out
+  boomHeight: 150, // least height over the enemy a dive-from-above style (tactics style 0.5+) climbs to first
   approachLength: 500, // final approach: distance from the gate to the touchdown point
   glideSlope: 0.12, // final approach descent (rad)
   approachSpeed: 0.8, // share of the plane's max landing speed on final
@@ -736,9 +737,12 @@ function chaseWant(world, p, b, skill, o, cmd) {
     else if (p.speed > slowest * 1.15) b.unload = false;
   } else b.unload = false;
   if (b.unload) return { angle: angleFor(facing(p), -0.35), throttle: 1, clear, avoidFlak: true };
-  // Far off with height to gain first: climb towards a point that much above it.
-  const over = o.y + tac.heightOver - p.y;
-  if (tac.heightOver > 0 && d > 400 && over > tac.heightOver * 0.3) {
+  // Far off with height to gain first: climb towards a point that much above it. Diving from above needs
+  // the height (boomHeight at least): a dive from a little above is no dive, and with it alone the
+  // style is a step down from turn fighting that the bot trainer's one-step search never gets past.
+  const heightOver = tac.style >= 0.5 ? Math.max(world.bots.boomHeight ?? 0, tac.heightOver) : tac.heightOver;
+  const over = o.y + heightOver - p.y;
+  if (heightOver > 0 && d > 400 && over > heightOver * 0.3) {
     const dir = Math.sign(o.x - p.x) || facing(p);
     return { angle: angleFor(dir, clamp(over / 200, 0.1, 0.45)), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
   }
@@ -750,7 +754,7 @@ function chaseWant(world, p, b, skill, o, cmd) {
   let boom = tac.style >= 0.5;
   if (boom) {
     const above = p.y - o.y;
-    const want = Math.max(60, tac.heightOver);
+    const want = Math.max(60, heightOver);
     const climbSpeed = stall * Math.max(1.55, tac.minFightSpeed);
     if (!b.zoom) b.zoom = { phase: above > want * 0.6 ? 'dive' : 'climb', since: world.tick };
     if (b.zoom.phase === 'climb') {
