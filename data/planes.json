@@ -1,5 +1,5 @@
 {
-  "_units": "airRole (the air-to-air style, for the bots and the auto-tuner): turn fighter, all-rounder, boom and zoom, slasher or gunner defence; groundOnly: true = flies the ground loadout only (the Stuka). World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count} (count is also the most that hardpoint takes). loadoutPresets: 2 to 4 named loads for the hangar, each {name, loadout}; the first is the default. armament.guns: the pilot's gun mounts, each {id, weapon, count, synced, options}: count is the standard fit (0 = an empty external mount such as a gondola), options the guns that fit, [{weapon, max (most guns), mountKg (the pod itself), drag (share of the plane's drag it adds)}], by default just the standard weapon up to count. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect.",
+  "_units": "airRole (the air-to-air style, for the bots and the auto-tuner): turn fighter, all-rounder, boom and zoom, slasher or gunner defence; groundOnly: true = flies the ground loadout only (the Stuka). World units: 1 unit is about 0.4 m. Speeds in units/s, accelerations in units/s^2, angles in radians. spriteSize (optional, default [96, 36]): the side sprite in pixels, for planes too big for the default. pivot is in sprite pixels (plane sprites are drawn at 4 pixels per unit); noseOffset, exhaustOffset and propOffset (optional: where the propeller line is drawn in flight, for twins whose engines are not in the nose) are in world units from the pivot. hardpoints (optional): the bomb stations, each {id, kind crutch|rack|bay, offset (world units from the pivot), group (release order, lowest first), maxKg, and for a bay salvo (bombs per press) and interval (s between bombs)}; a crutch drops one bomb per release, a rack drops all it carries together (a wing pair). loadout: the default bombs, each {hardpoint, weapon, count} (count is also the most that hardpoint takes). loadoutPresets: 2 to 4 named loads for the hangar, each {name, loadout}; the first is the default. armament.guns: the pilot's gun mounts, each {id, weapon, count, ammo, offset, synced, options}: count is the standard fit (0 = an empty external mount such as a gondola), ammo the rounds per gun (about 60% of the historical load; default the weapon's), offset (wing guns only) [x, y, z] in world units from the pivot, z out from the centre line: wing guns fire from there and their rounds meet at the plane's convergence (world units ahead); guns without an offset fire from the nose along the line of flight, options the guns that fit, [{weapon, max (most guns), ammo (rounds per gun, default the mount's for its own weapon, else the weapon's), mountKg (the pod itself), drag (share of the plane's drag it adds)}], by default just the standard weapon up to count. armament.turrets (optional): AI gunners, each a weapon, its mount offset and its arc of fire in the plane's own frame in degrees (0 ahead, 90 up, 180 back). nation: the air force that flies it. wheels (optional): the gear as drawn and stood on, in world units from the pivot: leg top, wheel centre, stowed wheel centre, radius; tail marks the tail wheel. emptyWeight and maxLoad (optional, kg): the plane empty and the most bomb weight it lifts; a bomb's weight is in weapons.json. Without maxLoad the plane's weight has no effect. engineVuln: how much damage a hit that finds the engine does (1 = normal; radials about 0.7-0.85, liquid-cooled 1-1.2).",
   "bf109g6": {
     "name": "Bf 109 G-6",
     "nation": "germany",
@@ -34,6 +34,7 @@
     "maxSpeed": 155,
     "hp": 95,
     "toughness": 1,
+    "engineVuln": 1.15,
     "rearView": 0.45,
     "hitRadius": 6.5,
     "endurance": 240,
@@ -118,12 +119,14 @@
           "id": "cowl",
           "weapon": "mg131",
           "count": 2,
+          "ammo": 180,
           "synced": true
         },
         {
           "id": "hub",
           "weapon": "mg151_20",
           "count": 1,
+          "ammo": 120,
           "options": [
             {
               "weapon": "mg151_20",
@@ -144,7 +147,8 @@
               "weapon": "mg151_20",
               "max": 2,
               "mountKg": 29,
-              "drag": 0.03
+              "drag": 0.03,
+              "ammo": 80
             },
             {
               "weapon": "mk108_30",
@@ -202,6 +206,8 @@
     "maxSpeed": 160,
     "hp": 100,
     "toughness": 1,
+    "engineVuln": 1.2,
+    "convergence": 180,
     "rearView": 0.55,
     "hitRadius": 7,
     "endurance": 220,
@@ -306,6 +312,12 @@
           "id": "wing-inner",
           "weapon": "hispano_20",
           "count": 2,
+          "ammo": 72,
+          "offset": [
+            5.3,
+            -1.2,
+            5
+          ],
           "options": [
             {
               "weapon": "hispano_20",
@@ -321,6 +333,12 @@
           "id": "wing-outer",
           "weapon": "browning_303",
           "count": 4,
+          "ammo": 210,
+          "offset": [
+            5,
+            -1,
+            7.75
+          ],
           "options": [
             {
               "weapon": "browning_303",
@@ -388,6 +406,8 @@
     "maxSpeed": 158,
     "hp": 140,
     "toughness": 1.4,
+    "engineVuln": 0.7,
+    "convergence": 200,
     "rearView": 0.45,
     "hitRadius": 8.5,
     "endurance": 300,
@@ -491,7 +511,13 @@
         {
           "id": "wing",
           "weapon": "m2_browning",
-          "count": 8
+          "count": 8,
+          "ammo": 255,
+          "offset": [
+            6.5,
+            -0.75,
+            7.75
+          ]
         }
       ]
     },
@@ -541,6 +567,7 @@
     "maxSpeed": 156,
     "hp": 110,
     "toughness": 1.2,
+    "engineVuln": 0.75,
     "rearView": 0.6,
     "hitRadius": 6.8,
     "endurance": 210,
@@ -625,6 +652,7 @@
           "id": "cowl",
           "weapon": "shvak_20",
           "count": 2,
+          "ammo": 100,
           "synced": true
         }
       ]
@@ -675,6 +703,7 @@
     "maxSpeed": 140,
     "hp": 70,
     "toughness": 0.8,
+    "engineVuln": 0.85,
     "rearView": 0.8,
     "hitRadius": 6.5,
     "endurance": 360,
@@ -759,6 +788,7 @@
           "id": "cowl",
           "weapon": "ho103",
           "count": 2,
+          "ammo": 150,
           "synced": true
         }
       ]
@@ -809,6 +839,8 @@
     "maxSpeed": 135,
     "hp": 110,
     "toughness": 1.3,
+    "engineVuln": 0.8,
+    "convergence": 160,
     "rearView": 0.7,
     "hitRadius": 6.5,
     "endurance": 300,
@@ -856,12 +888,19 @@
           "id": "cowl",
           "weapon": "m2_browning",
           "count": 2,
+          "ammo": 120,
           "synced": true
         },
         {
           "id": "wing",
           "weapon": "m2_browning",
-          "count": 2
+          "count": 2,
+          "ammo": 240,
+          "offset": [
+            5,
+            0,
+            5.25
+          ]
         }
       ]
     },
@@ -925,6 +964,7 @@
     "maxSpeed": 150,
     "hp": 170,
     "toughness": 1.6,
+    "engineVuln": 1,
     "rearView": 0.9,
     "hitRadius": 10,
     "endurance": 420,
@@ -1009,6 +1049,7 @@
           "id": "nose-mg",
           "weapon": "mg17",
           "count": 4,
+          "ammo": 600,
           "options": [
             {
               "weapon": "mg17",
@@ -1023,7 +1064,8 @@
         {
           "id": "nose-cannon",
           "weapon": "mg151_20",
-          "count": 2
+          "count": 2,
+          "ammo": 180
         }
       ],
       "turrets": [
@@ -1095,6 +1137,7 @@
     "maxSpeed": 165,
     "hp": 120,
     "toughness": 1.1,
+    "engineVuln": 1.05,
     "rearView": 0.8,
     "hitRadius": 9,
     "endurance": 360,
@@ -1200,12 +1243,14 @@
         {
           "id": "cannon",
           "weapon": "hispano_20",
-          "count": 4
+          "count": 4,
+          "ammo": 90
         },
         {
           "id": "mg",
           "weapon": "browning_303",
-          "count": 4
+          "count": 4,
+          "ammo": 300
         }
       ]
     },
@@ -1263,6 +1308,8 @@
     "maxSpeed": 108,
     "hp": 110,
     "toughness": 1.2,
+    "engineVuln": 1.2,
+    "convergence": 160,
     "rearView": 0.7,
     "hitRadius": 8.5,
     "endurance": 300,
@@ -1383,7 +1430,13 @@
         {
           "id": "wing",
           "weapon": "mg151_20",
-          "count": 2
+          "count": 2,
+          "ammo": 300,
+          "offset": [
+            6.9,
+            -1.6,
+            6
+          ]
         }
       ],
       "turrets": [
@@ -1455,6 +1508,7 @@
     "maxSpeed": 157,
     "hp": 150,
     "toughness": 1.4,
+    "engineVuln": 1,
     "rearView": 0.9,
     "hitRadius": 9.5,
     "endurance": 380,
@@ -1538,12 +1592,14 @@
         {
           "id": "nose-mg",
           "weapon": "m2_browning",
-          "count": 4
+          "count": 4,
+          "ammo": 300
         },
         {
           "id": "nose-cannon",
           "weapon": "hispano_20",
-          "count": 1
+          "count": 1,
+          "ammo": 90
         }
       ]
     },
@@ -1601,6 +1657,7 @@
     "maxSpeed": 145,
     "hp": 150,
     "toughness": 1.4,
+    "engineVuln": 1,
     "rearView": 0.9,
     "hitRadius": 10,
     "endurance": 400,
@@ -1684,12 +1741,14 @@
         {
           "id": "nose-mg",
           "weapon": "shkas",
-          "count": 2
+          "count": 2,
+          "ammo": 450
         },
         {
           "id": "nose-cannon",
           "weapon": "shvak_20",
-          "count": 1
+          "count": 1,
+          "ammo": 150
         }
       ],
       "turrets": [
@@ -1761,6 +1820,7 @@
     "maxSpeed": 148,
     "hp": 130,
     "toughness": 1.2,
+    "engineVuln": 0.8,
     "rearView": 0.9,
     "hitRadius": 9.5,
     "endurance": 420,
@@ -1844,12 +1904,14 @@
         {
           "id": "nose-mg",
           "weapon": "ho103",
-          "count": 2
+          "count": 2,
+          "ammo": 180
         },
         {
           "id": "belly-cannon",
           "weapon": "type99_20",
-          "count": 1
+          "count": 1,
+          "ammo": 60
         }
       ],
       "turrets": [
@@ -1921,6 +1983,8 @@
     "maxSpeed": 118,
     "hp": 130,
     "toughness": 1.1,
+    "engineVuln": 0.75,
+    "convergence": 180,
     "rearView": 0.9,
     "hitRadius": 10,
     "endurance": 440,
@@ -2026,12 +2090,19 @@
         {
           "id": "pack",
           "weapon": "browning_303",
-          "count": 4
+          "count": 4,
+          "ammo": 300
         },
         {
           "id": "wing",
           "weapon": "browning_303",
-          "count": 1
+          "count": 1,
+          "ammo": 300,
+          "offset": [
+            8.5,
+            -1,
+            9
+          ]
         }
       ],
       "turrets": [

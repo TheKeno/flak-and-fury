@@ -38,6 +38,8 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `groundTurnTime` | Seconds to pivot round on the main wheels (Shift standing still). The plane can't move, take off or fire meanwhile, and can still be shot. | 1 – 2.5 |
 | `groundLoopTime` | Seconds from Shift while taxiing (at 5 px/s or more) until the spinning, tipping plane digs a wingtip in and is wrecked. | 0.6 – 1.2 |
 | `toughness` | Divides collision damage. 1 = normal, higher = sturdier. | 0.7 – 1.5 |
+| `engineVuln` | How much damage a hit that finds the engine does (`damage.engineChance` of hits do). Gentle on purpose: radials low (P-47 0.7, La-5FN and Blenheim 0.75, B-239 and Ki-45 0.8, Ki-43 0.85), liquid-cooled a bit higher (twins 1-1.05, Bf 109 1.15, Spitfire and Ju 87 1.2). A lever for the auto-tuner. | 0.7 – 1.3 |
+| `convergence` | Planes with wing guns only: world units ahead where the wing guns' rounds meet the line of flight. Each round flies in from its gun's side offset (`armament.guns[].offset` z) and crosses the line there; short of it or past it the rounds pass beside a target dead ahead (`damage.depthSize`). Hits are full from close in to about 1.5× convergence, then fall off; nose guns don't care. Set from the 1943 practice scaled to the game's ranges (RAF 250 yd: Spitfire 180, Blenheim 180; USAAF 300 yd: P-47 200; B-239, Ju 87 160). A lever for the auto-tuner. | 150 – 250 |
 | `rearView` | How far mouse look can swing back over the tail (0..1). | 0.3 – 1 |
 | `endurance` | Seconds of flying at full throttle on a full tank. Idling burns about an eighth as much. | 120 – 600 |
 | `hp` | Hit points. Higher = takes more hits. | 60 – 200 |
@@ -49,7 +51,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `armament.guns` | Which guns (names from `weapons.json`) and how many. `synced: true` marks guns firing through the propeller (on the cowling): they slow a little with engine RPM (full from 60% of max, 70% at idle) and can't fire with the propeller stopped (the gear is driven by the engine). WWII gears and constant-speed propellers cost a cowl gun only a little of its rate. Wing guns and hub cannon aren't synced. | |
 | `hardpoints` | The bomb stations: a list of `{id, kind, offset, group, maxKg}`. `kind` is `crutch` (fuselage; drops one bomb per release), `rack` (wing; drops everything it carries together, a left and right pair) or `bay` (`salvo` bombs on a press, then one by one every `interval` seconds while the key is held). `offset` is in world units from the pivot (typed by hand until the Outline Lab marks them). `group` is the release order, lowest first (the Stuka's crutch before its racks). `interval` (optional, default 0.35 s) is the pause after a release. `maxKg` is the heaviest single bomb the hardpoint takes (the hangar and `validateLoadout` refuse a heavier one). | |
 | `loadout` | The default bombs: `{hardpoint, weapon, count}` per station (`count` default 1; a rack's count is its pair). Rearming restores it. A plane with a single bomb slot has one `crutch` hardpoint called `centre`. `count` is also the most that hardpoint takes. | |
-| `armament.guns[]` | Gun mounts: `id` (unique per plane: `cowl`, `hub`, `wing`...), `weapon`, `count` (the standard fit; **0 = an empty external mount**, a gondola), `synced`, and optional `options`: `[{weapon, max, mountKg, drag}]`, the guns that fit and the most each takes (default: the standard gun up to `count`). `mountKg` is the pod's own weight and `drag` the share of the plane's `dragCoef` it adds (0.03 = +3%, a guess; gondola 29 kg each pair = (212 - guns and 135 rpg) / 2 for the R6), both only while the mount carries guns. The pilot's pick is `p.gunChoice` `[{mount, weapon, count, ammo}]` (ammo = rounds per gun; a mount left out is empty, `[]` = no guns), checked by `validateGuns` in `src/sim/weapons.js`, locked once the plane leaves the hangar doors. Bots keep the standard fit. | |
+| `armament.guns[]` | Gun mounts: `id` (unique per plane: `cowl`, `hub`, `wing`...), `weapon`, `count` (the standard fit; **0 = an empty external mount**, a gondola), `ammo` (rounds per gun of this plane's load, about 60% of the historical figure: e.g. M2 255 on the P-47 (425 real), 120 in the B-239's cowl (200); firing time is the firepower lever, there is no per-plane damage multiplier), `offset` (wing guns only: `[x, y, z]` in world units from the pivot, z out from the centre line, from the real layout: Spitfire Hispano 2.0 m and .303 3.1 m out, P-47 3.1 m, B-239 2.1 m, Ju 87 2.4 m, Blenheim 3.6 m; the round starts there and meets the line of flight at `convergence`; a mount without one fires from `noseOffset` straight along the line of flight), `synced`, and optional `options`: `[{weapon, max, ammo, mountKg, drag}]` (`ammo`: rounds per gun of that option, default the mount's `ammo` for its own weapon, else the weapon's), the guns that fit and the most each takes (default: the standard gun up to `count`). `mountKg` is the pod's own weight and `drag` the share of the plane's `dragCoef` it adds (0.03 = +3%, a guess; gondola 29 kg each pair = (212 - guns and 135 rpg) / 2 for the R6), both only while the mount carries guns. The pilot's pick is `p.gunChoice` `[{mount, weapon, count, ammo}]` (ammo = rounds per gun; a mount left out is empty, `[]` = no guns), checked by `validateGuns` in `src/sim/weapons.js`, locked once the plane leaves the hangar doors. Bots keep the standard fit. | |
 | `loadoutPresets` | The two loads the hangar offers: `[{name, loadout}]`, **Air-to-air** (an empty list, no bombs; the first, so the player's default) and **Ground attack** (the heaviest load, equal to `loadout`, which stays the capacity of each hardpoint). The B-239 has only Air-to-air, the Ju 87 (`groundOnly`) only Ground attack. A pilot's own pick is `p.loadout` in the sim (plain data, null = the default), checked by `validateLoadout` in `src/sim/weapons.js`: hardpoint exists and used once, a bomb no heavier than `maxKg`, count 1 to the hardpoint's default count, total weight within `maxLoad`. Locked once the plane leaves the hangar doors. Bots take Air-to-air (`botLoadout` in `src/sim/weapons.js`); a `groundOnly` plane keeps its default bombs. | |
 | `airRole` | The plane's air-to-air style from the role sheet (ROADMAP Decisions "Plane roles and balancing plan"): `turn fighter`, `all-rounder`, `boom and zoom`, `slasher`, `gunner defence`. A label for the bots and the auto-tuner; nothing reads it yet. The Ju 87 has none and `groundOnly: true`. Not in the tuning panel. | |
 | `armament.turrets` | AI gunners (a rear gunner, a turret): `weapon`, `count`, `offset` (the gun's mount in world units from the pivot) and `arc` (where it can fire, in degrees in the plane's own frame: 0 ahead, 90 up, 180 straight back). The gunner picks the nearest enemy in its arc and reach, leads it and fires; it holds fire unless the bots are on (Testing), and the crew rearm it. Shown as "Gunner" sections in the tuning panel. | |
@@ -62,11 +64,12 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 |---|---|
 | `rpm` | Rounds per minute **per gun** (about 60% of the historical figure, for gameplay). |
 | `damage` | Damage per round, randomised ±50% per hit. |
-| `velocity` | Muzzle speed. Lower = you have to lead targets more. |
+| `velocity` | Muzzle speed (units/s). Lower = you have to lead targets more. Set from the real muzzle velocity `realVelocity` (m/s) as 300 × (real ÷ 770)^1.5, rounded to 5: scaled down and the differences stretched, so the flat fast guns (Hispano 365, M2 360, ShKAS 320) reach far and the slow heavy ones (Type 99 205, MK 108 165) need a close target. Set from history, not tuned. |
+| `realVelocity` | The real muzzle velocity in m/s, for reference (`velocity` comes from it): .303 744, MG 17 755, ShKAS 800, MG 81Z 790, M2 870, MG 131 750, Ho-103 780, Hispano 880, MG 151/20 790 (mine shell belts), Type 99 Mk 1 600, ShVAK 770, MK 108 520. |
 | `spread` | Random aim error (rad). Lower = tighter grouping. |
-| `drop` | How much gravity pulls the round down (0 = none, 1 = full). |
-| `life` | Seconds before the round is spent (sets range). |
-| `ammo` | Rounds per gun. |
+| `drop` | How much gravity pulls the round down (0 = none, 1 = full). The drop over a distance also grows with 1 ÷ velocity², so slow guns drop much more: M2 0.09, rifle calibre 0.12, 20 mm 0.11-0.14, Type 99 0.4, MK 108 0.55. |
+| `life` | Seconds before the round is spent; velocity × life is the reach (rifle calibre about 400, M2 540, Hispano 530, MK 108 250). |
+| `ammo` | Default rounds per gun, for a mount without its own `ammo` (gondolas, other options, gunners). Each plane's load is on its mount (`armament.guns[].ammo`). |
 | `voice` | Gun sound: `rifle`, `heavy`, `cannon20`, `cannon30`. |
 | `weight` | Bomb: kg of one bomb (GP bombs from their pounds). Gun: kg of the gun alone. Guns weigh into the plane's weight against its standard fit (see `weight` below). **Guesses** (look up later): .303 Browning 10, MG 17 10, MG 81Z 13. The others are sourced (`notes/hangar-options-verified-planned.md`): .50 M2 28, Hispano 45, MG 151/20 43, MK 108 58, ShVAK 42, Ho-103 23, Type 99 Mk 1 23, MG 131 17, ShKAS 10. |
 | `roundKg` | Guns: kg per round including its link. **All guesses from calibre:** 7.9 / .303 mm 0.025; 12.7 / .50 0.12; MG 131 0.075; 20 mm 0.25; MK 108 0.45. |
@@ -211,6 +214,17 @@ soldiers (either side) within `crashBlastRadius` of the wreck take `crashBlastFo
 points at the wreck, falling off linearly to nothing at the radius. All of these are also in the
 tuning panel's Collisions section.
 
+## Engine hits and wing guns: `data/settings.json` → `damage`
+
+Tuning panel: Engine hits and wing guns. Read in `src/sim/weapons.js` (`damagePlane`, `updateDamage`, `stepBullets`).
+
+| Field | What it does | Try |
+|---|---|---|
+| `engineChance` | Chance a hit also finds the engine; it adds damage / 90 × the plane's `engineVuln` to its engine damage. | 0.2 – 0.3 |
+| `engineLeak` | Share of that engine harm that comes over the next seconds (a coolant or oil leak) instead of at once. Gentle: never more than the hit's own harm, and it settles. | 0 – 0.7 |
+| `leakTime` | Seconds over which the leak runs out (exponential, most of it early on; ends once under 0.002). The ground crew stop it. | 10 – 40 |
+| `depthSize` | How deep a target counts (its inner wings), against its `hitRadius`, for wing gun rounds still off to the side. 1 = round; 1.25 lets close-in shots hit and cuts hits past about 1.5× convergence. | 1 – 1.5 |
+
 ## Bots: `data/settings.json` → `bots`, `rules`
 
 How many bots fly and how good they are is in `rules` (tuning panel: Testing): `wingmen` (bots on
@@ -251,6 +265,8 @@ Each level (`bots.levels.easy`, `normal`, `ace`; tuning panel: Bots → Easy / N
 | `reaction` | Seconds between decisions, and how often the pilot updates its picture of a target. A slow pilot's lead goes stale when the target manoeuvres. | 0.6 / 0.35 / 0.18 |
 | `lookout` | How far it sees enemy planes. Beyond that, only its radar's picture (none with the radar station destroyed). | 380 / 520 / 700 |
 | `aimError` | How far (rad) its aim wanders off the perfect lead. | 0.06 / 0.03 / 0.01 |
+| `leadError` | How far it misjudges the lead and drop, as a share of the true flight time (wandering slowly, like a human's judgement over a burst). The miss grows with the rounds' flight time, so slow guns miss more than fast ones. | 0.25 / 0.15 / 0.07 |
+| `turnError` | How badly it judges a turning target (wandering): the miss is about turnError × the target's turn rate (seen between its looks, `reaction`) × flight time × target speed ÷ round speed (rad). | 0.6 / 0.4 / 0.2 |
 | `aimTolerance` | How close (rad) the nose must be to the aim point to fire, widened by how big the target looks. | 0.1 / 0.07 / 0.045 |
 | `fireRange` | Distance within which it opens fire on a plane. | 200 / 230 / 250 |
 | `evadeChance` | Chance per decision of noticing a plane on its tail and breaking. | 0.3 / 0.6 / 0.9 |
