@@ -1,7 +1,7 @@
 // Energy trace of one boom-and-zoom bot: speed and height through its dive and zoom phases, in the
 // air-only arena against turn-fighting bots in the same plane. Prints one line per phase.
 //
-//   node tools/bnz-trace.mjs [plane] [--seed N] [--minutes N] [--over H]
+//   node tools/bnz-trace.mjs [plane] [--style S] [--seed N] [--minutes N] [--over H]
 import { loadContent, } from './balance.mjs';
 import { buildWorld } from '../src/balance/runner.js';
 import { setBots, stepWorld, TICK_RATE } from '../src/sim/world.js';
@@ -14,7 +14,7 @@ const over = opt('--over', 150);
 const content = loadContent();
 const base = tacticsIn(content.tactics, plane);
 const table = (t) => ({ default: content.tactics.default, planes: { ...content.tactics.planes, [plane]: t } });
-const world = buildWorld(content, { seed: opt('--seed', 500), arena: true, tactics: [table({ ...base, style: 1, heightOver: Math.max(base.heightOver, over) }), table({ ...base, style: 0 })] });
+const world = buildWorld(content, { seed: opt('--seed', 500), arena: true, tactics: [table({ ...base, style: opt('--style', 1), heightOver: Math.max(base.heightOver, over) }), table({ ...base, style: 0 })] });
 for (const team of [0, 1]) setBots(world, { team, count: 2, skill: 'normal', defId: plane, nation: content.planeDefs[plane].nation });
 
 const ticks = opt('--minutes', 4) * 60 * TICK_RATE;

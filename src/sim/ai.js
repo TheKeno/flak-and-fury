@@ -705,6 +705,10 @@ function gunLead(p, o) {
   return { angle: Math.atan2(ry, rx), dist: Math.hypot(o.x - p.x, o.y - p.y) };
 }
 
+const DIVE_LEAD = 0.5; // the most the dive-from-height nose lead may swing off the line of sight (rad)
+const DIVE_START = 350; // a dive starts no closer than this: closer is no pass, just a head-on merge
+const DIVE_RANGE = 1.6; // the dive opens fire this much further out
+
 function chaseWant(world, p, b, skill, o, cmd) {
   const d = Math.hypot(o.x - p.x, o.y - p.y);
   const seen = d < skill.lookout;
@@ -758,7 +762,7 @@ function chaseWant(world, p, b, skill, o, cmd) {
     const climbSpeed = stall * Math.max(1.55, tac.minFightSpeed);
     if (!b.zoom) b.zoom = { phase: above > want * 0.6 ? 'dive' : 'climb', since: world.tick };
     if (b.zoom.phase === 'climb') {
-      if (above >= want && d > 150) b.zoom = { phase: 'dive', since: world.tick };
+      if (above >= want && d > DIVE_START) b.zoom = { phase: 'dive', since: world.tick };
       else if (tac.style < 1 && (p.speed < climbSpeed || d < 450)) boom = false; // no free zoom: turn-fight
       else {
         // Close to it: run straight away, level or a little down, to open the gap at full speed (a slow
@@ -779,6 +783,13 @@ function chaseWant(world, p, b, skill, o, cmd) {
   const lead = gunLead(p, pictured);
   const aim = lead.angle + b.aimOff;
   let angle = d < 450 ? aim : Math.atan2(pictured.y + pictured.vy - p.y, pictured.x + pictured.vx - p.x);
+  const diving = boom && b.zoom?.phase === 'dive';
+  if (diving) {
+    // A fast dive makes the gun lead swing faster than the plane can follow. Keep the nose within a
+    // small angle of the line of sight so the aim settles instead of chasing it.
+    const los = Math.atan2(pictured.y - p.y, pictured.x - p.x);
+    angle = los + clamp(angleDiff(aim, los), -DIVE_LEAD, DIVE_LEAD);
+  }
   const closing = ((o.x - p.x) * (p.vx - o.vx) + (o.y - p.y) * (p.vy - o.vy)) / Math.max(1, d);
   let throttle = 1;
   let speed;
@@ -797,7 +808,7 @@ function chaseWant(world, p, b, skill, o, cmd) {
   if (d < 110 && closing > 25) throttle = 0.4; // don't ram it
   if (d < 35) angle = p.angle + 1; // too close: get out of its way
   // Fire with the nose within the pilot's tolerance, widened by how big the target looks from here.
-  else cmd.fire = d < skill.fireRange * tac.fireRange && off < skill.aimTolerance + o.def.hitRadius / d && ammoShare(p) > 0;
+  else cmd.fire = d < skill.fireRange * tac.fireRange * (diving ? DIVE_RANGE : 1) && off < skill.aimTolerance + o.def.hitRadius / d && ammoShare(p) > 0;
   return { angle, throttle, speed, clear, avoidFlak: true };
 }
 

@@ -94,3 +94,24 @@ P-47 v Spitfire −0.14, La-5FN +0.08, Ki-43 −0.36, B-239 −0.04; Bf 109 −0
 stiffer test (Ki-43 115, B-239 110, Spitfire 145, La-5 140) gave no consistent pattern either (±0.2 both
 ways, within 6-seed noise). Kept for players and the auto-tuner; the bots' blocker is the diving pass
 itself (few clean shots).
+
+## The diving pass: aim and fire range (2026-11-10)
+
+New tool `node tools/bnz-dive.mjs [plane]` (one diving bot, tick by tick: distance, nose against line of
+sight, closing speed, fire) and `bnz-trace.mjs --style S`. Before: of 41 dives in 6 seeds only 12 fired, 3 s
+in all. The traces show two kinds of failure: a dive started at about 220 units with the nose facing away
+(a half loop, no pass), and a "dive" that is really a long chase of a far target. When a pass does line up
+the bot fires steadily from about 390 down to 150 units, so the shots were mostly lost to range.
+
+Tried (12 seeds x 2 sides, mean gain over turning, P-47 / Bf 109, `--vs` list; baseline −0.08 / −0.05):
+- Dive only from 350+ units away (was 150), lead capped 0.3 rad off the line of sight, fire range x1.3:
+  −0.06 / −0.04. Capping the lead alone made no difference (with or without it, within noise).
+- Dive only with the nose within 1.2 rad of the enemy: worse (−0.22 on P-47 v Bf 109), dropped.
+- Dive start 500: no better. Fire range x1.6: −0.02 / +0.02; x2 and x2.5: no further gain (plateau).
+**Kept:** `DIVE_START` 350, `DIVE_LEAD` 0.5, `DIVE_RANGE` 1.6 in `chaseWant` (dive phase only; style 0 unchanged).
+Result (final run, kills per life gain over its own trained turning): P-47 v Bf 109 +0.10, Spitfire −0.12, P-47
+−0.09, La-5FN +0.02, Ki-43 −0.14 (was −0.36), B-239 +0.03; Bf 109 v Bf 109 +0.08, Spitfire +0.03, P-47 −0.07,
+La-5FN −0.06, Ki-43 +0.09, B-239 +0.01. A small step: mean gain about −0.03 (P-47) and 0.00 (Bf 109), from −0.08 and
+−0.05, with seed noise about ±0.1 per cell. Diving no longer loses badly, but still does not clearly win; own-fault
+deaths were not measured separately. The bigger lever is probably what the bot does after the pass (it turn-fights
+at once at d < 450): a retraining may still find 0.5 now.
