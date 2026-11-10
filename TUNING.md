@@ -23,6 +23,7 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | `turnRampTime` | Seconds of holding before you reach full `turnRate`. Higher = more precise, slower to react. | 0.2 – 0.8 |
 | `slowTurnBonus` | Extra turn rate when flying slowly, peaking just above the stall. 0 = off, 0.8 = 80% tighter. | 0 – 1.5 |
 | `slowTurnSpeed` | Speed where the slow-speed bonus starts building. Must be above `stallSpeed`. | 80 – 130 |
+| `stiffSpeed` | Speed above which the controls get heavy: the turn rate falls off, to half at 30% faster (`STIFF_SPAN` in `plane.js`). Low for light turn fighters, so they can't follow a fast diver; high for boom-and-zoom planes. Missing: never stiffens. | 135 – 205 |
 | `thrust` | Engine pull. Higher = faster acceleration and climb. Must stay below 90 (gravity) or the plane can climb vertically forever. | 70 – 89 |
 | `dragCoef` | Air resistance. Top speed ≈ √(thrust ÷ dragCoef). | 0.003 – 0.005 |
 | `maxSpeed` | Used for sound and engine pitch, not a hard limit. Keep it near √(thrust ÷ dragCoef). | |

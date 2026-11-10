@@ -10,7 +10,7 @@
 // Bots see enemy planes within their lookout range; further out only what their side's radar shows
 // (plotted once a sweep, missing low flyers, degraded as the radar station is damaged).
 import { angleDiff, clamp } from './math.js';
-import { isUpright, GRAVITY } from './plane.js';
+import { isUpright, GRAVITY, stiffness } from './plane.js';
 import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
@@ -1087,7 +1087,9 @@ function fly(world, p, b, skill, want, cmd) {
     const floor = floorAhead(world, p.x, dirH, Math.max(120, p.speed * 2.2));
     const dive = Math.asin(clamp(-p.vy / Math.max(1, p.speed), 0, 1));
     const react = (want.dive ? 0.3 : 0.6) + p.def.turnRampTime * 0.5; // the turn takes a moment to build
-    const loss = (p.speed / flyingDef(p, world).turnRate) * (1 - Math.cos(dive)) + Math.max(0, -p.vy) * react;
+    const fd = flyingDef(p, world);
+    // Stiff controls at speed (stiffness) make the pull-out wider: start it sooner.
+    const loss = (p.speed / (fd.turnRate * stiffness(fd, p.speed))) * (1 - Math.cos(dive)) + Math.max(0, -p.vy) * react;
     const short = p.y - floor - loss;
     // Once started, the pull-out goes on until climbing with room to spare. It keeps its side while the
     // nose is near straight down (no flip-flop), but takes the nose's side otherwise: after a knock

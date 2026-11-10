@@ -6,6 +6,14 @@ import { updateEmergency } from './emergency.js';
 
 
 export const GRAVITY = 90;
+// Controls stiffen at high speed: above the plane's stiffSpeed the turn rate falls off, to half at
+// STIFF_SPAN (30%) faster. Light turn fighters stiffen early and can't follow a fast diver; the heavy
+// boom-and-zoom fighters stay controllable deep into a dive. No stiffSpeed: never stiffens.
+export const STIFF_SPAN = 0.3;
+export function stiffness(d, speed) {
+  const s = d.stiffSpeed;
+  return !s || speed <= s ? 1 : 1 / (1 + (speed - s) / (s * STIFF_SPAN));
+}
 const GEAR_HEIGHT = 4; // pivot height above the ground when parked
 const RESPAWN_TIME = 3;
 const BLACKOUT_RECOVER = 0.4;
@@ -828,7 +836,7 @@ function stepAir(p, cmd, world, dt) {
   if (p.speed < d.stallSpeed) authority = clamp((p.speed - 15) / 70, 0.12, 1);
   else {
     const t = clamp((d.slowTurnSpeed - p.speed) / Math.max(1, d.slowTurnSpeed - d.stallSpeed), 0, 1);
-    authority = 1 + d.slowTurnBonus * t * t * (3 - 2 * t);
+    authority = (1 + d.slowTurnBonus * t * t * (3 - 2 * t)) * stiffness(d, p.speed);
   }
   // A damaged tail answers the controls only weakly; a damaged wing drags the nose round.
   let turn = p.blackout ? 0 : cmd.turn * d.turnRate * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;

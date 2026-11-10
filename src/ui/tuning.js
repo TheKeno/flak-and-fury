@@ -16,6 +16,7 @@ const PLANE_FIELDS = [
   ['turnRampTime', 'Time to full turn', 0, 1.5, 0.05, 'Seconds of holding a turn key before reaching the full turn rate.'],
   ['slowTurnBonus', 'Slow-speed turn bonus', 0, 2, 0.05, 'Extra turn rate when flying slowly, peaking just above the stall. 0.8 = 80% tighter turns at the edge of the stall.'],
   ['slowTurnSpeed', 'Slow-speed bonus starts', 60, 160, 1, 'Speed below which the turn bonus starts to build up. Must be above the stall speed.'],
+  ['stiffSpeed', 'Controls stiffen above', 100, 260, 1, 'Speed above which the controls get heavy: the turn rate falls off, to half at 30% faster. Low for light turn fighters (cannot follow a diver), high for boom-and-zoom planes.'],
   ['thrust', 'Thrust', 50, 89, 1, 'Engine pull. Keep below 90 (gravity) or the plane can climb straight up forever.'],
   ['dragCoef', 'Drag', 0.002, 0.008, 0.0001, 'Air resistance. Top speed is about the square root of thrust / drag.'],
   ['stallSpeed', 'Stall speed', 30, 90, 1, 'Below this the wings stop lifting and the nose drops.'],

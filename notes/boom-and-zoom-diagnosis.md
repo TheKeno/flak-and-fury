@@ -86,3 +86,11 @@ moved from the earlier run (0.45 vs 0.54 → 0.38 vs 0.89; retrained firing rang
 6 seeds is noisy). So the trainer was right: against the mix, diving from height is worse. A turn
 fighter gets round onto the diver after its pass. Next lever discussed with the owner: controls that
 stiffen at high speed, low for light turn fighters, high for the boom-and-zoom planes.
+
+## Controls stiffen at high speed (2026-11-10)
+
+`stiffSpeed` per plane (`stiffness()` in `plane.js`). Same `--vs` check, diving gain over turning:
+P-47 v Spitfire −0.14, La-5FN +0.08, Ki-43 −0.36, B-239 −0.04; Bf 109 −0.05, −0.10, +0.09, −0.02. A much
+stiffer test (Ki-43 115, B-239 110, Spitfire 145, La-5 140) gave no consistent pattern either (±0.2 both
+ways, within 6-seed noise). Kept for players and the auto-tuner; the bots' blocker is the diving pass
+itself (few clean shots).
