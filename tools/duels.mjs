@@ -5,6 +5,9 @@
 //
 //   node tools/duels.mjs [duel ids or prefixes, comma separated] [--seeds N] [--json file] [--threads N]
 //   node tools/duels.mjs turn-,boom- --seeds 4
+//   --brief: one line per duel and the summary. Each duel otherwise prints its verdict and a counters line
+//   (mean per run: dives, passes inside gun range, fire seconds, hits, stalls, own-fault deaths, seconds per
+//   bot phase, how runs ended); progress shows only on a terminal.
 import { Worker, isMainThread, parentPort } from 'node:worker_threads';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
@@ -36,7 +39,8 @@ function pool(jobs, threads) {
       };
       worker.on('message', ({ i, result }) => {
         results[i] = result;
-        process.stderr.write(`\r  ${++done}/${jobs.length} runs   `);
+        done++;
+        if (process.stderr.isTTY) process.stderr.write(`\r  ${done}/${jobs.length} runs   `);
         feed();
       });
       worker.on('error', (e) => {
@@ -69,9 +73,10 @@ if (!isMainThread) {
   const jobs = planDuels(duels, seeds);
   const t0 = Date.now();
   const results = await pool(jobs, Number(opt('--threads')) || availableParallelism());
-  process.stderr.write('\n');
+  if (process.stderr.isTTY) process.stderr.write('\n');
   const verdicts = duels.map((d) => judgeDuel(d, jobs.flatMap((j, i) => (j.duel.id === d.id ? [results[i]] : [])), sheets));
-  for (const v of verdicts) console.log(v.words + '\n');
+  const brief = args.includes('--brief');
+  for (const v of verdicts) console.log(brief ? v.brief : `${v.words}\n${v.counters}\n`);
   const failed = verdicts.filter((v) => !v.pass);
   console.log(`${verdicts.length - failed.length} of ${verdicts.length} duels pass (${seeds} seeds x 2 sides, ${((Date.now() - t0) / 1000).toFixed(0)} s).`);
   if (failed.length) {

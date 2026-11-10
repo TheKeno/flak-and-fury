@@ -21,6 +21,7 @@ import { tacticsIn } from '../sim/tactics.js';
 
 export const PASS_SCORE = 0.3; // (wins - losses) / runs the expected winner needs
 export const EVEN_SCORE = 0.4; // 'even' duels: no side further ahead than this
+const PASS_RANGE = 230; // a pass counts when the planes come this close (the bots' normal gun range)
 const CONE = 0.35; // rad: the enemy is in front of the nose by this much or less ...
 const CONE_RANGE = 500; // ... and this close: "on its sights"
 const POSITION_GAP = 8; // seconds on the enemy's sights more than the other side ...
@@ -68,7 +69,7 @@ export function runDuel(content, duel, { seed = 1, mirror = false, skill = 'norm
   const [pa, pb] = planes;
   const mine = [pa, pb];
   const side = new Map([[pa.id, 0], [pb.id, 1]]);
-  const per = [0, 1].map(() => ({ damage: 0, shots: 0, fireT: 0, hits: 0, cone: 0, stalled: 0, minSpeed: Infinity, selfFault: false, lost: null }));
+  const per = [0, 1].map(() => ({ damage: 0, shots: 0, fireT: 0, hits: 0, cone: 0, stalled: 0, minSpeed: Infinity, selfFault: false, dives: 0, passes: 0, stalls: 0, near: false, wasDive: false, wasStalled: false, phases: {} }));
   let result = null;
   const ticks = Math.round((duel.seconds ?? 150) * TICK_RATE);
   const dt = 1 / TICK_RATE;
@@ -79,10 +80,20 @@ export function runDuel(content, duel, { seed = 1, mirror = false, skill = 'norm
       const o = mine[1 - k];
       if (p.state !== 'air') continue;
       if (p.stalled) per[k].stalled += dt;
+      if (p.stalled && !per[k].wasStalled) per[k].stalls++;
+      per[k].wasStalled = p.stalled;
+      const ph = p.bot ? (p.bot.mode === 'chase' && p.bot.zoom?.phase ? `chase:${p.bot.zoom.phase}` : p.bot.mode) : 'none';
+      per[k].phases[ph] = (per[k].phases[ph] ?? 0) + dt;
+      const dive = ph === 'chase:dive';
+      if (dive && !per[k].wasDive) per[k].dives++;
+      per[k].wasDive = dive;
       per[k].minSpeed = Math.min(per[k].minSpeed, p.speed);
       const dx = o.x - p.x;
       const dy = o.y - p.y;
-      if (Math.hypot(dx, dy) < CONE_RANGE) {
+      const dist = Math.hypot(dx, dy);
+      // A pass: inside gun range, counted once until it has opened out again.
+      if (dist < PASS_RANGE && !per[k].near) { per[k].near = true; per[k].passes++; } else if (dist > PASS_RANGE * 1.3) per[k].near = false;
+      if (dist < CONE_RANGE) {
         const off = Math.abs(((Math.atan2(dy, dx) - p.angle + 3 * Math.PI) % (2 * Math.PI)) - Math.PI);
         if (off < CONE) per[k].cone += dt;
       }
@@ -119,7 +130,7 @@ export function runDuel(content, duel, { seed = 1, mirror = false, skill = 'norm
   const r2 = (v) => Math.round(v * 100) / 100;
   return {
     seed, mirror, winner: result.winner, how: result.how, time: r2(result.time),
-    sides: per.map((s, k) => ({ hpLeft: r2(hpLeft[k]), damage: r2(s.damage), shots: s.shots, fireT: r2(s.fireT), hits: s.hits, cone: r2(s.cone), stalled: r2(s.stalled), minSpeed: Math.round(s.minSpeed), selfFault: s.selfFault })),
+    sides: per.map((s, k) => ({ hpLeft: r2(hpLeft[k]), damage: r2(s.damage), shots: s.shots, fireT: r2(s.fireT), hits: s.hits, cone: r2(s.cone), stalled: r2(s.stalled), minSpeed: Math.round(s.minSpeed), selfFault: s.selfFault, dives: s.dives, passes: s.passes, stalls: s.stalls, phases: Object.fromEntries(Object.entries(s.phases).map(([k2, v]) => [k2, r2(v)])) })),
   };
 }
 
@@ -141,6 +152,8 @@ export function judgeDuel(duel, runs, sheets) {
     if (w == null) { draws++; continue; }
     wins[w]++;
   }
+  const ended = {};
+  for (const r of runs) { const h = r.how === 'no result' ? 'undecided' : r.how; ended[h] = (ended[h] ?? 0) + 1; }
   const by = {};
   for (const r of runs) if (r.winner != null) by[r.how] = (by[r.how] ?? 0) + 1;
   const score = (wins[0] - wins[1]) / n; // seen from a
@@ -155,13 +168,16 @@ export function judgeDuel(duel, runs, sheets) {
     cone: Math.round(avg(k, (s) => s.cone) * 10) / 10,
     stalled: Math.round(avg(k, (s) => s.stalled) * 10) / 10,
     ownFault: runs.filter((r) => r.sides[k].selfFault).length,
+    counters: counters(runs, k),
   }));
   const out = {
-    id: duel.id, title: duel.title, expect: want, basis: duel.basis ?? null, runs: n, wins: wins[0], losses: wins[1], draws, decidedBy: by, score: Math.round(score * 100) / 100,
+    id: duel.id, title: duel.title, expect: want, basis: duel.basis ?? null, runs: n, wins: wins[0], losses: wins[1], draws, decidedBy: by, ended, score: Math.round(score * 100) / 100,
     pass, stat, numbers: basisNumbers(duel, sheets),
   };
   if (!pass) out.blame = blame(duel, out);
   out.words = words(duel, out);
+  out.counters = counterLine(duel, out);
+  out.brief = `${out.pass ? 'PASS' : 'FAIL'} ${duel.id} score ${out.score >= 0 ? '+' : ''}${out.score} (${out.wins}-${out.losses}-${out.draws})${out.blame ? ` ${out.blame.kind}: ${out.blame.why.split(';')[0]}` : ''}`;
   return out;
 }
 
@@ -207,4 +223,30 @@ function words(duel, r) {
   const nums = r.numbers ? ` (${r.numbers.basis}: ${A} ${r.numbers[A]}, ${B} ${r.numbers[B]})` : '';
   const want = r.expect === 'even' ? 'expected even' : `expected ${r.expect === 'a' ? A : B} to win`;
   return `${r.pass ? 'PASS' : 'FAIL'} ${duel.title}: ${want}${nums}. ${tally}${Object.keys(r.decidedBy).length ? ` (decided by ${Object.entries(r.decidedBy).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}.${r.blame ? ` Points at the ${r.blame.kind === 'bot' ? 'BOT' : r.blame.kind === 'planes' ? 'PLANE NUMBERS' : 'DUEL'}: ${r.blame.why}.` : ''}`;
+}
+
+// Mean per run of one side's counters (data for the tuner and for the counters line).
+function counters(runs, k) {
+  const n = runs.length;
+  const m = (f) => Math.round((runs.reduce((a, r) => a + f(r.sides[k]), 0) / n) * 10) / 10;
+  const phases = {};
+  for (const r of runs) for (const [p, v] of Object.entries(r.sides[k].phases ?? {})) phases[p] = (phases[p] ?? 0) + v / n;
+  for (const p of Object.keys(phases)) phases[p] = Math.round(phases[p]);
+  return {
+    dives: m((s) => s.dives), passes: m((s) => s.passes), fireSeconds: m((s) => s.fireT), hits: m((s) => s.hits),
+    stalls: m((s) => s.stalls), stallSeconds: m((s) => s.stalled), ownFaultDeaths: runs.filter((r) => r.sides[k].selfFault).length, phaseSeconds: phases,
+  };
+}
+
+// One compact line per duel: both sides' counters, mean per run, and how the runs ended.
+function counterLine(duel, r) {
+  const side = (k, name) => {
+    const c = r.stat[k].counters;
+    const ph = Object.entries(c.phaseSeconds).sort((a, b) => b[1] - a[1]).map(([p, v]) => `${p} ${v}`).join(' ');
+    return `${name}: dives ${c.dives} passes ${c.passes} fire ${c.fireSeconds}s hits ${c.hits} stalls ${c.stalls}/${c.stallSeconds}s own-fault ${c.ownFaultDeaths} | ${ph}`;
+  };
+  const ended = Object.entries(r.ended).map(([h, v]) => `${h} ${v}`).join(', ');
+  return `  ${side(0, duel.a.plane)}
+  ${side(1, duel.b.plane)}
+  ended: ${ended}`;
 }
