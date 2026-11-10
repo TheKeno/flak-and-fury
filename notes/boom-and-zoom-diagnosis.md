@@ -115,3 +115,9 @@ La-5FN −0.06, Ki-43 +0.09, B-239 +0.01. A small step: mean gain about −0.03 
 −0.05, with seed noise about ±0.1 per cell. Diving no longer loses badly, but still does not clearly win; own-fault
 deaths were not measured separately. The bigger lever is probably what the bot does after the pass (it turn-fights
 at once at d < 450): a retraining may still find 0.5 now.
+
+**Retraining after the pass changes (2026-11-10, `node tools/train-bots.mjs`):** no plane picked style 0.5. Only
+the Bf 109 and La-5FN changed (firing range 1 → 1.15); P-47, Spitfire, Ki-43 and B-239 kept their tactics ("nothing
+beat the noise"). The P-47 still turn-fights at 0.52 kills per life. So the small gain from the dive pass is not
+enough for the one-step search; style 0.5 needs a bigger gain (what the bot does right after the pass is the next
+suspect) or the auto-tuner's style check has to force the style rather than rely on the trainer finding it.
