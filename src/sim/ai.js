@@ -15,7 +15,7 @@ import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 import { tacticsFor } from './tactics.js';
-import { DEFAULT_FLIGHT, gripAt, cutsOut } from './air.js';
+import { DEFAULT_FLIGHT, turnAt, cutsOut } from './air.js';
 
 const DT = 1 / 60;
 const GENTLE_PUSH = new Set(['patrol', 'chase', 'attack', 'evade', 'extend']); // modes where a carburettor bot avoids negative g
@@ -849,7 +849,8 @@ function chaseWant(world, p, b, skill, o, cmd) {
       const zoomV = stall * Math.max(tac.zoomSpeed ?? 1.6, tac.minFightSpeed);
       const runOut = tac.extendRange ?? 450;
       if (above >= want && d > DIVE_START) b.zoom = { phase: 'dive', since: world.tick };
-      else if (tac.style < 1 && !tac.zoomAfterPass && (p.speed < climbSpeed || d < 450)) boom = false; // turn-fight at once, unless a free zoom
+      // (A pass broken off head-on always runs out: turning there hands it the tail.)
+      else if (tac.style < 1 && !tac.zoomAfterPass && !b.zoom.broke && (p.speed < climbSpeed || d < 450)) boom = false; // turn-fight at once, unless a free zoom
       else if (tac.style < 1 && p.speed < stall * (1 + skill.stallMargin + 0.25) && d < 200) boom = false;
       else {
         // Out once far enough, or after RUN_OUT_TIME against an enemy as fast as itself (it never gets
@@ -857,8 +858,12 @@ function chaseWant(world, p, b, skill, o, cmd) {
         b.zoom.runT = (b.zoom.runT ?? 0) + (b.zoom.out ? 0 : DT);
         if (d >= runOut || b.zoom.runT > RUN_OUT_TIME) b.zoom.out = true;
         else if (d < runOut * 0.5) { b.zoom.out = false; b.zoom.runT = 0; }
-        const pitch = !b.zoom.out ? (height > 200 ? -0.08 : 0.02) : clamp(((p.speed - zoomV) / zoomV) * 1.5 + 0.12, 0.04, 0.6);
-        const dir = !b.zoom.out ? Math.sign(p.x - o.x) || facing(p) : facing(p);
+        // The run-out climbs on the dive's speed while it has speed over the climb-back speed (it used to
+        // sink, level or a little down, and the height edge was gone by the next pass), then runs level.
+        const spare = (p.speed - zoomV * 1.15) / zoomV;
+        const runPitch = spare > 0 ? clamp(spare, 0.04, 0.3) : height > 200 ? -0.08 : 0.02;
+        const pitch = !b.zoom.out ? runPitch : clamp(((p.speed - zoomV) / zoomV) * 1.5 + 0.12, 0.04, 0.6);
+        const dir = !b.zoom.out ? b.zoom.dir ?? (Math.sign(p.x - o.x) || facing(p)) : facing(p);
         return { angle: angleFor(dir, pitch), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
       }
     }
@@ -903,6 +908,15 @@ function chaseWant(world, p, b, skill, o, cmd) {
     // The pass is over once past it, once it has slipped out of the nose close in, or once it is the
     // higher one: zoom away rather than turn after it.
     if ((d < 90 && closing < 0) || (d < 220 && (off > 1.2 || p.y < o.y - 30))) b.zoom = { phase: 'climb', since: world.tick };
+    // The target has turned head-on into the dive (its nose within passBreak of us) while our own nose is
+    // not on it: break the pass off and run out straight on over it, climbing on the dive's speed, instead
+    // of a merge where only its guns bear. It has to come round after a faster plane. (With our nose on it,
+    // fire through: breaking then threw away the pass's own shots.) Lost in part 3c (P-47 on the Spitfire
+    // -0.12 -> -0.53 over 16 seeds), so off by default; a knob for the trainer.
+    else if (tac.passBreak > 0 && d < DIVE_START && d > 90 && off > 2 * (skill.aimTolerance + o.def.hitRadius / d)
+      && Math.abs(angleDiff(Math.atan2(o.vy, o.vx), Math.atan2(p.y - o.y, p.x - o.x))) < tac.passBreak) {
+      b.zoom = { phase: 'climb', since: world.tick, broke: true, dir: facing(p) };
+    }
   } else if (skill.turnFight > 0 && off > 0.5 && height > 120 && tac.turnThrottle < 1) {
     // Turn fighting: far off the aim in a hard turn, a good pilot throttles back towards the speed where
     // the plane turns tightest (just over the stall), instead of going round the same circle at full
@@ -1271,7 +1285,7 @@ function fly(world, p, b, skill, want, cmd) {
     // The push the sim would give at turn 1 next tick (as stepAir works it out, with the key's ramp).
     const hold = Math.sign(cmd.turn) === p.turnDir ? p.turnHold + DT : 0;
     const ramp = fd.fineTurn + (1 - fd.fineTurn) * clamp(hold / fd.turnRampTime, 0, 1);
-    const full = fd.turnRate * gripAt(world, p.y) * turnAuthority(fd, p.speed) * ramp * Math.max(30, p.speed); // g x GRAVITY
+    const full = fd.turnRate * turnAt(world, fd, p.y) * turnAuthority(fd, p.speed) * ramp * Math.max(30, p.speed); // g x GRAVITY
     const cap = (0.85 * limit * GRAVITY) / full;
     // A big push wanted: half-roll and pull it instead (rolling is instant in the sim; the roll back to
     // upright waits PULL_ROLL_HOLD). Meanwhile push gently.

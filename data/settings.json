@@ -113,6 +113,8 @@
     "thinDrag": 0.15,
     "thinGrip": 0.1,
     "thinTop": 1200,
+    "turnPower": 0.375,
+    "stallRise": 0.12,
     "negG": false,
     "negGLimit": 1.5,
     "negGHold": 0.12,

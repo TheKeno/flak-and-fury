@@ -4,6 +4,7 @@ import { GRAVITY, attitude, isUpright } from './plane.js';
 import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
 import { ignite, fireHit, stepFire } from './fire.js';
 import { digCrater } from './runway.js';
+import { stallAt } from './air.js';
 
 const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
@@ -228,11 +229,15 @@ export function flyingDef(p, world) {
   const w = world.weight ?? DEFAULT_WEIGHT;
   const f = loadFraction(p, w);
   const drag = podDrag(p);
-  if (f === 0 && drag === 0) return p.def;
+  // Stall speed rises with height (src/sim/air.js); the slow-turn band moves up with it. In the air only:
+  // on the ground the plane is its plain def (the hangar and the take-off run read it).
+  const h = p.state === 'air' ? stallAt(world, p.y) : 1;
+  if (f === 0 && drag === 0 && h === 1) return p.def;
   const d = p.def;
   return Object.assign(Object.create(d), {
     thrust: d.thrust * (1 - w.thrust * f),
-    stallSpeed: d.stallSpeed * (1 + w.stall * f),
+    stallSpeed: d.stallSpeed * (1 + w.stall * f) * h,
+    slowTurnSpeed: d.slowTurnSpeed * h,
     takeoffSpeed: d.takeoffSpeed * (1 + w.takeoff * f),
     turnRate: d.turnRate * (1 - w.turn * f),
     dragCoef: d.dragCoef * (1 + drag),

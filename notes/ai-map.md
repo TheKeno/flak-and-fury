@@ -54,3 +54,9 @@ Modes (`b.mode`): patrol, chase, evade, extend, attack, home, final, emergency.
   `zoomAfterPass`, `extendRange`, `zoomSpeed`; the dive aim adds `passLead`; returns `short` (wingover).
 - `fly`: `want.short` turns the nose down through a reversal. `closeCall`: `ATTACK_CLOSE_TIME` against
   the bot's own target.
+
+## Added in part 3c
+
+- `chaseWant` dive phase: `passBreak` breaks a head-on pass (`b.zoom.broke`, `b.zoom.dir`); the climb-back
+  block runs out after a broken pass whatever `zoomAfterPass` says, and the run-out climbs on spare speed.
+- `fly` and the sim read the turn through `turnAt` (`src/sim/air.js`) and the stall through `flyingDef`.

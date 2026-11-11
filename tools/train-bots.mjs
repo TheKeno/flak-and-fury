@@ -8,6 +8,7 @@
 //   options: --rounds N, --seeds N, --minutes N, --planes a,b,c, --threads N | --half,
 //            --no-quick (skip the Balance Lab run afterwards), --restore (put the previous tactics back),
 //            --dry (a trial: the data files are left alone; only the record is saved), --out record.json
+//   The progress line shows only on a terminal (a night run's log gets the steps and the summary).
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -67,11 +68,12 @@ async function main(args) {
       results[i] = r;
       done++;
       const spent = (Date.now() - t0) / 1000;
-      process.stdout.write(`\r  ${done}/~${planned} matches, ${clock(spent)} spent, about ${clock((spent / done) * Math.max(0, planned - done))} left   `);
+      // Only on a terminal: into a log file the \r line piles up (384 KB in 11 minutes, part 3b's night).
+      if (process.stdout.isTTY) process.stdout.write(`\r  ${done}/~${planned} matches, ${clock(spent)} spent, about ${clock((spent / done) * Math.max(0, planned - done))} left   `);
     }, () => stopping);
     return results.filter(Boolean);
   };
-  const log = (text) => process.stdout.write(`\r${' '.repeat(70)}\r${text}\n`);
+  const log = (text) => process.stdout.write(process.stdout.isTTY ? `\r${' '.repeat(70)}\r${text}\n` : `${text}\n`);
   const raw = JSON.parse(readFileSync(CURRENT, 'utf8'));
   // A checkpoint after every plane's step (the tactics so far and every trial), in case the run is killed
   // outright: the data file is only written at the end, so a killed run leaves it as it was.

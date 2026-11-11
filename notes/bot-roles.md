@@ -232,3 +232,61 @@ runs start detached (`Start-Process`), so closing the tab or the session no long
   then the 16-seed duel sweep (`balance/results/duels-3b-16.json`, `notes/night-duels.txt`) and the full
   Balance Lab run (`notes/night-balance.txt`). Morning: read those, `git status` (the retrain's data
   files are uncommitted), commit. Stopped Balance Lab run: `--resume` it.
+
+## Part 3c (2026-11-11): thin-air turns, the boom pass, night runs by Windows
+
+Duels (8 seeds, `node tools/duels.mjs --brief`): **15 → 16 of 25** plus 1 known (turn-ki43-v-spitfire).
+
+### 1-2. Turning needs power; stall speed rises with height (`src/sim/air.js`, `flyingDef`)
+
+- `flight.turnPower` 0.375: above the rated height the turn rate also loses that share of the power lost
+  (`turnAt`; 60% power keeps 85%). Nothing under the rated height.
+- `flight.stallRise` 0.12: stall speed and `slowTurnSpeed` rise by that share at `thinTop` (1200), straight
+  from the ground up; applied in `flyingDef` while in the air (on the ground the plain def, so the hangar
+  and the weight tests are unchanged).
+- Plane sheet high band (y 1000): `stallSpeedHigh`, `turnRateHigh` (deg/s at 80% of its top speed there),
+  `slowTurnRateHigh` (at 1.4× that stall). Whole circles stall out up there (turns are loops), hence rates.
+  Effect at 1.4× stall, off → on: Spitfire 123 → 104, Ki-43 157 → 131, B-239 134 → 111, La-5FN 106 → 89,
+  Bf 109 95 → 83, P-47 76 → 76. At 80% top speed little changes: the band moving up gives back the bonus
+  at a given speed (Ki-43 106 → 108, Spitfire 82 → 82). Low (y 300) numbers move 0.1 s at most.
+- Duels with it alone: 16 of 25; high-p38-v-la5fn, boom-p38-on-la5fn, boom-p47-on-b239 now pass;
+  turn-b239-v-p47 and -v-bf109 slipped +0.31/+0.38 → +0.25 (8-seed noise is about ±0.15).
+
+### 3. The boom pass (3 tries, then stopped as the token rules say)
+
+16 seeds over the boom, high and chase duels each time.
+- Try 1, **break off a head-on pass** (`passBreak`, rad: the target's nose within that of us, 90-350 off):
+  run out straight on over it. Lost badly (P-47 on the Spitfire −0.12 → −0.53, high-p47 +0.25 → −0.31):
+  it threw away the pass's own shots. Try 2, only when our own nose is off it: still a loss. **Knob kept
+  for the trainer, 0 (off) by default** (role default too).
+- **The run-out climbs** on the dive's speed (pitch up to 0.3 while faster than 1.15× the climb-back
+  speed) instead of sinking. With `zoomAfterPass` 0 (every boom plane) the run-out only happens after a
+  broken pass, so at the defaults it changes nothing; kept for the trainer's `zoomAfterPass` 1 trials.
+- Try 3, **a snapshot** (fire 0.25 s as the aim swings across the nose on a dive): fire time unchanged
+  (0.6-0.7 s a run), dropped.
+- **Learned:** the boom planes lose to the Spitfire on hits (P-47 8-12 hits a fight, the Spitfire 25+), not
+  on the pass's geometry; after a pass (`zoomAfterPass` 0) they turn-fight where the Spitfire is better.
+  The dive window is long enough (P-47 fires out to 400); the aim never settles in the fast dive. Next
+  ideas (3d or the tuner): a shallower pass from behind (slash, not a steep dive), or mark the Spitfire
+  duels `knownFail` (planes) if the retrain does not move them.
+
+### 4-5. Trainer log and night runs launched by Windows
+
+- `tools/train-bots.mjs` writes its `\r` progress line only on a terminal; into a file only the steps.
+- `tools/night-start.ps1 [script]` starts `tools/night-3c.cmd` through WMI (`Invoke-CimMethod
+  Win32_Process -MethodName Create`, working directory the repo): its parent is `WmiPrvSE.exe`, outside
+  the Claude app's process tree, so it outlives the app. Check: `Get-CimInstance Win32_Process -Filter
+  "Name='node.exe'"` and its `ParentProcessId` chain (`cmd.exe` → `WmiPrvSE.exe`).
+
+### Night runs after 3c: how the next session reads them
+
+Started by `powershell -ExecutionPolicy Bypass -File tools\night-start.ps1` (`tools/night-3c.cmd`):
+retrain (`--no-quick`), 16-seed duel sweep, full Balance Lab run; about 2-2.5 h. Read, in order:
+1. `notes/night-status.txt`: a time stamp and exit code per run. A run without its "ended" line was
+   stopped: the trainer leaves `balance/results/train-bots-checkpoint.json`; a Balance Lab run finishes
+   with `node tools/balance.mjs --resume <run.json>`.
+2. `notes/night-train.txt`: only its summary at the end (the trained tactics; is `passBreak` or
+   `zoomAfterPass` 1 taken anywhere?). `git status`: `data/bot-tactics.json` and
+   `bot-tactics.previous.json` are uncommitted: commit them.
+3. `notes/night-duels.txt` (last ~5 lines) and `balance/results/duels-3c-16.json` (`gate`).
+4. `notes/night-balance.txt`: the plain-words summary at its end.

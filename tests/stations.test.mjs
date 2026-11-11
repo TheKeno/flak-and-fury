@@ -1,4 +1,5 @@
 // Headless tests for the bomb stations: hardpoints and loadout in planes.json, release order, rearm.
+import { DEFAULT_FLIGHT } from '../src/sim/air.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -22,6 +23,8 @@ function make(defId, nation) {
     waves: { first: 1e6 },
     rules: { bots: 'off' },
   });
+  // The weight tests compare with the plain def: no stall rise with height (src/sim/air.js) up here.
+  world.flight = { ...(world.flight ?? DEFAULT_FLIGHT), stallRise: 0 };
   const p = addPlane(world, { defId, team: 0, nation, controller: 'p1' });
   // In the air: a bomb dropped on the ground kills the plane. Far up, level, so it stays up while testing.
   p.state = 'air';

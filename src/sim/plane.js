@@ -3,7 +3,7 @@ import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './wea
 import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
 import { crashShockwave } from './ground.js';
 import { updateEmergency } from './emergency.js';
-import { powerAt, dragAt, gripAt, updateNegG } from './air.js';
+import { powerAt, dragAt, turnAt, updateNegG } from './air.js';
 
 
 export const GRAVITY = 90;
@@ -848,8 +848,8 @@ function stepAir(p, cmd, world, dt) {
   // knot too slow is a stall. Below the stall the controls go soft.
   const authority = turnAuthority(d, p.speed);
   // A damaged tail answers the controls only weakly; a damaged wing drags the nose round.
-  // Thin air up high gives the wings less grip (src/sim/air.js).
-  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * gripAt(world, p.y) * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;
+  // Thin air up high gives the wings less grip, and above the rated height less power to turn (src/sim/air.js).
+  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * turnAt(world, d, p.y) * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;
   // Just after lift-off the nose keeps turning at the ground rotation rate and eases up to the full
   // flying rate over blendTime, so the climb-out has no kink where the two models meet.
   if (p.liftBlend > 0) {

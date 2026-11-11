@@ -188,6 +188,8 @@ const FLIGHT_FIELDS = [
   ['thinDrag', 'Thin air: less drag', 0, 0.5, 0.01, 'Share of drag gone at the top height, for every plane (straight line from the ground up).'],
   ['thinGrip', 'Thin air: less grip', 0, 0.5, 0.01, 'Share of turn rate gone at the top height, for every plane.'],
   ['thinTop', 'Thin air: top height', 300, 2000, 10, 'Height where drag and grip are at their thinnest.'],
+  ['turnPower', 'Thin air: turning needs power', 0, 1, 0.025, 'Above its rated height a plane’s turn rate falls by this share of the power it has lost (0.375: 60% power keeps 85% of the turn). Nothing changes under the rated height.'],
+  ['stallRise', 'Thin air: stall speed rise', 0, 0.4, 0.01, 'Share stall speed rises by at the top height, for every plane (straight line from the ground up); the slow-turn band moves up with it.'],
   ['negGLimit', 'Negative g: push that cuts', 0.2, 4, 0.05, 'G of push (nose towards the pilot’s feet) that starves a carburettor engine. A full-rate push at cruise is about 2 g, a tap about 0.5.'],
   ['negGHold', 'Negative g: push time', 0, 1, 0.01, 'Seconds of such a push before the engine cuts out.'],
   ['negGCut', 'Negative g: sputter time', 0.2, 4, 0.05, 'Seconds the engine sputters after cutting out (half that again while the push goes on).'],
@@ -428,7 +430,7 @@ const BOT_LEVELS = [
 ];
 
 // Slider steps for the bot tactics (their limits are the trainer's choices in src/sim/tactics.js).
-const TACTIC_STEP = { style: 0.5, heightOver: 10, minFightSpeed: 0.05, breakOff: 0.5, fireRange: 0.05, turnThrottle: 0.05, zoomAfterPass: 1, extendRange: 25, zoomSpeed: 0.05, passLead: 0.05, bandClimb: 0.05, bandMargin: 50, chaseDiver: 1, fightDamaged: 0.25, finishBonus: 25, convergenceFire: 0.05, emergencyUse: 0.5 };
+const TACTIC_STEP = { style: 0.5, heightOver: 10, minFightSpeed: 0.05, breakOff: 0.5, fireRange: 0.05, turnThrottle: 0.05, zoomAfterPass: 1, extendRange: 25, zoomSpeed: 0.05, passLead: 0.05, passBreak: 0.05, bandClimb: 0.05, bandMargin: 50, chaseDiver: 1, fightDamaged: 0.25, finishBonus: 25, convergenceFire: 0.05, emergencyUse: 0.5 };
 
 const BOT_MODES = [
   ['on', 'On: fly and fight'],

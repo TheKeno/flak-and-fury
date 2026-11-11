@@ -6,6 +6,10 @@
 // strong in the ground war and weak high up, the turbocharged P-47 and P-38 keep their power to the
 // ceiling. The air itself thins for everyone: drag and the wings' grip (turn rate) fall off a little
 // with height, by thinDrag and thinGrip at thinTop (straight line from the ground up, no more above it).
+// Turning needs power: above its rated height a plane's turn rate falls with its power too, by turnPower
+// of the power lost (0.375: 60% power keeps 85% of the turn), so a high, slow, short-of-breath plane no
+// longer out-turns everyone on the slow-turn bonus. Stall speed rises with height for every plane, by
+// stallRise at thinTop (the slow-turn band, slowTurnSpeed, moves up with it; see flyingDef).
 //
 // Negative g. A carburettor engine (`negGCutout: true`: Spitfire, Ki-43, P-47 ...) starves when the pilot
 // pushes the nose hard down: past negGLimit g of push for negGHold seconds it cuts out and sputters for
@@ -19,6 +23,8 @@ export const DEFAULT_FLIGHT = {
   thinDrag: 0.15, // share of drag gone at thinTop
   thinGrip: 0.1, // share of turn rate gone at thinTop
   thinTop: 1200, // height (absolute y) where the air is thinnest for drag and grip
+  turnPower: 0.375, // share of the power lost above the rated height that the turn rate loses too
+  stallRise: 0.12, // share stall speed (and slowTurnSpeed) rise by at thinTop
   negG: false, // the negative-g cutout on or off for every plane
   negGLimit: 1.5, // g of push (turn rate x speed / gravity, nose towards the belly) that starves a carburettor
   negGHold: 0.12, // seconds of such a push before it cuts out (a tap to aim doesn't)
@@ -41,6 +47,13 @@ export function powerAt(world, def, y) {
 const thinness = (cfg, y) => Math.min(1, Math.max(0, y / cfg.thinTop));
 export const dragAt = (world, y) => 1 - cfgOf(world).thinDrag * thinness(cfgOf(world), y);
 export const gripAt = (world, y) => 1 - cfgOf(world).thinGrip * thinness(cfgOf(world), y);
+// Turn rate share at y from the air and the engine: thin-air grip times the power the turn needs.
+export function turnAt(world, def, y) {
+  const k = cfgOf(world).turnPower ?? 0;
+  return gripAt(world, y) * (1 - k * (1 - powerAt(world, def, y)));
+}
+// Stall speed (and the slow-turn band) factor at y.
+export const stallAt = (world, y) => 1 + (cfgOf(world).stallRise ?? 0) * thinness(cfgOf(world), y);
 
 // One air tick. pull: g of the manoeuvre towards the pilot's head (negative = pushing). p.negG counts the
 // seconds of a hard push, p.cutout the seconds of sputter left (updateEngine cuts the power meanwhile).

@@ -4,7 +4,9 @@
 // expected to win. Pure (no DOM, no Node APIs).
 import { buildWorld } from './runner.js';
 import { addPlane, TICK_RATE } from '../sim/world.js';
-import { stepPlane, stiffness } from '../sim/plane.js';
+import { stepPlane, stiffness, turnAuthority } from '../sim/plane.js';
+import { turnAt } from '../sim/air.js';
+import { flyingDef } from '../sim/weapons.js';
 
 const DT = 1 / TICK_RATE;
 // Heights the sheet flies at (absolute world y; src/sim/air.js). LOW: the ground war, under every plane's
@@ -91,14 +93,14 @@ function climb(content, id, y = LOW) {
   for (let deg = 5; deg <= 60; deg += 1) {
     const a = (deg * Math.PI) / 180;
     // thrust = drag x v^2 + gravity x sin(angle), with the sim's constants
-    const { p, step } = testFlight(content, id);
+    const { world, p, step } = testFlight(content, id);
     launch(p, { x: 2000, y, angle: a, speed: d.maxSpeed * 0.7 });
     for (let i = 0; i < 25 * TICK_RATE; i++) {
       p.angle = a;
       p.y = y;
       step(NO_FIRE);
     }
-    if (p.speed < d.stallSpeed * 1.15) continue;
+    if (p.speed < flyingDef(p, world).stallSpeed * 1.15) continue; // stall rises with height
     const rate = p.speed * Math.sin(a);
     if (rate > best.rate) best = { rate, angle: deg, speed: p.speed };
   }
@@ -110,7 +112,7 @@ function climb(content, id, y = LOW) {
 // middle band (LOW + 300) down to LOW, the dive a boom-and-zoom plane makes onto the ground war.
 function diveZoom(content, id, top) {
   const d = content.planeDefs[id];
-  const { p, step } = testFlight(content, id);
+  const { world, p, step } = testFlight(content, id);
   const down = (-60 * Math.PI) / 180;
   launch(p, { x: 2000, y: LOW + 300, angle: 0, speed: top });
   const y0 = p.y;
@@ -120,7 +122,7 @@ function diveZoom(content, id, top) {
   }
   const diveSpeed = p.speed;
   const y1 = p.y;
-  for (let i = 0; i < 60 * TICK_RATE && p.speed > d.stallSpeed * 1.3; i++) {
+  for (let i = 0; i < 60 * TICK_RATE && p.speed > flyingDef(p, world).stallSpeed * 1.3; i++) {
     p.angle = -down;
     step(NO_FIRE);
   }
@@ -153,6 +155,17 @@ export function planeSheet(content, id) {
   const dz = diveZoom(content, id, top);
   const fp = firepower(content, id);
   const high = { top: topSpeed(content, id, HIGH), climb: climb(content, id, HIGH) };
+  // The high band's turns: less grip, less power to turn above the rated height, a higher stall.
+  const { world: hw, p: hp } = testFlight(content, id);
+  hp.y = HIGH;
+  const stallHigh = flyingDef(hp, hw).stallSpeed;
+  // Turn rates, not circles: a whole loop that high stalls out most planes (the side view's turns are
+  // loops). Degrees per second the controls give at HIGH (thin-air grip, the power the turn needs, the
+  // slow-turn bonus under its risen slowTurnSpeed), at 80% of its top speed there and at 1.4 x its stall.
+  const hd = flyingDef(hp, hw);
+  const rateAt = (v) => (hd.turnRate * turnAt(hw, hd, HIGH) * turnAuthority(hd, v) * 180) / Math.PI;
+  high.fast = rateAt(high.top * 0.8);
+  high.slow = rateAt(stallHigh * 1.4);
   const round = (v, n = 1) => Math.round(v * 10 ** n) / 10 ** n;
   return {
     id,
@@ -169,6 +182,9 @@ export function planeSheet(content, id) {
     ratedHeight: d.ratedHeight ?? null, // full engine power up to here (src/sim/air.js)
     topSpeedHigh: round(high.top, 0), // top speed and climb at HIGH: the high band, thin air
     climbRateHigh: round(high.climb.rate ?? 0, 0),
+    stallSpeedHigh: round(stallHigh, 0), // stall speed rises with height
+    turnRateHigh: round(high.fast, 0), // deg/s the controls give at HIGH at 80% of its top speed there
+    slowTurnRateHigh: round(high.slow, 0), // the same at 1.4 x its stall there (the slow fight up high)
     diveSpeed: round(dz.diveSpeed, 0), // speed after a 60 degree dive losing 300 units from top speed
     zoomHeight: round(dz.zoomed, 0), // height that speed buys back in a 60 degree zoom
     zoomShare: round(dz.zoomed / 300, 2),
@@ -184,6 +200,6 @@ export function planeSheet(content, id) {
 export const BETTER = {
   topSpeed: 'high', turnTime: 'low', slowTurnTime: 'low', climbRate: 'high', diveSpeed: 'high',
   zoomHeight: 'high', diveTurn: 'high', hp: 'high', firepower: 'high', turnSpeedLeft: 'high',
-  topSpeedHigh: 'high', climbRateHigh: 'high',
+  topSpeedHigh: 'high', climbRateHigh: 'high', turnRateHigh: 'high', slowTurnRateHigh: 'high',
 };
 

@@ -18,7 +18,8 @@
     "finishBonus": 100,
     "convergenceFire": 1.5,
     "emergencyUse": 0,
-    "bandClimb": 0
+    "bandClimb": 0,
+    "passBreak": 0
   },
   "planes": {
     "bf109g6": {

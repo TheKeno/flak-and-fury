@@ -171,12 +171,15 @@ then the wear rates scale by `heatTime` / the plane's heat time, so a full heat 
 `flight` (tuning panel: Flight: thin air and negative g; `src/sim/air.js`): **thin air:** above a plane's
 `ratedHeight` its power fades to 1 / (1 + over / `fadeSpan`) (800: a third less 400 units higher, half at
 800). For every plane drag falls by `thinDrag` (0.15) and the turn rate by `thinGrip` (0.1) from the ground
-up to `thinTop` (1200). **Negative g:** past `negGLimit` g of push (turn rate × speed / gravity, nose towards
+up to `thinTop` (1200). **Turning needs power:** above its rated height a plane's turn rate also falls by
+`turnPower` (0.375) of the power it has lost (60% power keeps 85% of the turn; nothing under the rated
+height). **Stall speed rises with height:** by `stallRise` (0.12) at `thinTop`, straight from the ground up,
+for every plane; its `slowTurnSpeed` moves up with it (`flyingDef`). **Negative g:** past `negGLimit` g of push (turn rate × speed / gravity, nose towards
 the belly; 1 g: a full-rate push at cruise is about 2 g, a fine-aim tap about 0.5) held for `negGHold` s
 (0.12), a `negGCutout` engine cuts out for `negGCut` s (1; half that again while the push goes on). Only
 the pilot's steering counts (not stalls, spins or the map-edge autopilot), and since the sim has no lift
 model, flying level upside down is 0 g and allowed. **Switched off for now** (`negG`: false, tuning panel tick
-box "Negative-g cutout on"; owner, 2026-11-11: far too severe in the Spitfire). The per-plane `negGCutout`
+box "Negative-g cutout on"; owner, 2026-11-11: it felt strange that the engine stops when the nose tips down). The per-plane `negGCutout`
 flags stay in the data, ready for when it is switched back on.
 
 `landing` (tuning panel: Landing): touchdowns are graded. Clean: speed under the plane's
@@ -319,6 +322,7 @@ also the limits); the tuning panel's sliders go anywhere between the first and l
 | `extendRange` | Run-out distance after a pass (world units), before the climb back (`zoomAfterPass` 1, and style 1). | 450; 250 … 600 |
 | `zoomSpeed` | Climb-back speed after a pass, multiple of the stall. | 1.6; 1.4 … 2.1 |
 | `passLead` | Diving pass: aims ahead of where the gun aim is swinging, this many seconds, so a stiff fast plane gets its nose onto the target instead of trailing it. Role boom: 0.3. | 0; 0.15 … 0.5 |
+| `passBreak` | Diving pass: when the target turns its nose to within this angle of it (radians) while its own nose is off the target, it breaks the dive off and runs out over it, climbing on the dive's speed. Lost in part 3c, so 0 (off) for every role; the trainer may take it. | 0; 0.3 … 0.8 |
 | `bandClimb` | Diving styles (0.5+) only: before a fight and after each pass it climbs to this share of its `ratedHeight` (capped 100 under the ceiling), however low the enemy, and dives from there; closer than 250 it fights where it is. 0 off (part 3b: on, it lost the turn duels and did not win the dive duels). | 0; 0, 0.6 … 1 |
 | `bandMargin` | How far above its engine's `ratedHeight` it follows an enemy; higher enemies are not climbed after, it waits under them in its band. Roles: turn 200, all-rounder 350, boom 2000 (anywhere). | 2000; 100 … 2000 |
 | `chaseDiver` | 1 follows an enemy diving away fast; 0 lets it go, holds its height and waits for it to come back. Forced 0 for turn fighters. | 1; 0 |
@@ -337,7 +341,7 @@ it attacks, the collision look-ahead is 0.6 s instead of 1.8 (`ATTACK_CLOSE_TIME
 is no longer broken off before it is in range; a diver turning back into its dive goes nose-down (a
 wingover), never over the top; a style 0.5+ bot in its climb back, threatened, dives away (extend)
 instead of break-turning when it has 180 of height or is faster.
-The **diving knobs** (`zoomAfterPass`, `extendRange`, `zoomSpeed`, `passLead`, `bandClimb`: `DIVING_FIELDS`)
+The **diving knobs** (`zoomAfterPass`, `extendRange`, `zoomSpeed`, `passLead`, `bandClimb`, `passBreak`: `DIVING_FIELDS`)
 do nothing under style 0.5, so the trainer searches them only for a plane flying a diving style; the
 all-rounder starts them at the boom role's values, so a trained style step to 0.5 comes with a working
 diving set (part 3b).
