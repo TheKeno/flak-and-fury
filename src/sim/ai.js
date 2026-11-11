@@ -15,7 +15,7 @@ import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 import { tacticsFor } from './tactics.js';
-import { DEFAULT_FLIGHT, gripAt } from './air.js';
+import { DEFAULT_FLIGHT, gripAt, cutsOut } from './air.js';
 
 const DT = 1 / 60;
 const GENTLE_PUSH = new Set(['patrol', 'chase', 'attack', 'evade', 'extend']); // modes where a carburettor bot avoids negative g
@@ -986,7 +986,10 @@ function finalWant(world, p, b, touchX, dir, home, end = touchX + dir * 140) {
     return { angle: angleFor(facing(p), 0.3), throttle: 1, clear: 20 };
   }
   // Steeper than the slope to get down onto it, but never steep close to the ground.
-  let pitch = -cfg.glideSlope + clamp((pathY - p.y) / 40, alt < 30 ? -0.08 : -0.2, 0.2);
+  // Far above the slope and still far out (a zoom on the way home left it high): it may dive steeper,
+  // or with the throttle closed it can't get down in time, goes round and comes in just as high again.
+  const steep = pathY - p.y < -60 && along > 200 ? -0.4 : -0.2;
+  let pitch = -cfg.glideSlope + clamp((pathY - p.y) / 40, alt < 30 ? -0.08 : steep, 0.2);
   // Flare: ease the descent to settle gently onto the slope, keeping the power on (closing it this high
   // floats the plane into a stall) until the wheels are about to touch.
   // Engine dead (or dying in the fire): no power to hold the path, so trade height for speed.
@@ -1175,7 +1178,7 @@ function fly(world, p, b, skill, want, cmd) {
   // pushes the nose down gently, staying under the limit (bunting hard to escape is for injected
   // engines, step 3). Not on the way home and landing: the approach needs its pushes, and a second's
   // sputter there costs little.
-  if (p.def.negGCutout && GENTLE_PUSH.has(b.mode) && cmd.turn * (p.inverted ? -1 : 1) < 0) {
+  if (cutsOut(world, p.def) && GENTLE_PUSH.has(b.mode) && cmd.turn * (p.inverted ? -1 : 1) < 0) {
     const limit = (world.flight ?? DEFAULT_FLIGHT).negGLimit;
     const fd = flyingDef(p, world);
     // The push the sim would give at turn 1 next tick (as stepAir works it out, with the key's ramp).

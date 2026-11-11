@@ -622,7 +622,14 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
-  const flightSection = section('Flight: thin air and negative g', false, ...FLIGHT_FIELDS.map((f) => add(slider(settings.flight, f))));
+  const negGBox = el('input', { type: 'checkbox', onchange: () => (settings.flight.negG = negGBox.checked) });
+  negGBox.checked = !!settings.flight.negG;
+  const flightSection = section(
+    'Flight: thin air and negative g',
+    false,
+    el('label', { class: 'row check', title: 'Carburettor engines (the planes ticked "Negative-g cutout") sputter under a hard push. Off for now.' }, el('span', {}, 'Negative-g cutout on'), negGBox),
+    ...FLIGHT_FIELDS.map((f) => add(slider(settings.flight, f))),
+  );
   const emergencySection = section('Emergency power', false, ...EMERGENCY_FIELDS.map((f) => add(slider(settings.emergency, f))));
   const damageSection = section('Engine hits and wing guns', false, ...DAMAGE_FIELDS.map((f) => add(slider(settings.damage, f))));
   const decorSection = section('Decor', false, ...DECOR_FIELDS.map((f) => add(slider(settings.decor, f))));

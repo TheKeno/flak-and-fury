@@ -11,14 +11,14 @@ import { powerAt } from '../src/sim/air.js';
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
 
-function makeWorld(defId, y, { speed = 120, nation = 'uk' } = {}) {
+function makeWorld(defId, y, { speed = 120, nation = 'uk', negG = true } = {}) {
   const world = createWorld({
     map: importLdtk(load('maps/countryside.ldtk')),
     planeDefs: load('data/planes.json'),
     weapons: load('data/weapons.json'),
     waves: { first: 1e6 },
     emergency: { ...settings.emergency },
-    flight: { ...settings.flight },
+    flight: { ...settings.flight, negG },
     rules: { bots: 'off' },
   });
   const p = addPlane(world, { defId, team: 0, nation, controller: 'p1' });
@@ -151,4 +151,11 @@ test('negative g: injected engines (Bf 109, La-5FN) bunt freely; a tap or a pull
   const rolledPush = makeWorld('spitfire', 600, { speed: 130 });
   rolledPush.p.inverted = true;
   assert.ok(run(rolledPush.world, 30, { ...FLY, turn: 1 }).some((e) => e.type === 'negGCutout'), 'pushing while rolled over');
+});
+
+test('negative g is switched off in the settings for now: no plane cuts out, bots push freely', () => {
+  assert.equal(settings.flight.negG, false);
+  const { world, p } = makeWorld('spitfire', 600, { speed: 130, negG: settings.flight.negG });
+  assert.ok(!run(world, 60, PUSH).some((e) => e.type === 'negGCutout'));
+  assert.ok(p.power > 0.9);
 });
