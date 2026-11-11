@@ -135,8 +135,11 @@ function firepower(content, id) {
   for (const g of p.guns) {
     const w = world.weapons[g.weapon] ?? g.def ?? null;
     if (!w) continue;
-    dps += (w.damage * w.rpm) / 60;
-    seconds = Math.min(seconds, (g.ammo ?? w.ammo) / (w.rpm / 60));
+    // A mount fires `count` guns at once, and g.ammo is the rounds of all of them.
+    const count = g.count ?? 1;
+    if (count <= 0) continue;
+    dps += ((w.damage * w.rpm) / 60) * count;
+    seconds = Math.min(seconds, (g.ammo ?? w.ammo * count) / ((w.rpm / 60) * count));
   }
   return { dps, burstSeconds: Number.isFinite(seconds) ? seconds : 0 };
 }
