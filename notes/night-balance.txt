@@ -1,0 +1,54 @@
+
+We flew 840 matches (280 hours of game time): 4 against 4 normal bots, 20 minutes each, on countryside.
+The run stopped early: 840 of 1800 matches. Fewer matches means more luck in the numbers.
+When both sides fly the same plane, the front still wanders about 64 m in a match just by luck. That is the noise; smaller differences mean nothing.
+P-47D Thunderbolt pushes the front the most: 28 m towards the enemy on average (± 13 m). That is more than luck can explain, so P-47D Thunderbolt is probably too strong.
+Ki-43-II Hayabusa loses the most ground: 25 m on average (± 12 m). That is more than luck, so Ki-43-II Hayabusa is probably too weak.
+3 of 15 matchups are clearly one-sided. The most one-sided: P-47D Thunderbolt against Ki-43-II Hayabusa, the front moves 57 m (± 26 m) for P-47D Thunderbolt.
+What differs most there: P-47D Thunderbolt has more kills per life than Ki-43-II Hayabusa: 1.04 against 0.26. Look at Planes: turnRate, hp, armament.
+These numbers show what differs between the planes, not why. Change one value, run again and compare the two runs.
+
+Strength list (front push over all matchups, metres; ± is 2 standard errors):
+  P-47D Thunderbolt      +28 m     ± 13    strong  kills 20.9, deaths 26.2, kills/life 0.69, tanks 1.65, other ground 27.4, reached depot 5%
+  La-5FN                 +5 m      ± 12            kills 17.1, deaths 21.6, kills/life 0.67, tanks 1.24, other ground 23.8, reached depot 1%
+  Spitfire LF Mk IX      +2 m      ± 12            kills 28.6, deaths 18.7, kills/life 1.26, tanks 1.22, other ground 38.9, reached depot 0%
+  Bf 109 G-6             -3 m      ± 13            kills 16.2, deaths 28, kills/life 0.51, tanks 1.92, other ground 22.3, reached depot 3%
+  Brewster B-239         -7 m      ± 12            kills 13, deaths 20.1, kills/life 0.54, tanks 1.23, other ground 14.8, reached depot 1%
+  Ki-43-II Hayabusa      -25 m     ± 12    weak    kills 6, deaths 24.4, kills/life 0.21, tanks 1.72, other ground 8.5, reached depot 0%
+
+Matchups (front push for the first plane):
+  Bf 109 G-6 v Spitfire LF Mk IX           -7 m      ± 29    
+  Bf 109 G-6 v P-47D Thunderbolt           -30 m     ± 36    
+  Bf 109 G-6 v La-5FN                      -9 m      ± 28    
+  Bf 109 G-6 v Ki-43-II Hayabusa           +19 m     ± 26    
+  Bf 109 G-6 v Brewster B-239              +15 m     ± 26    
+  Spitfire LF Mk IX v P-47D Thunderbolt    -32 m     ± 26    ONE-SIDED
+      Spitfire LF Mk IX has more gun volleys per match than P-47D Thunderbolt: 4976 against 1396. Look at Planes: armament (ammo, guns); Bots: firing range.
+      Spitfire LF Mk IX has more kills per life than P-47D Thunderbolt: 1.31 against 0.44. Look at Planes: turnRate, hp, armament.
+      P-47D Thunderbolt has more deaths to fighters per match than Spitfire LF Mk IX: 31 against 16. Look at Planes: turnRate, maxSpeed, hp, hitRadius.
+      Spitfire LF Mk IX has more seconds servicing per match than P-47D Thunderbolt: 74 against 40. Look at Planes: endurance, armament ammo; Settings: servicing.
+  Spitfire LF Mk IX v La-5FN               +1 m      ± 26    
+  Spitfire LF Mk IX v Ki-43-II Hayabusa    +36 m     ± 26    ONE-SIDED
+      Spitfire LF Mk IX has more kills per life than Ki-43-II Hayabusa: 1.72 against 0.16. Look at Planes: turnRate, hp, armament.
+      Ki-43-II Hayabusa has more deaths to fighters per match than Spitfire LF Mk IX: 25 against 4.13. Look at Planes: turnRate, maxSpeed, hp, hitRadius.
+      Spitfire LF Mk IX has more soldiers killed per match than Ki-43-II Hayabusa: 38 against 7.13. Look at Weapons: gun damage; Ground targets: infantry.
+      Spitfire LF Mk IX has more air kills per match than Ki-43-II Hayabusa: 28 against 5.63. Look at Planes: turnRate, thrust, maxSpeed; Weapons: damage of its guns.
+  Spitfire LF Mk IX v Brewster B-239       -3 m      ± 26    
+  P-47D Thunderbolt v La-5FN               +7 m      ± 35    
+  P-47D Thunderbolt v Ki-43-II Hayabusa    +57 m     ± 26    ONE-SIDED
+      P-47D Thunderbolt has more kills per life than Ki-43-II Hayabusa: 1.04 against 0.26. Look at Planes: turnRate, hp, armament.
+      P-47D Thunderbolt has more soldiers killed per match than Ki-43-II Hayabusa: 25 against 7.02. Look at Weapons: gun damage; Ground targets: infantry.
+      Ki-43-II Hayabusa has more deaths to fighters per match than P-47D Thunderbolt: 17 against 5.5. Look at Planes: turnRate, maxSpeed, hp, hitRadius.
+      P-47D Thunderbolt has more crashes and stalls per match than Ki-43-II Hayabusa: 3.48 against 1.24. Look at Planes: stallSpeed, slowTurnBonus, turnRate, maxLandingSpeed.
+  P-47D Thunderbolt v Brewster B-239       +15 m     ± 26    
+  La-5FN v Ki-43-II Hayabusa               +7 m      ± 26    
+  La-5FN v Brewster B-239                  +18 m     ± 26    
+  Ki-43-II Hayabusa v Brewster B-239       -7 m      ± 26    
+
+Baselines (same plane both sides, push for the left side):
+  Bf 109 G-6             51 m (sd 86)
+  Spitfire LF Mk IX      38 m (sd 75)
+  P-47D Thunderbolt      -33 m (sd 114)
+  La-5FN                 43 m (sd 91)
+  Ki-43-II Hayabusa      17 m (sd 57)
+  Brewster B-239         0 m (sd 70)

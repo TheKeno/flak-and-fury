@@ -1,13 +1,23 @@
 {
-  "_notes": "Bot tactics per plane: how bots fight in each plane (src/sim/tactics.js, TUNING.md \"Bot tactics\"). Written by the bot trainer (Balance Lab: Train bots; node tools/train-bots.mjs); bot-tactics.previous.json holds the values before the last training, for Restore. A plane not listed flies by default.",
-  "trained": "2026-11-10T17:14:26.174Z",
+  "_notes": "Bot tactics per plane: how bots fight in each plane (src/sim/tactics.js, TUNING.md \"Bot tactics\"). Written by the bot trainer (Balance Lab: Train bots; node tools/train-bots.mjs); bot-tactics.previous.json holds the values before the last training, for Restore. A plane not listed flies by default. Fighters also have a role (ROLE_OF in src/sim/tactics.js): it forces some values (boom and zoom style 0.5, a turn fighter never chases a diver) and starts the rest; a plane value written here overrides the role start, never a forced one.",
+  "trained": "2026-11-10T21:56:57.919Z",
   "default": {
     "style": 0,
     "heightOver": 0,
     "minFightSpeed": 1,
     "breakOff": 0,
     "fireRange": 1,
-    "turnThrottle": 0
+    "turnThrottle": 0,
+    "zoomAfterPass": 1,
+    "extendRange": 450,
+    "zoomSpeed": 1.6,
+    "passLead": 0,
+    "bandMargin": 2000,
+    "chaseDiver": 1,
+    "fightDamaged": 0,
+    "finishBonus": 100,
+    "convergenceFire": 1.5,
+    "emergencyUse": 0
   },
   "planes": {
     "bf109g6": {
@@ -15,7 +25,7 @@
       "heightOver": 0,
       "minFightSpeed": 1,
       "breakOff": 0,
-      "fireRange": 1,
+      "fireRange": 1.15,
       "turnThrottle": 0
     },
     "spitfire": {
@@ -39,7 +49,7 @@
       "heightOver": 0,
       "minFightSpeed": 1,
       "breakOff": 0,
-      "fireRange": 1,
+      "fireRange": 1.15,
       "turnThrottle": 0
     },
     "ki43": {

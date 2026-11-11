@@ -106,3 +106,17 @@ finished at once (16 seeds: **13 of 25**, the same as 8 seeds; `balance/results/
 (`notes/night-balance.txt`, the run in `balance/results/`). The morning session reads those three files,
 checks `git status` (the retrain's data files are uncommitted) and commits them. Ctrl-C on the trainer
 stops it early **and saves** what it has.
+
+## Night results (2026-11-11 morning)
+
+- **Retrain** (3 rounds, 40 512 matches, done 03:10): only the Bf 109 changed, firing range 1.15 → 1.3.
+  None of the ten new fields beat the noise for any plane (the trainer wrote the role starting values
+  into each plane's entry, so a later change to `ROLE_DEFAULTS` no longer reaches those six planes: edit
+  their file entries too). Kills per life after: Spitfire 1.27, La-5FN 0.74, B-239 0.60, P-47 0.59,
+  Bf 109 0.46, Ki-43 0.22. The B-239 worry from the 5-minute run is gone (0.60).
+- **Full Balance Lab run** stopped at 840 of 1800 matches (about 03:40, the PC probably slept; the
+  partial run is saved and reported in `notes/night-balance.txt`): **P-47 strong** (+28 m ± 13),
+  **Ki-43 weak** (−25 m ± 12), the rest within the noise. One-sided: P-47 against Ki-43 (57 m). The
+  trainer's own quick run after training agreed on the Ki-43 (−28 m) and had the P-47 at +11.
+- For 3b: the P-47 now wins its boom-and-zoom matches in the full game, the Ki-43 is still weak (the
+  plane numbers: two 12.7 mm, see turn-ki43-v-spitfire). Keep the PC awake for a full run.
