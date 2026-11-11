@@ -89,7 +89,7 @@ among them; the 11 failures (dive, chase and height duels) all point at the bot.
 
 ## Negative g switched off (owner, 2026-11-11, after the test flight)
 
-"Way too severe" in the Spitfire; not to be tuned for now. `flight.negG` false turns it off for players and
+The owner found it strange that the engine stops when the nose tips down (it felt wrong, not only too severe); not to be tuned for now. `flight.negG` false turns it off for players and
 bots (the bots' push cap and roll-and-pull only run while it is on); the per-plane flags stay. Turning it
 off showed a bot landing fault the sputters had hidden: a bot that reached the start of final far above the
 glide slope (after zooming on the way home) could not get down with the throttle closed, went round and came
