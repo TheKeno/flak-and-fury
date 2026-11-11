@@ -42,7 +42,7 @@ function table(content, spec) {
 }
 
 // One run of a duel: seed and mirrored (a flies team 1 from the right). Returns plain data.
-export function runDuel(content, duel, { seed = 1, mirror = false, skill = 'normal' } = {}) {
+export function runDuel(content, duel, { seed = 1, mirror = false, skill = 'normal', onTick = null } = {}) {
   const specs = [duel.a, duel.b];
   const teamOf = mirror ? [1, 0] : [0, 1]; // team of a, of b
   const tactics = [null, null];
@@ -75,6 +75,7 @@ export function runDuel(content, duel, { seed = 1, mirror = false, skill = 'norm
   const dt = 1 / TICK_RATE;
   for (let t = 1; t <= ticks && !result; t++) {
     stepWorld(world, {});
+    onTick?.(world, mine, t); // a probe (scratch tools); never set by the duel runner
     for (let k = 0; k < 2; k++) {
       const p = mine[k];
       const o = mine[1 - k];

@@ -428,7 +428,7 @@ const BOT_LEVELS = [
 ];
 
 // Slider steps for the bot tactics (their limits are the trainer's choices in src/sim/tactics.js).
-const TACTIC_STEP = { style: 0.5, heightOver: 10, minFightSpeed: 0.05, breakOff: 0.5, fireRange: 0.05, turnThrottle: 0.05 };
+const TACTIC_STEP = { style: 0.5, heightOver: 10, minFightSpeed: 0.05, breakOff: 0.5, fireRange: 0.05, turnThrottle: 0.05, zoomAfterPass: 1, extendRange: 25, zoomSpeed: 0.05, passLead: 0.05, bandMargin: 50, chaseDiver: 1, fightDamaged: 0.25, finishBonus: 25, convergenceFire: 0.05, emergencyUse: 0.5 };
 
 const BOT_MODES = [
   ['on', 'On: fly and fight'],

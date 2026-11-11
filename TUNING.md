@@ -303,8 +303,8 @@ How bots fight in each plane (tuning panel: Bots → Tactics per plane; code `sr
 Lab → Train bots, or `node tools/train-bots.mjs`), which keeps the values that win most for each plane;
 `data/bot-tactics.previous.json` holds the values before the last training (Lab: Restore previous
 tactics; CLI: `--restore`; both swap the two files, so a restore can be undone). `default` applies to any
-plane not listed under `planes`; `trained` is when the trainer last wrote the file. The defaults fly
-exactly as the bots did before tactics existed. The trainer only picks from the steps listed (they are
+plane not listed under `planes` (and with no role, see Roles below); `trained` is when the trainer last wrote the file. The old
+six fields at their defaults fly as the bots did before tactics existed (the role-pass fields since part 3a add to that). The trainer only picks from the steps listed (they are
 also the limits); the tuning panel's sliders go anywhere between the first and last.
 
 | Field | What it does | Steps (default first) |
@@ -315,6 +315,27 @@ also the limits); the tuning panel's sliders go anywhere between the first and l
 | `breakOff` | Seconds with an enemy sitting on its tail before it gives the fight up and dives away straight ahead at full (and emergency) power for 3 to 5 s. 0 never. | 0; 1.5, 3, 5, 8 |
 | `fireRange` | Opening fire range, as a share of the skill level's `fireRange`. | 1; 0.6 … 1.3 |
 | `turnThrottle` | Power kept in a hard turn after an enemy: 0 throttles back towards the tightest-turn speed (as far as the skill's `turnFight` goes), 1 keeps full power. | 0; 0.25 … 1 |
+| `zoomAfterPass` | Style 0.5 after a diving pass: 1 runs out straight away (until `extendRange` off or 4 s) and climbs back at `zoomSpeed` for the next pass, turning only when the zoom has failed; 0 turns to fight at once unless clear with speed for a free zoom. Boom-and-zoom role: 0 (it won 9 of 11 dive duels against 1). | 1; 0 |
+| `extendRange` | Run-out distance after a pass (world units), before the climb back (`zoomAfterPass` 1, and style 1). | 450; 250 … 600 |
+| `zoomSpeed` | Climb-back speed after a pass, multiple of the stall. | 1.6; 1.4 … 2.1 |
+| `passLead` | Diving pass: aims ahead of where the gun aim is swinging, this many seconds, so a stiff fast plane gets its nose onto the target instead of trailing it. Role boom: 0.3. | 0; 0.15 … 0.5 |
+| `bandMargin` | How far above its engine's `ratedHeight` it follows an enemy; higher enemies are not climbed after, it waits under them in its band. Roles: turn 200, all-rounder 350, boom 2000 (anywhere). | 2000; 100 … 2000 |
+| `chaseDiver` | 1 follows an enemy diving away fast; 0 lets it go, holds its height and waits for it to come back. Forced 0 for turn fighters. | 1; 0 |
+| `fightDamaged` | 0 turns home at the skill's `hpReturn`; 1 fights on to half of it (and with engine damage up to 0.75). Roles: turn 0, all-rounder and boom 0.5. | 0; 0.5, 1 |
+| `finishBonus` | Prefers a damaged or smoking enemy over a nearer healthy one by this many world units (at full damage). | 100; 0 … 400 |
+| `convergenceFire` | Wing guns only: opens fire no further than this times the plane's `convergence`. Roles: 1.5, boom 2. | 1.5; 1 … 3 |
+| `emergencyUse` | 0 emergency power only to survive (breaking away, limping home); 0.5 also for the run-out and climb back after a pass; 1 also to catch an enemy running away. Roles: turn 0, all-rounder and boom 0.5. | 0; 0.5, 1 |
+
+**Roles** (`ROLE_OF`, `ROLE_FORCED`, `ROLE_DEFAULTS` in `src/sim/tactics.js`; step 4, part 3a): turn fighter
+(Ki-43, B-239), all-rounder (Spitfire LF, La-5FN), boom and zoom (Bf 109 G-6, P-47D, P-38J). A role
+**forces** some values the trainer never changes (boom and zoom: `style` 0.5; turn fighter: `style` 0 and
+`chaseDiver` 0) and **starts** others at the role's values; a value written for the plane in the file
+overrides the start, never a forced one (the tuning panel's slider for a forced value does nothing).
+Planes with no role fly `default`. Fixed rules for all bots in `ai.js` (not tactics): against the plane
+it attacks, the collision look-ahead is 0.6 s instead of 1.8 (`ATTACK_CLOSE_TIME`), so a lead-aimed pass
+is no longer broken off before it is in range; a diver turning back into its dive goes nose-down (a
+wingover), never over the top; a style 0.5+ bot in its climb back, threatened, dives away (extend)
+instead of break-turning when it has 180 of height or is faster.
 
 **The trainer** (`src/balance/trainer.js`, search loop `src/balance/search.js`, shared later with the
 Balance Lab's stage 2 auto-tuner): each round, plane by plane, it tries every tactic one step either

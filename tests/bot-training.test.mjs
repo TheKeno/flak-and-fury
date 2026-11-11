@@ -8,7 +8,7 @@ import { runMatch, buildWorld } from '../src/balance/runner.js';
 import { cleanContent } from '../src/balance/plan.js';
 import { neighbours, compare, searchStep } from '../src/balance/search.js';
 import { train, trialJobs, score, plannedMatches, tacticsFile, TRAIN_DEFAULTS } from '../src/balance/trainer.js';
-import { TACTIC_FIELDS, DEFAULT_TACTICS, tacticsIn, tacticsFor, describeTactics } from '../src/sim/tactics.js';
+import { TACTIC_FIELDS, DEFAULT_TACTICS, ROLE_FORCED, ROLE_DEFAULTS, tacticsIn, tacticsFor, describeTactics, trainableFields } from '../src/sim/tactics.js';
 import { encodeWorld, staticRefs } from '../src/net/snapshot.js';
 import { setBots, stepWorld } from '../src/sim/world.js';
 
@@ -29,8 +29,9 @@ test('the tactics file is complete and inside the trainer\'s limits', () => {
     assert.deepEqual([...choices].sort((a, b) => a - b), choices, `${key} choices in order`);
     assert.equal(typeof file.default[key], 'number', `${key} in the file's default`);
   }
-  for (const [id, t] of Object.entries(file.planes)) {
+  for (const id of Object.keys(file.planes)) {
     assert.ok(content.planeDefs[id], `${id} is a plane`);
+    const t = tacticsIn(file, id); // what it flies by: the file over its role's starting values
     for (const [key, , choices] of TACTIC_FIELDS) {
       assert.ok(t[key] >= choices[0] && t[key] <= choices[choices.length - 1], `${id} ${key} within limits`);
     }
@@ -43,7 +44,7 @@ test('a plane falls back to the default tactics, and a table per team is read pe
   assert.equal(tacticsIn(table, 'spitfire').style, 1);
   assert.equal(tacticsIn(table, 'spitfire').fireRange, 0.9);
   assert.equal(tacticsIn(table, 'ki43').style, DEFAULT_TACTICS.style);
-  assert.deepEqual(tacticsIn(null, 'ki43'), DEFAULT_TACTICS);
+  assert.deepEqual(tacticsIn(null, 'bf110'), DEFAULT_TACTICS); // no role: the plain default
   const world = buildWorld(content, { tactics: [table, null] });
   setBots(world, { team: 0, count: 1, skill: 'normal', defId: 'spitfire', nation: 'uk' });
   setBots(world, { team: 1, count: 1, skill: 'normal', defId: 'spitfire', nation: 'germany' });
@@ -51,6 +52,16 @@ test('a plane falls back to the default tactics, and a table per team is read pe
   assert.equal(tacticsFor(world, a).style, 1);
   assert.equal(tacticsFor(world, b).style, 0);
   assert.match(describeTactics(tacticsIn(table, 'spitfire')), /boom and zoom/);
+});
+
+test('a role forces its tactics, starts the rest at its values, and the trainer leaves the forced ones alone', () => {
+  const table = { default: {}, planes: { p47d: { style: 0, extendRange: 600 }, ki43: { chaseDiver: 1 } } };
+  assert.equal(tacticsIn(table, 'p47d').style, ROLE_FORCED.boom.style); // boom and zoom keeps style 0.5
+  assert.equal(tacticsIn(table, 'p47d').extendRange, 600); // the plane's own value over the role's start
+  assert.equal(tacticsIn(table, 'p47d').passLead, ROLE_DEFAULTS.boom.passLead);
+  assert.equal(tacticsIn(table, 'ki43').chaseDiver, 0); // a turn fighter never chases a diver
+  assert.ok(!trainableFields('p47d').some(([k]) => k === 'style'));
+  assert.ok(trainableFields('bf110').some(([k]) => k === 'style'));
 });
 
 test('the default tactics fly exactly as the bots did before tactics existed', () => {

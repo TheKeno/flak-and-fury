@@ -412,14 +412,16 @@ function touchdown(world, team) {
   return { x: dir > 0 ? clear.to - 20 : clear.from + 20, y: (af.height ?? world.terrain.heightAt(af.x)) + 4, roll: -dir, end: dir > 0 ? clear.from : clear.to };
 }
 
-function wantsHome(world, p, skill) {
+function wantsHome(world, p, skill, tac = null) {
   const cfg = world.bots;
   const t = touchdown(world, p.team);
   const homeX = t?.x ?? homeField(world, p.team).x;
   const burn = (0.12 + 0.88 * 0.85) / p.def.endurance; // per second at cruise
   const trip = (Math.abs(p.x - homeX) + cfg.approachLength + 400) / 120;
   if (p.fuel < trip * burn + cfg.fuelReserve) return true;
-  if (p.hp < p.def.hp * skill.hpReturn || p.engineDamage > 0.5 || p.tailDamage > 0.5 || Math.abs(p.wingPull) > 0.3) return true;
+  // Tactics fightDamaged 1 stays in the fight to half the hit points, and with a worse engine.
+  const stay = tac?.fightDamaged ?? 0;
+  if (p.hp < p.def.hp * skill.hpReturn * (1 - 0.5 * stay) || p.engineDamage > 0.5 + 0.25 * stay || p.tailDamage > 0.5 || Math.abs(p.wingPull) > 0.3) return true;
   return ammoShare(p) < skill.ammoReturn && bombsLeft(p) === 0;
 }
 
@@ -454,6 +456,16 @@ function decide(world, p, b, skill) {
   }
   // Low on final, breaking hard is worse than the attacker: carry on and land.
   const shortFinal = b.mode === 'final' && p.y - world.terrain.heightAt(p.x) < 60;
+  // A boom-and-zoom bot running out after a pass, faster than the plane behind it, runs on instead of
+  // breaking into a turn (which throws away the speed that is its whole defence).
+  // With height to spare it dives away even when slower: a break turn this slow ends in a stall.
+  const room = p.y - world.terrain.heightAt(p.x) > 180;
+  if (threat && b.mode === 'chase' && b.tac.style >= 0.5 && b.zoom?.phase === 'climb' && (room || p.speed > threat.plane.speed + 10)) {
+    b.mode = 'extend';
+    b.extendT = world.rng.range(2, 3);
+    b.target = threat.plane.id;
+    return;
+  }
   if (threat && !shortFinal && world.rng.next() < skill.evadeChance * (b.mode === 'final' ? 0.5 : 1)) {
     if (b.mode !== 'evade') {
       const hx = Math.cos(p.angle);
@@ -470,14 +482,15 @@ function decide(world, p, b, skill) {
   }
   if (b.mode === 'evade' && b.evadeT > 0) return;
   if (b.mode === 'home' || b.mode === 'final') return; // stays on its way home once decided
-  if (wantsHome(world, p, skill)) {
+  if (wantsHome(world, p, skill, b.tac)) {
     b.mode = 'home';
     b.leg = 0;
     return;
   }
   const enemy = pickEnemy(world, p, skill, known);
   if (enemy) {
-    if (b.mode !== 'chase' || b.target !== enemy.plane.id) b.zoom = null; // a new fight starts with a new plan
+    // A new fight starts with a new plan; back from running out on the same enemy, the pass plan goes on.
+    if ((b.mode !== 'chase' && b.mode !== 'extend') || b.target !== enemy.plane.id) b.zoom = null;
     b.mode = 'chase';
     b.target = enemy.plane.id;
     return;
@@ -504,7 +517,9 @@ function pickEnemy(world, p, skill, known) {
   for (const k of known) {
     if (flakDepth(world, p.team, k.x, k.y) > depthLimit) continue;
     // Prefer planes we can see, and ones already being hunted by us.
-    const score = k.d + (k.seen ? 0 : 300) - (k.plane.id === p.bot?.target ? 150 : 0);
+    // Damaged or smoking ones count as nearer (tactics finishBonus).
+    const hurt = clamp(1 - k.plane.hp / k.plane.def.hp + (k.plane.engineDamage > 0 ? 0.3 : 0), 0, 1);
+    const score = k.d + (k.seen ? 0 : 300) - (k.plane.id === p.bot?.target ? 150 : 0) - hurt * (p.bot?.tac?.finishBonus ?? 0);
     if (score < bestScore) {
       best = k;
       bestScore = score;
@@ -662,6 +677,7 @@ function airCommand(world, p, b, skill) {
   const out = fly(world, p, b, skill, want, cmd);
   // The key is a toggle: press only when the wish differs from the state.
   out.emergency = wantsEmergency(world, p, b) !== p.emergency;
+
   return out;
 }
 
@@ -671,6 +687,14 @@ function wantsEmergency(world, p, b) {
   const cfg = world.bots;
   if (p.engineDamage > cfg.emergencyWear || (p.emergency ? p.heat > 0.8 : p.heat > 0.35)) return false;
   if (b.mode === 'evade' || b.mode === 'extend') return true;
+  // Tactics emergencyUse: 0.5 also runs out and climbs back after a diving pass, 1 also catches an enemy
+  // running away.
+  const use = b.tac?.emergencyUse ?? 0;
+  if (b.mode === 'chase') {
+    if (use >= 0.5 && b.tac.style >= 0.5 && b.zoom?.phase === 'climb') return true;
+    const o = use >= 1 && world.planes.find((q) => q.id === b.target && q.state === 'air');
+    return !!o && Math.hypot(o.x - p.x, o.y - p.y) > 250 && (o.x - p.x) * o.vx > 0 && o.speed > p.speed - 10;
+  }
   if (b.mode !== 'home') return false;
   return world.planes.some((o) => o.team !== p.team && o.state === 'air' && !o.dying && Math.hypot(o.x - p.x, o.y - p.y) < cfg.emergencyRange);
 }
@@ -724,9 +748,17 @@ export function gunLead(p, o, b = null) {
   return { angle: Math.atan2(ry, rx) + bend, dist: Math.hypot(o.x - p.x, o.y - p.y), t };
 }
 
+// How far out a bot opens fire: its skill's range times its tactics (further on a diving pass), and with
+// wing guns no further than convergenceFire times the convergence, past which the rounds spread wide.
+function fireRangeOf(p, skill, tac, diving) {
+  const r = skill.fireRange * tac.fireRange * (diving ? DIVE_RANGE : 1);
+  return p.def.convergence ? Math.min(r, p.def.convergence * (tac.convergenceFire ?? 1.5)) : r;
+}
+
 const DIVE_LEAD = 0.5; // the most the dive-from-height nose lead may swing off the line of sight (rad)
 const DIVE_START = 350; // a dive starts no closer than this: closer is no pass, just a head-on merge
 const DIVE_RANGE = 1.6; // the dive opens fire this much further out
+const RUN_OUT_TIME = 4; // seconds the run-out after a pass lasts at most before the climb back
 
 function chaseWant(world, p, b, skill, o, cmd) {
   const d = Math.hypot(o.x - p.x, o.y - p.y);
@@ -760,12 +792,30 @@ function chaseWant(world, p, b, skill, o, cmd) {
     else if (p.speed > slowest * 1.15) b.unload = false;
   } else b.unload = false;
   if (b.unload) return { angle: angleFor(facing(p), -0.35), throttle: 1, clear, avoidFlak: true };
+  // A turn fighter (chaseDiver 0) lets an enemy diving away go: it holds its height, nose loosely towards
+  // it, and waits for it to come back up rather than follow it down where it can't catch it.
+  const opening = (o.x - p.x) * (o.vx - p.vx) + (o.y - p.y) * (o.vy - p.vy) > 0;
+  if (!tac.chaseDiver && o.y < p.y - 30 && o.vy < -0.25 * o.speed && o.speed > p.speed + 15 && opening) {
+    const dir = Math.sign(o.x - p.x) || facing(p);
+    return { angle: angleFor(dir, 0.04), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
+  }
+  // Its height band: an enemy far above its engine's rated height is not climbed after. It waits under it
+  // in its band, keeping speed, so the enemy has to come down into the band to fight.
+  const band = (p.def.ratedHeight ?? Infinity) + (tac.bandMargin ?? 2000);
+  if (o.y > band && p.y < o.y - 60) {
+    const dir = d > 250 ? Math.sign(o.x - p.x) || facing(p) : facing(p);
+    const y = Math.min(band - (tac.bandMargin ?? 0) * 0.5, o.y - 120);
+    return { angle: angleFor(dir, clamp((y - p.y) / 200, -0.3, 0.35)), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
+  }
   // Far off with height to gain first: climb towards a point that much above it. Diving from above needs
   // the height (boomHeight at least): a dive from a little above is no dive, and with it alone the
   // style is a step down from turn fighting that the bot trainer's one-step search never gets past.
   const heightOver = tac.style >= 0.5 ? Math.max(world.bots.boomHeight ?? 0, tac.heightOver) : tac.heightOver;
   const over = o.y + heightOver - p.y;
-  if (heightOver > 0 && d > 400 && over > heightOver * 0.3) {
+  // (A diving bot already in its climb-back flies that instead: this climb heads for the enemy, which
+  // behind it means a slow half loop.)
+  const zooming = tac.style >= 0.5 && b.zoom?.phase === 'climb';
+  if (heightOver > 0 && d > 400 && over > heightOver * 0.3 && !zooming) {
     const dir = Math.sign(o.x - p.x) || facing(p);
     return { angle: angleFor(dir, clamp(over / 200, 0.1, 0.45)), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
   }
@@ -781,13 +831,23 @@ function chaseWant(world, p, b, skill, o, cmd) {
     const climbSpeed = stall * Math.max(1.55, tac.minFightSpeed);
     if (!b.zoom) b.zoom = { phase: above > want * 0.6 ? 'dive' : 'climb', since: world.tick };
     if (b.zoom.phase === 'climb') {
+      // After a pass: run out straight away from it at full power until extendRange off (turning or a slow
+      // climb close by hands it a target: the stall-and-get-caught failure), then climb back at zoomSpeed,
+      // still heading away, until high enough to dive again. Caught up with on the climb: run out again.
+      // Style 0.5 turn-fights only when the zoom has failed (slow, with the enemy close).
+      const zoomV = stall * Math.max(tac.zoomSpeed ?? 1.6, tac.minFightSpeed);
+      const runOut = tac.extendRange ?? 450;
       if (above >= want && d > DIVE_START) b.zoom = { phase: 'dive', since: world.tick };
-      else if (tac.style < 1 && (p.speed < climbSpeed || d < 450)) boom = false; // no free zoom: turn-fight
+      else if (tac.style < 1 && !tac.zoomAfterPass && (p.speed < climbSpeed || d < 450)) boom = false; // turn-fight at once, unless a free zoom
+      else if (tac.style < 1 && p.speed < stall * (1 + skill.stallMargin + 0.25) && d < 200) boom = false;
       else {
-        // Close to it: run straight away, level or a little down, to open the gap at full speed (a slow
-        // climb close by just hands it a target). Clear of it: climb at the speed that climbs best.
-        const pitch = d < 450 ? (height > 200 ? -0.08 : 0.02) : clamp(((p.speed - climbSpeed) / climbSpeed) * 1.5 + 0.12, 0.04, 0.6);
-        const dir = d < 450 ? Math.sign(p.x - o.x) || facing(p) : facing(p);
+        // Out once far enough, or after RUN_OUT_TIME against an enemy as fast as itself (it never gets
+        // the room, and zooming makes the chaser bleed speed as well).
+        b.zoom.runT = (b.zoom.runT ?? 0) + (b.zoom.out ? 0 : DT);
+        if (d >= runOut || b.zoom.runT > RUN_OUT_TIME) b.zoom.out = true;
+        else if (d < runOut * 0.5) { b.zoom.out = false; b.zoom.runT = 0; }
+        const pitch = !b.zoom.out ? (height > 200 ? -0.08 : 0.02) : clamp(((p.speed - zoomV) / zoomV) * 1.5 + 0.12, 0.04, 0.6);
+        const dir = !b.zoom.out ? Math.sign(p.x - o.x) || facing(p) : facing(p);
         return { angle: angleFor(dir, pitch), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
       }
     }
@@ -814,7 +874,16 @@ function chaseWant(world, p, b, skill, o, cmd) {
     // small angle of the line of sight so the aim settles instead of chasing it.
     const los = Math.atan2(pictured.y - p.y, pictured.x - p.x);
     angle = los + clamp(angleDiff(aim, los), -DIVE_LEAD, DIVE_LEAD);
+    // Fast through the dive the line of sight swings faster than a stiff plane turns, so the nose
+    // trails the aim the whole way down and never fires. Aim ahead of where the aim is swinging
+    // (tactics passLead, seconds): the nose then leads, and the aim swings across it in range.
+    const swing = b.lastAim != null ? angleDiff(aim, b.lastAim) / DT : 0;
+    angle += clamp(swing * (tac.passLead ?? 0), -0.5, 0.5);
   }
+  b.lastAim = aim;
+  // Turning back from the climb-out into the dive: nose down (a wingover), not a slow half loop over the
+  // top that ends in a stall.
+  const shortWay = diving && p.y - o.y > 40;
   const closing = ((o.x - p.x) * (p.vx - o.vx) + (o.y - p.y) * (p.vy - o.vy)) / Math.max(1, d);
   let throttle = 1;
   let speed;
@@ -833,8 +902,10 @@ function chaseWant(world, p, b, skill, o, cmd) {
   if (d < 110 && closing > 25) throttle = 0.4; // don't ram it
   if (d < 35) angle = p.angle + 1; // too close: get out of its way
   // Fire with the nose within the pilot's tolerance, widened by how big the target looks from here.
-  else cmd.fire = d < skill.fireRange * tac.fireRange * (diving ? DIVE_RANGE : 1) && off < skill.aimTolerance + o.def.hitRadius / d && ammoShare(p) > 0;
-  return { angle, throttle, speed, clear, avoidFlak: true };
+  // Wing guns only out to where their rounds still meet the target (fireRangeOf).
+  else cmd.fire = d < fireRangeOf(p, skill, tac, diving) && off < skill.aimTolerance + o.def.hitRadius / d && ammoShare(p) > 0;
+
+  return { angle, throttle, speed, clear, avoidFlak: true, short: shortWay };
 }
 
 // Breaking off a losing fight: dive away from the enemy on the tail at full power (emergency power
@@ -1056,6 +1127,9 @@ function headOnThreat(world, p) {
 
 const CLOSE_CALL = 50; // a predicted pass closer than this is a near collision
 const CLOSE_TIME = 1.8;
+// Against the plane it is attacking, the look-ahead is shorter: aiming the gun lead is a collision
+// course by design, and at 1.8 s the bot turned away before it was ever in range (no diving pass fired).
+const ATTACK_CLOSE_TIME = 0.6;
 
 // The plane we're about to hit (closest approach under CLOSE_CALL within CLOSE_TIME), as { side }:
 // +1 if it passes on our left of the nose (counter-clockwise), -1 on the right.
@@ -1075,7 +1149,8 @@ function closeCall(world, p) {
     const t = v2 > 1 ? clamp(-(rx * vx + ry * vy) / v2, 0, CLOSE_TIME) : 0;
     const mx = rx + vx * t;
     const my = ry + vy * t;
-    if (Math.hypot(mx, my) > CLOSE_CALL || t >= bestT) continue;
+    const attacking = p.bot?.mode === 'chase' && p.bot.target === o.id;
+    if (Math.hypot(mx, my) > CLOSE_CALL || t >= bestT || (attacking && t > ATTACK_CLOSE_TIME)) continue;
     bestT = t;
     // Dead ahead on the same line: the higher plane (or the lower id) goes up, the other down. As a side:
     // the other passing above us (side +1 facing right, -1 facing left) turns our nose down. (This was
@@ -1163,14 +1238,15 @@ function fly(world, p, b, skill, want, cmd) {
   // A turn right round goes over the top (a half loop), unless that's into the ceiling. It needs speed:
   // too slow, fly on and build it up first. Pulling out of a dive takes the short way.
   let rushing = false;
-  if (Math.abs(diff) > 2.2 && !pulling && p.speed < flyingDef(p, world).stallSpeed * 1.5) {
+  if (Math.abs(diff) > 2.2 && !pulling && !want.short && p.speed < flyingDef(p, world).stallSpeed * 1.5) {
     angle = angleFor(facing(p), 0);
     diff = angleDiff(angle, p.angle);
     rushing = true; // full throttle to build the speed
   }
   if (Math.abs(diff) > 2.2 && !pulling) {
     const up = facing(p) > 0 ? 1 : -1;
-    const sign = p.y > world.map.ceiling - 220 ? -up : up;
+    // want.short: turn the nose down through the reversal (a wingover into a dive), never over the top.
+    const sign = want.short || p.y > world.map.ceiling - 220 ? -up : up;
     diff = sign * Math.abs(diff);
   }
   cmd.turn = clamp(diff / 0.15, -1, 1) * (pulling ? 1 : skill.turnHard);

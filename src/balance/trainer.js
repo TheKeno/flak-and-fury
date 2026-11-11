@@ -4,7 +4,7 @@
 // when it wins by more than the noise. A few rounds, so every plane meets the others' improved tactics.
 // Pure: matches are run by the caller's runJobs (Web Workers in the Lab, worker threads in the CLI),
 // so both get the same numbers. Plane data is never touched; only the tactics table.
-import { TACTIC_FIELDS, DEFAULT_TACTICS, tacticsIn, describeTactics } from '../sim/tactics.js';
+import { TACTIC_FIELDS, DEFAULT_TACTICS, tacticsIn, describeTactics, trainableFields } from '../sim/tactics.js';
 import { searchStep, neighbours } from './search.js';
 
 export const TRAIN_DEFAULTS = {
@@ -22,7 +22,8 @@ export const TRAIN_DEFAULTS = {
   names: {}, // plane id -> name, for the log and summary
 };
 
-const FIELDS = TACTIC_FIELDS.map(([key, , choices]) => [key, choices]);
+// The fields searched for a plane: its role's forced tactics are left alone.
+const fieldsOf = (id) => trainableFields(id).map(([key, , choices]) => [key, choices]);
 const round2 = (x) => Math.round(x * 100) / 100;
 
 // A copy of a table with one plane's values replaced.
@@ -85,7 +86,7 @@ function tableStats(o, jobs, results) {
 // current tactics each round (the start table's; later rounds may differ a little), plus the check.
 export function plannedMatches(opts, table = null) {
   const o = { ...TRAIN_DEFAULTS, ...opts };
-  const perRound = o.planes.reduce((n, id) => n + 1 + neighbours(FIELDS, tacticsIn(table, id)).length, 0);
+  const perRound = o.planes.reduce((n, id) => n + 1 + neighbours(fieldsOf(id), tacticsIn(table, id)).length, 0);
   return o.rounds * perRound * o.planes.length * o.seeds + 2 * tableJobs(o, null).length;
 }
 
@@ -126,7 +127,7 @@ export async function train(start, runJobs, { log = () => {}, cancelled = () => 
           const per = jobs.length / list.length;
           return list.map((_, k) => res.slice(k * per, (k + 1) * per).map((m, j) => score(m, jobs[k * per + j].side, o.penalty)));
         };
-        const step = await searchStep(FIELDS, table.planes[id], evaluate, { z: o.z, floor: o.floor });
+        const step = await searchStep(fieldsOf(id), tacticsIn(table, id), evaluate, { z: o.z, floor: o.floor });
         table = withPlane(table, id, step.values);
         history.push({ round: r, plane: id, changes: step.changes.map((c) => ({ ...c, diff: round2(c.diff), se: round2(c.se) })) });
         log(`Round ${r} of ${o.rounds}, ${o.names?.[id] ?? id}: ${step.changes.length ? step.changes.map((c) => `${c.key} ${c.from} → ${c.to}`).join(', ') : 'no change beat the noise'}.`);
