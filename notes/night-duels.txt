@@ -1,0 +1,28 @@
+FAIL turn-ki43-v-spitfire score -0.81 (3-29-0) bot: neither bot fired (0.6 s and 0.8 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS turn-ki43-v-bf109 score +0.44 (23-9-0)
+PASS turn-ki43-v-p47 score +0.59 (25-6-1)
+FAIL turn-b239-v-p47 score +0.16 (18-13-1) bot: neither bot fired (1.1 s and 0.5 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS turn-b239-v-bf109 score +0.59 (25-6-1)
+PASS turn-spitfire-v-p47 score +0.75 (28-4-0)
+PASS turn-spitfire-v-p38 score +0.94 (31-1-0)
+PASS turn-la5fn-v-p47 score +0.5 (24-8-0)
+PASS low-ki43-on-p47-tail score +0.56 (25-7-0)
+PASS low-ki43-on-bf109-tail score +0.69 (27-5-0)
+PASS low-b239-on-p38-tail score +0.81 (29-3-0)
+FAIL boom-p47-on-ki43 score +0 (16-16-0) bot: the expected winner fired only 0.4 s per run: it never lined up a shot
+FAIL boom-p47-on-b239 score +0.19 (18-12-2) bot: neither bot fired (0.8 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-p47-on-spitfire score -0.75 (4-28-0) bot: neither bot fired (0.2 s and 1 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-bf109-on-spitfire score -0.81 (3-29-0) bot: neither bot fired (0.4 s and 0.9 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-bf109-on-la5fn score -0.75 (4-28-0) bot: neither bot fired (0.6 s and 1.2 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-p38-on-la5fn score -0.31 (11-21-0) bot: neither bot fired (0.4 s and 1.2 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL chase-p47-diver-v-ki43 score -0.37 (10-22-0) bot: the expected winner fired only 0.4 s per run: it never lined up a shot
+FAIL chase-bf109-diver-v-b239 score -0.06 (15-17-0) planes: the expected winner flew cleanly (on its sights 11.5 s against 14.3 s, damage 73.7 against 53.5) and still did not win: the plane numbers do not give the edge the duel claims
+PASS control-spitfire-mirror score -0.25 (12-20-0)
+PASS control-p47d-mirror score +0 (16-16-0)
+PASS control-ki43-mirror score -0.12 (13-17-2)
+FAIL high-p47-v-spitfire score +0.06 (17-15-0) bot: neither bot fired (0.6 s and 0.5 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL high-p38-v-la5fn score +0.19 (19-13-0) bot: neither bot fired (0.7 s and 0.5 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS high-bf109-v-ki43 score +0.53 (24-7-1)
+13 of 25 duels pass (16 seeds x 2 sides, 17 s).
+Failed: turn-ki43-v-spitfire, turn-b239-v-p47, boom-p47-on-ki43, boom-p47-on-b239, boom-p47-on-spitfire, boom-bf109-on-spitfire, boom-bf109-on-la5fn, boom-p38-on-la5fn, chase-p47-diver-v-ki43, chase-bf109-diver-v-b239, high-p47-v-spitfire, high-p38-v-la5fn
+Points at the bot: 11, at plane numbers: 1, at the duel set-up: 0.

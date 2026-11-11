@@ -98,3 +98,11 @@ the `onTick` option of `runDuel` feeds it.
 - Full duel sweep: `node tools/duels.mjs --seeds 16 --json balance/results/duels-3a-16.json`. At all
   skill levels needs a `--skill` option in `tools/duels.mjs` first (it is fixed to normal): a 3c job.
 - Balance Lab: `node tools/balance.mjs fighters --full` after the retrain.
+
+**Started 2026-11-11 about 01:50** with `cmd /c tools\night-3a.cmd` in a terminal tab: the duel sweep
+finished at once (16 seeds: **13 of 25**, the same as 8 seeds; `balance/results/duels-3a-16.json`,
+`notes/night-duels.txt`), then the retrain (writes `data/bot-tactics.json`, the old values in
+`bot-tactics.previous.json`, summary `notes/night-train.txt`) and the full Balance Lab run
+(`notes/night-balance.txt`, the run in `balance/results/`). The morning session reads those three files,
+checks `git status` (the retrain's data files are uncommitted) and commits them. Ctrl-C on the trainer
+stops it early **and saves** what it has.
