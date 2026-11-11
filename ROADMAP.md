@@ -82,6 +82,19 @@ later.
        bombers) under the new ceiling, at easy, normal and ace. **About 3-4 sessions (the most uncertain part):**
        3a role tactics and new mechanics in the bots, 3b duel failures and trainer traps, 3c retrain, skill levels
        and the rest of bot life, 3d fixes after the owner's test flights.
+       **Changed 2026-11-11 evening (owner, after 3b):** 3c comes before any retrain (a retrain now would be stale
+       once 3c changes bots and flight), and takes: (1) **two thin-air turn fixes, both mild and in the tuning
+       panel** (why: the Spitfire LF wins high up on turning, not speed: up high it is slow, and slow gives the
+       slow-turn bonus; turning ignores power and thin air takes only about 7% off at 900): **turning needs power**
+       first (above its rated height a plane's turn rate falls partly with its power, e.g. 60% power keeps about 85%
+       of the turn; nothing changes under the rated height), then **stall speed rises with height** for every plane
+       (about 10-15% at the ceiling, the slow-turn band moves up with it); (2) the boom pass (fire on the pass,
+       break off when the target turns into it, climb back instead of sinking); (3) **night runs launched by
+       Windows, not from Claude's shell** (WMI `Win32_Process` Create or similar): both the 3a and the 3b night runs
+       were killed with the Claude app's process tree (3b's after 11 minutes; the PC did not sleep); (4) the
+       trainer's progress line only on a terminal (it wrote 384 KB in 11 minutes); (5) its night runs as its last
+       act (retrain, 16-seed duel sweep, full Balance Lab run, about 2-2.5 h). Skill levels and the rest of bot life
+       move to 3d, owner's test flights and fixes to 3e.
        **Token rules for step 3 (owner, 2026-11-11):** (1) **at most about three fix attempts per failing duel**, then
        write down what was learned and move on (force the tactic for that role, or accept it for now); (2) **role
        tactics are forced per role** (like style 0.5 for boom and zoom), the trainer only fine-tunes knobs within
