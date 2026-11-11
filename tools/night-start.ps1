@@ -8,10 +8,14 @@ $repo = Split-Path -Parent $PSScriptRoot
 $full = Join-Path $repo $Script
 if (-not (Test-Path $full)) { throw "No such script: $full" }
 $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
-  CommandLine = "cmd.exe /c `"$full`""
+  # /s and the doubled quotes: the folder name has an '&', which a plain /c "..." hands to cmd unquoted.
+  CommandLine = "cmd.exe /s /c `"`"$full`"`""
   CurrentDirectory = $repo
 }
 if ($r.ReturnValue -ne 0) { throw "Win32_Process Create failed: $($r.ReturnValue)" }
+Start-Sleep -Seconds 2
 $p = Get-CimInstance Win32_Process -Filter "ProcessId = $($r.ProcessId)"
+if (-not $p) { throw "Process $($r.ProcessId) already gone: see notes
+ight-status.txt" }
 $parent = Get-CimInstance Win32_Process -Filter "ProcessId = $($p.ParentProcessId)"
 "Started $Script as process $($r.ProcessId), parent $($parent.Name) ($($p.ParentProcessId))"
