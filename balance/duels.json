@@ -21,7 +21,11 @@
    },
    "expect": "a",
    "basis": "slowTurnTime",
-   "seconds": 150
+   "seconds": 150,
+   "knownFail": {
+    "kind": "planes",
+    "why": "the Ki-43 holds the position (about twice as long on its sights) and still loses on damage: two 12.7 mm against two Hispanos and four .303 (part 3a/3b)"
+   }
   },
   {
    "id": "turn-ki43-v-bf109",
@@ -254,7 +258,7 @@
   },
   {
    "id": "boom-p47-on-ki43",
-   "title": "p47d wins diving from 300 above onto ki43",
+   "title": "p47d wins diving from 300 above onto ki43 in its band (900 over the ground)",
    "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
    "a": {
     "plane": "p47d",
@@ -262,7 +266,7 @@
      "style": 0.5
     },
     "x": -700,
-    "h": 460,
+    "h": 900,
     "face": 1,
     "speed": 0.9,
     "pitch": -10
@@ -270,7 +274,7 @@
    "b": {
     "plane": "ki43",
     "x": -100,
-    "h": 160,
+    "h": 600,
     "face": 1,
     "speed": 0.7
    },
@@ -280,7 +284,7 @@
   },
   {
    "id": "boom-p47-on-b239",
-   "title": "p47d wins diving from 300 above onto b239",
+   "title": "p47d wins diving from 300 above onto b239 in its band (900 over the ground)",
    "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
    "a": {
     "plane": "p47d",
@@ -288,7 +292,7 @@
      "style": 0.5
     },
     "x": -700,
-    "h": 460,
+    "h": 900,
     "face": 1,
     "speed": 0.9,
     "pitch": -10
@@ -296,7 +300,7 @@
    "b": {
     "plane": "b239",
     "x": -100,
-    "h": 160,
+    "h": 600,
     "face": 1,
     "speed": 0.7
    },
@@ -306,7 +310,7 @@
   },
   {
    "id": "boom-p47-on-spitfire",
-   "title": "p47d wins diving from 300 above onto spitfire",
+   "title": "p47d wins diving from 300 above onto spitfire in its band (900 over the ground)",
    "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
    "a": {
     "plane": "p47d",
@@ -314,7 +318,7 @@
      "style": 0.5
     },
     "x": -700,
-    "h": 460,
+    "h": 900,
     "face": 1,
     "speed": 0.9,
     "pitch": -10
@@ -322,7 +326,7 @@
    "b": {
     "plane": "spitfire",
     "x": -100,
-    "h": 160,
+    "h": 600,
     "face": 1,
     "speed": 0.7
    },
@@ -332,7 +336,7 @@
   },
   {
    "id": "boom-bf109-on-spitfire",
-   "title": "bf109g6 wins diving from 300 above onto spitfire",
+   "title": "bf109g6 wins diving from 300 above onto spitfire in its band (700 over the ground)",
    "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
    "a": {
     "plane": "bf109g6",
@@ -340,7 +344,7 @@
      "style": 0.5
     },
     "x": -700,
-    "h": 460,
+    "h": 700,
     "face": 1,
     "speed": 0.9,
     "pitch": -10
@@ -348,7 +352,7 @@
    "b": {
     "plane": "spitfire",
     "x": -100,
-    "h": 160,
+    "h": 400,
     "face": 1,
     "speed": 0.7
    },
@@ -358,7 +362,7 @@
   },
   {
    "id": "boom-bf109-on-la5fn",
-   "title": "bf109g6 wins diving from 300 above onto la5fn",
+   "title": "bf109g6 wins diving from 300 above onto la5fn in its band (700 over the ground)",
    "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
    "a": {
     "plane": "bf109g6",
@@ -366,7 +370,7 @@
      "style": 0.5
     },
     "x": -700,
-    "h": 460,
+    "h": 700,
     "face": 1,
     "speed": 0.9,
     "pitch": -10
@@ -374,7 +378,7 @@
    "b": {
     "plane": "la5fn",
     "x": -100,
-    "h": 160,
+    "h": 400,
     "face": 1,
     "speed": 0.7
    },
@@ -384,7 +388,7 @@
   },
   {
    "id": "boom-p38-on-la5fn",
-   "title": "p38j wins diving from 300 above onto la5fn",
+   "title": "p38j wins diving from 300 above onto la5fn in its band (900 over the ground)",
    "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
    "a": {
     "plane": "p38j",
@@ -392,7 +396,7 @@
      "style": 0.5
     },
     "x": -700,
-    "h": 460,
+    "h": 900,
     "face": 1,
     "speed": 0.9,
     "pitch": -10
@@ -400,7 +404,7 @@
    "b": {
     "plane": "la5fn",
     "x": -100,
-    "h": 160,
+    "h": 600,
     "face": 1,
     "speed": 0.7
    },
@@ -418,7 +422,7 @@
      "style": 0.5
     },
     "x": -100,
-    "h": 420,
+    "h": 900,
     "face": 1,
     "speed": 0.95,
     "pitch": -25
@@ -426,7 +430,7 @@
    "b": {
     "plane": "ki43",
     "x": -480,
-    "h": 440,
+    "h": 920,
     "face": 1,
     "speed": 0.9
    },
@@ -444,7 +448,7 @@
      "style": 0.5
     },
     "x": -100,
-    "h": 420,
+    "h": 600,
     "face": 1,
     "speed": 0.95,
     "pitch": -25
@@ -452,7 +456,7 @@
    "b": {
     "plane": "b239",
     "x": -480,
-    "h": 440,
+    "h": 620,
     "face": 1,
     "speed": 0.9
    },

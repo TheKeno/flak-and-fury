@@ -63,6 +63,14 @@ test('the judge: pass needs a clear win, even needs no clear winner, a fail name
   assert.match(silent.words, /^FAIL/);
   const even = judgeDuel({ ...duel, expect: 'even', b: { plane: 'ki43' }, basis: null }, [run(0), run(1), run(null, 'no result'), run(0), run(1)], sheets);
   assert.equal(even.pass, true);
+  // A duel marked as failing on plane numbers fails as known, blamed on the planes; passing, it says so.
+  const known = { ...duel, knownFail: { kind: 'planes', why: 'weaker guns' } };
+  const kf = judgeDuel(known, [run(1), run(1), run(1)], sheets);
+  assert.equal(kf.pass, false);
+  assert.equal(kf.known, 'fails');
+  assert.equal(kf.blame.kind, 'planes');
+  assert.match(kf.brief, /^KNOWN/);
+  assert.equal(judgeDuel(known, [run(0), run(0), run(0)], sheets).known, 'passes');
 });
 
 test('planDuels hands out every duel from both sides of the map for each seed', () => {

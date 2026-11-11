@@ -114,9 +114,121 @@ stops it early **and saves** what it has.
   into each plane's entry, so a later change to `ROLE_DEFAULTS` no longer reaches those six planes: edit
   their file entries too). Kills per life after: Spitfire 1.27, La-5FN 0.74, B-239 0.60, P-47 0.59,
   Bf 109 0.46, Ki-43 0.22. The B-239 worry from the 5-minute run is gone (0.60).
-- **Full Balance Lab run** stopped at 840 of 1800 matches (about 03:40, the PC probably slept; the
+- **Full Balance Lab run** stopped at 840 of 1800 matches (about 03:40, killed outright: not sleep (sleep is off, no sleep events in the log); most likely the app terminal tab running it closed or lost its shell; the
   partial run is saved and reported in `notes/night-balance.txt`): **P-47 strong** (+28 m ± 13),
   **Ki-43 weak** (−25 m ± 12), the rest within the noise. One-sided: P-47 against Ki-43 (57 m). The
   trainer's own quick run after training agreed on the Ki-43 (−28 m) and had the P-47 at +11.
 - For 3b: the P-47 now wins its boom-and-zoom matches in the full game, the Ki-43 is still weak (the
   plane numbers: two 12.7 mm, see turn-ki43-v-spitfire). Keep the PC awake for a full run.
+
+# Part 3b: duel failures and trainer traps (2026-11-11)
+
+Duel sweep, 8 seeds x 2 sides (`node tools/duels.mjs --brief`): **13 of 25 → 15 of 25 pass, plus 1 known
+plane-number failure** (`turn-ki43-v-spitfire`). Night sweep at 16 seeds: `notes/night-duels.txt`.
+
+| Duel | 3a (16 seeds) | 3b | what changed |
+|---|---|---|---|
+| boom-p47-on-ki43 | 0.00 | **+0.44 pass** | in the P-47's band (900 / 600 over the ground) |
+| boom-p47-on-b239 | +0.25 | +0.19 | same set-up (noise) |
+| boom-p47-on-spitfire | −0.62 | −0.62 | set-up |
+| boom-bf109-on-spitfire | −0.87 | −0.87 | 700 / 400 |
+| boom-bf109-on-la5fn | −1.00 | 0.00 | 700 / 400 |
+| boom-p38-on-la5fn | −0.25 | −0.37 | 900 / 600 |
+| chase-p47-diver-v-ki43 | −0.25 | **+0.50 pass** | moved into the diver's band (900 / 920) |
+| chase-bf109-diver-v-b239 | −0.12 | 0.00 | 600 / 620 |
+| turn-ki43-v-spitfire | −0.75 | KNOWN | marked `knownFail: planes` |
+| turn-la5fn-v-p47 | +0.25 | +0.25 | noise (0.05 short) |
+| high-p47-v-spitfire / high-p38-v-la5fn | +0.13 / +0.25 | +0.13 / +0.25 | heights already in band |
+| the rest | pass | pass | |
+
+## 1. Boom and zoom climbs to its band (`bandClimb`, 3 tries, lost: off by default)
+
+New tactic `bandClimb` (diving styles only; 0 off, 0.6 … 1 of the rated height): before a fight and after
+each pass the bot climbs to that height, away from a near enemy, however low the enemy is; closer than
+`BAND_FIGHT` 250 it fights where it is; already above the enemy by the dive height it makes the pass first.
+- Try 1 (always climb): worse, 7 of 19 of the turn/boom/chase/high duels against 8 without. The boom plane
+  that starts above its target turned away from a ready-made pass, and in the turn duels it climbs out of
+  the fight, so the turn fighter's win shrinks to a draw (turn-ki43-v-bf109 +0.75 → +0.25,
+  turn-b239-v-p47 +0.31 → +0.25).
+- Try 2 (pass first when already above): boom duels the same as without; the turn duels still lose.
+- Try 3 (`zoomAfterPass` 1 high up, with and without the band climb): much worse everywhere (boom and high
+  duels to −0.6 … −1). Probe (high-p47-v-spitfire): the P-47 spends the fight in its climb phase and never
+  dives again: the run-out sinks (level or a little down, the height edge goes), and the Spitfire stays
+  within 150 under it all the way up to the 1200 ceiling, so "150 above, 350 off" for the next dive never
+  comes. The Spitfire LF at 900+ still climbs with it on about 60% power.
+- **Learned:** the boom plane's edge at its height does not come from climbing to it; its dives fire
+  0.3-0.6 s a run and the defender turns into the dive and fires head-on (the Spitfire wins with about 1 s
+  of fire: Hispanos). What is left for 3c / the tuner: the pass itself (break the dive off when the target
+  turns head-on into it, instead of a merge), a climb-back that keeps a height edge (climb, not sink, after
+  a pass made from well above), and whether the Spitfire LF climbs too well high up (plane numbers).
+
+## 2. Duel heights against the bands (`balance/duels.json`)
+
+Ground in the arena is about 50, so `h` 460 was about 510 absolute: under the Bf 109's rated 600 and inside
+the Spitfire LF's band (450 + margin 350). Moved the dive duels' attackers into their own band, the
+defender 300 under as before: P-47 and P-38 900 / 600, Bf 109 700 / 400. The chase duels started the
+diver under its band and in the turn fighter's (who, `chaseDiver` 0, no longer chases anyway): moved into
+the diver's band (P-47 900 / Ki-43 920, Bf 109 600 / B-239 620). Turn (220), low (70) and high (850)
+duels were already right: turn fighters win low, the high duels sit in the boom planes' bands.
+Height alone: boom-p47-on-ki43 and chase-p47 now pass, boom-bf109-on-la5fn −1 → 0; the Bf 109 still
+loses to the Spitfire (see 1).
+
+## 3. Duels expected to fail on plane numbers (`knownFail`)
+
+A duel can carry `knownFail: { kind: 'planes', why }`. It still fails, shown as KNOWN, blamed on the
+planes; `tools/duels.mjs` lists it apart, does not fail the run on it and says when one passes again
+(drop the mark then); `--json` writes `gate` (true when every failure is known): the auto-tuner's gate
+in part 4, which tells bot failures (must be fixed first) from plane failures (the tuner's job). Marked:
+`turn-ki43-v-spitfire` (the Ki-43 holds the position, loses on firepower).
+
+## 4. Trainer traps: the knob check (`tools/knob-check.mjs`)
+
+New tool: `node tools/knob-check.mjs <planes> [--pairs "k=v+k=v;..."]` flies a plane's current tactics and
+every one-step change (the trainer's own trials: 96 matches each, same seeds), plus given pairs, and prints
+each gain in kills per life against the noise. Run for one plane per role (P-47, Spitfire, Ki-43) with
+pairs: `notes/knob-check-3b.txt`. The trainer now also keeps every trial's gain and noise in its record
+(`history[].trials`), so a night run answers this by itself.
+
+- **The knobs do matter, mostly the wrong way:** the current values are a local best. Big losses:
+  P-47 `zoomAfterPass` 1 (−9 se), `bandClimb` 0.6 (−4 se), the two together (−15 se); Spitfire style 0.5
+  (−7 se), `breakOff` 1.5 (−4 se), `bandMargin` 200 (−3 se); Ki-43 `breakOff` (−3 se). Nothing wins.
+- **No pair wins** where its halves don't (zoom + emergency power, zoom + band climb, band climb + height,
+  style 0.5 + band climb or emergency power, Ki-43 fire range + convergence, height + band margin): the
+  "only win in pairs" idea is not what held the trainer back.
+- **The real traps: steps that change nothing** (gain exactly 0, the same matches), so the one-step
+  search can never pass them: `minFightSpeed` 1 → 1.2 (under the normal skill's own stall margin 0.2;
+  live only at ace) for every plane; `heightOver` under 150 for a diving style (`boomHeight` 150 floor);
+  `emergencyUse` 0 ↔ 0.5 without a diving style; the five diving knobs for every non-diving plane (turn
+  fighters had style forced 0 and were searched on them anyway). Fixed: 1.2 dropped; a diving style's
+  `heightOver` now adds to `boomHeight` (all diving planes had 0, so no change in flight); `emergencyUse`
+  steps 0 ↔ 1 without a diving style; diving knobs (`DIVING_FIELDS`) searched only for a diving style;
+  the all-rounders start them at the boom role's values (their file entries edited) so a style step to
+  0.5 brings a working set. Plane-specific dead steps left as they are (they cost a trial, nothing more):
+  `convergenceFire` for nose-gun planes (Ki-43), `bandMargin` for the P-47 (rated + 150 is over the
+  ceiling), `extendRange` under 450 with `zoomAfterPass` 0.
+- **Close to winning** (+1.6 … +1.8 se, so a longer run may take them): P-47 `chaseDiver` 0,
+  `emergencyUse` 0, `turnThrottle` 0.25, `convergenceFire` 3; Spitfire `bandMargin` 600.
+
+## Runs that stop (the night of 3a)
+
+The 3a Balance Lab run did not stop for sleep (sleep is off, no sleep events in the system log): it was
+killed outright at 03:40, most likely with the app's terminal tab. Now: `node tools/balance.mjs --resume
+<run.json>` finishes a stopped run (same plan and seeds, saved matches kept; the file is saved every 20
+matches; resume only with the same tactics and data). The trainer survives Ctrl-C (saves); killed
+outright it leaves `data/bot-tactics.json` untouched and now writes a checkpoint after every plane's step,
+`balance/results/train-bots-checkpoint.json` (git-ignored: the tactics so far and every trial). The night
+runs start detached (`Start-Process`), so closing the tab or the session no longer kills them.
+
+## Left for 3c
+
+- The boom pass: fires 0.3-0.6 s a run; break off the dive when the target turns head-on into it; a
+  climb-back that climbs instead of sinking after a pass from well above. `bandClimb` stays off unless the
+  retrain finds it.
+- Duels failing on the bot (16-seed numbers in `notes/night-duels.txt`): the Bf 109 and P-47 diving on the
+  Spitfire, boom-bf109-on-la5fn, boom-p38-on-la5fn, boom-p47-on-b239 (+0.19), chase-bf109-diver-v-b239, the
+  two high duels (+0.13, +0.25), turn-la5fn-v-p47 (+0.25, noise). Is the Spitfire LF too good high up
+  (plane numbers, climbs with the P-47 at 900+ on 60% power)? If so mark those duels `knownFail`.
+- Night runs started 2026-11-11 with `tools/night-3b.cmd` (detached): retrain (record has every trial),
+  then the 16-seed duel sweep (`balance/results/duels-3b-16.json`, `notes/night-duels.txt`) and the full
+  Balance Lab run (`notes/night-balance.txt`). Morning: read those, `git status` (the retrain's data
+  files are uncommitted), commit. Stopped Balance Lab run: `--resume` it.

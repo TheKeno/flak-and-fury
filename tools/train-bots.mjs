@@ -1,7 +1,8 @@
 // The bot trainer from the command line: the same search as the Balance Lab's "Train bots" button
 // (src/balance/trainer.js), on worker threads. Writes the trained tactics straight into
 // data/bot-tactics.json (the old ones go to data/bot-tactics.previous.json), saves the training record
-// in balance/results/, prints the plain-words summary, then starts a quick Balance Lab run.
+// in balance/results/ (and a checkpoint after every step, train-bots-checkpoint.json, in case the run is
+// killed outright), prints the plain-words summary, then starts a quick Balance Lab run.
 //
 //   node tools/train-bots.mjs                 train all six fighters (3 rounds, 10 seeds per opponent)
 //   options: --rounds N, --seeds N, --minutes N, --planes a,b,c, --threads N | --half,
@@ -72,7 +73,12 @@ async function main(args) {
   };
   const log = (text) => process.stdout.write(`\r${' '.repeat(70)}\r${text}\n`);
   const raw = JSON.parse(readFileSync(CURRENT, 'utf8'));
-  const result = await train(content.tactics, runJobs, { ...opts, log, cancelled: () => stopping });
+  // A checkpoint after every plane's step (the tactics so far and every trial), in case the run is killed
+  // outright: the data file is only written at the end, so a killed run leaves it as it was.
+  const CHECKPOINT = join(root, 'balance/results/train-bots-checkpoint.json');
+  mkdirSync(join(root, 'balance/results'), { recursive: true });
+  const onStep = ({ table, history }) => writeFileSync(CHECKPOINT, JSON.stringify({ saved: new Date().toISOString(), table, history }));
+  const result = await train(content.tactics, runJobs, { ...opts, log, onStep, cancelled: () => stopping });
 
   const dry = args.includes('--dry');
   if (!dry) {

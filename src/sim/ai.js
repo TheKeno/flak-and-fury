@@ -758,6 +758,7 @@ function fireRangeOf(p, skill, tac, diving) {
 const DIVE_LEAD = 0.5; // the most the dive-from-height nose lead may swing off the line of sight (rad)
 const DIVE_START = 350; // a dive starts no closer than this: closer is no pass, just a head-on merge
 const DIVE_RANGE = 1.6; // the dive opens fire this much further out
+const BAND_FIGHT = 250; // closer than this a diving style fights where it is instead of climbing to its band
 const RUN_OUT_TIME = 4; // seconds the run-out after a pass lasts at most before the climb back
 
 function chaseWant(world, p, b, skill, o, cmd) {
@@ -810,13 +811,23 @@ function chaseWant(world, p, b, skill, o, cmd) {
   // Far off with height to gain first: climb towards a point that much above it. Diving from above needs
   // the height (boomHeight at least): a dive from a little above is no dive, and with it alone the
   // style is a step down from turn fighting that the bot trainer's one-step search never gets past.
-  const heightOver = tac.style >= 0.5 ? Math.max(world.bots.boomHeight ?? 0, tac.heightOver) : tac.heightOver;
-  const over = o.y + heightOver - p.y;
+  // (heightOver adds to it: under boomHeight its steps did nothing, a trap for the trainer's search.)
+  const heightOver = tac.style >= 0.5 ? (world.bots.boomHeight ?? 0) + tac.heightOver : tac.heightOver;
+  // A diving style fights from its own height band (thin air: there its engine keeps its power and the
+  // others' fade): it climbs to bandClimb x its rated height first, however low the enemy is, and dives
+  // from there. Low down it has no speed edge over the others, only that height.
+  const bandY = tac.style >= 0.5 && p.def.ratedHeight != null
+    ? Math.min(p.def.ratedHeight * (tac.bandClimb ?? 1), world.map.ceiling - 100) : -Infinity;
+  const goal = Math.max(o.y + heightOver, bandY);
+  const over = goal - p.y;
   // (A diving bot already in its climb-back flies that instead: this climb heads for the enemy, which
   // behind it means a slow half loop.)
   const zooming = tac.style >= 0.5 && b.zoom?.phase === 'climb';
-  if (heightOver > 0 && d > 400 && over > heightOver * 0.3 && !zooming) {
-    const dir = Math.sign(o.x - p.x) || facing(p);
+  // (Already above it by the dive height: make the pass first, the climb-back then goes to the band.)
+  const toBand = goal > o.y + heightOver && d > BAND_FIGHT && p.y - o.y < heightOver;
+  if (heightOver > 0 && (d > 400 || toBand) && over > heightOver * 0.3 && !zooming) {
+    // Climbing to the band with the enemy near: away from it, so it climbs after us out of its own band.
+    const dir = (toBand && d < 700 ? Math.sign(p.x - o.x) : Math.sign(o.x - p.x)) || facing(p);
     return { angle: angleFor(dir, clamp(over / 200, 0.1, 0.45)), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
   }
   // Boom and zoom: attack only from above. Dive through firing (boom), run away from it at full speed,
@@ -827,7 +838,7 @@ function chaseWant(world, p, b, skill, o, cmd) {
   let boom = tac.style >= 0.5;
   if (boom) {
     const above = p.y - o.y;
-    const want = Math.max(60, heightOver);
+    const want = Math.max(60, heightOver, bandY - o.y);
     const climbSpeed = stall * Math.max(1.55, tac.minFightSpeed);
     if (!b.zoom) b.zoom = { phase: above > want * 0.6 ? 'dive' : 'climb', since: world.tick };
     if (b.zoom.phase === 'climb') {

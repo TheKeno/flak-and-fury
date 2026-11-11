@@ -9,8 +9,8 @@
 // [key, label, choices (the trainer's steps, smallest to largest; also its limits), default, help].
 export const TACTIC_FIELDS = [
   ['style', 'Fighting style', [0, 0.5, 1], 0, "0 turn-fights (stays on the enemy's tail, turning with it); 1 dives and climbs (boom and zoom: attacks only from above, dives through firing, runs and climbs away and comes again, never turning with it); 0.5 dives on it from above when it can, otherwise turn-fights."],
-  ['heightOver', 'Height over the enemy', [0, 50, 100, 150, 200, 300], 0, 'Height it climbs to above the enemy before attacking (world units): on the way in, and for boom and zoom before each dive. 0 flies straight at it.'],
-  ['minFightSpeed', 'Lowest fight speed', [1, 1.2, 1.35, 1.5, 1.7, 1.9], 1, 'Lowest speed it lets a fight take it to, as a multiple of the stall speed. Slower than this it stops pulling and dives to get speed back. 1: only the skill level stallMargin.'],
+  ['heightOver', 'Height over the enemy', [0, 50, 100, 150, 200, 300], 0, "Height it climbs to above the enemy before attacking (world units): on the way in, and for boom and zoom before each dive. 0 flies straight at it. A diving style (0.5+) climbs this much more than the bots' least dive height, boomHeight (150)."],
+  ['minFightSpeed', 'Lowest fight speed', [1, 1.35, 1.5, 1.7, 1.9], 1, 'Lowest speed it lets a fight take it to, as a multiple of the stall speed. Slower than this it stops pulling and dives to get speed back. 1: only the skill level stallMargin.'],
   ['breakOff', 'Break off after', [0, 1.5, 3, 5, 8], 0, 'Seconds with an enemy on its tail before it gives up the fight and dives away at full power to shake it off. 0 never breaks off.'],
   ['fireRange', 'Firing range', [0.6, 0.75, 0.9, 1, 1.15, 1.3], 1, 'Opening fire range, as a share of its skill level\'s fireRange. Lower waits to get close.'],
   ['turnThrottle', 'Throttle in turns', [0, 0.25, 0.5, 0.75, 1], 0, 'Power held in a hard turn after an enemy: 0 throttles back to the tightest-turn speed (as far as its skill turnFight goes), 1 keeps full power.'],
@@ -19,6 +19,7 @@ export const TACTIC_FIELDS = [
   ['extendRange', 'Run out after a pass', [250, 350, 450, 600], 450, 'Boom and zoom: after a diving pass it runs straight away at full power, level or a little down, until this far from the enemy, and only then climbs back up for the next pass (world units).'],
   ['zoomSpeed', 'Climb-back speed', [1.4, 1.6, 1.8, 2.1], 1.6, 'Boom and zoom: the speed it climbs back at after a pass, as a multiple of the stall. Higher climbs flatter and keeps more speed in hand; lower gets the height back sooner but nearer the stall.'],
   ['passLead', 'Aims ahead on the pass', [0, 0.15, 0.3, 0.5], 0, 'Diving pass: aims ahead of where the gun aim is swinging, this many seconds, so a stiff fast plane gets its nose onto the target instead of trailing it all the way down.'],
+  ['bandClimb', 'Climbs to its band', [0, 0.6, 0.8, 1], 0, "Diving styles (0.5 and 1) only, 0 off: before a fight, and after each pass, it climbs to this share of its engine's rated height, however low the enemy is, and dives from there (it turns to fight where it is only with the enemy close)."],
   ['bandMargin', 'Leaves its height band by', [100, 200, 350, 600, 2000], 2000, "How far above its engine's rated height it follows an enemy. An enemy higher than that is not climbed after: it waits under it in its own band, so the enemy has to come down to fight. 2000: follows anywhere."],
   ['chaseDiver', 'Chases a diver', [0, 1], 1, '1 follows an enemy that dives away fast; 0 lets it go and keeps its own height, waiting for it to climb back.'],
   ['fightDamaged', 'Fights on damaged', [0, 0.5, 1], 0, "How long it stays in the fight when hit: 0 turns for home at its skill level's hpReturn, 1 fights on to half that (and with a worse engine)."],
@@ -37,14 +38,25 @@ export const ROLE_FORCED = {
   allround: {},
   boom: { style: 0.5 },
 };
+// Diving knobs: only a diving style (0.5+) reads them. The trainer leaves them alone while a plane's
+// style is under 0.5 (they did nothing there: the part 3a retrain's dead trials), and the all-rounder
+// starts them at the boom role's values, so a style step to 0.5 comes with a diving set that works
+// (a one-step search never finds a change that only wins in a pair).
+export const DIVING_FIELDS = ['zoomAfterPass', 'extendRange', 'zoomSpeed', 'passLead', 'bandClimb'];
+const DIVING_START = { zoomAfterPass: 0, passLead: 0.3, extendRange: 450, zoomSpeed: 1.6, bandClimb: 0 };
 export const ROLE_DEFAULTS = {
   turn: { bandMargin: 200, fightDamaged: 0, emergencyUse: 0, convergenceFire: 1.5 },
-  allround: { bandMargin: 350, fightDamaged: 0.5, emergencyUse: 0.5, convergenceFire: 1.5 },
+  allround: { bandMargin: 350, fightDamaged: 0.5, emergencyUse: 0.5, convergenceFire: 1.5, ...DIVING_START },
   boom: { zoomAfterPass: 0, passLead: 0.3, bandMargin: 2000, fightDamaged: 0.5, emergencyUse: 0.5, convergenceFire: 2, extendRange: 450, zoomSpeed: 1.6 },
 };
 export const roleOf = (id) => ROLE_OF[id] ?? null;
-// The fields the trainer may search for a plane: all but its role's forced ones.
-export const trainableFields = (id) => TACTIC_FIELDS.filter(([k]) => !(k in (ROLE_FORCED[roleOf(id)] ?? {})));
+// The fields the trainer may search for a plane: all but its role's forced ones, and the diving knobs
+// only while it flies a diving style (values: its current tactics; none given: all).
+// emergencyUse 0.5 only adds the climb-back of a diving style, so without one it steps 0 <-> 1 (a step
+// that changes nothing is a step the one-step search never gets past: the part 3b knob check).
+export const trainableFields = (id, values = null) => TACTIC_FIELDS
+  .filter(([k]) => !(k in (ROLE_FORCED[roleOf(id)] ?? {})) && !(values && values.style < 0.5 && DIVING_FIELDS.includes(k)))
+  .map((f) => (values && values.style < 0.5 && f[0] === 'emergencyUse' ? [f[0], f[1], [0, 1], ...f.slice(3)] : f));
 
 export const DEFAULT_TACTICS = Object.fromEntries(TACTIC_FIELDS.map(([k, , , d]) => [k, d]));
 

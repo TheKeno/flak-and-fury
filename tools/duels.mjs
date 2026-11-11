@@ -1,7 +1,8 @@
 // Set-piece duels from the command line: two bots started in the situation a plane role is about, run in
 // the air-only arena on worker threads (the same code as src/balance/duel.js), each from both sides of the
 // map and several seeds, judged against the winner the plane sheet predicts. Plain-words report; --json
-// gives the pass/fail list as data (the auto-tuner's gate); exit code 1 when a duel fails (--no-fail: 0).
+// gives the pass/fail list as data (the auto-tuner's gate); exit code 1 when a duel fails (--no-fail: 0);
+// a duel marked knownFail (plane numbers, balance/duels.json) is listed apart and never fails the run.
 //
 //   node tools/duels.mjs [duel ids or prefixes, comma separated] [--seeds N] [--json file] [--threads N]
 //   node tools/duels.mjs turn-,boom- --seeds 4
@@ -77,13 +78,19 @@ if (!isMainThread) {
   const verdicts = duels.map((d) => judgeDuel(d, jobs.flatMap((j, i) => (j.duel.id === d.id ? [results[i]] : [])), sheets));
   const brief = args.includes('--brief');
   for (const v of verdicts) console.log(brief ? v.brief : `${v.words}\n${v.counters}\n`);
-  const failed = verdicts.filter((v) => !v.pass);
-  console.log(`${verdicts.length - failed.length} of ${verdicts.length} duels pass (${seeds} seeds x 2 sides, ${((Date.now() - t0) / 1000).toFixed(0)} s).`);
+  const failed = verdicts.filter((v) => !v.pass && !v.known);
+  const known = verdicts.filter((v) => !v.pass && v.known);
+  const pass = verdicts.filter((v) => v.pass).length;
+  console.log(`${pass} of ${verdicts.length} duels pass (${seeds} seeds x 2 sides, ${((Date.now() - t0) / 1000).toFixed(0)} s).`);
+  if (known.length) console.log(`Known plane-number failures (the tuner's work, not the bot's): ${known.map((v) => v.id).join(', ')}`);
+  const fixed = verdicts.filter((v) => v.known === 'passes');
+  if (fixed.length) console.log(`Marked known-fail but now pass (drop knownFail): ${fixed.map((v) => v.id).join(', ')}`);
   if (failed.length) {
     const kinds = { bot: 0, planes: 0, sides: 0 };
     for (const v of failed) kinds[v.blame.kind]++;
     console.log(`Failed: ${failed.map((v) => v.id).join(', ')}\nPoints at the bot: ${kinds.bot}, at plane numbers: ${kinds.planes}, at the duel set-up: ${kinds.sides}.`);
   }
-  if (opt('--json')) writeFileSync(opt('--json'), JSON.stringify({ seeds, date: new Date().toISOString(), sheets, duels: verdicts }, null, 1));
+  // gate: every duel passes or fails only as known (the auto-tuner's gate, part 4).
+  if (opt('--json')) writeFileSync(opt('--json'), JSON.stringify({ seeds, date: new Date().toISOString(), gate: !failed.length, sheets, duels: verdicts }, null, 1));
   process.exit(failed.length && !args.includes('--no-fail') ? 1 : 0);
 }

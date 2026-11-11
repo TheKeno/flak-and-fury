@@ -310,8 +310,8 @@ also the limits); the tuning panel's sliders go anywhere between the first and l
 | Field | What it does | Steps (default first) |
 |---|---|---|
 | `style` | 0 turn-fights (sits on the enemy's tail and turns with it). 1 boom and zoom: attacks only from above, dives through firing, runs away at full speed, climbs once clear and comes again, never turning with it (weak against bots in this game so far). 0.5 dives on it from above when it can, otherwise turn-fights. | 0; 0.5, 1 |
-| `heightOver` | Height (world units) it climbs to above the enemy before attacking: on the way in from more than 400 away, and for boom and zoom before each dive. 0 flies straight at it. | 0; 50 … 300 |
-| `minFightSpeed` | Lowest speed a fight may take it to, as a multiple of the stall speed. Slower, it stops pulling and dives to get speed back. 1: only the skill level's `stallMargin`. | 1; 1.2 … 1.9 |
+| `heightOver` | Height (world units) it climbs to above the enemy before attacking: on the way in from more than 400 away, and for boom and zoom before each dive. 0 flies straight at it. A diving style (0.5+) climbs `boomHeight` (150) plus this (part 3b: under 150 its steps did nothing). | 0; 50 … 300 |
+| `minFightSpeed` | Lowest speed a fight may take it to, as a multiple of the stall speed. Slower, it stops pulling and dives to get speed back. 1: only the skill level's `stallMargin`. (1.2 dropped in part 3b: under the normal skill's margin it did nothing.) | 1; 1.35 … 1.9 |
 | `breakOff` | Seconds with an enemy sitting on its tail before it gives the fight up and dives away straight ahead at full (and emergency) power for 3 to 5 s. 0 never. | 0; 1.5, 3, 5, 8 |
 | `fireRange` | Opening fire range, as a share of the skill level's `fireRange`. | 1; 0.6 … 1.3 |
 | `turnThrottle` | Power kept in a hard turn after an enemy: 0 throttles back towards the tightest-turn speed (as far as the skill's `turnFight` goes), 1 keeps full power. | 0; 0.25 … 1 |
@@ -319,12 +319,13 @@ also the limits); the tuning panel's sliders go anywhere between the first and l
 | `extendRange` | Run-out distance after a pass (world units), before the climb back (`zoomAfterPass` 1, and style 1). | 450; 250 … 600 |
 | `zoomSpeed` | Climb-back speed after a pass, multiple of the stall. | 1.6; 1.4 … 2.1 |
 | `passLead` | Diving pass: aims ahead of where the gun aim is swinging, this many seconds, so a stiff fast plane gets its nose onto the target instead of trailing it. Role boom: 0.3. | 0; 0.15 … 0.5 |
+| `bandClimb` | Diving styles (0.5+) only: before a fight and after each pass it climbs to this share of its `ratedHeight` (capped 100 under the ceiling), however low the enemy, and dives from there; closer than 250 it fights where it is. 0 off (part 3b: on, it lost the turn duels and did not win the dive duels). | 0; 0, 0.6 … 1 |
 | `bandMargin` | How far above its engine's `ratedHeight` it follows an enemy; higher enemies are not climbed after, it waits under them in its band. Roles: turn 200, all-rounder 350, boom 2000 (anywhere). | 2000; 100 … 2000 |
 | `chaseDiver` | 1 follows an enemy diving away fast; 0 lets it go, holds its height and waits for it to come back. Forced 0 for turn fighters. | 1; 0 |
 | `fightDamaged` | 0 turns home at the skill's `hpReturn`; 1 fights on to half of it (and with engine damage up to 0.75). Roles: turn 0, all-rounder and boom 0.5. | 0; 0.5, 1 |
 | `finishBonus` | Prefers a damaged or smoking enemy over a nearer healthy one by this many world units (at full damage). | 100; 0 … 400 |
 | `convergenceFire` | Wing guns only: opens fire no further than this times the plane's `convergence`. Roles: 1.5, boom 2. | 1.5; 1 … 3 |
-| `emergencyUse` | 0 emergency power only to survive (breaking away, limping home); 0.5 also for the run-out and climb back after a pass; 1 also to catch an enemy running away. Roles: turn 0, all-rounder and boom 0.5. | 0; 0.5, 1 |
+| `emergencyUse` | 0 emergency power only to survive (breaking away, limping home); 0.5 also for the run-out and climb back after a pass; 1 also to catch an enemy running away. Roles: turn 0, all-rounder and boom 0.5. Without a diving style 0.5 is the same as 0, so the trainer steps it 0 ↔ 1 there. | 0; 0.5, 1 |
 
 **Roles** (`ROLE_OF`, `ROLE_FORCED`, `ROLE_DEFAULTS` in `src/sim/tactics.js`; step 4, part 3a): turn fighter
 (Ki-43, B-239), all-rounder (Spitfire LF, La-5FN), boom and zoom (Bf 109 G-6, P-47D, P-38J). A role
@@ -336,6 +337,10 @@ it attacks, the collision look-ahead is 0.6 s instead of 1.8 (`ATTACK_CLOSE_TIME
 is no longer broken off before it is in range; a diver turning back into its dive goes nose-down (a
 wingover), never over the top; a style 0.5+ bot in its climb back, threatened, dives away (extend)
 instead of break-turning when it has 180 of height or is faster.
+The **diving knobs** (`zoomAfterPass`, `extendRange`, `zoomSpeed`, `passLead`, `bandClimb`: `DIVING_FIELDS`)
+do nothing under style 0.5, so the trainer searches them only for a plane flying a diving style; the
+all-rounder starts them at the boom role's values, so a trained style step to 0.5 comes with a working
+diving set (part 3b).
 
 **The trainer** (`src/balance/trainer.js`, search loop `src/balance/search.js`, shared later with the
 Balance Lab's stage 2 auto-tuner): each round, plane by plane, it tries every tactic one step either

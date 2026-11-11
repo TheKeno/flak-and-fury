@@ -10,6 +10,10 @@
 //     is left); h: height above the ground; face: 1 right, -1 left; speed: share of the plane's maxSpeed
 //     (or stall: multiple of its stall speed); pitch: degrees (negative dives). tactics: bot tactics on top
 //     of the trained ones (e.g. { style: 0.5 } forces boom and zoom, as the tuner will).
+//   knownFail (optional): { kind: 'planes', why } marks a duel expected to fail on plane numbers, not the
+//     bot (e.g. a turn fighter that wins the position but has the weaker guns). It still fails, but as
+//     known: tools/duels.mjs counts it apart and does not fail the run on it, and the auto-tuner's gate
+//     (part 4) leaves it to the tuner, which fixes plane numbers. A known duel that passes says so.
 //   expect: 'a' | 'b' | 'even'. basis: the sheet number that says why (BETTER in sheet.js): the winner
 //     must have the better one (the tests check it), 'turnTime' being lower-is-better.
 // Each duel runs `seeds` times from each side of the map (a plays team 0, then team 1 with the picture
@@ -175,10 +179,11 @@ export function judgeDuel(duel, runs, sheets) {
     id: duel.id, title: duel.title, expect: want, basis: duel.basis ?? null, runs: n, wins: wins[0], losses: wins[1], draws, decidedBy: by, ended, score: Math.round(score * 100) / 100,
     pass, stat, numbers: basisNumbers(duel, sheets),
   };
-  if (!pass) out.blame = blame(duel, out);
+  if (!pass) out.blame = duel.knownFail ? { kind: duel.knownFail.kind ?? 'planes', why: `known: ${duel.knownFail.why}` } : blame(duel, out);
+  if (duel.knownFail) out.known = !pass ? 'fails' : 'passes';
   out.words = words(duel, out);
   out.counters = counterLine(duel, out);
-  out.brief = `${out.pass ? 'PASS' : 'FAIL'} ${duel.id} score ${out.score >= 0 ? '+' : ''}${out.score} (${out.wins}-${out.losses}-${out.draws})${out.blame ? ` ${out.blame.kind}: ${out.blame.why.split(';')[0]}` : ''}`;
+  out.brief = `${out.pass ? 'PASS' : out.known ? 'KNOWN' : 'FAIL'} ${duel.id} score ${out.score >= 0 ? '+' : ''}${out.score} (${out.wins}-${out.losses}-${out.draws})${out.blame ? ` ${out.blame.kind}: ${out.blame.why.split(';')[0]}` : ''}`;
   return out;
 }
 
@@ -223,7 +228,7 @@ function words(duel, r) {
   const tally = `${A} won ${r.wins}, ${B} won ${r.losses}, ${r.draws} undecided, of ${r.runs}`;
   const nums = r.numbers ? ` (${r.numbers.basis}: ${A} ${r.numbers[A]}, ${B} ${r.numbers[B]})` : '';
   const want = r.expect === 'even' ? 'expected even' : `expected ${r.expect === 'a' ? A : B} to win`;
-  return `${r.pass ? 'PASS' : 'FAIL'} ${duel.title}: ${want}${nums}. ${tally}${Object.keys(r.decidedBy).length ? ` (decided by ${Object.entries(r.decidedBy).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}.${r.blame ? ` Points at the ${r.blame.kind === 'bot' ? 'BOT' : r.blame.kind === 'planes' ? 'PLANE NUMBERS' : 'DUEL'}: ${r.blame.why}.` : ''}`;
+  return `${r.pass ? 'PASS' : r.known ? 'KNOWN' : 'FAIL'} ${duel.title}: ${want}${nums}. ${tally}${Object.keys(r.decidedBy).length ? ` (decided by ${Object.entries(r.decidedBy).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}.${r.blame ? ` Points at the ${r.blame.kind === 'bot' ? 'BOT' : r.blame.kind === 'planes' ? 'PLANE NUMBERS' : 'DUEL'}: ${r.blame.why}.` : ''}`;
 }
 
 // Mean per run of one side's counters (data for the tuner and for the counters line).

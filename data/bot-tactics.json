@@ -17,7 +17,8 @@
     "fightDamaged": 0,
     "finishBonus": 100,
     "convergenceFire": 1.5,
-    "emergencyUse": 0
+    "emergencyUse": 0,
+    "bandClimb": 0
   },
   "planes": {
     "bf109g6": {
@@ -45,10 +46,10 @@
       "breakOff": 0,
       "fireRange": 1.15,
       "turnThrottle": 0,
-      "zoomAfterPass": 1,
+      "zoomAfterPass": 0,
       "extendRange": 450,
       "zoomSpeed": 1.6,
-      "passLead": 0,
+      "passLead": 0.3,
       "bandMargin": 350,
       "chaseDiver": 1,
       "fightDamaged": 0.5,
@@ -81,10 +82,10 @@
       "breakOff": 0,
       "fireRange": 1.15,
       "turnThrottle": 0,
-      "zoomAfterPass": 1,
+      "zoomAfterPass": 0,
       "extendRange": 450,
       "zoomSpeed": 1.6,
-      "passLead": 0,
+      "passLead": 0.3,
       "bandMargin": 350,
       "chaseDiver": 1,
       "fightDamaged": 0.5,

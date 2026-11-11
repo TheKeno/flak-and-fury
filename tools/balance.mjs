@@ -6,6 +6,9 @@
 //   node tools/balance.mjs fighters --matchup bf109g6,spitfire
 //   options: --threads N (default: all cores), --half (half the cores), --count N (matches per setup),
 //            --minutes N, --out file.json, --report run.json (print the report of a saved run, no matches)
+//   node tools/balance.mjs --resume run.json         finish a stopped run: same plan and seeds, the matches
+//            already in the file are kept and skipped (the file is saved every 20 matches, so a killed run
+//            loses at most those). Only resume with the same bot tactics and data the run started with.
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
@@ -22,7 +25,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
 
 // Options that take a value; anything else not starting with -- is the scenario name.
-const VALUED = ['--matchup', '--threads', '--count', '--minutes', '--out', '--report'];
+const VALUED = ['--matchup', '--threads', '--count', '--minutes', '--out', '--report', '--resume'];
 function option(args, name) {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
@@ -60,30 +63,38 @@ async function main(args) {
     printReport(JSON.parse(readFileSync(option(args, '--report'), 'utf8')));
     return;
   }
-  const [name] = positional(args);
+  const resume = option(args, '--resume');
+  const [name] = resume ? [true] : positional(args);
   if (!name) {
     console.log('Usage: node tools/balance.mjs <scenario> [--full | --matchup a,b] [--threads N | --half] [--count N] [--out file]');
     process.exit(1);
   }
-  const scenario = readJson(`balance/scenarios/${name}.json`);
-  const matchup = option(args, '--matchup')?.split(',');
-  const mode = matchup ? 'matchup' : args.includes('--full') ? 'full' : 'quick';
-  if (option(args, '--count')) scenario.sizes = { ...scenario.sizes, [mode]: Number(option(args, '--count')) };
-  if (option(args, '--minutes')) scenario.minutes = Number(option(args, '--minutes'));
+  const old = resume ? JSON.parse(readFileSync(resume, 'utf8')) : null;
+  const scenario = old ? old.scenario : readJson(`balance/scenarios/${name}.json`);
+  const matchup = old ? old.matchup : option(args, '--matchup')?.split(',');
+  const mode = old ? old.mode : matchup ? 'matchup' : args.includes('--full') ? 'full' : 'quick';
+  if (!old && option(args, '--count')) scenario.sizes = { ...scenario.sizes, [mode]: Number(option(args, '--count')) };
+  if (!old && option(args, '--minutes')) scenario.minutes = Number(option(args, '--minutes'));
   const content = loadContent([scenario.map ?? 'countryside']);
   const names = Object.fromEntries(Object.entries(content.planeDefs).map(([id, d]) => [id, d.name]));
-  const run = newRun(scenario, { mode, matchup, names });
-  const jobs = planMatches(run.scenario, mode, matchup);
+  const run = old ? { ...old, finished: undefined } : newRun(scenario, { mode, matchup, names });
+  const all = planMatches(run.scenario, mode, matchup);
+  // Resuming: a match is known by its planes and seed; the ones already saved are kept, not flown again.
+  const key = (m) => `${m.a}|${m.b}|${m.seed}`;
+  const have = new Set((old?.matches ?? []).map(key));
+  const kept = (old?.matches ?? []).filter((m) => all.some((j) => key(j) === key(m)));
+  const jobs = all.filter((j) => !have.has(key(j)));
+  if (old) console.log(`Resuming ${resume}: ${kept.length} of ${all.length} matches already flown.`);
   const cores = availableParallelism();
   const threads = Math.min(jobs.length, Number(option(args, '--threads')) || (args.includes('--half') ? Math.max(1, Math.floor(cores / 2)) : cores));
-  const out = option(args, '--out') ?? join(root, 'balance/results', runFileName(run));
-  console.log(`${run.scenario.name}: ${mode}, ${jobs.length} matches of ${run.scenario.minutes} game-minutes on ${threads} threads.`);
+  const out = option(args, '--out') ?? resume ?? join(root, 'balance/results', runFileName(run));
+  console.log(`${run.scenario.name}: ${mode}, ${jobs.length} matches to fly of ${run.scenario.minutes} game-minutes on ${threads} threads.`);
 
   const t0 = Date.now();
   const results = new Array(jobs.length);
   let done = 0;
   const save = () => {
-    run.matches = results.filter(Boolean);
+    run.matches = [...kept, ...results.filter(Boolean)];
     mkdirSync(join(root, 'balance/results'), { recursive: true });
     writeFileSync(out, JSON.stringify(run));
   };

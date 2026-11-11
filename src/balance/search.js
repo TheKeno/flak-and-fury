@@ -46,11 +46,12 @@ export async function searchStep(fields, values, evaluate, opts = {}) {
   });
   const steps = [...wins.values()].sort((p, q) => q.result.diff - p.result.diff);
   const change = (t) => ({ key: t.key, from: values[t.key], to: t.value, diff: t.result.diff, se: t.result.se });
-  if (!steps.length) return { values, changes: [], scores: base, tried: trials.length };
-  if (steps.length === 1) return { values: steps[0].values, changes: [change(steps[0])], scores: steps[0].scores, tried: trials.length };
+  const all = trials.map((t) => ({ key: t.key, value: t.value, diff: t.result.diff, se: t.result.se })); // every trial
+  if (!steps.length) return { values, changes: [], scores: base, tried: trials.length, trials: all };
+  if (steps.length === 1) return { values: steps[0].values, changes: [change(steps[0])], scores: steps[0].scores, tried: trials.length, trials: all };
   const together = { ...values };
   for (const t of steps) together[t.key] = t.value;
   const [both] = await evaluate([together]);
-  if (mean(both) >= mean(steps[0].scores)) return { values: together, changes: steps.map(change), scores: both, tried: trials.length + 1 };
-  return { values: steps[0].values, changes: [change(steps[0])], scores: steps[0].scores, tried: trials.length + 1 };
+  if (mean(both) >= mean(steps[0].scores)) return { values: together, changes: steps.map(change), scores: both, tried: trials.length + 1, trials: all };
+  return { values: steps[0].values, changes: [change(steps[0])], scores: steps[0].scores, tried: trials.length + 1, trials: all };
 }

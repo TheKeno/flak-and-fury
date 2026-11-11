@@ -62,6 +62,13 @@ test('a role forces its tactics, starts the rest at its values, and the trainer 
   assert.equal(tacticsIn(table, 'ki43').chaseDiver, 0); // a turn fighter never chases a diver
   assert.ok(!trainableFields('p47d').some(([k]) => k === 'style'));
   assert.ok(trainableFields('bf110').some(([k]) => k === 'style'));
+  // No step that changes nothing (part 3b): diving knobs only for a diving style, emergencyUse 0 <-> 1 without one.
+  const turn = trainableFields('ki43', tacticsIn(null, 'ki43'));
+  assert.ok(!turn.some(([k]) => k === 'zoomAfterPass' || k === 'passLead'));
+  assert.deepEqual(turn.find(([k]) => k === 'emergencyUse')[2], [0, 1]);
+  const boom = trainableFields('p47d', tacticsIn(null, 'p47d'));
+  assert.ok(boom.some(([k]) => k === 'zoomAfterPass'));
+  assert.deepEqual(boom.find(([k]) => k === 'emergencyUse')[2], [0, 0.5, 1]);
 });
 
 test('the default tactics fly exactly as the bots did before tactics existed', () => {

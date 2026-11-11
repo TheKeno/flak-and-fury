@@ -23,7 +23,7 @@ export const TRAIN_DEFAULTS = {
 };
 
 // The fields searched for a plane: its role's forced tactics are left alone.
-const fieldsOf = (id) => trainableFields(id).map(([key, , choices]) => [key, choices]);
+const fieldsOf = (id, values) => trainableFields(id, values).map(([key, , choices]) => [key, choices]);
 const round2 = (x) => Math.round(x * 100) / 100;
 
 // A copy of a table with one plane's values replaced.
@@ -86,14 +86,15 @@ function tableStats(o, jobs, results) {
 // current tactics each round (the start table's; later rounds may differ a little), plus the check.
 export function plannedMatches(opts, table = null) {
   const o = { ...TRAIN_DEFAULTS, ...opts };
-  const perRound = o.planes.reduce((n, id) => n + 1 + neighbours(fieldsOf(id), tacticsIn(table, id)).length, 0);
+  const perRound = o.planes.reduce((n, id) => n + 1 + neighbours(fieldsOf(id, tacticsIn(table, id)), tacticsIn(table, id)).length, 0);
   return o.rounds * perRound * o.planes.length * o.seeds + 2 * tableJobs(o, null).length;
 }
 
 // Runs a training. start: the current tactics table (data/bot-tactics.json, notes removed).
 // runJobs(jobs) -> Promise<results[]> (in order; may resolve early with fewer if cancelled).
 // log(text) reports progress in words; cancelled() stops after the step in hand (best so far is kept).
-export async function train(start, runJobs, { log = () => {}, cancelled = () => false, ...opts } = {}) {
+// onStep({ table, history }) after each plane's step: a caller can save it, so a hard kill loses at most one step.
+export async function train(start, runJobs, { log = () => {}, cancelled = () => false, onStep = () => {}, ...opts } = {}) {
   const o = { ...TRAIN_DEFAULTS, ...opts };
   const startedAt = new Date().toISOString();
   const before = structuredClone(start ?? { default: {}, planes: {} });
@@ -127,9 +128,14 @@ export async function train(start, runJobs, { log = () => {}, cancelled = () => 
           const per = jobs.length / list.length;
           return list.map((_, k) => res.slice(k * per, (k + 1) * per).map((m, j) => score(m, jobs[k * per + j].side, o.penalty)));
         };
-        const step = await searchStep(fieldsOf(id), tacticsIn(table, id), evaluate, { z: o.z, floor: o.floor });
+        const now = tacticsIn(table, id);
+        const step = await searchStep(fieldsOf(id, now), now, evaluate, { z: o.z, floor: o.floor });
         table = withPlane(table, id, step.values);
-        history.push({ round: r, plane: id, changes: step.changes.map((c) => ({ ...c, diff: round2(c.diff), se: round2(c.se) })) });
+        // Every trial's gain and noise too, so a later look can tell knobs that barely matter from ones
+        // that were close (tools/knob-check.mjs reads the same numbers).
+        const trials = step.trials.map((t) => ({ key: t.key, value: t.value, diff: round2(t.diff), se: round2(t.se) }));
+        history.push({ round: r, plane: id, changes: step.changes.map((c) => ({ ...c, diff: round2(c.diff), se: round2(c.se) })), trials });
+        onStep({ table, history });
         log(`Round ${r} of ${o.rounds}, ${o.names?.[id] ?? id}: ${step.changes.length ? step.changes.map((c) => `${c.key} ${c.from} → ${c.to}`).join(', ') : 'no change beat the noise'}.`);
       }
     }
