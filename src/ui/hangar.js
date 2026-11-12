@@ -7,7 +7,7 @@ import { createHangarView, HANGAR_STYLE } from './hangar-view.js';
 
 const $ = (id) => document.getElementById(id);
 const json = async (p) => (await fetch(p, { cache: 'no-store' })).json();
-const [planeDefs, weapons, nations, settings] = await Promise.all([json('data/planes.json'), json('data/weapons.json'), json('data/nations.json'), json('data/settings.json')]);
+const [planeDefs, weapons, nations, settings, cards] = await Promise.all([json('data/planes.json'), json('data/weapons.json'), json('data/nations.json'), json('data/settings.json'), json('data/plane-cards.json').catch(() => ({}))]);
 
 // localStorage can be missing or refuse; the page then just forgets between visits.
 let storage;
@@ -33,7 +33,7 @@ function spriteOf(id) {
 }
 
 document.head.append(Object.assign(document.createElement('style'), { textContent: HANGAR_STYLE }));
-const view = createHangarView({ planeDefs, weapons, nations, settings, spriteOf });
+const view = createHangarView({ planeDefs, weapons, nations, settings, spriteOf, cards: cards.planes ?? null });
 
 // Without loadout editing every plane gets its standard load (saved loads are ignored).
 const first = sanitizeChoice(planeDefs, weapons, LOADOUT_EDITING ? saved : { defId: saved.defId }, planeIds(planeDefs)[0]);

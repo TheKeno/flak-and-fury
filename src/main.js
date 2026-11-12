@@ -690,6 +690,7 @@ const hangar = createHangarPanel({
   weapons: content.weapons,
   nations: content.nations,
   settings: content.settings,
+  cards: content.planeCards,
   keyName: keyboard.keyName,
   on: {
     choose: (req) => askSeat(req),

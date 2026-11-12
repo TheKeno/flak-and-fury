@@ -1,8 +1,19 @@
 # Auto-tuner (plane roles step 4, part 4)
 
 The spec is the ROADMAP Decisions entry "Plane roles and balancing plan", step 4 part 4, **as changed
-2026-11-12** (balancing goals; even front push; duels reported, not a gate; roles are identity; the
-style check a guard; six fighters only; 8 h, no retrain).
+2026-11-12** (balancing goals; **air-to-air** in the arena by exchange share, front push moved to step 5;
+duels reported, not a gate; roles are identity; the style check a guard; six fighters with the Zero instead
+of the Ki-43; 8 h, no retrain) and the fighter design pass (`notes/fighter-design.md`): the tuner fine-tunes
+within ±15% around the designed numbers.
+
+**Air-to-air (version 2, 2026-11-12):** the tuner flies the bot trainer's arena (no ground war), 4 against 4,
+8 game-minutes, seeds from 9001. Its number per match is the **exchange share**: of all planes lost, the share
+that were the enemy's (own crashes count as losses). Internally `push` = share - 50 in points (positive: too
+strong), so the search is unchanged. Even: 45-55% (`band` 5); far off: 10 points (10% steps); a kept change
+moves the plane at least 1 point; no matchup past 70/30 that gets worse (`matchupLimit` 20). An arena match
+is about 0.45 s wall on 16 threads, so: 60 gate seeds, screening on 4 then 16, 100 when borderline. The
+confirm is the tuner's own (`check`): today against the tuned numbers on fresh seeds 101-140, and on 10 seeds
+at easy and ace; then the duels with the tuned numbers. The Lab report reads both versions (`measure`).
 
 ## Files
 
@@ -26,9 +37,8 @@ style check a guard; six fighters only; 8 h, no retrain).
   gate); **mild counters** (a matchup's kills-per-life ratio past 2.3 may not get worse by 10%). The
   style guard is a stand-in for "a free training of the turn fighters must still pick turning" (a
   retrain per trial is far too slow).
-- `tools/tune-planes.mjs`: the run. Before (duels, quick runs at easy and ace), gate, tuning while the
-  time left covers a cycle and the confirm, confirm with `FF_PLANES` (full run, duels, easy and ace),
-  then the record `balance/results/<date>-tune-planes.json` (`kind: 'tuning'`). Checkpoint after every
+- `tools/tune-planes.mjs`: the run. Before (the duels), gate, tuning while the time left covers a cycle
+  and the confirm, the confirm (the tuner's own check; the duels with `FF_PLANES`), then the record `balance/results/<date>-tune-planes.json` (`kind: 'tuning'`). Checkpoint after every
   step: `balance/results/tune-checkpoint.json` (git-ignored); `--resume` carries on. `--quick` runs every
   phase small, to test the tool.
 - `FF_PLANES` (env, lever multipliers as JSON): `tools/content.mjs` applies it, so `tools/balance.mjs`
@@ -43,13 +53,12 @@ style check a guard; six fighters only; 8 h, no retrain).
 
 ## Costs
 
-A 20-minute match is about 28 s on one thread; 16 threads fly about 30 a minute when the batch is big
-(each screening stage is one batch for that reason; small batches leave threads idle at the end). An 8 h
-budget: before (duels, easy and ace: about 720 matches, 25 min), gate (30 setups x 30 seeds = 900, 30 min),
-confirm (full run 1800 + easy and ace 720: about 85 min). That leaves about 5.5 h for tuning: a cycle is at
-most about 1000 matches (35 min), so 9-10 cycles, enough for 3 steps on each of the two planes that are
-off (P-47 +26 m, Ki-43 -28 m after 3d) and a few more. The tuner ends when the time left no longer
-covers a cycle and the confirm, measured from its own match rate.
+Air-to-air (version 2): an 8-minute 4 v 4 arena match is about 0.45 s wall on 16 threads (the 20-minute
+ground-war matches of version 1: about 2 s). Gate: 30 setups x 60 seeds = 1800 matches (about 14 min). A cycle
+at most about 15 levers x 10 setups x 4 seeds, 4 x 120 more, 2 x 440 more: about 2000 matches (15 min). The
+confirm: 30 x 40 x 2 + 30 x 10 x 2 x 2 = 3600 (about 27 min). An 8 h budget leaves room for about 28 cycles, so
+the run usually ends settled, not on time. The tuner stops when the time left no longer covers a cycle and the
+confirm, measured from its own match rate.
 
 ## Runs
 
@@ -61,3 +70,8 @@ covers a cycle and the confirm, measured from its own match rate.
   Trial files deleted.
 - **2026-11-12, before the first long run (owner's yes):** only chase planes beyond the noise, 10% steps
   while far off, stuck twice stays stuck (tested on the stand-in battle; the CLI is unchanged).
+- **2026-11-12, `--quick` trial of the air-to-air version** (4 gate seeds, 14 min): every phase ran. Noisy, but
+  a clear signal: Spitfire LF about 69%, P-47 29%, Bf 109 38% (the Zero, La-5FN and B-239 near even). The bots
+  can't fly boom and zoom, so the boom planes lose in the air, and the tuner's only kept steps made them better
+  turners (Bf 109 turn rate +15%): against their identity, and the style guard didn't stop it. To settle with
+  the owner before the 8 h run. Trial files deleted.

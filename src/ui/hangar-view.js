@@ -39,6 +39,11 @@ export const HANGAR_STYLE = `
 .hv .start { display: block; margin: 4px auto 0; min-width: 20rem; padding: .7rem 2rem; font-size: 1.4em; letter-spacing: .12em; color: #e8c860; background: #2a2610; border-color: #e8c860; box-shadow: 0 4px 0 #3a2a10; animation: hv-pulse 1.4s ease-in-out infinite; }
 .hv .start:hover:not(:disabled) { background: #3a3420; color: #fff2b8; border-color: #fff2b8; }
 .hv .hint { text-align: center; margin-top: 8px; }
+.hv .tag { margin: 2px 0 6px; color: #d8d0b0; }
+.hv .char { display: grid; grid-template-columns: 110px 1fr; gap: 3px 8px; align-items: center; }
+.hv .cbar { height: 8px; background: #14171a; border: 1px solid #33352a; }
+.hv .cbar i { display: block; height: 100%; background: #8a7a48; }
+.hv .tips { margin-top: 6px; }
 .hv .bar { height: 12px; background: #14171a; border: 2px solid #33352a; position: relative; }
 .hv .bar i { position: absolute; inset: 0 auto 0 0; background: #a8905c; }
 .hv .bar i.full { background: #a8603f; }
@@ -60,7 +65,33 @@ const AMMO_STEPS = [1, 0.75, 0.5, 0.25];
 // view.draw(state, h) returns the element to put in the page.
 //   state: { defId, loadout (list or null), guns (explicit choice or null = standard), editable, note, title? , footer? }
 //   h: { pickPlane(id), change({ loadout?, guns? }), close? , closeLabel? }
-export function createHangarView({ planeDefs, weapons, nations, settings, spriteOf }) {
+// The character section (fighter design pass, 2026-11-12: a plane's character shows here, not in the HUD): bars for
+// the seven attributes from data/plane-cards.json (the plane sheet: tools/plane-cards.mjs), each against the
+// planes of the same role (all planes when it is alone in its role), the plane's line on how it wins
+// (planes.json howItWins), and the speeds that matter flying it in the game's km/h (as the HUD's SPD).
+const KMH = (v) => Math.round(v * 3.6 * 0.4 * 3.2); // src/render/hud.js speedValue
+const ATTRS = [['speedLow', 'Speed low', 1], ['speedHigh', 'Speed high', 1], ['climb', 'Climb', 1], ['turn', 'Turn', -1], ['dive', 'Dive', 1], ['firepower', 'Firepower', 1], ['toughness', 'Toughness', 1]];
+function characterSection(def, id, planeDefs, cards) {
+  const card = cards?.[id];
+  if (!card) return def.howItWins ? [el('h3', {}, 'CHARACTER'), el('div', { className: 'tag' }, def.howItWins)] : [];
+  const peers = Object.keys(cards).filter((k) => planeDefs[k]?.role === def.role);
+  const field = peers.length > 1 ? peers : Object.keys(cards);
+  const rows = ATTRS.map(([key, label, dir]) => {
+    const vals = field.map((k) => cards[k][key] * dir);
+    const lo = Math.min(...vals);
+    const hi = Math.max(...vals);
+    const share = hi > lo ? (card[key] * dir - lo) / (hi - lo) : 0.5;
+    return [el('span', { className: 'dim' }, label), el('div', { className: 'cbar' }, el('i', { style: `width:${Math.round(12 + 88 * share)}%` }))];
+  }).flat();
+  const tips = [];
+  if (card.tightBelow) tips.push(`Turns tightest below ${KMH(card.tightBelow)} km/h`);
+  tips.push(`stalls at ${KMH(card.stall)}`);
+  if (card.stiffAbove) tips.push(`controls stiffen above ${KMH(card.stiffAbove)}`);
+  return [el('h3', {}, 'CHARACTER'), ...(def.howItWins ? [el('div', { className: 'tag' }, def.howItWins)] : []), el('div', { className: 'char' }, ...rows), el('div', { className: 'tips dim' }, `${tips.join(', ')}.`)];
+}
+
+// cards: data/plane-cards.json's planes (optional: without it only the how-it-wins line shows).
+export function createHangarView({ planeDefs, weapons, nations, settings, spriteOf, cards: planeCards = null }) {
   let lastPick = { id: null, at: 0 }; // for double click on a card
   const cards = new Map(); // one canvas per plane, drawn when its sprite is ready, reused between redraws
 
@@ -191,7 +222,7 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
     const shown = hasBombs(def) ? state.loadout ?? presets[0].loadout : def.loadout ?? [];
     const bombs = shown.filter((l) => l.weapon).map((l) => `${l.count ?? 1} × ${weapons[l.weapon]?.name ?? l.weapon}`);
     const guns = gunRows(def, weapons, null).filter((r) => r.weapon && r.count > 0).map((r) => `${r.count} × ${weapons[r.weapon]?.name ?? r.weapon}`);
-    const opts = el('div', { className: 'opts' }, el('div', { className: 'show' }, canvas), el('h3', {}, 'LOADOUT'),
+    const opts = el('div', { className: 'opts' }, el('div', { className: 'show' }, canvas), ...characterSection(def, state.defId, planeDefs, planeCards), el('h3', {}, 'LOADOUT'),
       ...(hasBombs(def) && presets.length > 1 ? [el('div', { className: 'row' }, ...presets.map((p, i) => el('button', {
         disabled: !state.editable,
         className: i === presetIndex(def, shown) ? 'on' : '',
@@ -218,7 +249,7 @@ export function createHangarView({ planeDefs, weapons, nations, settings, sprite
     const withBombs = hasBombs(def) && state.loadout;
     const s = { ...state, presetIndex: presetState(def, state) };
     const opts = el('div', { className: 'opts' });
-    opts.append(el('h3', {}, 'PRESETS'), presetsRow(def, s, h));
+    opts.append(...characterSection(def, state.defId, planeDefs, planeCards), el('h3', {}, 'PRESETS'), presetsRow(def, s, h));
     if (withBombs) opts.append(...bombsSection(def, s, h));
     if (gunRows(def, weapons, null).length) opts.append(...gunsSection(def, s, h));
     // ENGINE: shown only where the plane really had a choice; none have data yet.

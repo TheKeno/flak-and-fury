@@ -175,7 +175,8 @@
       "gearRatio": 0.593,
       "idleSource": "estimated"
     },
-    "airRole": "boom and zoom"
+    "airRole": "boom and zoom",
+    "howItWins": "Climb, dive, climb again. Light guns and stiff controls when fast: never turn-fight."
   },
   "spitfire": {
     "name": "Spitfire LF Mk IX",
@@ -376,7 +377,8 @@
       "gearRatio": 0.477,
       "idleSource": "estimated"
     },
-    "airRole": "all-rounder"
+    "airRole": "all-rounder",
+    "howItWins": "Good at everything, best at nothing. Climbs and turns well, but the ammunition runs out fast."
   },
   "p47d": {
     "name": "P-47D Thunderbolt",
@@ -546,7 +548,8 @@
       "gearRatio": 0.5,
       "idleSource": "estimated"
     },
-    "airRole": "boom and zoom"
+    "airRole": "boom and zoom",
+    "howItWins": "Dive, shoot, zoom away. Tough, heavily armed, strongest up high; slow to climb and poor in a turn."
   },
   "la5fn": {
     "name": "La-5FN",
@@ -687,7 +690,8 @@
       "gearRatio": 0.7,
       "idleSource": "estimated"
     },
-    "airRole": "all-rounder"
+    "airRole": "all-rounder",
+    "howItWins": "The fastest thing down low, and a strong climber. Fades badly up high."
   },
   "ki43": {
     "name": "Ki-43-II Hayabusa",
@@ -828,7 +832,8 @@
       "gearRatio": 0.7,
       "idleSource": "estimated"
     },
-    "airRole": "turn fighter"
+    "airRole": "turn fighter",
+    "howItWins": "Turns like nothing else, but two light guns and paper armour."
   },
   "a6m5": {
     "name": "A6M5 Zero",
@@ -980,7 +985,8 @@
       "gearRatio": 0.7,
       "idleSource": "estimated"
     },
-    "airRole": "turn fighter"
+    "airRole": "turn fighter",
+    "howItWins": "Out-turns everything in the sky. Fragile, slow, and it can't follow a dive."
   },
   "b239": {
     "name": "Brewster B-239",
@@ -1102,7 +1108,8 @@
         "name": "Air-to-air",
         "loadout": []
       }
-    ]
+    ],
+    "howItWins": "A tough little turner with four heavy guns. Slow: pick your fights."
   },
   "bf110": {
     "name": "Bf 110 G-2",

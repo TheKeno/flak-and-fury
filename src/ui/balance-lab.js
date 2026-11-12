@@ -574,17 +574,21 @@ const shown = (v) => (Array.isArray(v) ? v.join(' / ') : v);
 function tuningHtml(t) {
   const r = t.result;
   const name = (id) => esc(r.names[id] ?? S.names[id] ?? id);
-  const sgn = (v) => (v == null ? '–' : `${v > 0 ? '+' : ''}${Math.round(v)} m`);
+  // Version 2 records measure the exchange share (air-to-air, the arena): push is the share - 50 in points.
+  const exchange = t.measure === 'exchange';
+  const sgn = (v) => (v == null ? '–' : exchange ? `${Math.round(50 + v)}%` : `${v > 0 ? '+' : ''}${Math.round(v)} m`);
+  const unit = exchange ? 'points' : 'm';
   const state = t.applied ? `<p class="warn">Applied ${esc(localTime(t.applied.at))}: these numbers are in data/planes.json now (Undo puts the old ones back).</p>`
     : t.discarded ? `<p class="dim">Discarded ${esc(localTime(t.discarded))}.</p>` : '';
   let h = `<h3>Auto-tuner</h3>${state}<div class="summary">${t.summary.map((s) => `<p>${esc(s)}</p>`).join('')}</div>`;
   h += `<div class="row"><button id="tuneApply" ${t.applied || t.discarded || !r.changes.length ? 'disabled' : ''}>Apply</button> <button id="tuneUndo" ${t.applied ? '' : 'disabled'}>Undo</button> <button id="tuneDiscard" ${t.applied || t.discarded ? 'disabled' : ''}>Discard</button> <span id="tuneMsg" class="dim"></span></div>`;
   if (r.flights.length) h += `<h3>Test flights before Apply</h3><ul>${r.flights.map((f) => `<li>${esc(f.text)}</li>`).join('')}</ul>`;
-  h += `<h3>Front push and kills per life, before and after</h3><table><tr><th>plane</th><th class="num">push before</th><th class="num">after</th><th class="num">kills/life before</th><th class="num">after</th><th class="num">full run after</th><th>left outside even</th></tr>`;
+  h += `<h3>${exchange ? 'Exchange share' : 'Front push'} and kills per life, before and after</h3><table><tr><th>plane</th><th class="num">before</th><th class="num">after</th><th class="num">kills/life before</th><th class="num">after</th><th class="num">${exchange ? 'fresh seeds after' : 'full run after'}</th><th>left outside even</th></tr>`;
+  const fresh = r.checks?.normal?.after;
   const full = t.checks?.['full-after'];
   for (const p of r.planes) {
     const out = r.outside.find((o) => o.plane === p);
-    const f = full?.find((x) => x.id === p);
+    const f = fresh ? fresh[p] : full?.find((x) => x.id === p);
     h += `<tr><td>${name(p)}</td><td class="num">${sgn(r.before[p].push)}</td><td class="num">${sgn(r.after[p].push)}</td><td class="num">${r.before[p].kpl}</td><td class="num">${r.after[p].kpl}</td><td class="num">${f ? `${sgn(f.push)} ± ${Math.round(2 * f.se)}` : '–'}</td><td class="dim" style="white-space:normal">${out ? esc(out.why) : ''}</td></tr>`;
   }
   h += '</table>';
@@ -594,11 +598,12 @@ function tuningHtml(t) {
     h += '<table><tr><th>plane</th><th>number</th><th class="num">now</th><th class="num">tuned</th><th class="num">change</th></tr>';
     for (const c of r.changes) h += `<tr><td>${name(c.plane)}</td><td>${esc(LEVER[c.key]?.label ?? c.key)}</td><td class="num">${esc(shown(c.from))}</td><td class="num">${esc(shown(c.to))}</td><td class="num">${pct(c.mult)}</td></tr>`;
     h += '</table><p class="dim">Each step was kept because it moved its plane towards even by more than the noise:</p><ul>';
-    for (const s of r.history) if (s.kept) h += `<li>${name(s.plane)}: ${esc(LEVER[s.kept.key]?.label ?? s.kept.key)} ${pct(s.kept.from)} → ${pct(s.kept.to)}, front push ${sgn(s.pushBefore)} → ${sgn(s.kept.pushAfter)} (gain ${s.kept.gain} ± ${Math.round(2 * s.kept.se * 10) / 10} m over ${s.kept.seeds} matches per setup)</li>`;
+    for (const s of r.history) if (s.kept) h += `<li>${name(s.plane)}: ${esc(LEVER[s.kept.key]?.label ?? s.kept.key)} ${pct(s.kept.from)} → ${pct(s.kept.to)}, ${exchange ? 'exchange share' : 'front push'} ${sgn(s.pushBefore)} → ${sgn(s.kept.pushAfter)} (gain ${s.kept.gain} ± ${Math.round(2 * s.kept.se * 10) / 10} ${unit} over ${s.kept.seeds} matches per setup)</li>`;
     h += '</ul>';
   }
-  // The matchup grid: kills-per-life ratio of the row plane against the column plane, after.
-  h += '<h3>Matchups after (kills-per-life ratio, row against column; mild counters: under about 1.5, never past 2.3)</h3><table><tr><th></th>';
+  // The matchup grid, after: the row plane's exchange share against the column plane (version 1 records:
+  // the kills-per-life ratio).
+  h += exchange ? '<h3>Matchups after (exchange share of the row plane against the column; mild counters: 40-60%, never past 70/30)</h3><table><tr><th></th>' : '<h3>Matchups after (kills-per-life ratio, row against column; mild counters: under about 1.5, never past 2.3)</h3><table><tr><th></th>';
   for (const q of r.planes) h += `<th class="num">${name(q)}</th>`;
   h += '</tr>';
   for (const p of r.planes) {
@@ -606,7 +611,8 @@ function tuningHtml(t) {
     for (const q of r.planes) {
       const m = r.after[p].matchups[q];
       const lop = m ? Math.max(m.ratio, 1 / m.ratio) : 0;
-      h += p === q || !m ? '<td></td>' : `<td class="num${lop > 2.3 ? ' warn' : lop <= 1.5 ? ' dim' : ''}">${m.ratio}</td>`;
+      const cell = exchange ? (m ? `<td class="num${Math.abs(m.push) > 20 ? ' warn' : Math.abs(m.push) <= 10 ? ' dim' : ''}">${Math.round(50 + m.push)}%</td>` : '') : `<td class="num${lop > 2.3 ? ' warn' : lop <= 1.5 ? ' dim' : ''}">${m?.ratio}</td>`;
+      h += p === q || !m ? '<td></td>' : cell;
     }
     h += '</tr>';
   }
@@ -618,13 +624,17 @@ function tuningHtml(t) {
     h += ' The duels are reported, not a gate: most failures are bot problems.</p>';
   }
   const skillRow = (skill) => {
+    if (exchange) {
+      const c = r.checks?.[skill];
+      return c ? `<tr><td>${skill}</td>${r.planes.map((p) => `<td class="num">${sgn(c.before[p].push)} → ${sgn(c.after[p].push)}</td>`).join('')}</tr>` : '';
+    }
     const b = t.checks?.[`${skill}-before`];
     const a = t.checks?.[`${skill}-after`];
     if (!b || !a) return '';
     return `<tr><td>${skill}</td>${r.planes.map((p) => `<td class="num">${sgn(b.find((x) => x.id === p)?.push)} → ${sgn(a.find((x) => x.id === p)?.push)}</td>`).join('')}</tr>`;
   };
   const rowsSk = skillRow('easy') + skillRow('ace');
-  if (rowsSk) h += `<h3>Check at easy and ace (quick runs, front push before → after)</h3><table><tr><th></th>${r.planes.map((p) => `<th class="num">${name(p)}</th>`).join('')}</tr>${rowsSk}</table>`;
+  if (rowsSk) h += `<h3>Check at easy and ace (${exchange ? 'exchange share' : 'quick runs, front push'} before → after)</h3><table><tr><th></th>${r.planes.map((p) => `<th class="num">${name(p)}</th>`).join('')}</tr>${rowsSk}</table>`;
   const changed = [...new Set(r.changes.map((c) => c.plane))];
   if (changed.length) {
     const keys = ['topSpeed', 'turnTime', 'slowTurnTime', 'climbRate', 'diveSpeed', 'zoomHeight', 'hp', 'topSpeedHigh', 'climbRateHigh', 'turnRateHigh', 'slowTurnRateHigh'];

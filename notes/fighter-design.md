@@ -96,3 +96,46 @@ not exact numbers. The tuner then fine-tunes within ±15% around them.
 | La-5FN v Bf 109 | speed low | climb, height | even (height) |
 | La-5FN v P-47 | speed and turning low | everything high | even (height) |
 | Bf 109 v P-47 | out-climb it low | tougher, harder-hitting, better high | P-47 55/45 |
+
+## Built (2026-11-12, same session)
+
+**Propeller physics (owner chose B over accepting the coupling).** With constant thrust, top speed, climb and
+dive all came from thrust/drag, so "slow but the best diver" or "fastest but an average diver" could not be
+built. Now a propeller's pull is `thrust` x (`propSpeed` / speed)^`propFall` (120, 1), levelled off at
+`propStatic` (1.6) x thrust when slow (`src/sim/air.js` `propAt`; air and ground). Climb comes from power, the
+dive mostly from drag. Every plane was refitted (`tools/fit-planes.mjs`): thrust and drag about half the old
+values; the eight planes outside the roster `--keep` (top speed, climb and fast turn as before, turn bleed
+refitted); gear and flaps 70% drag (was 30% of the larger drag); take-off pull kept through `groundThrust`.
+
+**Card corrected by physics and history** (`balance/design-targets.json`): fast planes always dive fast (both
+need low drag), and thin air can't take a plane that is fastest low down to slowest high (it keeps about 80%).
+History: the P-47 did about 560 km/h at sea level (not slow) and climbed about a third worse than the Spitfire.
+So: P-47 top 150, climb 40, the best dive (lowest drag); La-5FN top 165, climb 62, dive second; Spitfire 158.
+Rated height and turn bleed are not fitted (history: supercharger, wing loading). High-altitude speed follows.
+
+**What the fit gave (plane sheet):**
+
+| | Bf 109 G-6 | Spitfire LF IX | P-47D | La-5FN | B-239 | Zero |
+|---|---|---|---|---|---|---|
+| Top speed, low | 151 | 154 | 151 | 163 | 127 | 126 |
+| Climb | 61 | 62 | 40 | 62 | 50 | 55 |
+| Full turn, fast (s) | 4.6 | 4.0 | 4.9 | 4.3 | 3.9 | 3.7 |
+| Dive | 223 | 226 | 238 | 237 | 189 | 184 |
+| Top speed, high | 136 | 133 | 156 | 138 | 106 | 112 |
+| Damage/s | 44 | 66 | 71 | 51 | 47 | 47 |
+| Hit points | 97 | 105 | 121 | 105 | 113 | 90 |
+
+The P-47 has the lowest drag (0.00124), so it pulls clear in any long dive (about 275 against 261 at full dive
+speed); in the sheet's short dive it only just leads. It can't finish a slow loop (heavy, weak pull when slow):
+its identity. Kill times 1.27-2.75 s for every pair. The Zero's guns came out at 47/s, not the "+" 55: its
+cannons fire slowly (history), so it is "o" on firepower.
+
+**Bots under the new physics:** on patrol a half loop at cruise throttle ran out of speed at the top, and the
+retries ratcheted the bot up to 900 high (it then landed in fields). Fixed: a patrol bot turns round on full
+throttle, builds speed going down towards its patrol height, and `bots.rushExit` 1.3. Patrol now stays
+220-400. The split-S re-trigger was tried and dropped (it dived to 90 and flew on into flak).
+
+**Hangar plane card:** `tools/plane-cards.mjs` writes `data/plane-cards.json` from the plane sheet; the hangar
+(page and in-game panel, `src/ui/hangar-view.js` `characterSection`) shows bars for the seven attributes against
+the planes of the same role, the plane's `howItWins` line (planes.json) and the speeds that matter in km/h.
+`tests/plane-cards.test.mjs` fails when the file is stale: rerun the tool after any change to plane numbers.

@@ -13,7 +13,7 @@ const STYLE = `
 
 // opts: parent, planeDefs, weapons, nations, settings (the weight shares), keyName(action), on: { choose(req),
 // opened(), closed() }.
-export function createHangarPanel({ parent, planeDefs, weapons, nations, settings, keyName, on }) {
+export function createHangarPanel({ parent, planeDefs, weapons, nations, settings, cards = null, keyName, on }) {
   parent.append(el('style', {}, STYLE));
   const panel = el('div', { className: 'hangar-panel' });
   panel.hidden = true;
@@ -39,7 +39,7 @@ export function createHangarPanel({ parent, planeDefs, weapons, nations, setting
     }
     return sprites.get(id);
   }
-  const view = createHangarView({ planeDefs, weapons, nations, settings, spriteOf });
+  const view = createHangarView({ planeDefs, weapons, nations, settings, spriteOf, cards });
 
   let plane = null; // the player's plane (read only)
   let note = '';

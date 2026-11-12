@@ -1,35 +1,42 @@
 // The auto-tuner (Balance Lab stage 2; ROADMAP "Plane roles and balancing plan" step 4 part 4, as changed
-// 2026-11-12): moves plane numbers (src/balance/levers.js, within about ±15%) until every plane pushes the
-// front about evenly in the Balance Lab's bot battles. One plane at a time, the one furthest from even;
+// 2026-11-12, air-to-air): moves plane numbers (src/balance/levers.js, within about ±15%) until every fighter
+// holds its own in the air: bot battles in the arena (no ground war, 4 against 4), measured by the exchange
+// share (of all the planes lost in its fights, the share that were the enemy's; own crashes count as losses).
+// Internally a plane's `push` is that share minus 50, in percentage points: +10 = it wins 60/40, too strong.
+// One plane at a time, the one furthest from even;
 // one lever step at a time, kept only when it moves that plane towards even by more than the noise, and
 // only when the guards hold:
 // - identity: a plane's strengths keep their top ranks on the plane sheet (a tuned plane may not clearly
 //   beat a top-2 plane at that plane's strength, nor fall clearly behind where it was top-2);
 // - style: boom-and-zoom planes keep winning from above, turn fighters keep winning level or turning;
-// - mild counters: no matchup's kills-per-life ratio gets worse beyond about 70/30.
+// - mild counters: no matchup gets worse beyond about 70/30.
 // Every trial flies the very same matches (seeds, opponents, sides) as the current numbers, so the
 // comparison is paired. Matches are cached by their planes' numbers, so nothing is flown twice and a
 // stopped run resumes where it was. Pure: no workers, no files (the CLI, tools/tune-planes.mjs, runs it).
 import { STEPS, LEVERS, LEVER, leverKey, applyOverrides, changesOf } from './levers.js';
 import { compare } from './search.js';
 import { planeSheet, BETTER } from './sheet.js';
-import { METRES } from './report.js';
 
 export const TUNE_DEFAULTS = {
   planes: ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'a6m5', 'b239'],
-  band: 10, // metres of front push either way that count as even
-  farOff: 20, // metres: further off than this, levers move two steps (10%) at a time
+  band: 5, // percentage points of exchange share either way that count as even (45-55%)
+  farOff: 10, // points: further off than this, levers move two steps (10%) at a time
   stuckLimit: 2, // a plane found stuck this many times stays stuck
-  seeds: 30, // seeds per setup for the gate and for a trial's full check
-  moreSeeds: 50, // a borderline trial (beyond 1 but under 2 standard errors) is flown this far
-  screen: [2, 8], // seeds per setup for the two screening stages
+  seeds: 60, // seeds per setup for the gate and for a trial's full check (arena matches are cheap: about 0.45 s on 16 threads)
+  moreSeeds: 100, // a borderline trial (beyond 1 but under 2 standard errors) is flown this far
+  screen: [4, 16], // seeds per setup for the two screening stages
   keep: 4, // candidates kept after the first screening stage
   finalists: 2, // candidates given the full check
   z: 2, // standard errors a kept change must win by
-  floor: 3, // metres a kept change must at least move the plane towards even
-  matchupLimit: 2.3, // kills-per-life ratio of about 70/30 in a matchup
+  floor: 1, // points a kept change must at least move the plane towards even
+  matchupLimit: 20, // points: no matchup past 70/30 (that gets worse)
   styleDrop: 0.1, // a plane's style share (kills from above, or level) may drop at most this much
   rankMargin: 0.02, // how clearly a plane must beat another on the sheet to count as overtaking
+  // The arena matches: the bot trainer's air-only arena, 4 a side for enough losses to count, 8 game-minutes,
+  // its own seeds (the trainer starts at 5001, the Balance Lab at 1).
+  arena: { minutes: 8, perSide: 4, skill: 'normal', map: 'countryside', sample: 30, seed: 9001 },
+  checkSeeds: [101, 140], // the confirm: fresh seeds, the tuned numbers against today's
+  skillSeeds: 10, // the easy and ace checks
 };
 
 const mean = (xs) => (xs.length ? xs.reduce((n, x) => n + x, 0) / xs.length : 0);
@@ -39,6 +46,8 @@ const seOf = (xs) => {
   const m = mean(xs);
   return Math.sqrt(xs.reduce((n, x) => n + (x - m) ** 2, 0) / (xs.length - 1) / xs.length);
 };
+// An edge as the exchange share it stands for (+10 → 60%).
+const pct = (edge) => `${Math.round(50 + edge)}%`;
 const range = (from, to) => Array.from({ length: Math.max(0, to - from + 1) }, (_, i) => from + i);
 const ROLE_STYLE = { 'boom and zoom': 'above', 'turn fighter': 'level' };
 
@@ -54,26 +63,32 @@ export function allSetups(planes) {
   return out;
 }
 
-// A match result kept small: team 0's push in metres and per side the counts the guards need.
+// A match result kept small: team 0's edge (exchange share - 50, in points) and per side the counts the
+// guards need (kills, deaths, kills from above, kills level or turning).
+export function exchangeEdge(s0, s1) {
+  const lost = s0.deaths + s1.deaths;
+  return lost ? (s1.deaths / lost - 0.5) * 100 : 0;
+}
 export function compact(r) {
   return {
-    push: round(mean(r.front) * METRES, 2),
+    push: round(exchangeEdge(r.stats[0], r.stats[1]), 2),
     s: r.stats.map((s) => [s.airKills, s.deaths, s.killsAbove, s.killsLevel + s.killsBelow]),
   };
 }
 
-export function matchKey(a, b, seed, ov) {
-  return `${a}|${b}|${seed}|${leverKey(ov[a])}|${leverKey(ov[b])}`;
+export function matchKey(a, b, seed, ov, skill = 'normal') {
+  return `${a}|${b}|${seed}|${leverKey(ov[a])}|${leverKey(ov[b])}${skill === 'normal' ? '' : `|${skill}`}`;
 }
 
 // A new tuning state (the checkpoint is this, saved as JSON).
-export function newState(scenario, opts = {}) {
+export function newState(opts = {}) {
   const o = { ...TUNE_DEFAULTS, ...opts };
+  const m = o.arena;
   return {
     kind: 'tuning-state',
     started: new Date().toISOString(),
     options: o,
-    match: { minutes: scenario.minutes, perSide: scenario.perSide, skill: scenario.skill, map: scenario.map, sample: scenario.sample, seed: scenario.seed ?? 1 },
+    match: { ...m, arena: true },
     ov: {}, // planeId -> { lever: multiplier }
     cache: {}, // matchKey -> compact result
     gate: null,
@@ -85,23 +100,23 @@ export function newState(scenario, opts = {}) {
 }
 
 // Flies every match of setups x seeds not in the cache yet. runJobs(jobs) -> Promise<results[]> (in order).
-async function fly(state, ov, setups, seeds, runJobs) {
-  return flyMany(state, [{ ov, setups, seeds }], runJobs);
+async function fly(state, ov, setups, seeds, runJobs, skill) {
+  return flyMany(state, [{ ov, setups, seeds, skill }], runJobs);
 }
 // The same for several configs in one batch, so every thread stays busy to the end of a stage.
 async function flyMany(state, sets, runJobs) {
   const jobs = [];
   const keys = [];
   const m = state.match;
-  for (const { ov, setups, seeds } of sets) for (const seed of seeds) {
+  for (const { ov, setups, seeds, skill = m.skill } of sets) for (const seed of seeds) {
     for (const { a, b } of setups) {
-      const key = matchKey(a, b, seed, ov);
+      const key = matchKey(a, b, seed, ov, skill);
       if (state.cache[key] || keys.includes(key)) continue;
       const overrides = {};
       if (leverKey(ov[a])) overrides[a] = ov[a];
       if (leverKey(ov[b])) overrides[b] = ov[b];
       keys.push(key);
-      jobs.push({ a, b, seed: m.seed - 1 + seed, minutes: m.minutes, perSide: m.perSide, skill: m.skill, map: m.map, sample: m.sample, overrides });
+      jobs.push({ a, b, seed: m.seed - 1 + seed, minutes: m.minutes, perSide: m.perSide, skill, map: m.map, sample: m.sample, arena: true, overrides });
     }
   }
   if (!jobs.length) return;
@@ -114,11 +129,11 @@ async function flyMany(state, sets, runJobs) {
 
 // One plane's rows (its setups x seeds, in a fixed order, so two configs pair up): push for the plane,
 // and its side's counts.
-function rows(state, ov, plane, seeds) {
+function rows(state, ov, plane, seeds, skill = 'normal') {
   const out = [];
   for (const seed of seeds) {
     for (const { a, b } of setupsOf(plane, state.options.planes)) {
-      const r = state.cache[matchKey(a, b, seed, ov)];
+      const r = state.cache[matchKey(a, b, seed, ov, skill)];
       if (!r) continue;
       const side = a === plane ? 0 : 1;
       out.push({ opp: side ? a : b, push: side ? -r.push : r.push, me: r.s[side], them: r.s[1 - side] });
@@ -160,8 +175,8 @@ function measure(state, rs) {
 }
 
 // Every plane's numbers under ov over seeds (only cached matches count).
-function table(state, ov, seeds) {
-  return Object.fromEntries(state.options.planes.map((p) => [p, measure(state, rows(state, ov, p, seeds))]));
+function table(state, ov, seeds, skill = 'normal') {
+  return Object.fromEntries(state.options.planes.map((p) => [p, measure(state, rows(state, ov, p, seeds, skill))]));
 }
 
 // sheets(content, ov, planes): every plane's sheet with the tuned numbers (tests pass a quicker stand-in).
@@ -226,7 +241,7 @@ export async function gate(content, state, runJobs, { log = () => {}, sheets = s
   await fly(state, {}, allSetups(o.planes), seeds, runJobs);
   const t = table(state, {}, seeds);
   state.gate = { table: t, sheets: sheets(content, {}, o.planes) };
-  log(`Gate: ${o.planes.map((p) => `${p} ${t[p].push > 0 ? '+' : ''}${round(t[p].push)} m`).join(', ')}.`);
+  log(`Gate: ${o.planes.map((p) => `${p} ${pct(t[p].push)}`).join(', ')}.`);
   return state;
 }
 
@@ -251,7 +266,7 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
   const tried = new Set(state.tried[plane] ?? []);
   const entry = { plane, pushBefore: before.push, dir: dir > 0 ? 'stronger' : 'weaker', candidates: [], kept: null, done: false };
   state.history.push(entry);
-  log(`${plane}: ${before.push > 0 ? '+' : ''}${round(before.push)} m, trying to make it ${entry.dir}.`);
+  log(`${plane}: ${pct(before.push)}, trying to make it ${entry.dir}.`);
 
   // Candidates the identity guard allows.
   const cands = [];
@@ -309,16 +324,15 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
     const was = measure(state, rows(state, state.ov, plane, s));
     const after = measure(state, rows(state, c.ov, plane, s));
     const why = [];
-    if (!cmp.better) why.push(`moved ${round(cmp.diff, 1)} m towards even, within the noise (± ${round(o.z * cmp.se, 1)})`);
+    if (!cmp.better) why.push(`moved ${round(cmp.diff, 1)} points towards even, within the noise (± ${round(o.z * cmp.se, 1)})`);
     if (cmp.better && Math.abs(after.push) >= Math.abs(was.push)) why.push('overshot past even');
     const role = content.planeDefs[plane].airRole;
     const style = ROLE_STYLE[role];
     const origStyle = state.gate.table[plane][style];
     if (style && origStyle != null && after[style] != null && after[style] < origStyle - o.styleDrop) why.push(`style: kills ${style === 'above' ? 'from above' : 'level or turning'} ${Math.round(after[style] * 100)}% (was ${Math.round(origStyle * 100)}%)`);
     for (const [opp, m] of Object.entries(after.matchups)) {
-      const lop = (r) => Math.max(r, 1 / r);
       const old = was.matchups[opp];
-      if (old && lop(m.ratio) > o.matchupLimit && lop(m.ratio) > lop(old.ratio) * 1.1) why.push(`matchup against ${opp} beyond about 70/30 (kills per life ${m.kpl} against ${m.oppKpl})`);
+      if (old && Math.abs(m.push) > o.matchupLimit && Math.abs(m.push) > Math.abs(old.push) + 2) why.push(`matchup against ${opp} beyond about 70/30 (${Math.round(50 + m.push)}% of the losses ${m.push > 0 ? 'its' : 'its own'})`);
     }
     const ce = entry.candidates.find((x) => x.key === c.key && x.to === c.to);
     Object.assign(ce, { seeds: upto, gain: round(cmp.diff, 1), se: round(cmp.se, 1), pushAfter: after.push, rejected: why.length ? why : undefined });
@@ -334,7 +348,7 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
     state.tried = {};
     // The other planes' rows against it are flown with the new numbers on the gate seeds already.
     entry.done = true;
-    log(`  kept ${c.key} ${c.from} → ${c.to}: ${round(before.push)} → ${round(after.push)} m (gain ${round(cmp.diff, 1)} ± ${round(o.z * cmp.se, 1)}).`);
+    log(`  kept ${c.key} ${c.from} → ${c.to}: ${pct(before.push)} → ${pct(after.push)} (gain ${round(cmp.diff, 1)} ± ${round(o.z * cmp.se, 1)} points).`);
     return true;
   }
   entry.done = true;
@@ -346,9 +360,9 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
 
 // The whole tuning loop: the gate, then cycles while mayStart() says there is time. onStep(state) after
 // the gate and every cycle (the checkpoint). Resumes from opts.state.
-export async function tune(content, scenario, runJobs, opts = {}) {
+export async function tune(content, runJobs, opts = {}) {
   const { log = () => {}, onStep = () => {}, mayStart = () => true, cancelled = () => false, sheets = sheetsOf } = opts;
-  const state = opts.state ?? newState(scenario, opts.options);
+  const state = opts.state ?? newState(opts.options);
   if (!state.gate) {
     await gate(content, state, runJobs, { log, sheets });
     onStep(state);
@@ -371,6 +385,23 @@ export async function tune(content, scenario, runJobs, opts = {}) {
   if (cancelled() && !state.ended) state.ended = 'stopped';
   return state;
 }
+
+// The confirm: today's numbers against the tuned ones on fresh seeds at normal, and on a few seeds at easy
+// and ace. Fills state.checks: { normal|easy|ace: { before, after } } (tables as the gate's).
+export async function check(state, runJobs, { log = () => {} } = {}) {
+  const o = state.options;
+  const all = allSetups(o.planes);
+  const runs = [['normal', range(o.checkSeeds[0], o.checkSeeds[1])], ['easy', range(1, o.skillSeeds)], ['ace', range(1, o.skillSeeds)]];
+  state.checks ??= {};
+  for (const [skill, seeds] of runs) {
+    if (state.checks[skill]) continue;
+    await flyMany(state, [{}, state.ov].map((ov) => ({ ov, setups: all, seeds, skill })), runJobs);
+    state.checks[skill] = { seeds: [seeds[0], seeds[seeds.length - 1]], before: table(state, {}, seeds, skill), after: table(state, state.ov, seeds, skill) };
+    log(`Check at ${skill}: ${o.planes.map((p) => `${p} ${Math.round(50 + state.checks[skill].before[p].push)}% → ${Math.round(50 + state.checks[skill].after[p].push)}%`).join(', ')}.`);
+  }
+  return state.checks;
+}
+export const checkMatches = (o) => allSetups(o.planes).length * 2 * (o.checkSeeds[1] - o.checkSeeds[0] + 1 + 2 * o.skillSeeds);
 
 // About how many matches one cycle flies, for the time budget.
 export function cycleMatches(state) {
@@ -414,6 +445,7 @@ export function tuningResult(content, state, sheets = sheetsOf) {
     changes, why,
     sheets: { before: state.gate.sheets, after: sheetsAfter },
     outside: outside.map((p) => ({ plane: p, push: after[p].push, why: whyOut(p) })),
+    checks: state.checks ?? null,
     flights,
     history: state.history,
   };
@@ -423,15 +455,19 @@ export function tuningResult(content, state, sheets = sheetsOf) {
 export function summariseTuning(r) {
   const out = [];
   const n = (id) => r.names[id] ?? id;
-  const sgn = (v) => `${v > 0 ? '+' : ''}${Math.round(v)} m`;
-  out.push(`The tuner flew ${r.matchesFlown} bot battles. Even means within ±${r.band} m of front push, over every matchup (${r.seeds} matches per setup).`);
+  const sgn = (v) => `${Math.round(50 + v)}%`;
+  out.push(`The tuner flew ${r.matchesFlown} air battles in the arena (4 against 4). A plane's number is its exchange share: of all the planes lost in its fights, the share that were the enemy's. 50% is even; even here means ${50 - r.band}-${50 + r.band}% (${r.seeds} matches per setup).`);
   out.push(`Before: ${r.planes.map((p) => `${n(p)} ${sgn(r.before[p].push)}`).join(', ')}.`);
   out.push(`After: ${r.planes.map((p) => `${n(p)} ${sgn(r.after[p].push)}`).join(', ')}.`);
   if (!r.changes.length) out.push('No change beat the noise, so nothing would change.');
   else out.push(`${r.changes.length} change${r.changes.length > 1 ? 's' : ''} on ${[...new Set(r.changes.map((c) => c.plane))].map(n).join(', ')}, all within ±15% of today's numbers.`);
   for (const p of r.outside) {
     const stuck = !/time ran out|not reached|within the noise/.test(p.why);
-    out.push(`${n(p.plane)} is still outside even (${sgn(p.push)}): ${p.why}.${stuck ? ' That needs a talk about other levers (more of them on a side, faster respawn).' : ''}`);
+    out.push(`${n(p.plane)} is still outside even (${sgn(p.push)}): ${p.why}.${stuck ? ' That needs a talk: a historical variant or gun fit, a wider limit for it, or accepting it as the underdog.' : ''}`);
+  }
+  if (r.checks?.normal) {
+    const off = r.planes.filter((p) => Math.abs(r.checks.normal.after[p].push) > r.band);
+    out.push(`The check on fresh seeds: ${off.length ? `${off.map(n).join(', ')} still outside even there.` : 'every plane within even there too.'}`);
   }
   out.push(r.ended === 'settled' ? 'It stopped because there was nothing left to do.' : r.ended === 'time' ? 'It stopped because its time was up.' : 'It was stopped before it finished.');
   out.push('Nothing changes in data/planes.json until you press Apply. Fly the test flights first.');
