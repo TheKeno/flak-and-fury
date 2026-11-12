@@ -185,6 +185,21 @@ later.
        moves to step 5** (the ground war with loadouts). Order: the Zero in (data and guns, Ki-43 sprites as the
        placeholder) and the tuner switched to the arena and exchange share (two sessions, different files, may run at
        once), then a quick arena check of the six fighters, then the 8 h run.
+       **Changed 2026-11-12 late (owner): a fighter design pass comes before the tuner** (full record:
+       `notes/fighter-design.md`). Keep history's order per attribute, choose the gaps for fun; every fighter has two
+       or three real strengths and two real weaknesses (+ about 8%, ++ about 15% from the middle of the field).
+       **Identities:** Zero turns (fragile, slow, poor diver); B-239 the tough turner with a solid punch (slow); Spitfire
+       good at all, best at none (short ammo); La-5FN fastest low (weak high); Bf 109 G-6 climb and vertical (light
+       guns, stiff); P-47D dive, firepower, toughness, high altitude (slow and poor climber low, poor turner).
+       **Kill-time band:** about 2 s of solid hits in the middle, hard limits 1.0-3.5 s for any pair. **Matchup plans:**
+       every pair has a winning plan for both sides, never worse than about 60/40 (15 pairs in the note).
+       **Firepower:** the P-47 flies its six-gun field fit, the .50 M2 does about 15% more damage; the Spitfire comes
+       down to about 62/s. **Target card** per fighter in the note: the build sets the numbers to it (plane sheet), and
+       the tuner fine-tunes within ±15% around it. **No new HUD in flight:** each plane's character shows in the
+       hangar when picking it (a plane card: bars for the seven attributes from the plane sheet, one line on how it
+       wins, best turn speed, stall speed and where the controls stiffen, in km/h). The owner chose to build it all
+       in the design session (2026-11-12): the Zero, the design numbers, the tuner switched to the arena, the hangar
+       card, then an arena check and, with the owner's go, the 8 h run.
   5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
   This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
 
