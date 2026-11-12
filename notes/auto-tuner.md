@@ -82,3 +82,16 @@ confirm, measured from its own match rate.
   through turning or toughness; the Spitfire can be trimmed anywhere but its climb. Caveat: while the bots can't
   fly boom and zoom, the boom planes may still come out weak and their strengths pushed to the +15% limit; the
   owner's test flights judge how that feels in human hands.
+
+### The night run after the design pass (started 2026-11-13 00:03, owner's go)
+
+`tools/night-tune.cmd` through `tools/night-start.ps1` (WMI): retrain the bots under the propeller physics
+(4 rounds, about 1.5 h), then `tools/tune-planes.mjs --hours 5`. Read, in order:
+1. `notes/night-status.txt`: a stamp per stage. No "auto-tuner ended" line: it was stopped; carry on with
+   `node tools/tune-planes.mjs --resume` (a stopped retrain leaves `balance/results/train-bots-checkpoint.json`).
+2. `notes/night-train.txt`: only its summary at the end. `data/bot-tactics.json` and `bot-tactics.previous.json`
+   are uncommitted afterwards: commit them (with `notes/night-*.txt`).
+3. `notes/night-tune.txt`: the gate line (each fighter's exchange share), each kept step, the confirm lines
+   and the plain-words summary at the end. The record is `balance/results/<date>-tune-planes.json`: open it in
+   the Balance Lab (Results) for the owner: test flights first, then Apply or Discard. After Apply: commit
+   `data/planes.json` and the record, and run `node tools/plane-cards.mjs` (the hangar cards go stale).
