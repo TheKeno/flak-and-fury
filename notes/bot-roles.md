@@ -290,3 +290,62 @@ retrain (`--no-quick`), 16-seed duel sweep, full Balance Lab run; about 2-2.5 h.
    `bot-tactics.previous.json` are uncommitted: commit them.
 3. `notes/night-duels.txt` (last ~5 lines) and `balance/results/duels-3c-16.json` (`gate`).
 4. `notes/night-balance.txt`: the plain-words summary at its end.
+
+## Part 3d (2026-11-12): skill levels and the rest of bot life
+
+Tools: `node tools/duels.mjs --skill easy|normal|ace` (both bots at that level; the JSON records it);
+`tools/skill-order.mjs` (same plane both sides, one level against another: spitfire, bf109g6, ki43, p47d,
+slow and fast start); `tools/bot-life.mjs [--alone]` (the whole war for a few minutes, one type on team 0:
+stalls by mode, crashes by cause and mode, `*` = own fault, bombs, seconds high outside a fight). Counters
+only. `FF_LEVELS='{"ace":{"turnFight":0.5}}'` overrides level numbers in the duel workers for experiments.
+
+### 1. Skill levels
+- Duels (8 seeds): easy 9, normal 16, ace 18 of 25. Easy mostly "neither bot fired": it keeps to its range
+  200 and tolerance 0.1, as intended.
+- **Ace lost to normal** (win share 0.42-0.44 over 128 runs). Cause: `turnFight` 1 (throttles right down
+  to the tightest-turn speed in a hard turn), which since the thin-air and gun changes bleeds too much
+  speed. Tried one at a time: aimTolerance, hpReturn/ammoReturn, evadeChance/stallMargin, fireRange,
+  reaction/lookout, aim errors: none moved it; `turnHard` 0.9 made it worse (ace's 1 is right).
+  **`ace.turnFight` 1 → 0.5** (12 seeds: ace v normal 0.64, normal v easy 0.77, ace v easy 0.91; 0.7: 0.52,
+  0.85). Order holds; easy still wins about a quarter of the fights against normal (fair for a new player).
+  After 3d: ace v normal ~0.6 (8 seeds, noise ±0.1), normal v easy 0.78, ace v easy 0.89.
+
+### 2. Bot life (6-minute war runs, 3 planes a side; 14-minute `--alone` runs)
+- **Stalls**: 15-35 a run, 75% in chase/evade (a dogfight stalls); in patrol/home/final 0-3 except the
+  patrol loop below. **Own-fault crashes** about 0.2 a run, mostly burning planes' field landings
+  (`emergency`) and the odd `final` (tooSteep, hardLanding): leave.
+- **Dive bomber (Ju 87) fixed:** every bot chased the nearest enemy first, so a Stuka turn-fought
+  fighters (ace 61 stalls in 6 min, 0.4 bombs a run). `bots.bomberFightRange` 450: a dive bomber with bombs
+  aboard ignores planes farther than that, so it bombs or patrols. Result: bombs 0.4 → 2.3 a run, stalls
+  ace 61 → 33, normal 38 → 22. It still dies to flak (15-20 a run): ground targets under flak are
+  skipped, but its pass flies in; left for the heavies/bombers work (steps 3 and 5).
+- **Patrol sawtooth (not fixed; 3 tries):** a patrol reversal at the beat's end is a half loop, which
+  bleeds about 60 speed over the top; below `1.5 x stall` the bot "rushes" (flies level on full power to
+  build speed) and pulls up again the moment it is over, bleeds under, rushes... and so creeps up in a long
+  climb, to `ceiling - 220` where the reversal dives. Heavy and boom planes (p38j, p47d, bf109g6) spend
+  ~35-50% of patrol time above 600 over the ground; a loop that high is out of nest reach, so it isn't harmful, only
+  ugly and fuel-hungry. Tried: (1) hysteresis, `bots.rushExit` 1.2 (build 20% more speed before the loop):
+  patrol climb gone for the Spitfire/Ki-43, but **in the duels it cost one of the 16 passes** (fights share
+  the code), so it is limited to patrol mode and **left at 1 (off)**; (2) split-S reversal above
+  `bots.patrolSplitHeight` (decided once at the turn; first as a per-tick height test, which looped at the
+  bottom of its own dive and stalled 150 times): heights fixed (all under 450) but the bots now fly low
+  over the enemy flak and buildings: deaths 3 → 7-20 and `structure` crashes at 150-300; at 400 nothing
+  changes. **Left at 0 (off).** Ideas: patrol at 300+ so the split-S has room; fly the beat in a wider
+  loop; or a map-edge style level swing-round (the sim's `edgeTurn`) for patrol.
+- Not found wrong: cruise and patrol height at the beat's middle (220 + 45 a bot), return home, landing,
+  ground attack (attack mode 100-300 s a 14-minute run), nothing above the 1200 ceiling (maxH ≤ 1034), no
+  flight that never lands (longest 450-500 s, killed or in the air by choice).
+- Left open: heavies (p38j, p47d, bf110, pe3, ki45, blenheim) stall as much as fighters in a fight (they
+  turn-fight on the default tactics); the slasher and gunner-defence tactics are steps 3/5.
+
+### Night runs after 3d: how the next session reads them
+Started with `powershell -ExecutionPolicy Bypass -File tools\night-start.ps1 tools\night-3d.cmd`
+(`tools/night-3d.cmd`). **No retrain** (3d changed no trained knob; normal duels unchanged at 16). Read in order:
+1. `notes/night-status.txt`: time stamps, one per stage. Missing "ended" line: it was stopped (finish the
+   Balance Lab with `node tools/balance.mjs --resume <run.json>`).
+2. `notes/night-duels.txt` (normal), `night-duels-easy.txt`, `night-duels-ace.txt`: last 5 lines each
+   (passes of 25 at 16 seeds, 3c's normal sweep was 16 of 25); JSON in `balance/results/duels-3d-*-16.json`.
+3. `notes/night-skill-order.txt`: the totals per pair (ace v normal should stay over 0.5, normal v easy ~0.75).
+4. `notes/night-botlife.txt` (war) and `night-botlife-alone.txt`: flags STALLS / OWN-FAULT / HIGH / NEVER-LANDS
+   are rough (HIGH is the patrol sawtooth above).
+5. `notes/night-balance.txt`: plain-words summary at the end (3c: P-47 +26 m strong, Ki-43 −28 m weak; for part 4).

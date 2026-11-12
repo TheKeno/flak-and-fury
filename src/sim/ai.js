@@ -27,11 +27,14 @@ export const DEFAULT_BOTS = {
   names: [], // callsigns bots draw from (settings.bots.names)
   cruiseHeight: 220, // patrol height above the ground
   terrainClear: 55, // ground clearance kept in ordinary flight
+  rushExit: 1, // patrol: too slow for a turn right round, a bot flies on until this many times the entry speed (1 = off; in fights it hurt the duels)
+  patrolSplitHeight: 0, // patrol: 0 off; else above this height over the ground the reversal at the end of the beat is a split-S, below it a half loop (off: it flew lower, into flak and buildings, 3d)
   patrolSpan: 500, // length of the patrol beat behind the front
   flakMargin: 80, // extra distance kept outside enemy flak's reach
   groundRange: 2300, // how far from their hangar bots go after ground targets
   bombHeight: 110, // level bombing height
   strafePullout: 40, // height at which a strafing dive pulls out
+  bomberFightRange: 450, // a dive bomber with bombs aboard ignores enemy planes farther than this and bombs its target
   boomHeight: 150, // least height over the enemy a dive-from-above style (tactics style 0.5+) climbs to first
   approachLength: 500, // final approach: distance from the gate to the touchdown point
   glideSlope: 0.12, // final approach descent (rad)
@@ -48,7 +51,7 @@ export const DEFAULT_BOTS = {
   levels: {
     easy: { turnFight: 0, reaction: 0.6, lookout: 380, aimError: 0.06, leadError: 0.25, turnError: 0.6, aimTolerance: 0.1, fireRange: 200, evadeChance: 0.3, stallMargin: 0.35, turnHard: 0.75, flakAvoid: 0.4, bombError: 30, hpReturn: 0.25, ammoReturn: 0.05 },
     normal: { turnFight: 0.5, reaction: 0.35, lookout: 520, aimError: 0.03, leadError: 0.15, turnError: 0.4, aimTolerance: 0.07, fireRange: 230, evadeChance: 0.6, stallMargin: 0.2, turnHard: 0.9, flakAvoid: 0.8, bombError: 15, hpReturn: 0.35, ammoReturn: 0.1 },
-    ace: { turnFight: 1, reaction: 0.18, lookout: 700, aimError: 0.01, leadError: 0.07, turnError: 0.2, aimTolerance: 0.045, fireRange: 250, evadeChance: 0.9, stallMargin: 0.1, turnHard: 1, flakAvoid: 1, bombError: 6, hpReturn: 0.45, ammoReturn: 0.15 },
+    ace: { turnFight: 0.5, reaction: 0.18, lookout: 700, aimError: 0.01, leadError: 0.07, turnError: 0.2, aimTolerance: 0.045, fireRange: 250, evadeChance: 0.9, stallMargin: 0.1, turnHard: 1, flakAvoid: 1, bombError: 6, hpReturn: 0.45, ammoReturn: 0.15 },
   },
 };
 
@@ -487,7 +490,10 @@ function decide(world, p, b, skill) {
     b.leg = 0;
     return;
   }
-  const enemy = pickEnemy(world, p, skill, known);
+  let enemy = pickEnemy(world, p, skill, known);
+  // A dive bomber with bombs aboard goes for its ground target; it fights only an enemy that has come close
+  // (a Stuka turn-fighting fighters stalled 60 times in 6 minutes and never bombed: part 3d).
+  if (enemy && p.def.role === 'dive bomber' && bombsLeft(p) > 0 && enemy.d > (world.bots.bomberFightRange ?? 450)) enemy = null;
   if (enemy) {
     // A new fight starts with a new plan; back from running out on the same enemy, the pass plan goes on.
     if ((b.mode !== 'chase' && b.mode !== 'extend') || b.target !== enemy.plane.id) b.zoom = null;
@@ -711,10 +717,23 @@ function patrolWant(world, p, b) {
   const hi = Math.max(fore, aft);
   if (b.leg !== 1 && b.leg !== -1) b.leg = 1;
   const x = clamp(b.leg > 0 ? hi : lo, 250, world.map.width - 250) + b.index * 40 * -dir;
-  if ((x - p.x) * b.leg < 40) b.leg = -b.leg;
+  if ((x - p.x) * b.leg < 40) {
+    b.leg = -b.leg;
+    // Decided once, as the beat ends: deciding by height every tick flip-flopped (a dive below the limit
+    // turned into a loop at the bottom).
+    b.split = cfg.patrolSplitHeight > 0 && p.y - world.terrain.heightAt(p.x) > cfg.patrolSplitHeight;
+    b.splitNew = true; // this tick's aim is still at the old end of the beat
+  }
   // A loaded plane cruises slower on the same throttle, and too near the stall it can't turn round (the
   // bot flies on to build speed first): it opens the throttle with the load.
-  return cruiseTo(world, p, x, cfg.cruiseHeight + b.index * 45, 0.8 + 0.2 * loadFraction(p));
+  const want = cruiseTo(world, p, x, cfg.cruiseHeight + b.index * 45, 0.8 + 0.2 * loadFraction(p));
+  // Turning round at the end of the beat: a half loop bleeds so much speed (about 60 over the top, more in
+  // thin air) that the bots crept up in a long climb to the ceiling. With height to spare it turns the
+  // nose down through the reversal instead (a split-S), which gives the speed back (part 3d).
+  if (b.split && !b.splitNew && Math.abs(angleDiff(want.angle, p.angle)) < 1.2) b.split = false; // round and heading the new way
+  b.splitNew = false;
+  if (b.split) want.short = true;
+  return want;
 }
 
 // Fly towards x at a height above the ground (and enemy MG nests) on the way.
@@ -1263,7 +1282,14 @@ function fly(world, p, b, skill, want, cmd) {
   // A turn right round goes over the top (a half loop), unless that's into the ceiling. It needs speed:
   // too slow, fly on and build it up first. Pulling out of a dive takes the short way.
   let rushing = false;
-  if (Math.abs(diff) > 2.2 && !pulling && !want.short && p.speed < flyingDef(p, world).stallSpeed * 1.5) {
+  // Hysteresis on patrol (part 3d): once rushing it goes on until 20% over the entry speed. Without it the plane pulled
+  // up the moment it passed the limit, bled back under it, levelled again, and so crept up in a long climb
+  // at the limit speed (to the ceiling in thin air) instead of ever turning round.
+  const rushSpeed = flyingDef(p, world).stallSpeed * 1.5;
+  if (Math.abs(diff) <= 2.2 || pulling || want.short) b.rushing = false;
+  else if (p.speed < rushSpeed) b.rushing = true;
+  else if (b.rushing && p.speed > rushSpeed * (b.mode === 'patrol' ? world.bots.rushExit ?? 1 : 1)) b.rushing = false;
+  if (b.rushing) {
     angle = angleFor(facing(p), 0);
     diff = angleDiff(angle, p.angle);
     rushing = true; // full throttle to build the speed

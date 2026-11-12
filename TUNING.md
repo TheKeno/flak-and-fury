@@ -263,11 +263,14 @@ Shared numbers (tuning panel: Bots):
 |---|---|---|
 | `cruiseHeight` | Patrol height above the ground. | 150 – 300 |
 | `terrainClear` | Clearance over the ground, trees and buildings in ordinary flight. In a steep, fast dive they pull out earlier, by what the pull-out costs. | 40 – 80 |
+| `patrolSplitHeight` | Patrol reversal as a split-S above this height over the ground; 0 off (default: tried at 150-400, more deaths). | 0 |
+| `rushExit` | Patrol: speed (times 1.5 x stall) a bot builds before the half loop at the end of the beat; 1 off. | 1 |
 | `patrolSpan` | Length of the patrol beat, back from the front (or from short of the enemy flak, if that's nearer home). | 300 – 800 |
 | `flakMargin` | Extra distance kept outside the reach of enemy flak. | 50 – 150 |
 | `groundRange` | How far from their own hangar bots go after enemy tanks and troops. | 1500 – 3000 |
 | `bombHeight` | Height of a level bombing run. The release is worked out from the bomb's real fall. | 90 – 150 |
 | `strafePullout` | Height at which a strafing dive on troops pulls out. | 30 – 60 |
+| `bomberFightRange` | A dive bomber with bombs aboard only fights an enemy plane this close; farther ones it ignores. | 300 – 600 |
 | `boomHeight` | Least height over the enemy a bot climbs to before diving on it, for tactics style 0.5 and up (raises a lower `heightOver`). Without it a dive-from-above style is no dive and the bot trainer never finds it. | 100 – 200 |
 | `approachLength` | Final approach: from the turn-in to the touchdown point. | 400 – 700 |
 | `glideSlope` | Descent angle on final (rad). | 0.08 – 0.15 |

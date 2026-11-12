@@ -246,6 +246,9 @@
     "groundRange": 2300,
     "bombHeight": 110,
     "strafePullout": 40,
+    "bomberFightRange": 450,
+    "patrolSplitHeight": 0,
+    "rushExit": 1,
     "boomHeight": 150,
     "approachLength": 500,
     "glideSlope": 0.12,
@@ -295,7 +298,7 @@
         "ammoReturn": 0.1
       },
       "ace": {
-        "turnFight": 1,
+        "turnFight": 0.5,
         "reaction": 0.18,
         "lookout": 700,
         "aimError": 0.01,

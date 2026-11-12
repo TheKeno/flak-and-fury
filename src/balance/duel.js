@@ -16,6 +16,7 @@
 //     (part 4) leaves it to the tuner, which fixes plane numbers. A known duel that passes says so.
 //   expect: 'a' | 'b' | 'even'. basis: the sheet number that says why (BETTER in sheet.js): the winner
 //     must have the better one (the tests check it), 'turnTime' being lower-is-better.
+// skill: one level for both bots, or [a's, b's] (the skill-order check pits one level against another).
 // Each duel runs `seeds` times from each side of the map (a plays team 0, then team 1 with the picture
 // mirrored), so the map's bias cancels.
 import { buildWorld } from './runner.js';
@@ -57,7 +58,7 @@ export function runDuel(content, duel, { seed = 1, mirror = false, skill = 'norm
   specs.forEach((s, i) => {
     const def = content.planeDefs[s.plane];
     if (!def) throw new Error(`Unknown plane "${s.plane}" in duel ${duel.id}`);
-    setBots(world, { team: teamOf[i], count: 1, skill, defId: s.plane, nation: def.nation });
+    setBots(world, { team: teamOf[i], count: 1, skill: Array.isArray(skill) ? skill[i] : skill, defId: s.plane, nation: def.nation });
     const p = world.planes.find((q) => q.team === teamOf[i]);
     const dir = mirror ? -1 : 1;
     const j = (k) => jitter(seed, i * 10 + k);
