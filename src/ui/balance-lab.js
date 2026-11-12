@@ -5,6 +5,7 @@ import { cleanContent, newRun, planMatches, runFileName, withDefaults } from '..
 import { analyse, compareRuns } from '../balance/report.js';
 import { train, plannedMatches, tacticsFile, summariseTraining, TRAIN_DEFAULTS } from '../balance/trainer.js';
 import { TACTIC_FIELDS, tacticsIn, describeTactics } from '../sim/tactics.js';
+import { LEVER } from '../balance/levers.js';
 
 const $ = (id) => document.getElementById(id);
 const CORES = navigator.hardwareConcurrency || 4;
@@ -426,6 +427,15 @@ async function showReport() {
       el.innerHTML = trainingHtml(run);
       return;
     }
+    if (run.kind === 'tuning') {
+      el.innerHTML = tuningHtml(run);
+      wireTuning(run, f);
+      return;
+    }
+    if (run.kind === 'tuning-state' || run.state?.kind === 'tuning-state') {
+      el.innerHTML = '<p class="dim">The auto-tuner\'s checkpoint: a tuning in progress (or stopped; carry on with <code>node tools/tune-planes.mjs --resume</code>). Its report appears when it is done.</p>';
+      return;
+    }
     if (!run.matches.length) {
       el.innerHTML = '<p class="dim">This run has no matches yet.</p>';
       return;
@@ -555,6 +565,124 @@ function trainingHtml(t) {
   for (const s of t.history) h += `<tr><td class="num">${s.round}</td><td>${name(s.plane)}</td><td class="dim" style="white-space:normal">${s.changes.length ? s.changes.map((c) => `${esc(c.key)} ${c.from} → ${c.to} (+${c.diff} ± ${Math.round(2 * c.se * 100) / 100})`).join(', ') : 'none beat the noise'}</td></tr>`;
   h += '</table>';
   return h;
+}
+
+// ---- The auto-tuner's record (tools/tune-planes.mjs): report, Apply, Undo, Discard ----
+const localTime = (iso) => new Date(iso).toLocaleString('sv-SE').slice(0, 16);
+const pct = (m) => `${m > 1 ? '+' : ''}${Math.round((m - 1) * 100)}%`;
+const shown = (v) => (Array.isArray(v) ? v.join(' / ') : v);
+function tuningHtml(t) {
+  const r = t.result;
+  const name = (id) => esc(r.names[id] ?? S.names[id] ?? id);
+  const sgn = (v) => (v == null ? '–' : `${v > 0 ? '+' : ''}${Math.round(v)} m`);
+  const state = t.applied ? `<p class="warn">Applied ${esc(localTime(t.applied.at))}: these numbers are in data/planes.json now (Undo puts the old ones back).</p>`
+    : t.discarded ? `<p class="dim">Discarded ${esc(localTime(t.discarded))}.</p>` : '';
+  let h = `<h3>Auto-tuner</h3>${state}<div class="summary">${t.summary.map((s) => `<p>${esc(s)}</p>`).join('')}</div>`;
+  h += `<div class="row"><button id="tuneApply" ${t.applied || t.discarded || !r.changes.length ? 'disabled' : ''}>Apply</button> <button id="tuneUndo" ${t.applied ? '' : 'disabled'}>Undo</button> <button id="tuneDiscard" ${t.applied || t.discarded ? 'disabled' : ''}>Discard</button> <span id="tuneMsg" class="dim"></span></div>`;
+  if (r.flights.length) h += `<h3>Test flights before Apply</h3><ul>${r.flights.map((f) => `<li>${esc(f.text)}</li>`).join('')}</ul>`;
+  h += `<h3>Front push and kills per life, before and after</h3><table><tr><th>plane</th><th class="num">push before</th><th class="num">after</th><th class="num">kills/life before</th><th class="num">after</th><th class="num">full run after</th><th>left outside even</th></tr>`;
+  const full = t.checks?.['full-after'];
+  for (const p of r.planes) {
+    const out = r.outside.find((o) => o.plane === p);
+    const f = full?.find((x) => x.id === p);
+    h += `<tr><td>${name(p)}</td><td class="num">${sgn(r.before[p].push)}</td><td class="num">${sgn(r.after[p].push)}</td><td class="num">${r.before[p].kpl}</td><td class="num">${r.after[p].kpl}</td><td class="num">${f ? `${sgn(f.push)} ± ${Math.round(2 * f.se)}` : '–'}</td><td class="dim" style="white-space:normal">${out ? esc(out.why) : ''}</td></tr>`;
+  }
+  h += '</table>';
+  h += '<h3>Changes and why</h3>';
+  if (!r.changes.length) h += '<p class="dim">None.</p>';
+  else {
+    h += '<table><tr><th>plane</th><th>number</th><th class="num">now</th><th class="num">tuned</th><th class="num">change</th></tr>';
+    for (const c of r.changes) h += `<tr><td>${name(c.plane)}</td><td>${esc(LEVER[c.key]?.label ?? c.key)}</td><td class="num">${esc(shown(c.from))}</td><td class="num">${esc(shown(c.to))}</td><td class="num">${pct(c.mult)}</td></tr>`;
+    h += '</table><p class="dim">Each step was kept because it moved its plane towards even by more than the noise:</p><ul>';
+    for (const s of r.history) if (s.kept) h += `<li>${name(s.plane)}: ${esc(LEVER[s.kept.key]?.label ?? s.kept.key)} ${pct(s.kept.from)} → ${pct(s.kept.to)}, front push ${sgn(s.pushBefore)} → ${sgn(s.kept.pushAfter)} (gain ${s.kept.gain} ± ${Math.round(2 * s.kept.se * 10) / 10} m over ${s.kept.seeds} matches per setup)</li>`;
+    h += '</ul>';
+  }
+  // The matchup grid: kills-per-life ratio of the row plane against the column plane, after.
+  h += '<h3>Matchups after (kills-per-life ratio, row against column; mild counters: under about 1.5, never past 2.3)</h3><table><tr><th></th>';
+  for (const q of r.planes) h += `<th class="num">${name(q)}</th>`;
+  h += '</tr>';
+  for (const p of r.planes) {
+    h += `<tr><td>${name(p)}</td>`;
+    for (const q of r.planes) {
+      const m = r.after[p].matchups[q];
+      const lop = m ? Math.max(m.ratio, 1 / m.ratio) : 0;
+      h += p === q || !m ? '<td></td>' : `<td class="num${lop > 2.3 ? ' warn' : lop <= 1.5 ? ' dim' : ''}">${m.ratio}</td>`;
+    }
+    h += '</tr>';
+  }
+  h += '</table>';
+  if (t.duels?.after) {
+    h += `<h3>Duels</h3><p>${t.duels.before.filter((d) => d.pass).length} pass before, ${t.duels.after.filter((d) => d.pass).length} after.`;
+    if (t.duels.broken.length) h += ` <span class="warn">Passed before, fail now: ${t.duels.broken.map(esc).join(', ')}.</span>`;
+    if (t.duels.fixed.length) h += ` Failed before, pass now: ${t.duels.fixed.map(esc).join(', ')}.`;
+    h += ' The duels are reported, not a gate: most failures are bot problems.</p>';
+  }
+  const skillRow = (skill) => {
+    const b = t.checks?.[`${skill}-before`];
+    const a = t.checks?.[`${skill}-after`];
+    if (!b || !a) return '';
+    return `<tr><td>${skill}</td>${r.planes.map((p) => `<td class="num">${sgn(b.find((x) => x.id === p)?.push)} → ${sgn(a.find((x) => x.id === p)?.push)}</td>`).join('')}</tr>`;
+  };
+  const rowsSk = skillRow('easy') + skillRow('ace');
+  if (rowsSk) h += `<h3>Check at easy and ace (quick runs, front push before → after)</h3><table><tr><th></th>${r.planes.map((p) => `<th class="num">${name(p)}</th>`).join('')}</tr>${rowsSk}</table>`;
+  const changed = [...new Set(r.changes.map((c) => c.plane))];
+  if (changed.length) {
+    const keys = ['topSpeed', 'turnTime', 'slowTurnTime', 'climbRate', 'diveSpeed', 'zoomHeight', 'hp', 'topSpeedHigh', 'climbRateHigh', 'turnRateHigh', 'slowTurnRateHigh'];
+    h += `<h3>Plane sheet of the changed planes (before → after)</h3><div class="wide"><table><tr><th>plane</th>${keys.map((k) => `<th class="num">${k}</th>`).join('')}</tr>`;
+    for (const p of changed) h += `<tr><td>${name(p)}</td>${keys.map((k) => { const a = r.sheets.before[p][k]; const b = r.sheets.after[p][k]; return `<td class="num${a === b ? ' dim' : ''}">${a === b ? a : `${a} → ${b}`}</td>`; }).join('')}</tr>`;
+    h += '</table></div>';
+  }
+  h += `<p class="dim">Tuned for ${Math.round(t.spent / 360) / 10} h of a ${t.hours} h budget, ${r.matchesFlown} matches; ended: ${esc(r.ended)}. Files: ${Object.values(t.files).filter(Boolean).map(esc).join(', ')}.</p>`;
+  return h;
+}
+
+// Apply writes the tuned numbers into data/planes.json, only if the file still has the numbers the tuner
+// started from; Undo writes those back. The record keeps what was done.
+function wireTuning(t, file) {
+  const msg = (text, warn) => {
+    $('tuneMsg').textContent = text;
+    $('tuneMsg').className = warn ? 'warn' : 'dim';
+  };
+  const setAll = async (which) => {
+    const planes = await getJson('data/planes.json');
+    const other = which === 'to' ? 'from' : 'to';
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const value = (def, key) => (key === 'ammo' ? def.armament.guns.map((g) => g.ammo) : def[key]);
+    const off = t.result.changes.filter((c) => !same(value(planes[c.plane], c.key), c[other]));
+    if (off.length) throw new Error(`data/planes.json changed since: ${off.map((c) => `${c.plane} ${c.key}`).join(', ')}. Nothing written.`);
+    for (const c of t.result.changes) {
+      const def = planes[c.plane];
+      if (c.key === 'ammo') def.armament.guns.forEach((g, i) => { g.ammo = c[which][i]; });
+      else def[c.key] = c[which];
+    }
+    await putJson('data/planes.json', planes);
+  };
+  const save = async () => {
+    await putJson(`balance/results/${file}`, t);
+    cache.set(file, t);
+    showReport();
+  };
+  $('tuneApply').onclick = async () => {
+    try {
+      await setAll('to');
+      t.applied = { at: new Date().toISOString() };
+      await save();
+    } catch (e) { msg(e.message, true); }
+  };
+  $('tuneUndo').onclick = async () => {
+    try {
+      await setAll('from');
+      t.undone = new Date().toISOString();
+      t.applied = null;
+      await save();
+    } catch (e) { msg(e.message, true); }
+  };
+  $('tuneDiscard').onclick = async () => {
+    try {
+      t.discarded = new Date().toISOString();
+      await save();
+    } catch (e) { msg(e.message, true); }
+  };
 }
 
 function compareHtml(c, beforeFile, afterFile) {

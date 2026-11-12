@@ -8,3 +8,4 @@ Thumbs.db
 # Blueprint library location (copyrighted sheets live outside this repo)
 .blueprints-path
 balance/results/train-bots-checkpoint.json
+balance/results/tune-checkpoint.json

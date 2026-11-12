@@ -4,6 +4,7 @@
 // The sim is not changed for it: everything is read from world.events and the world each tick.
 import { importLdtk } from '../content/ldtk.js';
 import { createWorld, setBots, stepWorld, TICK_RATE } from '../sim/world.js';
+import { applyOverrides } from './levers.js';
 
 // Kills scored with the killer this much higher than the victim count as "from above" (world units).
 const ABOVE = 25;
@@ -82,7 +83,9 @@ function frontOf(world, home) {
 // Runs one match. a, b: plane ids for team 0 and team 1. Returns plain data (JSON-safe).
 // onProgress(share 0..1) is called about once per game-second.
 // arena: the air-only arena (no ground war); tactics: bot tactics instead of content.tactics.
-export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, arena = false, tactics, onProgress } = {}) {
+// overrides: tuned plane numbers ({ planeId: { lever: multiplier } }, src/balance/levers.js), the auto-tuner's trials.
+export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, arena = false, tactics, overrides, onProgress } = {}) {
+  if (overrides) content = { ...content, planeDefs: applyOverrides(content.planeDefs, overrides) };
   const world = buildWorld(content, { map, seed, arena, ...(tactics !== undefined && { tactics }) });
   for (const [team, defId] of [[0, a], [1, b]]) {
     const def = content.planeDefs[defId];

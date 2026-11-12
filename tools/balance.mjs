@@ -5,7 +5,7 @@
 //   node tools/balance.mjs fighters --full           full run (about 50)
 //   node tools/balance.mjs fighters --matchup bf109g6,spitfire
 //   options: --threads N (default: all cores), --half (half the cores), --count N (matches per setup),
-//            --minutes N, --out file.json, --report run.json (print the report of a saved run, no matches)
+//            --minutes N, --skill easy|normal|ace (instead of the scenario's), --out file.json, --report run.json (print the report of a saved run, no matches)
 //   node tools/balance.mjs --resume run.json         finish a stopped run: same plan and seeds, the matches
 //            already in the file are kept and skipped (the file is saved every 20 matches, so a killed run
 //            loses at most those). Only resume with the same bot tactics and data the run started with.
@@ -17,7 +17,7 @@ import { join } from 'node:path';
 import { runMatch } from '../src/balance/runner.js';
 import { cleanContent, newRun, planMatches, runFileName } from '../src/balance/plan.js';
 import { analyse, METRES } from '../src/balance/report.js';
-import { loadContent } from './content.mjs';
+import { loadContent, envOverrides } from './content.mjs';
 
 export { loadContent };
 
@@ -25,7 +25,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
 
 // Options that take a value; anything else not starting with -- is the scenario name.
-const VALUED = ['--matchup', '--threads', '--count', '--minutes', '--out', '--report', '--resume'];
+const VALUED = ['--matchup', '--threads', '--count', '--minutes', '--out', '--report', '--resume', '--skill'];
 function option(args, name) {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
@@ -75,9 +75,13 @@ async function main(args) {
   const mode = old ? old.mode : matchup ? 'matchup' : args.includes('--full') ? 'full' : 'quick';
   if (!old && option(args, '--count')) scenario.sizes = { ...scenario.sizes, [mode]: Number(option(args, '--count')) };
   if (!old && option(args, '--minutes')) scenario.minutes = Number(option(args, '--minutes'));
+  if (!old && option(args, '--skill')) scenario.skill = option(args, '--skill');
   const content = loadContent([scenario.map ?? 'countryside']);
   const names = Object.fromEntries(Object.entries(content.planeDefs).map(([id, d]) => [id, d.name]));
   const run = old ? { ...old, finished: undefined } : newRun(scenario, { mode, matchup, names });
+  // Tuned plane numbers flown (FF_PLANES, the auto-tuner's confirm runs), kept with the results.
+  if (!old && envOverrides()) run.planeOverrides = envOverrides();
+  if (old && JSON.stringify(old.planeOverrides ?? null) !== JSON.stringify(envOverrides())) console.log('Warning: resume with the same FF_PLANES the run started with (its planeOverrides).');
   const all = planMatches(run.scenario, mode, matchup);
   // Resuming: a match is known by its planes and seed; the ones already saved are kept, not flown again.
   const key = (m) => `${m.a}|${m.b}|${m.seed}`;
@@ -108,7 +112,7 @@ async function main(args) {
     results[i] = result;
     done++;
     const spent = (Date.now() - t0) / 1000;
-    process.stdout.write(`\r  ${done}/${jobs.length} matches, ${clock(spent)} spent, about ${clock((spent / done) * (jobs.length - done))} left   `);
+    if (process.stdout.isTTY) process.stdout.write(`\r  ${done}/${jobs.length} matches, ${clock(spent)} spent, about ${clock((spent / done) * (jobs.length - done))} left   `);
     if (done % 20 === 0) save();
   }, () => stopping);
   run.finished = new Date().toISOString();
