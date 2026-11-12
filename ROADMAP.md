@@ -156,6 +156,14 @@ later.
        strengths keep their top ranks (the tuner may make the P-47 faster or tougher, never a better turner than the
        Ki-43). **The style check stays as a guard:** tuned boom planes must still win by diving, and a free training
        of the turn fighters must still pick turning; a change that breaks that is thrown out.
+       **Also settled 2026-11-12:** (a) **first pass: the six fighters only** (Bf 109 G-6, Spitfire LF Mk IX, P-47D,
+       La-5FN, Ki-43-II, B-239), the Balance Lab's fighters scenario as it is; the P-38J waits. (b) The tuner may build
+       today's bot weaknesses (the boom pass) into the numbers: accepted; the run is cheap and hands-off, so it is run
+       again when the bots get much better, and the owner's test flights before Apply check the feel. (c) **The tuner
+       never goes past its limits:** a plane that can't reach even within ±15% (likely the Ki-43: its weakness is
+       firepower, set by history) is reported plainly, and the other levers of goal (5) are discussed then. (d) Human
+       players fly differently (boom and zoom comes easier to people than to bots): nothing built now; goal (1) and
+       the test flights cover it, looked at again when online play has real players.
   5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
   This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
 
