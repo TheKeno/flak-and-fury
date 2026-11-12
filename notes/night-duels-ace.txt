@@ -1,0 +1,29 @@
+KNOWN turn-ki43-v-spitfire score -0.87 (2-30-0) planes: known: the Ki-43 holds the position (about twice as long on its sights) and still loses on damage: two 12.7 mm against two Hispanos and four .303 (part 3a/3b)
+PASS turn-ki43-v-bf109 score +0.63 (26-6-0)
+PASS turn-ki43-v-p47 score +0.44 (23-9-0)
+FAIL turn-b239-v-p47 score -0.06 (15-17-0) bot: neither bot fired (1.2 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS turn-b239-v-bf109 score +0.94 (31-1-0)
+PASS turn-spitfire-v-p47 score +0.88 (30-2-0)
+PASS turn-spitfire-v-p38 score +0.75 (28-4-0)
+PASS turn-la5fn-v-p47 score +0.88 (30-2-0)
+PASS low-ki43-on-p47-tail score +0.38 (22-10-0)
+PASS low-ki43-on-bf109-tail score +0.81 (29-3-0)
+PASS low-b239-on-p38-tail score +0.5 (24-8-0)
+PASS boom-p47-on-ki43 score +0.69 (27-5-0)
+PASS boom-p47-on-b239 score +0.53 (24-7-1)
+FAIL boom-p47-on-spitfire score -0.56 (7-25-0) bot: neither bot fired (0.3 s and 0.8 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-bf109-on-spitfire score -0.87 (2-30-0) bot: neither bot fired (0.3 s and 1 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS boom-bf109-on-la5fn score +0.5 (24-8-0)
+PASS boom-p38-on-la5fn score +0.63 (26-6-0)
+PASS chase-p47-diver-v-ki43 score +0.5 (24-8-0)
+PASS chase-bf109-diver-v-b239 score +0.38 (20-8-4)
+PASS control-spitfire-mirror score -0.19 (13-19-0)
+PASS control-p47d-mirror score +0.13 (18-14-0)
+PASS control-ki43-mirror score +0.03 (16-15-1)
+FAIL high-p47-v-spitfire score -0.44 (9-23-0) bot: neither bot fired (0.4 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS high-p38-v-la5fn score +0.44 (22-8-2)
+PASS high-bf109-v-ki43 score +0.75 (28-4-0)
+20 of 25 duels pass (ace, 16 seeds x 2 sides, 15 s).
+Known plane-number failures (the tuner's work, not the bot's): turn-ki43-v-spitfire
+Failed: turn-b239-v-p47, boom-p47-on-spitfire, boom-bf109-on-spitfire, high-p47-v-spitfire
+Points at the bot: 4, at plane numbers: 0, at the duel set-up: 0.

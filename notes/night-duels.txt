@@ -23,7 +23,7 @@ PASS control-ki43-mirror score +0.16 (18-13-1)
 FAIL high-p47-v-spitfire score -0.62 (6-26-0) bot: neither bot fired (0.3 s and 0.8 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
 FAIL high-p38-v-la5fn score +0.22 (19-12-1) bot: neither bot fired (0.9 s and 0.5 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
 PASS high-bf109-v-ki43 score +0.72 (25-2-5)
-16 of 25 duels pass (16 seeds x 2 sides, 18 s).
+16 of 25 duels pass (normal, 16 seeds x 2 sides, 19 s).
 Known plane-number failures (the tuner's work, not the bot's): turn-ki43-v-spitfire
 Failed: low-ki43-on-p47-tail, boom-p47-on-ki43, boom-p47-on-spitfire, boom-bf109-on-spitfire, boom-bf109-on-la5fn, chase-bf109-diver-v-b239, high-p47-v-spitfire, high-p38-v-la5fn
 Points at the bot: 6, at plane numbers: 2, at the duel set-up: 0.

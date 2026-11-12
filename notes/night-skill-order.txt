@@ -1,0 +1,30 @@
+ace v normal
+  spitfire/slow      higher 36, lower 12, draw 0, own-fault runs 0
+  spitfire/fast      higher 29, lower 19, draw 0, own-fault runs 1
+  bf109g6/slow       higher 28, lower 20, draw 0, own-fault runs 1
+  bf109g6/fast       higher 24, lower 24, draw 0, own-fault runs 3
+  ki43/slow          higher 32, lower 11, draw 5, own-fault runs 2
+  ki43/fast          higher 37, lower 8, draw 3, own-fault runs 2
+  p47d/slow          higher 24, lower 24, draw 0, own-fault runs 1
+  p47d/fast          higher 16, lower 32, draw 0, own-fault runs 0
+  total: higher 226, lower 150, draw 8 of 384  (win share of decided 0.60)
+normal v easy
+  spitfire/slow      higher 38, lower 9, draw 1, own-fault runs 1
+  spitfire/fast      higher 38, lower 8, draw 2, own-fault runs 1
+  bf109g6/slow       higher 30, lower 18, draw 0, own-fault runs 0
+  bf109g6/fast       higher 27, lower 18, draw 3, own-fault runs 1
+  ki43/slow          higher 45, lower 1, draw 2, own-fault runs 2
+  ki43/fast          higher 38, lower 6, draw 4, own-fault runs 3
+  p47d/slow          higher 35, lower 13, draw 0, own-fault runs 0
+  p47d/fast          higher 35, lower 13, draw 0, own-fault runs 1
+  total: higher 286, lower 86, draw 12 of 384  (win share of decided 0.77)
+ace v easy
+  spitfire/slow      higher 42, lower 5, draw 1, own-fault runs 0
+  spitfire/fast      higher 46, lower 2, draw 0, own-fault runs 1
+  bf109g6/slow       higher 39, lower 9, draw 0, own-fault runs 0
+  bf109g6/fast       higher 39, lower 9, draw 0, own-fault runs 2
+  ki43/slow          higher 47, lower 1, draw 0, own-fault runs 4
+  ki43/fast          higher 45, lower 3, draw 0, own-fault runs 5
+  p47d/slow          higher 42, lower 6, draw 0, own-fault runs 0
+  p47d/fast          higher 34, lower 14, draw 0, own-fault runs 2
+  total: higher 334, lower 49, draw 1 of 384  (win share of decided 0.87)
