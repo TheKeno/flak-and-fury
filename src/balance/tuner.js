@@ -16,7 +16,7 @@ import { planeSheet, BETTER } from './sheet.js';
 import { METRES } from './report.js';
 
 export const TUNE_DEFAULTS = {
-  planes: ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239'],
+  planes: ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'a6m5', 'b239'],
   band: 10, // metres of front push either way that count as even
   farOff: 20, // metres: further off than this, levers move two steps (10%) at a time
   stuckLimit: 2, // a plane found stuck this many times stays stuck

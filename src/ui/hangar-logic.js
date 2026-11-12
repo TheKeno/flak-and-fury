@@ -1,6 +1,7 @@
 // The hangar's rules, kept apart from the page so tests can run them. Everything funnels through the sim's
 // validateLoadout, so a load built here is one the game (and the host online) accepts.
 import { validateLoadout, validateGuns, flyingDef, gunsOf, standardGunKg, mountsOf, fullAmmo, DEFAULT_WEIGHT } from '../sim/weapons.js';
+import { levelTop, DEFAULT_FLIGHT } from '../sim/air.js';
 
 export const STORAGE_KEY = 'flak-hangar';
 
@@ -109,9 +110,9 @@ export function effects(def, list, weapons, weight = DEFAULT_WEIGHT, guns = null
   const f = flyingDef(p, { weight });
   const e = (key, label, goodWhenHigher) => ({ key, label, goodWhenHigher, base: def[key], now: f[key], change: def[key] ? f[key] / def[key] - 1 : 0 });
   const out = [e('takeoffSpeed', 'Take-off speed', false), e('stallSpeed', 'Stall speed', false), e('turnRate', 'Turn rate', true), e('thrust', 'Engine pull', true)];
-  // Pods and gondolas add drag: the top speed (about the square root of thrust over drag) falls a little.
-  const topNow = Math.sqrt(f.thrust / f.dragCoef);
-  const topBase = Math.sqrt(def.thrust / def.dragCoef);
+  // Pods and gondolas add drag: the level top speed (thrust, falling with speed, against drag) falls a little.
+  const topNow = levelTop(DEFAULT_FLIGHT, f.thrust, f.dragCoef);
+  const topBase = levelTop(DEFAULT_FLIGHT, def.thrust, def.dragCoef);
   out.push({ key: 'topSpeed', label: 'Top speed', goodWhenHigher: true, base: topBase, now: topNow, change: topNow / topBase - 1 });
   return out;
 }

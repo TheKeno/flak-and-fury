@@ -33,7 +33,7 @@ export const TACTIC_FIELDS = [
 // trainer never changes them, as decided for boom and zoom's style 0.5) and starts the others at the
 // role's values (ROLE_DEFAULTS), which the trainer then fine-tunes. Planes with no role (heavies,
 // bombers) fly the default tactics.
-export const ROLE_OF = { ki43: 'turn', b239: 'turn', spitfire: 'allround', la5fn: 'allround', bf109g6: 'boom', p47d: 'boom', p38j: 'boom' };
+export const ROLE_OF = { a6m5: 'turn', ki43: 'turn', b239: 'turn', spitfire: 'allround', la5fn: 'allround', bf109g6: 'boom', p47d: 'boom', p38j: 'boom' };
 export const ROLE_FORCED = {
   turn: { style: 0, chaseDiver: 0 }, // a turn fighter never chases a diver
   allround: {},

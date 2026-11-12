@@ -1,0 +1,59 @@
+{
+  "_notes": "The fighter design pass's target card (notes/fighter-design.md, ROADMAP Decisions step 4 'Changed 2026-11-12 late'): plane-sheet numbers each fighter is built to by tools/fit-planes.mjs. topSpeed and climbRate at low level (y 300), turnTime from 80% of top speed, slowTurnTime from 1.4 x stall, diveSpeed after a 60 degree dive losing 300, topSpeedHigh at y 1000. hp is set as it is. The tuner then fine-tunes within ±15% around these. Revised 2026-11-12 with the propeller physics (fast planes dive fast: both come from low drag) and history (the P-47 was not slow at sea level): P-47 top 150 and the best dive 240, La-5FN top 165 and dive 225, Spitfire top 158. La-5FN: climb 62 and dive 232 (fastest low needs low drag and strong pull; it climbed nearly as well as the Spitfire). La-5FN high 130: thin air keeps about 80% of low-level speed even at the lowest rated height, so weak high means losing the most going up. P-47 climb 40 and dive 245: the best dive needs the lowest drag, so less thrust and a weaker climb (history: about a third below the Spitfire).",
+  "planes": {
+    "bf109g6": {
+      "topSpeed": 150,
+      "climbRate": 61,
+      "turnTime": 4.65,
+      "slowTurnTime": 4.1,
+      "diveSpeed": 222,
+      "topSpeedHigh": 135,
+      "hp": 97
+    },
+    "spitfire": {
+      "topSpeed": 158,
+      "climbRate": 62,
+      "turnTime": 4,
+      "slowTurnTime": 3.5,
+      "diveSpeed": 215,
+      "topSpeedHigh": 125,
+      "hp": 105
+    },
+    "p47d": {
+      "topSpeed": 150,
+      "climbRate": 40,
+      "turnTime": 4.95,
+      "slowTurnTime": 4.4,
+      "diveSpeed": 245,
+      "topSpeedHigh": 144,
+      "hp": 121
+    },
+    "la5fn": {
+      "topSpeed": 165,
+      "climbRate": 62,
+      "turnTime": 4.3,
+      "slowTurnTime": 3.8,
+      "diveSpeed": 228,
+      "topSpeedHigh": 130,
+      "hp": 105
+    },
+    "b239": {
+      "topSpeed": 126,
+      "climbRate": 50,
+      "turnTime": 4,
+      "slowTurnTime": 3.5,
+      "diveSpeed": 189,
+      "topSpeedHigh": 106,
+      "hp": 113
+    },
+    "a6m5": {
+      "topSpeed": 132,
+      "climbRate": 54,
+      "turnTime": 3.7,
+      "slowTurnTime": 3.2,
+      "diveSpeed": 174,
+      "topSpeedHigh": 125,
+      "hp": 90
+    }
+  }
+}

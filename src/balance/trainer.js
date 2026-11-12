@@ -8,7 +8,7 @@ import { TACTIC_FIELDS, DEFAULT_TACTICS, tacticsIn, describeTactics, trainableFi
 import { searchStep, neighbours } from './search.js';
 
 export const TRAIN_DEFAULTS = {
-  planes: ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239'],
+  planes: ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'a6m5', 'b239'],
   rounds: 3, // passes over all planes
   seeds: 16, // matches per opponent for every trial (half on each side of the map)
   minutes: 6, // game-minutes per arena match

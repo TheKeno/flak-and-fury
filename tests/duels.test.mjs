@@ -21,7 +21,7 @@ test('the plane sheet: turn fighters turn tighter than heavy fighters, and every
     assert.ok(s.diveSpeed > s.topSpeed, `${s.id} gains speed in a dive`);
     assert.ok(s.zoomHeight > 100, `${s.id} zooms`);
   }
-  assert.ok(sheets.ki43.turnTime < sheets.spitfire.turnTime && sheets.spitfire.turnTime < sheets.p47d.turnTime);
+  assert.ok(sheets.a6m5.turnTime < sheets.spitfire.turnTime && sheets.spitfire.turnTime < sheets.p47d.turnTime);
 });
 
 test('every duel is well formed and its expected winner has the better sheet number', () => {
@@ -40,7 +40,7 @@ test('every duel is well formed and its expected winner has the better sheet num
 });
 
 test('a duel run is deterministic and mirrors the picture', () => {
-  const d = { ...duels.find((x) => x.id === 'turn-ki43-v-spitfire'), seconds: 20 };
+  const d = { ...duels.find((x) => x.id === 'turn-a6m5-v-spitfire'), seconds: 20 };
   const a = runDuel(content, d, { seed: 700, mirror: false });
   assert.deepEqual(runDuel(content, d, { seed: 700, mirror: false }), a);
   const m = runDuel(content, d, { seed: 700, mirror: true });

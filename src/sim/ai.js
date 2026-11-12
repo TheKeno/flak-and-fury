@@ -743,6 +743,10 @@ function patrolWant(world, p, b) {
   // Turning round at the end of the beat: a half loop bleeds so much speed (about 60 over the top, more in
   // thin air) that the bots crept up in a long climb to the ceiling. With height to spare it turns the
   // nose down through the reversal instead (a split-S), which gives the speed back (part 3d).
+  // Turning round over the top takes full throttle, not cruise: with the propeller physics (src/sim/air.js)
+  // a half loop on cruise throttle ran out of speed at the top, and the bot crept up on the retries
+  // (2026-11-12).
+  if (Math.abs(angleDiff(want.angle, p.angle)) > 1.2) want.throttle = 1;
   if (b.split && !b.splitNew && Math.abs(angleDiff(want.angle, p.angle)) < 1.2) b.split = false; // round and heading the new way
   b.splitNew = false;
   if (b.split) want.short = true;
@@ -1303,7 +1307,11 @@ function fly(world, p, b, skill, want, cmd) {
   else if (p.speed < rushSpeed) b.rushing = true;
   else if (b.rushing && p.speed > rushSpeed * (b.mode === 'patrol' ? world.bots.rushExit ?? 1 : 1)) b.rushing = false;
   if (b.rushing) {
-    angle = angleFor(facing(p), 0);
+    // On patrol it builds the speed going down towards its patrol height, never level: with the propeller
+    // pulling hard when slow (src/sim/air.js), each try at the loop gained height and the level run kept it,
+    // so the bot ratcheted up to the ceiling (2026-11-12). In a fight it stays level (the duels).
+    const wantPitch = Math.asin(clamp(Math.sin(want.angle), -1, 1));
+    angle = angleFor(facing(p), b.mode === 'patrol' ? clamp(Math.min(0, wantPitch), -0.3, 0) : 0);
     diff = angleDiff(angle, p.angle);
     rushing = true; // full throttle to build the speed
   }

@@ -67,9 +67,9 @@ Units: 1 px ≈ 0.4 m. Speeds in px/s, angles in radians (1 rad ≈ 57°), times
 | Field | What it does |
 |---|---|
 | `rpm` | Rounds per minute **per gun** (about 60% of the historical figure, for gameplay). |
-| `damage` | Damage per round, randomised ±50% per hit. |
+| `damage` | Damage per round, randomised ±50% per hit. Fighter design pass (2026-11-12, `notes/fighter-design.md`): the .50 M2 1.283 → 1.475 (+15%) and the Hispano 4.125 → 3.6, so every fighter pair kills in 1.0-3.5 s of solid hits (about 2 in the middle). |
 | `velocity` | Muzzle speed (units/s). Lower = you have to lead targets more. Set from the real muzzle velocity `realVelocity` (m/s) as 300 × (real ÷ 770)^1.5, rounded to 5: scaled down and the differences stretched, so the flat fast guns (Hispano 365, M2 360, ShKAS 320) reach far and the slow heavy ones (Type 99 205, MK 108 165) need a close target. Set from history, not tuned. |
-| `realVelocity` | The real muzzle velocity in m/s, for reference (`velocity` comes from it): .303 744, MG 17 755, ShKAS 800, MG 81Z 790, M2 870, MG 131 750, Ho-103 780, Hispano 880, MG 151/20 790 (mine shell belts), Type 99 Mk 1 600, ShVAK 770, MK 108 520. |
+| `realVelocity` | The real muzzle velocity in m/s, for reference (`velocity` comes from it): .303 744, MG 17 755, ShKAS 800, MG 81Z 790, M2 870, MG 131 750, Ho-103 780, Type 99 Mk 2 750 and Type 97 745 (the A6M5 Zero's), Hispano 880, MG 151/20 790 (mine shell belts), Type 99 Mk 1 600, ShVAK 770, MK 108 520. |
 | `spread` | Random aim error (rad). Lower = tighter grouping. |
 | `drop` | How much gravity pulls the round down (0 = none, 1 = full). The drop over a distance also grows with 1 ÷ velocity², so slow guns drop much more: M2 0.09, rifle calibre 0.12, 20 mm 0.11-0.14, Type 99 0.4, MK 108 0.55. |
 | `life` | Seconds before the round is spent; velocity × life is the reach (rifle calibre about 400, M2 540, Hispano 530, MK 108 250). |
@@ -174,7 +174,14 @@ then the wear rates scale by `heatTime` / the plane's heat time, so a full heat 
 up to `thinTop` (1200). **Turning needs power:** above its rated height a plane's turn rate also falls by
 `turnPower` (0.375) of the power it has lost (60% power keeps 85% of the turn; nothing under the rated
 height). **Stall speed rises with height:** by `stallRise` (0.12) at `thinTop`, straight from the ground up,
-for every plane; its `slowTurnSpeed` moves up with it (`flyingDef`). **Negative g:** past `negGLimit` g of push (turn rate × speed / gravity, nose towards
+for every plane; its `slowTurnSpeed` moves up with it (`flyingDef`). **Propeller thrust falls with speed**
+(fighter design pass, 2026-11-12): a plane's pull is `thrust` × (`propSpeed` / speed)^`propFall`, levelled off at
+`propStatic` × `thrust` when slow (120, 1, 1.6). So climb comes from power, top speed from power against drag,
+and the dive almost only from drag: a clean, heavy P-47 out-dives a better climber. A plane's `thrust` is its
+pull at `propSpeed`; on the ground the same rule applies, times `groundThrust`. Every plane was refitted when it
+came in (`tools/fit-planes.mjs`: the six fighters to the design card in `balance/design-targets.json`, the rest
+`--keep` to fly as before), so thrust and drag are about half the old constant-thrust values. Gear (and flaps)
+down adds 70% drag (`GEAR_DRAG` in `plane.js`, was 30% of the old, larger drag). **Negative g:** past `negGLimit` g of push (turn rate × speed / gravity, nose towards
 the belly; 1 g: a full-rate push at cruise is about 2 g, a fine-aim tap about 0.5) held for `negGHold` s
 (0.12), a `negGCutout` engine cuts out for `negGCut` s (1; half that again while the push goes on). Only
 the pilot's steering counts (not stalls, spins or the map-edge autopilot), and since the sim has no lift
@@ -264,7 +271,7 @@ Shared numbers (tuning panel: Bots):
 | `cruiseHeight` | Patrol height above the ground. | 150 – 300 |
 | `terrainClear` | Clearance over the ground, trees and buildings in ordinary flight. In a steep, fast dive they pull out earlier, by what the pull-out costs. | 40 – 80 |
 | `patrolSplitHeight` | Patrol reversal as a split-S above this height over the ground; 0 off (default: tried at 150-400, more deaths). | 0 |
-| `rushExit` | Patrol: speed (times 1.5 x stall) a bot builds before the half loop at the end of the beat; 1 off. | 1 |
+| `rushExit` | Patrol: speed (times 1.5 x stall) a bot builds before the half loop at the end of the beat; 1 off. On patrol the bot builds it going down towards its patrol height, and turns round on full throttle (2026-11-12, the propeller physics). | 1.3 |
 | `patrolSpan` | Length of the patrol beat, back from the front (or from short of the enemy flak, if that's nearer home). | 300 – 800 |
 | `flakMargin` | Extra distance kept outside the reach of enemy flak. | 50 – 150 |
 | `groundRange` | How far from their own hangar bots go after enemy tanks and troops. | 1500 – 3000 |

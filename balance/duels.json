@@ -2,11 +2,11 @@
  "_notes": "Set-piece duels for src/balance/duel.js (format in its header comment): each starts two bots in the situation a plane role is about; expect is the winner the plane sheet (tools/plane-sheet.mjs) predicts, basis the sheet number that says why. Run: node tools/duels.mjs.",
  "duels": [
   {
-   "id": "turn-ki43-v-spitfire",
-   "title": "ki43 wins a slow turning fight against spitfire",
+   "id": "turn-a6m5-v-spitfire",
+   "title": "a6m5 wins a slow turning fight against spitfire",
    "why": "turn fighters and all-rounders win by turning when the fight is slow",
    "a": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -300,
     "h": 220,
     "face": 1,
@@ -21,18 +21,14 @@
    },
    "expect": "a",
    "basis": "slowTurnTime",
-   "seconds": 150,
-   "knownFail": {
-    "kind": "planes",
-    "why": "the Ki-43 holds the position (about twice as long on its sights) and still loses on damage: two 12.7 mm against two Hispanos and four .303 (part 3a/3b)"
-   }
+   "seconds": 150
   },
   {
-   "id": "turn-ki43-v-bf109",
-   "title": "ki43 wins a slow turning fight against bf109g6",
+   "id": "turn-a6m5-v-bf109",
+   "title": "a6m5 wins a slow turning fight against bf109g6",
    "why": "turn fighters and all-rounders win by turning when the fight is slow",
    "a": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -300,
     "h": 220,
     "face": 1,
@@ -50,11 +46,11 @@
    "seconds": 150
   },
   {
-   "id": "turn-ki43-v-p47",
-   "title": "ki43 wins a slow turning fight against p47d",
+   "id": "turn-a6m5-v-p47",
+   "title": "a6m5 wins a slow turning fight against p47d",
    "why": "turn fighters and all-rounders win by turning when the fight is slow",
    "a": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -300,
     "h": 220,
     "face": 1,
@@ -182,11 +178,11 @@
    "seconds": 150
   },
   {
-   "id": "low-ki43-on-p47-tail",
-   "title": "ki43 on the tail of a boom-and-zoom p47d low down wins",
+   "id": "low-a6m5-on-p47-tail",
+   "title": "a6m5 on the tail of a boom-and-zoom p47d low down wins",
    "why": "turn fighters win once the fight is low (boom and zoom has no height to dive from)",
    "a": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -450,
     "h": 70,
     "face": 1,
@@ -207,11 +203,11 @@
    "seconds": 150
   },
   {
-   "id": "low-ki43-on-bf109-tail",
-   "title": "ki43 on the tail of a boom-and-zoom bf109g6 low down wins",
+   "id": "low-a6m5-on-bf109-tail",
+   "title": "a6m5 on the tail of a boom-and-zoom bf109g6 low down wins",
    "why": "turn fighters win once the fight is low (boom and zoom has no height to dive from)",
    "a": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -450,
     "h": 70,
     "face": 1,
@@ -257,8 +253,8 @@
    "seconds": 150
   },
   {
-   "id": "boom-p47-on-ki43",
-   "title": "p47d wins diving from 300 above onto ki43 in its band (900 over the ground)",
+   "id": "boom-p47-on-a6m5",
+   "title": "p47d wins diving from 300 above onto a6m5 in its band (900 over the ground)",
    "why": "boom and zoom beats the others at its height: it dives from above, one pass, and zooms back",
    "a": {
     "plane": "p47d",
@@ -272,7 +268,7 @@
     "pitch": -10
    },
    "b": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -100,
     "h": 600,
     "face": 1,
@@ -413,8 +409,8 @@
    "seconds": 150
   },
   {
-   "id": "chase-p47-diver-v-ki43",
-   "title": "a ki43 that chases a diving p47d loses",
+   "id": "chase-p47-diver-v-a6m5",
+   "title": "a a6m5 that chases a diving p47d loses",
    "why": "a turn fighter that chases a diver cannot catch it and is hit when the diver zooms back",
    "a": {
     "plane": "p47d",
@@ -428,7 +424,7 @@
     "pitch": -25
    },
    "b": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -480,
     "h": 920,
     "face": 1,
@@ -509,18 +505,18 @@
    "seconds": 150
   },
   {
-   "id": "control-ki43-mirror",
-   "title": "ki43 against itself: even",
+   "id": "control-a6m5-mirror",
+   "title": "a6m5 against itself: even",
    "why": "control: same plane, same tactics, so neither side may win by the arena or the start picture",
    "a": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": -300,
     "h": 220,
     "face": 1,
     "stall": 1.5
    },
    "b": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": 300,
     "h": 220,
     "face": -1,
@@ -581,8 +577,8 @@
    "seconds": 150
   },
   {
-   "id": "high-bf109-v-ki43",
-   "title": "bf109g6 wins a fight high up (850 over the ground) against ki43",
+   "id": "high-bf109-v-a6m5",
+   "title": "bf109g6 wins a fight high up (850 over the ground) against a6m5",
    "why": "height decides who counters whom: up in the high band only the turbocharged (and the middle-rated) engines keep their power",
    "a": {
     "plane": "bf109g6",
@@ -595,7 +591,7 @@
     "speed": 0.75
    },
    "b": {
-    "plane": "ki43",
+    "plane": "a6m5",
     "x": 300,
     "h": 850,
     "face": -1,

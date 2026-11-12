@@ -122,6 +122,26 @@
       "convergenceFire": 1.5,
       "emergencyUse": 0
     },
+    "a6m5": {
+      "style": 0,
+      "heightOver": 0,
+      "minFightSpeed": 1,
+      "breakOff": 0,
+      "fireRange": 1,
+      "turnThrottle": 0,
+      "zoomAfterPass": 1,
+      "extendRange": 450,
+      "zoomSpeed": 1.6,
+      "passLead": 0,
+      "passBreak": 0,
+      "bandClimb": 0,
+      "bandMargin": 200,
+      "chaseDiver": 0,
+      "fightDamaged": 0,
+      "finishBonus": 100,
+      "convergenceFire": 1.5,
+      "emergencyUse": 0
+    },
     "b239": {
       "style": 0,
       "heightOver": 0,

@@ -3,7 +3,7 @@ import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './wea
 import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
 import { crashShockwave } from './ground.js';
 import { updateEmergency } from './emergency.js';
-import { powerAt, dragAt, turnAt, updateNegG } from './air.js';
+import { powerAt, dragAt, turnAt, updateNegG, propAt } from './air.js';
 
 
 export const GRAVITY = 90;
@@ -37,7 +37,9 @@ const GEAR_UP_ALT = 60;
 const GEAR_UP_SPEED = 120;
 const GEAR_DOWN_ALT = 25;
 const GEAR_DOWN_SPEED = 105;
-const GEAR_DRAG = 0.3; // gear fully down adds 30% drag
+// Gear (and the flaps that go down with it) fully down adds 70% drag: the brakes of an approach. Was 0.3
+// before the propeller physics halved every plane's drag (2026-11-12), so the same pull as before.
+const GEAR_DRAG = 0.7;
 const BELLY_HEIGHT = 2.5; // pivot height when lying on the belly
 const BELLY_FRICTION = 55;
 const BOUNCE_KICK = 14; // upward speed (units/s) a hard landing throws the plane back up at
@@ -686,13 +688,14 @@ function stepGround(p, cmd, world, dt) {
   let grass = onRunway ? 1 : GRASS_FRICTION;
   if (!onRunway) {
     // Weaker engines (P-47, Bf 110) would otherwise be capped by grass drag below the speed they need to fly.
-    const spare = d.thrust * (d.groundThrust ?? 1) - d.dragCoef * (d.takeoffSpeed * GRASS_TAKEOFF_MARGIN) ** 2 - GRAVITY * Math.sin(GRASS_SLOPE);
+    const spare = d.thrust * (d.groundThrust ?? 1) * propAt(world, d.takeoffSpeed * GRASS_TAKEOFF_MARGIN) - d.dragCoef * (d.takeoffSpeed * GRASS_TAKEOFF_MARGIN) ** 2 - GRAVITY * Math.sin(GRASS_SLOPE);
     grass = clamp(spare / d.groundFriction, 1, GRASS_FRICTION);
   }
   const rolling = p.belly ? BELLY_FRICTION : d.groundFriction * (p.throttle < 0.05 ? 2.5 : 1) * grass;
   const friction = p.speed <= 0 ? 0 : rolling;
-  // On its wheels a propeller pulls less than in flight, so the take-off roll builds speed slowly.
-  const thrust = p.groundLoop != null ? 0 : d.thrust * p.throttle * p.power * (d.groundThrust ?? 1);
+  // On its wheels a propeller pulls less than in flight, so the take-off roll builds speed slowly (and, as in
+  // flight, a slow propeller pulls hardest: propAt).
+  const thrust = p.groundLoop != null ? 0 : d.thrust * p.throttle * p.power * (d.groundThrust ?? 1) * propAt(world, p.speed);
   p.speed += (thrust - d.dragCoef * p.speed * p.speed - friction - GRAVITY * Math.sin(heading)) * dt;
   p.speed = Math.max(0, p.speed);
 
@@ -900,7 +903,8 @@ function stepAir(p, cmd, world, dt) {
   // The autopilot holds the speed it started with (a steep climb into the wall must not stall mid-turn).
   if (!edging) {
     // Above its rated height the engine loses power; the thin air drags a little less (src/sim/air.js).
-    const thrust = d.thrust * p.throttle * p.power * powerAt(world, d, p.y);
+    // The propeller pulls less the faster it goes (propAt, src/sim/air.js).
+    const thrust = d.thrust * p.throttle * p.power * powerAt(world, d, p.y) * propAt(world, p.speed);
     const drag = d.dragCoef * p.speed * p.speed * (1 + GEAR_DRAG * p.gear) * dragAt(world, p.y);
     // Hard turns bleed speed, more for a heavily loaded wing (turnBleed per plane).
     const induced = Math.abs(turn) * p.speed * (d.turnBleed ?? DEFAULT_TURN_BLEED);

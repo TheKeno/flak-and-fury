@@ -17,22 +17,22 @@
       7.8,
       -0.9
     ],
-    "thrust": 89,
-    "dragCoef": 0.0037,
+    "thrust": 54.6,
+    "dragCoef": 0.001882,
     "groundFriction": 14,
-    "groundThrust": 0.45,
+    "groundThrust": 0.458,
     "tailUpSpeed": 0.85,
-    "turnRate": 1.35,
+    "turnRate": 1.324,
     "fineTurn": 0.25,
     "turnRampTime": 0.4,
-    "slowTurnBonus": 0.9,
+    "slowTurnBonus": 0.723,
     "slowTurnSpeed": 108,
     "stiffSpeed": 195,
     "stallSpeed": 59,
     "takeoffSpeed": 64,
     "maxLandingSpeed": 92,
     "maxSpeed": 155,
-    "hp": 95,
+    "hp": 97,
     "toughness": 1,
     "engineVuln": 1.15,
     "rearView": 0.45,
@@ -194,22 +194,22 @@
       8.1,
       0.4
     ],
-    "thrust": 90,
-    "dragCoef": 0.0036,
+    "thrust": 55.8,
+    "dragCoef": 0.001798,
     "groundFriction": 14,
-    "groundThrust": 0.45,
+    "groundThrust": 0.454,
     "tailUpSpeed": 0.85,
     "turnRate": 1.55,
     "fineTurn": 0.25,
     "turnRampTime": 0.4,
-    "slowTurnBonus": 1,
+    "slowTurnBonus": 0.931,
     "slowTurnSpeed": 110,
     "stiffSpeed": 175,
     "stallSpeed": 54,
     "takeoffSpeed": 59,
     "maxLandingSpeed": 92,
     "maxSpeed": 160,
-    "hp": 100,
+    "hp": 105,
     "toughness": 1,
     "engineVuln": 1.2,
     "convergence": 180,
@@ -399,22 +399,22 @@
       6,
       -0.9
     ],
-    "thrust": 82,
-    "dragCoef": 0.00328,
+    "thrust": 36.7,
+    "dragCoef": 0.001243,
     "groundFriction": 16,
-    "groundThrust": 0.5,
+    "groundThrust": 0.699,
     "tailUpSpeed": 0.85,
-    "turnRate": 1.2,
+    "turnRate": 1.063,
     "fineTurn": 0.25,
     "turnRampTime": 0.45,
-    "slowTurnBonus": 0.6,
+    "slowTurnBonus": 0.648,
     "slowTurnSpeed": 115,
-    "stiffSpeed": 205,
+    "stiffSpeed": 235,
     "stallSpeed": 62,
     "takeoffSpeed": 66,
     "maxLandingSpeed": 95,
     "maxSpeed": 158,
-    "hp": 140,
+    "hp": 121,
     "toughness": 1.4,
     "engineVuln": 0.7,
     "convergence": 200,
@@ -526,7 +526,7 @@
         {
           "id": "wing",
           "weapon": "m2_browning",
-          "count": 8,
+          "count": 6,
           "ammo": 255,
           "offset": [
             6.5,
@@ -565,22 +565,22 @@
       6.35,
       -0.25
     ],
-    "thrust": 88,
-    "dragCoef": 0.00362,
+    "thrust": 53.9,
+    "dragCoef": 0.001482,
     "groundFriction": 15,
-    "groundThrust": 0.45,
+    "groundThrust": 0.459,
     "tailUpSpeed": 0.85,
     "turnRate": 1.45,
     "fineTurn": 0.25,
     "turnRampTime": 0.4,
-    "slowTurnBonus": 0.9,
+    "slowTurnBonus": 1.211,
     "slowTurnSpeed": 108,
     "stiffSpeed": 170,
     "stallSpeed": 57,
     "takeoffSpeed": 62,
     "maxLandingSpeed": 92,
     "maxSpeed": 156,
-    "hp": 110,
+    "hp": 105,
     "toughness": 1.2,
     "engineVuln": 0.75,
     "rearView": 0.6,
@@ -706,10 +706,10 @@
       7.8,
       -0.45
     ],
-    "thrust": 84,
-    "dragCoef": 0.00429,
+    "thrust": 45.3,
+    "dragCoef": 0.002072,
     "groundFriction": 14,
-    "groundThrust": 0.45,
+    "groundThrust": 0.522,
     "tailUpSpeed": 0.85,
     "turnRate": 1.75,
     "fineTurn": 0.25,
@@ -728,7 +728,7 @@
     "hitRadius": 6.5,
     "endurance": 360,
     "ratedHeight": 350,
-    "turnBleed": 0.1,
+    "turnBleed": 0.0862,
     "negGCutout": true,
     "emergencyBoost": 0.12,
     "emergencyHeatTime": 8,
@@ -830,6 +830,158 @@
     },
     "airRole": "turn fighter"
   },
+  "a6m5": {
+    "name": "A6M5 Zero",
+    "nation": "japan",
+    "role": "fighter",
+    "sprite": "ki43",
+    "pivot": [
+      47,
+      20
+    ],
+    "noseOffset": [
+      10.25,
+      -0.3
+    ],
+    "exhaustOffset": [
+      7.8,
+      -0.45
+    ],
+    "thrust": 54.1,
+    "dragCoef": 0.003303,
+    "groundFriction": 14,
+    "groundThrust": 0.436,
+    "tailUpSpeed": 0.85,
+    "turnRate": 1.509,
+    "fineTurn": 0.25,
+    "turnRampTime": 0.35,
+    "slowTurnBonus": 1.812,
+    "slowTurnSpeed": 100,
+    "stiffSpeed": 140,
+    "stallSpeed": 50,
+    "takeoffSpeed": 54,
+    "maxLandingSpeed": 88,
+    "maxSpeed": 140,
+    "hp": 90,
+    "toughness": 0.8,
+    "engineVuln": 0.9,
+    "rearView": 0.8,
+    "hitRadius": 6.5,
+    "endurance": 360,
+    "ratedHeight": 550,
+    "turnBleed": 0.103,
+    "negGCutout": true,
+    "emergencyBoost": 0.12,
+    "emergencyHeatTime": 8,
+    "emptyWeight": 1880,
+    "maxLoad": 250,
+    "hardpoints": [
+      {
+        "id": "wing",
+        "kind": "rack",
+        "offset": [
+          0,
+          -4
+        ],
+        "group": 0,
+        "maxKg": 100
+      }
+    ],
+    "loadout": [
+      {
+        "hardpoint": "wing",
+        "weapon": "bomb_50",
+        "count": 2
+      }
+    ],
+    "loadoutPresets": [
+      {
+        "name": "Air-to-air",
+        "loadout": []
+      },
+      {
+        "name": "Ground attack",
+        "loadout": [
+          {
+            "hardpoint": "wing",
+            "weapon": "bomb_50",
+            "count": 2
+          }
+        ]
+      }
+    ],
+    "gearTime": 1.6,
+    "fixedTailWheel": true,
+    "wheels": [
+      {
+        "leg": [
+          5.625,
+          -1.825
+        ],
+        "wheel": [
+          5.75,
+          -4.25
+        ],
+        "stowed": [
+          5.7,
+          -1.6
+        ],
+        "r": 0.75
+      },
+      {
+        "leg": [
+          -7.625,
+          -1.275
+        ],
+        "wheel": [
+          -7.85,
+          -1.9
+        ],
+        "stowed": [
+          -7.85,
+          -1.9
+        ],
+        "r": 0.25,
+        "tail": true
+      }
+    ],
+    "rollTime": 0.6,
+    "groundTurnTime": 1.4,
+    "groundLoopTime": 0.9,
+    "armament": {
+      "guns": [
+        {
+          "id": "cowl",
+          "weapon": "type97_77",
+          "count": 2,
+          "ammo": 500,
+          "synced": true
+        },
+        {
+          "id": "wing",
+          "weapon": "type99mk2_20",
+          "count": 2,
+          "ammo": 100,
+          "offset": [
+            4.5,
+            -0.6,
+            5.5
+          ]
+        }
+      ]
+    },
+    "engine": {
+      "layout": "radial",
+      "cylinders": 14,
+      "idleRpm": 560,
+      "cruiseRpm": 2400,
+      "maxRpm": 2800,
+      "propBlades": 3,
+      "gearRatio": 0.7,
+      "idleSource": "estimated"
+    },
+    "airRole": "turn fighter"
+  },
   "b239": {
     "name": "Brewster B-239",
     "nation": "finland",
@@ -847,22 +999,22 @@
       5.75,
       -1.45
     ],
-    "thrust": 84,
-    "dragCoef": 0.00461,
+    "thrust": 47.1,
+    "dragCoef": 0.002859,
     "groundFriction": 15,
-    "groundThrust": 0.49,
+    "groundThrust": 0.546,
     "tailUpSpeed": 0.85,
     "turnRate": 1.6,
     "fineTurn": 0.25,
     "turnRampTime": 0.4,
-    "slowTurnBonus": 1,
+    "slowTurnBonus": 0.743,
     "slowTurnSpeed": 100,
     "stiffSpeed": 135,
     "stallSpeed": 52,
     "takeoffSpeed": 56,
     "maxLandingSpeed": 88,
     "maxSpeed": 135,
-    "hp": 110,
+    "hp": 113,
     "toughness": 1.3,
     "engineVuln": 0.8,
     "convergence": 160,
@@ -977,10 +1129,10 @@
       10.25,
       1
     ],
-    "thrust": 80,
-    "dragCoef": 0.00356,
+    "thrust": 44,
+    "dragCoef": 0.001563,
     "groundFriction": 17,
-    "groundThrust": 0.54,
+    "groundThrust": 0.614,
     "tailUpSpeed": 0.85,
     "turnRate": 1.05,
     "fineTurn": 0.25,
@@ -999,7 +1151,7 @@
     "hitRadius": 10,
     "endurance": 420,
     "ratedHeight": 600,
-    "turnBleed": 0.139,
+    "turnBleed": 0.1493,
     "negGCutout": false,
     "emergencyBoost": 0.15,
     "emergencyHeatTime": 6,
@@ -1155,10 +1307,10 @@
       12.5,
       0.8
     ],
-    "thrust": 88,
-    "dragCoef": 0.0034,
+    "thrust": 49.4,
+    "dragCoef": 0.001406,
     "groundFriction": 17,
-    "groundThrust": 0.48,
+    "groundThrust": 0.534,
     "tailUpSpeed": 0.85,
     "turnRate": 1.2,
     "fineTurn": 0.25,
@@ -1331,10 +1483,10 @@
       11.88,
       0.44
     ],
-    "thrust": 72,
-    "dragCoef": 0.0052,
+    "thrust": 35.5,
+    "dragCoef": 0.002565,
     "groundFriction": 17,
-    "groundThrust": 0.55,
+    "groundThrust": 0.697,
     "tailUpSpeed": 0.85,
     "turnRate": 1,
     "fineTurn": 0.25,
@@ -1536,10 +1688,10 @@
       8.9,
       0.096
     ],
-    "thrust": 86,
-    "dragCoef": 0.0034,
+    "thrust": 49.2,
+    "dragCoef": 0.001446,
     "groundFriction": 17,
-    "groundThrust": 0.48,
+    "groundThrust": 0.524,
     "tailUpSpeed": 0.85,
     "turnRate": 1.25,
     "fineTurn": 0.25,
@@ -1690,10 +1842,10 @@
       10.588,
       1.356
     ],
-    "thrust": 82,
-    "dragCoef": 0.0037,
+    "thrust": 45.1,
+    "dragCoef": 0.001654,
     "groundFriction": 17,
-    "groundThrust": 0.54,
+    "groundThrust": 0.614,
     "tailUpSpeed": 0.85,
     "turnRate": 1,
     "fineTurn": 0.25,
@@ -1858,10 +2010,10 @@
       9,
       1.01
     ],
-    "thrust": 80,
-    "dragCoef": 0.0036,
+    "thrust": 44,
+    "dragCoef": 0.001674,
     "groundFriction": 17,
-    "groundThrust": 0.53,
+    "groundThrust": 0.602,
     "tailUpSpeed": 0.85,
     "turnRate": 1.15,
     "fineTurn": 0.25,
@@ -2026,10 +2178,10 @@
       10.725,
       -0.495
     ],
-    "thrust": 92,
-    "dragCoef": 0.0066,
+    "thrust": 48.7,
+    "dragCoef": 0.003893,
     "groundFriction": 17,
-    "groundThrust": 0.54,
+    "groundThrust": 0.638,
     "tailUpSpeed": 0.85,
     "turnRate": 0.95,
     "fineTurn": 0.25,

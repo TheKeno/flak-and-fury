@@ -507,6 +507,14 @@
       "count": 1
     },
     {
+      "id": "a6m5",
+      "name": "A6M5 Zero",
+      "nation": "Japan",
+      "kind": "plane",
+      "engine": "ha115",
+      "count": 1
+    },
+    {
       "id": "ki45",
       "name": "Ki-45 KAI Toryu",
       "nation": "Japan",

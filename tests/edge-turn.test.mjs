@@ -167,7 +167,9 @@ test('a pilot pulling hard at the wall is eased out of the controls, not snatche
 
 test('a dive near the ground levels out faster rather than into it', () => {
   const slow = approach(-1.0, { height: 400 });
-  const low = approach(-1.0, { height: 150 });
+  // 120: with the propeller physics (less drag, a faster dive) a plane at 150 starts the normal level-out
+  // early enough to clear the ground anyway; at 120 it has to level faster.
+  const low = approach(-1.0, { height: 120 });
   const t = (r) => (r.swingStart - r.levelStart) / 60;
   assert.ok(!low.died, 'it did not hit the ground');
   assert.ok(t(low) < t(slow), `faster when low (${t(low)} s against ${t(slow)} s)`);

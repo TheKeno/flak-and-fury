@@ -11,6 +11,14 @@
 // longer out-turns everyone on the slow-turn bonus. Stall speed rises with height for every plane, by
 // stallRise at thinTop (the slow-turn band, slowTurnSpeed, moves up with it; see flyingDef).
 //
+// Propeller thrust falls with speed (fighter design pass, 2026-11-12). An engine gives power, and a
+// propeller's pull is about power over speed, so a plane pulls hard when slow and runs out of push near
+// its top speed: climb comes from power, top speed from power against drag, and the dive almost only from
+// drag (the propeller adds little that fast), so a clean heavy plane out-dives a better climber. A plane's
+// `thrust` is its pull at propSpeed; the pull is thrust x (propSpeed / speed)^propFall, levelled off at
+// propStatic x thrust when slow (a standing propeller doesn't pull without limit). propFall 0 is the old
+// constant thrust. Only in the air: the take-off roll keeps its own pull (groundThrust).
+//
 // Negative g. A carburettor engine (`negGCutout: true`: Spitfire, Ki-43, P-47 ...) starves when the pilot
 // pushes the nose hard down: past negGLimit g of push for negGHold seconds it cuts out and sputters for
 // negGCut seconds (longer while the push goes on). Injected engines (Bf 109, La-5FN) bunt freely. Only
@@ -25,6 +33,9 @@ export const DEFAULT_FLIGHT = {
   thinTop: 1200, // height (absolute y) where the air is thinnest for drag and grip
   turnPower: 0.375, // share of the power lost above the rated height that the turn rate loses too
   stallRise: 0.12, // share stall speed (and slowTurnSpeed) rise by at thinTop
+  propFall: 1, // how propeller thrust falls with speed: 0 constant, 1 power over speed
+  propSpeed: 120, // speed (units/s) at which a plane's pull is its thrust
+  propStatic: 1.6, // the most a slow plane's pull rises to, times its thrust
   negG: false, // the negative-g cutout on or off for every plane
   negGLimit: 1.5, // g of push (turn rate x speed / gravity, nose towards the belly) that starves a carburettor
   negGHold: 0.12, // seconds of such a push before it cuts out (a tap to aim doesn't)
@@ -41,6 +52,22 @@ export function powerAt(world, def, y) {
   const rated = def.ratedHeight;
   if (rated == null || y <= rated) return 1;
   return 1 / (1 + (y - rated) / cfgOf(world).fadeSpan);
+}
+
+// The propeller's pull at speed v, as a share of the plane's thrust.
+export function propAt(world, v) {
+  const c = cfgOf(world);
+  const k = c.propFall ?? 0;
+  if (!k) return 1;
+  return Math.min(c.propStatic ?? 1.6, ((c.propSpeed ?? 120) / Math.max(1, v)) ** k);
+}
+
+// Level top speed at full power low down, where thrust x prop share = drag x v^2 (no thin air, no turn).
+export function levelTop(flight, thrust, dragCoef) {
+  const world = { flight };
+  let v = Math.sqrt(thrust / dragCoef);
+  for (let i = 0; i < 40; i++) v = Math.sqrt((thrust * propAt(world, v)) / dragCoef);
+  return v;
 }
 
 // How thin the air is at y, 0 (ground) .. 1 (thinTop), for drag and grip.
