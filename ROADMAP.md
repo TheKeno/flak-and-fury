@@ -151,7 +151,11 @@ later.
        before Apply. The "every duel must pass" guard came from Claude, not the owner. **The run: about 8 h, no
        retrain** (only if the changes turn out large), then a confirm run (Balance Lab with the ground war, a check at
        easy and ace). Levers, limits, the first-pass planes, the report, the test-flight list and Apply/Discard as
-       above.
+       above. **Roles are identity, not targets:** the per-role kills-per-life bands and the grid shape are gone as
+       goals; the roles still decide how the bots fly each plane (forced role tactics, boom style 0.5) and which
+       strengths keep their top ranks (the tuner may make the P-47 faster or tougher, never a better turner than the
+       Ki-43). **The style check stays as a guard:** tuned boom planes must still win by diving, and a free training
+       of the turn fighters must still pick turning; a change that breaks that is thrown out.
   5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
   This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
 
