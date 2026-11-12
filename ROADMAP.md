@@ -129,6 +129,29 @@ later.
        report** in the Lab, plain words: kills per life before and after, the grid against its target shape, each
        change and why, duel results, the test-flight list, Apply and Discard. Apply keeps the old values, one click
        undoes it. Nothing is written to plane data before Apply.
+       **Changed 2026-11-12 (owner, after part 3; replaces the goal, the duel guard and the run above):**
+       **Balancing goals** (for all balancing, not just this part): (1) the balance is for the owner flying against
+       bots and later for players online; bot-vs-bot numbers only stand in for that, and when the numbers say even
+       but a plane feels hopeless to fly, the feel wins. (2) No plane is a must-pick or a never-pick: every plane can
+       win a match if flown its own way; even chances overall, not every fight even. (3) Planes stay distinct (Ki-43
+       light and nimble but fragile, P-47 heavy, fast and deadly in a dive): changes stay within about ±15% and
+       strengths keep their top ranks. (4) **Mild counters:** a matchup may favour one plane about 60/40, never worse
+       than about 70/30 (kills-per-life ratio about 1.5, at most about 2.3), so a good pilot can still win a bad
+       matchup. (5) **History against fairness:** outclassed 1943 types (Ki-43, B-239) are brought up to an even
+       footing in the air within the ±15% limit, so they can fight but still feel their age; other levers (more of
+       them, faster respawn, a cost) only if that isn't enough. (6) Air war first (fighters, step 4), then the ground
+       war with loadouts (step 5); the front decides in the end. (7) Numbers are balanced at normal bot skill, then
+       checked at easy and ace; difficulty against the player is a separate knob (backlog).
+       **Part 4 now:** the tuner's goal is an **even front push for every plane** (Balance Lab strength list: no plane
+       outside the noise, about ±10 m), with the matchup limits of (4) as a bound; kills per life and the matchup
+       grid are reported for the owner to read, not targets (the role grid shape needs bots that can keep a fight
+       high and hit on a pass, which they can't yet). **The duels are a column in the report, not a gate:** most
+       failures are bot problems (the boom pass), and a gate would block the tuner or freeze the bots' weaknesses
+       into plane numbers; a change that breaks a passing duel is flagged and judged in the owner's test flights
+       before Apply. The "every duel must pass" guard came from Claude, not the owner. **The run: about 8 h, no
+       retrain** (only if the changes turn out large), then a confirm run (Balance Lab with the ground war, a check at
+       easy and ace). Levers, limits, the first-pass planes, the report, the test-flight list and Apply/Discard as
+       above.
   5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
   This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
 
@@ -950,7 +973,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Plane roles: step 4** (Gameplay): settled 2026-11-11, see the Decisions entry "Plane roles and balancing plan", step 4. Five sessions in order: 0 set-piece duel tool, 1 flight mechanics (done 2026-11-11, see Done), 2 guns and damage (done), 3 bot-role pass and retrain (3a role tactics, 3b duel failures and trainer traps, 3c thin-air turns and the boom pass done 2026-11-11; night runs after 3c launched by Windows, read them first: `notes/bot-roles.md` "Part 3c"; 3d skill levels and the rest of bot life done 2026-11-12, `notes/bot-roles.md` "Part 3d"; night runs after 3d read and committed; 3e the owner's test flights done 2026-11-12, `notes/bot-roles.md` "Part 3e"; **next: part 4, the auto-tuner**), 4 the auto-tuner (16 h hands-off run). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
+- **Plane roles: step 4** (Gameplay): settled 2026-11-11, see the Decisions entry "Plane roles and balancing plan", step 4. Five sessions in order: 0 set-piece duel tool, 1 flight mechanics (done 2026-11-11, see Done), 2 guns and damage (done), 3 bot-role pass and retrain (3a role tactics, 3b duel failures and trainer traps, 3c thin-air turns and the boom pass done 2026-11-11; night runs after 3c launched by Windows, read them first: `notes/bot-roles.md` "Part 3c"; 3d skill levels and the rest of bot life done 2026-11-12, `notes/bot-roles.md` "Part 3d"; night runs after 3d read and committed; 3e the owner's test flights done 2026-11-12, `notes/bot-roles.md` "Part 3e"; **next: part 4, the auto-tuner, revised 2026-11-12: see the Decisions entry, part 4 "Changed 2026-11-12"**), 4 the auto-tuner (16 h hands-off run). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
