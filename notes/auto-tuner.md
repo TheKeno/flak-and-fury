@@ -75,3 +75,10 @@ confirm, measured from its own match rate.
   can't fly boom and zoom, so the boom planes lose in the air, and the tuner's only kept steps made them better
   turners (Bf 109 turn rate +15%): against their identity, and the style guard didn't stop it. To settle with
   the owner before the 8 h run. Trial files deleted.
+- **2026-11-12, the identity lock (owner's yes):** each fighter's identity marks (++ + o - --) per attribute are
+  in `balance/design-targets.json`; every lever names the attributes it moves (`attrs` in `src/balance/levers.js`,
+  [] = neutral). A plane is never made stronger in a weakness, nor weaker in a ++ strength (`lockedOut`). So
+  the P-47 can only be helped through drag (its dive), height, dive control, toughness and ammo; the Bf 109 never
+  through turning or toughness; the Spitfire can be trimmed anywhere but its climb. Caveat: while the bots can't
+  fly boom and zoom, the boom planes may still come out weak and their strengths pushed to the +15% limit; the
+  owner's test flights judge how that feels in human hands.

@@ -6,22 +6,23 @@
 // Pure: no DOM, no Node APIs (the runner, the CLI and the Lab page share it).
 
 // better: which way makes the plane stronger (1 up, -1 down, 0 unknown: both ways are tried).
+// attrs: the identity attributes (notes/fighter-design.md) the lever moves; [] = neutral (the identity lock).
 // sheet: the plane-sheet numbers the lever moves most, for the test-flight list.
 export const LEVERS = [
-  { key: 'thrust', better: 1, label: 'engine thrust', feel: 'climb and acceleration' },
-  { key: 'dragCoef', better: -1, label: 'drag', feel: 'top speed and how fast it bleeds speed' },
-  { key: 'ratedHeight', better: 1, label: 'rated height (full power up to)', feel: 'power and climb up high' },
-  { key: 'turnRate', better: 1, label: 'turn rate', feel: 'how fast it turns' },
-  { key: 'slowTurnBonus', better: 1, label: 'slow-turn bonus', feel: 'the tight turn when slow' },
-  { key: 'slowTurnSpeed', better: 1, label: 'slow-turn speed (bonus below)', feel: 'up to which speed the tight turn helps' },
-  { key: 'turnBleed', better: -1, label: 'turn bleed', feel: 'how much speed a hard turn costs' },
-  { key: 'stiffSpeed', better: 1, label: 'stiff-controls speed', feel: 'turning in a fast dive' },
-  { key: 'stallSpeed', better: -1, label: 'stall speed', feel: 'how slow it can fly and turn' },
-  { key: 'hp', better: 1, label: 'hit points', feel: 'how many hits it takes' },
-  { key: 'engineVuln', better: -1, label: 'engine vulnerability', feel: 'how often a hit stops the engine' },
-  { key: 'ammo', better: 1, label: 'ammunition', feel: 'how long the guns last' },
-  { key: 'convergence', better: 0, label: 'gun convergence range', feel: 'at which range the bullets meet' },
-  { key: 'emergencyBoost', better: 1, label: 'emergency power boost', feel: 'the burst of speed on emergency power' },
+  { key: 'thrust', better: 1, label: 'engine thrust', feel: 'climb and acceleration', attrs: ['speed', 'climb'] },
+  { key: 'dragCoef', better: -1, label: 'drag', feel: 'top speed and how fast it bleeds speed', attrs: ['speed', 'dive'] },
+  { key: 'ratedHeight', better: 1, label: 'rated height (full power up to)', feel: 'power and climb up high', attrs: ['high'] },
+  { key: 'turnRate', better: 1, label: 'turn rate', feel: 'how fast it turns', attrs: ['turn'] },
+  { key: 'slowTurnBonus', better: 1, label: 'slow-turn bonus', feel: 'the tight turn when slow', attrs: ['turn'] },
+  { key: 'slowTurnSpeed', better: 1, label: 'slow-turn speed (bonus below)', feel: 'up to which speed the tight turn helps', attrs: ['turn'] },
+  { key: 'turnBleed', better: -1, label: 'turn bleed', feel: 'how much speed a hard turn costs', attrs: ['turn'] },
+  { key: 'stiffSpeed', better: 1, label: 'stiff-controls speed', feel: 'turning in a fast dive', attrs: ['dive'] },
+  { key: 'stallSpeed', better: -1, label: 'stall speed', feel: 'how slow it can fly and turn', attrs: ['turn'] },
+  { key: 'hp', better: 1, label: 'hit points', feel: 'how many hits it takes', attrs: ['toughness'] },
+  { key: 'engineVuln', better: -1, label: 'engine vulnerability', feel: 'how often a hit stops the engine', attrs: ['toughness'] },
+  { key: 'ammo', better: 1, label: 'ammunition', feel: 'how long the guns last', attrs: [] },
+  { key: 'convergence', better: 0, label: 'gun convergence range', feel: 'at which range the bullets meet', attrs: [] },
+  { key: 'emergencyBoost', better: 1, label: 'emergency power boost', feel: 'the burst of speed on emergency power', attrs: [] },
 ];
 export const LEVER = Object.fromEntries(LEVERS.map((l) => [l.key, l]));
 

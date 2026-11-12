@@ -32,6 +32,7 @@ export const TUNE_DEFAULTS = {
   matchupLimit: 20, // points: no matchup past 70/30 (that gets worse)
   styleDrop: 0.1, // a plane's style share (kills from above, or level) may drop at most this much
   rankMargin: 0.02, // how clearly a plane must beat another on the sheet to count as overtaking
+  identity: null, // planeId -> its identity marks (the lock; tools/tune-planes.mjs reads balance/design-targets.json)
   // The arena matches: the bot trainer's air-only arena, 4 a side for enough losses to count, 8 game-minutes,
   // its own seeds (the trainer starts at 5001, the Balance Lab at 1).
   arena: { minutes: 8, perSide: 4, skill: 'normal', map: 'countryside', sample: 30, seed: 9001 },
@@ -217,12 +218,23 @@ export function identityBreaks(origSheets, sheets, plane, margin) {
   return broken;
 }
 
+// The identity lock (owner, 2026-11-12): a plane is never made stronger in one of its weaknesses (- or --),
+// nor weaker in its defining strength (++), so a boom plane the bots can't fly well isn't "fixed" by turning
+// it into a turner. identity: { speed, climb, turn, dive, firepower, toughness, high } as ++ + o - --
+// (balance/design-targets.json); none: no lock.
+export function lockedOut(lever, dir, identity) {
+  if (!identity) return false;
+  const marks = (LEVER[lever]?.attrs ?? []).map((a) => identity[a] ?? 'o');
+  return dir > 0 ? marks.some((m) => m.startsWith('-')) : marks.includes('++');
+}
+
 // The next lever steps for a plane that is too strong (dir -1) or too weak (dir 1).
 // size: steps at a time (2 = 10% while a plane is far off, so the effect stands out of the noise); a
 // step that would pass the limit stops at it.
-export function candidates(def, mults, dir, size = 1) {
+export function candidates(def, mults, dir, size = 1, identity = null) {
   const out = [];
   for (const l of LEVERS) {
+    if (l.better && lockedOut(l.key, dir, identity)) continue;
     if (l.key === 'ammo' ? !def.armament?.guns?.length : def[l.key] == null) continue;
     const at = STEPS.indexOf(mults?.[l.key] ?? 1);
     const ways = l.better ? [l.better * dir] : [1, -1];
@@ -271,7 +283,7 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
   // Candidates the identity guard allows.
   const cands = [];
   const size = Math.abs(before.push) > o.farOff ? 2 : 1;
-  for (const c of candidates(def, mults, dir, size)) {
+  for (const c of candidates(def, mults, dir, size, o.identity?.[plane])) {
     const id = `${c.key}@${c.to}`;
     if (tried.has(id)) continue;
     const ov = { ...state.ov, [plane]: { ...mults, [c.key]: c.to } };

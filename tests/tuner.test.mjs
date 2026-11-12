@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyOverrides, changesOf, leverKey, tunedDef, STEPS } from '../src/balance/levers.js';
-import { tune, tuningResult, summariseTuning, identityBreaks, candidates, newState, check, checkMatches } from '../src/balance/tuner.js';
+import { tune, tuningResult, summariseTuning, identityBreaks, candidates, newState, check, checkMatches, lockedOut } from '../src/balance/tuner.js';
 
 const def = (name, airRole) => ({ name, airRole, hp: 100, thrust: 50, turnRate: 1.5, armament: { guns: [{ ammo: 200 }, { ammo: 60 }] } });
 const content = { planeDefs: { a: def('Alpha', 'boom and zoom'), b: def('Bravo', 'all-rounder'), c: def('Charlie', 'turn fighter') } };
@@ -92,4 +92,14 @@ test('the confirm checks today against the tuned numbers on fresh seeds, and at 
   for (const skill of ['normal', 'easy', 'ace']) assert.ok(checks[skill].before.a && checks[skill].after.a, skill);
   assert.ok(Math.abs(checks.normal.after.a.push) < Math.abs(checks.normal.before.a.push), 'the strong plane is nearer even on fresh seeds');
   assert.equal(checkMatches(state.options), 6 * 2 * (3 + 4));
+});
+
+test('the identity lock: never stronger in a weakness, never weaker in a ++ strength', () => {
+  const boom = { speed: 'o', climb: '--', turn: '--', dive: '++', firepower: '++', toughness: '++', high: '++' };
+  const keys = (dir) => candidates(content.planeDefs.a, {}, dir, 1, boom).map((c) => c.key);
+  assert.ok(!keys(1).includes('thrust') && !keys(1).includes('turnRate'), 'a poor climber and turner gets no help there');
+  assert.ok(keys(1).includes('hp'), 'its toughness may grow');
+  assert.ok(!keys(-1).includes('hp'), 'its defining toughness is never cut');
+  assert.ok(keys(-1).includes('turnRate'), 'its weak turn may get weaker');
+  assert.equal(lockedOut('ammo', 1, boom), false, 'neutral levers are always open');
 });

@@ -59,7 +59,9 @@ async function main(args) {
   const content = loadContent([TUNE_DEFAULTS.arena.map]);
   const cores = availableParallelism();
   const threads = Number(option(args, '--threads')) || (args.includes('--half') ? Math.max(1, Math.floor(cores / 2)) : cores);
-  const options = { ...TUNE_DEFAULTS };
+  // The identity lock: each fighter's strengths and weaknesses from the design pass.
+  const design = readJson(join(root, 'balance/design-targets.json')).planes;
+  const options = { ...TUNE_DEFAULTS, identity: Object.fromEntries(Object.entries(design).map(([id, d]) => [id, d.identity])) };
   if (quick) Object.assign(options, { seeds: 4, moreSeeds: 4, screen: [1, 2], keep: 2, finalists: 1, checkSeeds: [5, 6], skillSeeds: 1 });
   if (option(args, '--seeds')) options.seeds = Number(option(args, '--seeds'));
   if (option(args, '--planes')) options.planes = option(args, '--planes').split(',');
