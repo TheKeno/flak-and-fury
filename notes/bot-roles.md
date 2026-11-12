@@ -349,3 +349,45 @@ Started with `powershell -ExecutionPolicy Bypass -File tools\night-start.ps1 too
 4. `notes/night-botlife.txt` (war) and `night-botlife-alone.txt`: flags STALLS / OWN-FAULT / HIGH / NEVER-LANDS
    are rough (HIGH is the patrol sawtooth above).
 5. `notes/night-balance.txt`: plain-words summary at the end (3c: P-47 +26 m strong, Ki-43 −28 m weak; for part 4).
+
+## Part 3e (2026-11-12): the owner's test flights
+
+The owner flew all three levels, boom against turn planes, Ki-43 against boom planes, and Ju 87s.
+Two complaints: **the bots ran away** ("mostly avoided me by flying away, hardly any dogfighting,
+sometimes turned and fired"), and **the Stukas climbed in the patrol sawtooth and never bombed**. After
+the fixes: "Better. They might be too easy to play against, but we can fix that later" (backlog line).
+
+How a player's fight was measured: a world like the game (2 planes a side), the "player" a `p1` plane
+fed by `botCommand` at a hunter level (normal, lookout 900, evade 0.3, never goes home), counting what each
+enemy bot is doing while within 500 of it. Scratch scripts, not kept; rebuild from this description.
+
+### 1. Bots fight the player (2 tries on the duel gate, then a third that leaves bot-only fights alone)
+- Before: enemy bots near the player fought it about 55% of the time. Otherwise: boom planes (Bf 109,
+  P-47) **dived away** (`extend`, the 3a rule for a diver caught in its climb-back) 12-20%, again and again
+  with the player on the tail (about half of all tail time); **chasing the player's wingman** (nearest
+  enemy first) 10-15%; aces patrolling 12% (they never follow into the player's flak, `flakAvoid` 1: left).
+- Try 1, extend only when clearly faster (drop the "height to spare" reason): extends halved, but the
+  16-seed duels fell **16 → 13**: fighting back makes the P-47 harder to kill, so the Ki-43 and B-239 lose
+  their turn duels against it (in this sim a break turn saves a P-47 better than a straight dive). Try 2,
+  extend once a pass: barely fewer extends, same loss.
+- **Kept:** player-only rules, so the duels, the Balance Lab and the coming auto-tuner see no change
+  (16-seed duels identical, 16 of 25): a boom bot **never extends from a human** on its tail (it breaks
+  and fights like any bot), and **`bots.playerPull` 300**: a human enemy counts as that much nearer when a
+  bot picks whom to fight (200 halved the wingman chasing, 500 took it to 2%). After: fighting the player
+  70-85% of the time near it (break turns counted).
+- **Learned:** fun against the player and bot-vs-bot balance pull different ways here; rules that only
+  apply against a human keep the balance tools honest. Difficulty against the player is the next knob
+  (backlog), not the bot-vs-bot numbers.
+
+### 2. Stukas bomb (1 try)
+- Trace: a dive bomber took a tank only within `groundRange` (2300) of its hangar and outside enemy flak;
+  most of the time no tank qualified, so it patrolled (the sawtooth) and wandered over the enemy side.
+  Against two Spitfires it dies about once a minute whatever it does.
+- **`bots.bomberRange` 3500** for a dive bomber with bombs aboard, and it **goes for tanks under the enemy
+  flak** too. 6-minute runs, 2 Stukas against 2 Spitfires, 6 seeds: bombs 0.8 → 8.8 a run, patrol time
+  171 → 0 s, deaths 10.8 → 10.5. Range alone (3000-5000) gave 2.0: the flak rule was the big one.
+- Not flown by the owner yet ("we can fix that later"): backlog line "Fly the Stuka fix".
+
+### Not touched
+Fight up high (thin air), skill order, and the patrol sawtooth of fighters: no complaint from the flights.
+No retrain needed (no trained knob changed; bot-only duels unchanged).

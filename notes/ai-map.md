@@ -60,3 +60,9 @@ Modes (`b.mode`): patrol, chase, evade, extend, attack, home, final, emergency.
 - `chaseWant` dive phase: `passBreak` breaks a head-on pass (`b.zoom.broke`, `b.zoom.dir`); the climb-back
   block runs out after a broken pass whatever `zoomAfterPass` says, and the run-out climbs on spare speed.
 - `fly` and the sim read the turn through `turnAt` (`src/sim/air.js`) and the stall through `flyingDef`.
+
+## Added in part 3e
+
+- `decide`: the boom diver's extend rule skips a human threat (`isBotPlane(threat.plane)`).
+- `pickEnemy`: a human counts `bots.playerPull` nearer.
+- `pickGroundTarget`: a dive bomber with bombs uses `bots.bomberRange` and takes tanks under flak.

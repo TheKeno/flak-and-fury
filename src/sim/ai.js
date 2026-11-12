@@ -32,8 +32,10 @@ export const DEFAULT_BOTS = {
   patrolSpan: 500, // length of the patrol beat behind the front
   flakMargin: 80, // extra distance kept outside enemy flak's reach
   groundRange: 2300, // how far from their hangar bots go after ground targets
+  bomberRange: 3500, // the same for a dive bomber with bombs aboard (it goes under flak too)
   bombHeight: 110, // level bombing height
   strafePullout: 40, // height at which a strafing dive pulls out
+  playerPull: 300, // a human enemy counts as this much nearer when a bot picks whom to fight
   bomberFightRange: 450, // a dive bomber with bombs aboard ignores enemy planes farther than this and bombs its target
   boomHeight: 150, // least height over the enemy a dive-from-above style (tactics style 0.5+) climbs to first
   approachLength: 500, // final approach: distance from the gate to the touchdown point
@@ -462,8 +464,10 @@ function decide(world, p, b, skill) {
   // A boom-and-zoom bot running out after a pass, faster than the plane behind it, runs on instead of
   // breaking into a turn (which throws away the speed that is its whole defence).
   // With height to spare it dives away even when slower: a break turn this slow ends in a stall.
+  // Never from a human on its tail: diving away again and again from the player (never fighting back) was
+  // dull and too easy (part 3e); it breaks and fights instead. Bots against bots keep the rule.
   const room = p.y - world.terrain.heightAt(p.x) > 180;
-  if (threat && b.mode === 'chase' && b.tac.style >= 0.5 && b.zoom?.phase === 'climb' && (room || p.speed > threat.plane.speed + 10)) {
+  if (threat && isBotPlane(threat.plane) && b.mode === 'chase' && b.tac.style >= 0.5 && b.zoom?.phase === 'climb' && (room || p.speed > threat.plane.speed + 10)) {
     b.mode = 'extend';
     b.extendT = world.rng.range(2, 3);
     b.target = threat.plane.id;
@@ -525,7 +529,10 @@ function pickEnemy(world, p, skill, known) {
     // Prefer planes we can see, and ones already being hunted by us.
     // Damaged or smoking ones count as nearer (tactics finishBonus).
     const hurt = clamp(1 - k.plane.hp / k.plane.def.hp + (k.plane.engineDamage > 0 ? 0.3 : 0), 0, 1);
-    const score = k.d + (k.seen ? 0 : 300) - (k.plane.id === p.bot?.target ? 150 : 0) - hurt * (p.bot?.tac?.finishBonus ?? 0);
+    // A human counts as nearer (playerPull): bots that went for the nearest plane spent much of a fight on the
+    // player's wingman and flew off in front of the player (part 3e). No humans in bot-only matches.
+    const score = k.d + (k.seen ? 0 : 300) - (k.plane.id === p.bot?.target ? 150 : 0) - hurt * (p.bot?.tac?.finishBonus ?? 0)
+      - (isBotPlane(k.plane) ? 0 : world.bots.playerPull ?? 0);
     if (score < bestScore) {
       best = k;
       bestScore = score;
@@ -546,6 +553,12 @@ function pickGroundTarget(world, p, b) {
   const guns = ammoShare(p) > 0.15;
   const engineers = world.ground.filter((o) => o.type === 'engineers' && o.alive && o.team === p.team);
   const bridge = world.ground.find((o) => o.type === 'bridge');
+  // A dive bomber with bombs aboard reaches farther and goes for tanks under the enemy's flak as well: kept
+  // within groundRange and out of the flak it found no tank most of the time and patrolled instead,
+  // climbing in the patrol sawtooth (part 3e: the owner saw no Stuka bomb). It dies no more often for it
+  // (6-minute runs against two Spitfires: bombs 0.8 -> 8.8 a run, deaths 10.8 -> 10.5).
+  const bomber = p.def.role === 'dive bomber' && bombs > 0;
+  const range = bomber ? cfg.bomberRange ?? cfg.groundRange : cfg.groundRange;
   let best = null;
   let bestScore = -Infinity;
   for (const o of world.ground) {
@@ -554,11 +567,11 @@ function pickGroundTarget(world, p, b) {
     const loaded = o.type === 'truck' && o.passengers?.length > 0;
     if (tank ? bombs === 0 : !guns || !(o.soldiers || loaded)) continue;
     const fromHome = Math.abs(o.x - homeX);
-    if (fromHome > cfg.groundRange) continue;
+    if (fromHome > range) continue;
     if (o.x > af.x - 40 && o.x < af.x + af.width + 40) continue;
     if (tank && bridge?.alive && Math.abs(o.x - bridge.x) < bridge.def.width / 2 + 50) continue;
-    if (flakDepth(world, p.team, o.x, surfaceAt(world, o.x) + cfg.bombHeight) > 0) continue;
-    let score = (tank ? 3 : loaded ? 2 : 1) + (1 - fromHome / cfg.groundRange) * 3;
+    if (!(bomber && tank) && flakDepth(world, p.team, o.x, surfaceAt(world, o.x) + cfg.bombHeight) > 0) continue;
+    let score = (tank ? 3 : loaded ? 2 : 1) + (1 - fromHome / range) * 3;
     if (engineers.some((e) => Math.abs(e.x - o.x) < 250)) score += 2;
     if (o.type === 'engineers' && bridge && Math.abs(o.x - bridge.x) < 200) score += 2;
     if (o.id === b.target) score += 1; // finish what we started

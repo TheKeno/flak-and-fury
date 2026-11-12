@@ -268,6 +268,8 @@ Shared numbers (tuning panel: Bots):
 | `patrolSpan` | Length of the patrol beat, back from the front (or from short of the enemy flak, if that's nearer home). | 300 – 800 |
 | `flakMargin` | Extra distance kept outside the reach of enemy flak. | 50 – 150 |
 | `groundRange` | How far from their own hangar bots go after enemy tanks and troops. | 1500 – 3000 |
+| `bomberRange` | The ground attack reach of a dive bomber with bombs aboard; it also goes for tanks under enemy flak (part 3e: kept out of it, Stukas found nothing to bomb and patrolled). | 3000 – 4500 |
+| `playerPull` | A human enemy counts as this much nearer when a bot picks whom to fight (part 3e: bots flew off after the player's wingman). Bots also never dive away (extend) from a human on their tail; they break and fight. No effect in bot-only matches. | 200 – 500 |
 | `bombHeight` | Height of a level bombing run. The release is worked out from the bomb's real fall. | 90 – 150 |
 | `strafePullout` | Height at which a strafing dive on troops pulls out. | 30 – 60 |
 | `bomberFightRange` | A dive bomber with bombs aboard only fights an enemy plane this close; farther ones it ignores. | 300 – 600 |
