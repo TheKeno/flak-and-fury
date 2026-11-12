@@ -173,6 +173,18 @@ later.
        until a 3-view and the outline review; data, guns and sound now. **The 8 h tuner run waits** until the Zero
        is in, then: a Balance Lab check, then the run. Fires from hits for all guns: not needed for the Ki-43 any
        more; to be decided on its own merits later.
+       **Changed 2026-11-12 evening (owner): balance the fighters air-to-air, not by front push.** The ground war is
+       far from finished, so front push is a bad measure for now; step 4 makes fighter planes balanced and fun in
+       the air. **The tuner flies the bot trainer's arena** (same map and airfields, no tanks, troops or flak; air-to-air
+       loadouts), which is also much faster, so more trials fit in a run. **The measure: exchange share** per matchup:
+       of all planes lost in a match between X and Y, the share that were Y's (own crashes and stalls count as losses).
+       50% is even; goal (4) maps straight onto it: slightly ahead about 60/40, **never worse than 70/30**. A plane's
+       strength is its mean exchange share over all its matchups; **even is about 45-55%**, and only a plane off by
+       more than the noise is tuned. Unchanged: levers and ±15% limits, identity and style guards, duels as a report
+       column, the easy and ace checks (in the arena too), the owner's test flights, Apply/Undo/Discard. **Front push
+       moves to step 5** (the ground war with loadouts). Order: the Zero in (data and guns, Ki-43 sprites as the
+       placeholder) and the tuner switched to the arena and exchange share (two sessions, different files, may run at
+       once), then a quick arena check of the six fighters, then the 8 h run.
   5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
   This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
 
@@ -996,7 +1008,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Plane roles: step 4** (Gameplay): settled 2026-11-11, see the Decisions entry "Plane roles and balancing plan", step 4. Five sessions in order: 0 set-piece duel tool, 1 flight mechanics (done 2026-11-11, see Done), 2 guns and damage (done), 3 bot-role pass and retrain (3a role tactics, 3b duel failures and trainer traps, 3c thin-air turns and the boom pass done 2026-11-11; night runs after 3c launched by Windows, read them first: `notes/bot-roles.md` "Part 3c"; 3d skill levels and the rest of bot life done 2026-11-12, `notes/bot-roles.md` "Part 3d"; night runs after 3d read and committed; 3e the owner's test flights done 2026-11-12, `notes/bot-roles.md` "Part 3e"; part 4 the auto-tuner built 2026-11-12, see Done and `notes/auto-tuner.md`; **next: the Zero replaces the Ki-43 (Decisions, "Changed 2026-11-12 evening"), a Balance Lab check, then the 8 h run, the owner's test flights and Apply**), 4 the auto-tuner (16 h hands-off run). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
+- **Plane roles: step 4** (Gameplay): settled 2026-11-11, see the Decisions entry "Plane roles and balancing plan", step 4. Five sessions in order: 0 set-piece duel tool, 1 flight mechanics (done 2026-11-11, see Done), 2 guns and damage (done), 3 bot-role pass and retrain (3a role tactics, 3b duel failures and trainer traps, 3c thin-air turns and the boom pass done 2026-11-11; night runs after 3c launched by Windows, read them first: `notes/bot-roles.md` "Part 3c"; 3d skill levels and the rest of bot life done 2026-11-12, `notes/bot-roles.md` "Part 3d"; night runs after 3d read and committed; 3e the owner's test flights done 2026-11-12, `notes/bot-roles.md` "Part 3e"; part 4 the auto-tuner built 2026-11-12, see Done and `notes/auto-tuner.md`; **next: the Zero replaces the Ki-43 and the tuner moves to air-to-air in the arena (Decisions, both "Changed 2026-11-12 evening"), an arena check, then the 8 h run, the owner's test flights and Apply**), 4 the auto-tuner (16 h hands-off run). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
