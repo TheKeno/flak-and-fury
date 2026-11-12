@@ -18,6 +18,8 @@ import { METRES } from './report.js';
 export const TUNE_DEFAULTS = {
   planes: ['bf109g6', 'spitfire', 'p47d', 'la5fn', 'ki43', 'b239'],
   band: 10, // metres of front push either way that count as even
+  farOff: 20, // metres: further off than this, levers move two steps (10%) at a time
+  stuckLimit: 2, // a plane found stuck this many times stays stuck
   seeds: 30, // seeds per setup for the gate and for a trial's full check
   moreSeeds: 50, // a borderline trial (beyond 1 but under 2 standard errors) is flown this far
   screen: [2, 8], // seeds per setup for the two screening stages
@@ -32,6 +34,11 @@ export const TUNE_DEFAULTS = {
 
 const mean = (xs) => (xs.length ? xs.reduce((n, x) => n + x, 0) / xs.length : 0);
 const round = (x, d = 0) => (Number.isFinite(x) ? Math.round(x * 10 ** d) / 10 ** d : null);
+const seOf = (xs) => {
+  if (xs.length < 2) return Infinity;
+  const m = mean(xs);
+  return Math.sqrt(xs.reduce((n, x) => n + (x - m) ** 2, 0) / (xs.length - 1) / xs.length);
+};
 const range = (from, to) => Array.from({ length: Math.max(0, to - from + 1) }, (_, i) => from + i);
 const ROLE_STYLE = { 'boom and zoom': 'above', 'turn fighter': 'level' };
 
@@ -144,6 +151,7 @@ function measure(state, rs) {
   return {
     n: rs.length,
     push: round(mean(rs.map((r) => r.push)), 2),
+    se: round(seOf(rs.map((r) => r.push)), 2),
     kpl: round(kills / (lives || 1), 3),
     above: kills ? round(sum((r) => r.me[2]) / kills, 3) : null,
     level: kills ? round(sum((r) => r.me[3]) / kills, 3) : null,
@@ -195,15 +203,17 @@ export function identityBreaks(origSheets, sheets, plane, margin) {
 }
 
 // The next lever steps for a plane that is too strong (dir -1) or too weak (dir 1).
-export function candidates(def, mults, dir) {
+// size: steps at a time (2 = 10% while a plane is far off, so the effect stands out of the noise); a
+// step that would pass the limit stops at it.
+export function candidates(def, mults, dir, size = 1) {
   const out = [];
   for (const l of LEVERS) {
     if (l.key === 'ammo' ? !def.armament?.guns?.length : def[l.key] == null) continue;
     const at = STEPS.indexOf(mults?.[l.key] ?? 1);
     const ways = l.better ? [l.better * dir] : [1, -1];
     for (const w of ways) {
-      const j = at + w;
-      if (j >= 0 && j < STEPS.length) out.push({ key: l.key, from: STEPS[at], to: STEPS[j] });
+      const j = Math.max(0, Math.min(STEPS.length - 1, at + w * size));
+      if (j !== at) out.push({ key: l.key, from: STEPS[at], to: STEPS[j] });
     }
   }
   return out;
@@ -220,13 +230,17 @@ export async function gate(content, state, runJobs, { log = () => {}, sheets = s
   return state;
 }
 
+const offEven = (m, o) => Math.abs(m.push) > o.band && Math.abs(m.push) > o.z * m.se;
+
 // One tuning cycle: picks the plane furthest from even and tries to move it one step. Returns false when
 // settled (every plane within the band, or the rest stuck).
 export async function cycle(content, state, runJobs, { log = () => {}, sheets = sheetsOf } = {}) {
   const o = state.options;
   const seeds = range(1, o.seeds);
   const now = table(state, state.ov, seeds);
-  const todo = o.planes.filter((p) => Math.abs(now[p].push) > o.band && !state.stuck[p]).sort((p, q) => Math.abs(now[q].push) - Math.abs(now[p].push));
+  // Only planes off by more than the band and by more than luck (2 standard errors, like the Balance
+  // Lab's strong/weak flag): every kept change re-flies its opponents' matches and reshuffles their luck.
+  const todo = o.planes.filter((p) => offEven(now[p], o) && !state.stuck[p]).sort((p, q) => Math.abs(now[q].push) - Math.abs(now[p].push));
   if (!todo.length) return false;
   const plane = todo[0];
   const before = now[plane];
@@ -241,7 +255,8 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
 
   // Candidates the identity guard allows.
   const cands = [];
-  for (const c of candidates(def, mults, dir)) {
+  const size = Math.abs(before.push) > o.farOff ? 2 : 1;
+  for (const c of candidates(def, mults, dir, size)) {
     const id = `${c.key}@${c.to}`;
     if (tried.has(id)) continue;
     const ov = { ...state.ov, [plane]: { ...mults, [c.key]: c.to } };
@@ -314,7 +329,8 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
     }
     state.ov = c.ov;
     entry.kept = { key: c.key, from: c.from, to: c.to, gain: round(cmp.diff, 1), se: round(cmp.se, 1), seeds: upto, pushAfter: after.push };
-    state.stuck = {};
+    // Planes stuck too often stay stuck (a hopeless plane is not retried after every change elsewhere).
+    state.stuck = Object.fromEntries(Object.entries(state.stuck).filter(([p]) => (state.stuckCount?.[p] ?? 0) >= o.stuckLimit));
     state.tried = {};
     // The other planes' rows against it are flown with the new numbers on the gate seeds already.
     entry.done = true;
@@ -322,6 +338,7 @@ export async function cycle(content, state, runJobs, { log = () => {}, sheets = 
     return true;
   }
   entry.done = true;
+  state.stuckCount = { ...state.stuckCount, [plane]: (state.stuckCount?.[plane] ?? 0) + 1 };
   state.stuck[plane] = pool.length ? 'no step within its limits moved it towards even beyond the noise' : 'no step left within its limits and guards';
   log(`  ${plane}: nothing kept (${state.stuck[plane]}).`);
   return true;
@@ -374,6 +391,7 @@ export function tuningResult(content, state, sheets = sheetsOf) {
   const sheetsAfter = sheets(content, state.ov, o.planes);
   const name = (id) => content.planeDefs[id]?.name ?? id;
   const outside = o.planes.filter((p) => Math.abs(after[p].push) > o.band);
+  const whyOut = (p) => state.stuck[p] ?? (!offEven(after[p], o) ? 'within the noise, so it was left alone' : state.ended === 'time' ? 'time ran out before it was reached' : 'not reached');
   const flights = changed.map((p) => {
     const keys = changes.filter((c) => c.plane === p);
     const worst = Object.entries(after[p].matchups).sort((x, y) => Math.abs(y[1].push) - Math.abs(x[1].push))[0]?.[0];
@@ -395,7 +413,7 @@ export function tuningResult(content, state, sheets = sheetsOf) {
     before, after,
     changes, why,
     sheets: { before: state.gate.sheets, after: sheetsAfter },
-    outside: outside.map((p) => ({ plane: p, push: after[p].push, why: state.stuck[p] ?? (state.ended === 'time' ? 'time ran out before it was reached' : 'not reached') })),
+    outside: outside.map((p) => ({ plane: p, push: after[p].push, why: whyOut(p) })),
     flights,
     history: state.history,
   };
@@ -412,7 +430,7 @@ export function summariseTuning(r) {
   if (!r.changes.length) out.push('No change beat the noise, so nothing would change.');
   else out.push(`${r.changes.length} change${r.changes.length > 1 ? 's' : ''} on ${[...new Set(r.changes.map((c) => c.plane))].map(n).join(', ')}, all within ±15% of today's numbers.`);
   for (const p of r.outside) {
-    const stuck = !/time ran out|not reached/.test(p.why);
+    const stuck = !/time ran out|not reached|within the noise/.test(p.why);
     out.push(`${n(p.plane)} is still outside even (${sgn(p.push)}): ${p.why}.${stuck ? ' That needs a talk about other levers (more of them on a side, faster respawn).' : ''}`);
   }
   out.push(r.ended === 'settled' ? 'It stopped because there was nothing left to do.' : r.ended === 'time' ? 'It stopped because its time was up.' : 'It was stopped before it finished.');

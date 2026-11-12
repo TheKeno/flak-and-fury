@@ -11,12 +11,15 @@ style check a guard; six fighters only; 8 h, no retrain).
   the sim only uses it as a reference (engine sound, a bot's cruise speed). `toughness` neither
   (collisions only). Ammo is one lever scaling every gun mount.
 - `src/balance/tuner.js`: the search (pure). `gate` flies every setup on the gate seeds; `cycle` picks
-  the plane furthest from even (outside ±`band` m, not stuck), screens one step of every lever in the
-  helpful direction (convergence both ways) on 2 seeds, the best 4 on 8, then gives the best 2 the full
+  the plane furthest from even (outside ±`band` m **and** beyond 2 standard errors, like the Lab's
+  strong/weak flag, so it never chases luck; not stuck), screens a step of every lever in the helpful
+  direction (two steps, 10%, while the plane is more than `farOff` 20 m off, so the effect stands out of
+  the noise; one step, 5%, when close) (convergence both ways) on 2 seeds, the best 4 on 8, then gives the best 2 the full
   check on 30 seeds (50 when borderline). Kept when it moves the plane towards even by more than 2
   standard errors and 3 m, without overshooting, and the guards hold. Matches are cached by
   `matchKey` (planes, seed, each plane's lever key), so a trial and the current numbers pair up match by
-  match and nothing is flown twice. A plane with nothing kept is `stuck` until any plane changes.
+  match and nothing is flown twice. A plane with nothing kept is `stuck` until any plane changes; stuck `stuckLimit` (2) times, it stays
+  stuck (a hopeless plane is not retried after every change elsewhere).
 - Guards: **identity** (plane sheet: no plane may clearly, by 2%, beat a plane in a number's top two
   where that plane was clearly ahead of the third; near ties are nobody's strength); **style** (boom and
   zoom: share of kills from above, turn fighters: share level or turning, may drop at most 0.1 from the
@@ -56,3 +59,5 @@ covers a cycle and the confirm, measured from its own match rate.
   is huge (one B-239 step "moved" it -25 → +19 m and shifted every other plane by up to 30 m through the
   re-flown matches): numbers from a quick trial mean nothing; the real run uses 30-50 seeds per check.
   Trial files deleted.
+- **2026-11-12, before the first long run (owner's yes):** only chase planes beyond the noise, 10% steps
+  while far off, stuck twice stays stuck (tested on the stand-in battle; the CLI is unchanged).

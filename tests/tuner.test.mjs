@@ -44,6 +44,10 @@ test('candidates step the helpful way and stop at ±15%', () => {
   assert.ok(weaker.some((c) => c.key === 'ammo'), 'ammo counts as a lever when the plane has guns');
   assert.ok(!candidates(content.planeDefs.a, { hp: 0.85 }, -1).some((c) => c.key === 'hp'), 'no step past the limit');
   assert.ok(STEPS.every((m) => m >= 0.85 && m <= 1.15));
+  const hp = (mults, size) => candidates(content.planeDefs.a, mults, -1, size).find((c) => c.key === 'hp')?.to;
+  assert.equal(hp({}, 2), 0.9, 'far off: two steps (10%) at a time');
+  assert.equal(hp({ hp: 0.9 }, 2), 0.85, 'a double step stops at the limit');
+  assert.equal(hp({ hp: 0.85 }, 2), undefined);
 });
 
 test('identity guard: a plane may not clearly overtake a top-two plane at its strength', () => {
