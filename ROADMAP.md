@@ -164,6 +164,15 @@ later.
        firepower, set by history) is reported plainly, and the other levers of goal (5) are discussed then. (d) Human
        players fly differently (boom and zoom comes easier to people than to bots): nothing built now; goal (1) and
        the test flights cover it, looked at again when online play has real players.
+       **Changed 2026-11-12 evening (owner): the Zero replaces the Ki-43 in the fighter roster.** Kill times showed the
+       Ki-43 needs 5-10 s of fire where every other fighter needs 1-3 (14.4 damage a second, 70 hp; unchanged since it
+       was added on 29 Oct): no ±15% lever closes that. The A6M Zero (1943: A6M3, A6M5 from the autumn; 2 x 20 mm +
+       2 x 7.7 mm, fragile, superb turn, stiff when fast, short cannon ammo) is a true turn fighter with real teeth.
+       It becomes Japan's standard fighter and takes the Ki-43's place in the fighters scenario; the Ki-43 stays in
+       the game as the lighter option, out of the balance roster. **Sprites: the Ki-43's as a placeholder** (backlog)
+       until a 3-view and the outline review; data, guns and sound now. **The 8 h tuner run waits** until the Zero
+       is in, then: a Balance Lab check, then the run. Fires from hits for all guns: not needed for the Ki-43 any
+       more; to be decided on its own merits later.
   5. **Second loadout:** go through 2-4 again with the ground war on; goal: the front even across matchups.
   This replaces the auto-tuner's goal in "Balance Lab: bot battles" stage 2 (calming the front with fighters only).
 
@@ -966,6 +975,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Zero sprites: the Ki-43's are a placeholder (Planes):** the A6M Zero replaces the Ki-43 in the fighter roster (Decisions, step 4, "Changed 2026-11-12 evening") and flies with the Ki-43's sprites until it gets its own: owner finds a 3-view, outline in the Outline Lab, owner approves the shape, then sprites and frames (`tools/make-sprites.mjs`). History rules the looks: the placeholder must go before release.
 - **Fly the Stuka fix (Gameplay):** part 3e made dive bombers reach `bots.bomberRange` and bomb tanks under flak (headless: 0.8 → 8.8 bombs a run, no patrol sawtooth); the owner hasn't flown it yet. Check: `?plane=spitfire&enemy=ju87`, do the Stukas go for tanks and bomb?
 - **Bots too easy against the player (Gameplay):** after part 3e (bots now fight the player instead of running) the owner found them maybe too easy to play against (2026-11-12). Player-only knobs keep the balance tools clean: `bots.playerPull`, or a level's aim/evade numbers against humans. After part 4.
 - **Light and heavy flak for step 5 (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). Owner's thought (2026-11-11): fights happen too low. In step 4 that is fixed by bots climbing to their own band (3b); the Spitfire's strength is its numbers (tuner), not the height.
@@ -986,7 +996,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Remove the FPS counter at 1.0** (UI): the HUD shows `FPS` above `SPD` (`fpsNow` in `src/render/hud.js`), added 2026-11-08 as a debug read-out. When we do 1.0, discuss whether it stays (owner, 2026-11-08).
 - **Outline Lab "Build sprites" fails** (Planes): the button returns "Command failed: make-sprites.mjs blenheim" with no error text, but the same command works from a shell. Probably a stale long-running `tools/serve.mjs` (restart it); also show the real error text in the lab (owner, 2026-11-08).
 - **Nametag polish** (UI): minor roughness left in how the name moves during runway turns (owner, 2026-11-07, not now); map-edge turns and rolls unchecked.
-- **Plane roles: step 4** (Gameplay): settled 2026-11-11, see the Decisions entry "Plane roles and balancing plan", step 4. Five sessions in order: 0 set-piece duel tool, 1 flight mechanics (done 2026-11-11, see Done), 2 guns and damage (done), 3 bot-role pass and retrain (3a role tactics, 3b duel failures and trainer traps, 3c thin-air turns and the boom pass done 2026-11-11; night runs after 3c launched by Windows, read them first: `notes/bot-roles.md` "Part 3c"; 3d skill levels and the rest of bot life done 2026-11-12, `notes/bot-roles.md` "Part 3d"; night runs after 3d read and committed; 3e the owner's test flights done 2026-11-12, `notes/bot-roles.md` "Part 3e"; part 4 the auto-tuner built 2026-11-12, see Done and `notes/auto-tuner.md`; **next: the 8 h run, then the owner's test flights and Apply**), 4 the auto-tuner (16 h hands-off run). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
+- **Plane roles: step 4** (Gameplay): settled 2026-11-11, see the Decisions entry "Plane roles and balancing plan", step 4. Five sessions in order: 0 set-piece duel tool, 1 flight mechanics (done 2026-11-11, see Done), 2 guns and damage (done), 3 bot-role pass and retrain (3a role tactics, 3b duel failures and trainer traps, 3c thin-air turns and the boom pass done 2026-11-11; night runs after 3c launched by Windows, read them first: `notes/bot-roles.md` "Part 3c"; 3d skill levels and the rest of bot life done 2026-11-12, `notes/bot-roles.md` "Part 3d"; night runs after 3d read and committed; 3e the owner's test flights done 2026-11-12, `notes/bot-roles.md` "Part 3e"; part 4 the auto-tuner built 2026-11-12, see Done and `notes/auto-tuner.md`; **next: the Zero replaces the Ki-43 (Decisions, "Changed 2026-11-12 evening"), a Balance Lab check, then the 8 h run, the owner's test flights and Apply**), 4 the auto-tuner (16 h hands-off run). Slasher and gunner-defence "run" tactics, weight cost, bomb drag and jettison still open (steps 3 and 5).
 - **Review the bot plane mix** (Gameplay): bots now pick fighters 75%, heavy fighters 20% and the Stuka 5% (`bots.mixFighter/mixHeavy/mixDiveBomber`) and change plane after 2 to 4 deaths (`switchMin/switchMax`); play a few matches and review these numbers. The Mosquito is not in the mix yet.
 - **Bullet drop: yes or no?** (Design): decide whether bullets should fall under gravity; a discussion first, the outcome goes in Decisions.
 
