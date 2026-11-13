@@ -666,6 +666,7 @@ later.
 
 ## Done
 
+- **Bots fly the dive and zoom (Gameplay, 2026-11-13):** after the night run (retrain found nothing; the tuner's 11 changes held, not applied) six faults in the dive-plane flying fixed in `src/sim/ai.js`: the head-on break killed the pass's fire 250 out (now 0.4 s against the dive target), a half loop after the pass stalled the P-47 (high up it now runs on and climbs, keeping 10 faster than the chaser), a mid-dive climb rule, radar steering at the lookout edge, and nose bobbing in the wingover. Low fights unchanged on purpose (`HIGH_FIGHT` 450). Duels **13 → 18 of 25** (32 seeds), none lost; P-47 hits on its passes 2-6x, stalls about halved. The Bf 109 on the Spitfire and La-5FN still loses (speed parity, numbers). Details: `notes/boom-and-zoom-diagnosis.md` "The dive-and-zoom flying". Next: a new night run (retrain + tuner) on the owner's go; the held tuner record is now out of date. Tests pass.
 - **Fighter design pass built, the tuner air-to-air (Gameplay, 2026-11-12):** as decided the same day (Decisions,
   step 4, "Changed 2026-11-12 late"). **Propeller physics:** a propeller's pull falls with speed (`flight.propFall`,
   `propSpeed`, `propStatic`; `src/sim/air.js` `propAt`), so climb, top speed and dive separate (the dive is mostly

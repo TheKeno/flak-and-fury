@@ -121,3 +121,42 @@ the Bf 109 and La-5FN changed (firing range 1 → 1.15); P-47, Spitfire, Ki-43 a
 beat the noise"). The P-47 still turn-fights at 0.52 kills per life. So the small gain from the dive pass is not
 enough for the one-step search; style 0.5 needs a bigger gain (what the bot does right after the pass is the next
 suspect) or the auto-tuner's style check has to force the style rather than rely on the trainer finding it.
+
+## The dive-and-zoom flying (2026-11-13)
+
+After the night run of 2026-11-13 (retrain found nothing; the tuner left Spitfire 61%, P-47 36%, Bf 109 43%),
+traced with a probe on `runDuel`'s `onTick` (want angle, turn command, phase, every quarter second). Six faults in
+`chaseWant` / `headOnThreat` (`src/sim/ai.js`), all fixed:
+1. **No shots on the pass:** the target turns head-on into the dive, and the head-on collision break (0.9 s
+   ahead) pulled the diver up about 250 out, before its guns settled; fire also stopped for the rest of the pass.
+   Against the plane it dives on, the break now comes at 0.4 s (`HEAD_ON_DIVE_TIME`; `closeCall` still guards).
+2. **Half loop after the pass:** style 0.5 with `zoomAfterPass 0` turn-fights at once after the pass; with the
+   enemy behind that is a half loop from dive speed: the P-47 went 200 → 55 and stalled over the top (gravity 90
+   and its turn rate: it cannot loop at fighting speed). High up (`HIGH_FIGHT` 450 over the ground) a dive plane
+   with the enemy behind now runs on and climbs instead.
+3. **Climb-first rule mid-dive:** a dive that came down near the target's height while it was still 400+ off was
+   taken over by the "far off, climb to the dive height first" rule: a pull-up into a loop and a stall. The rule
+   now skips the dive phase too, and such a spent dive (400+ off, no longer 20 above) ends in the run-out.
+4. **Run-out slower than the chaser:** the climb-back held zoomSpeed (1.6 x stall, about 99 for the P-47) and the
+   chaser caught it. High up, with the enemy behind and near, it climbs only as steeply as keeps it 10 faster.
+5. **Radar steering at the lookout edge:** running out took it past `lookout` (520), and the radar path turned it
+   round in a loop. It keeps to the run-out up to 1.5 x lookout; at 0.9 x lookout with 60% of the dive height
+   over the enemy it comes round in a wingover, nose down, for the next pass.
+6. **Nose bobbing in the wingover:** the nose-down (short way) choice flipped each tick as the height over the
+   enemy hovered near 40; now with hysteresis (15) while the enemy is behind. The run-out keeps the direction it
+   flew through the pass (worked out from where the enemy lay, it flipped as the two crossed).
+
+**Low fights unchanged on purpose:** with items 2, 4 and 5 at any height the dive planes escaped the turn and low
+duels (the turn fighter is meant to win there: turn-a6m5-v-p47 0.66 → −0.55); the height gate restores them.
+
+**Duels, 32 seeds x 2 sides (normal):** 13 → 18 of 25 pass, no passing duel lost. Sum of scores 1.99 → 6.64.
+boom-p47-on-a6m5 −0.50 → +0.41, boom-p47-on-b239 −0.19 → +0.53, boom-p47-on-spitfire −0.97 → +0.14,
+chase-p47-diver-v-a6m5 −0.20 → +0.45, high-p47-v-spitfire −1.00 → −0.36, high-bf109-v-a6m5 0.28 → 0.52,
+high-p38-v-la5fn 0.19 → 0.38, boom-p38-on-la5fn −0.02 → 0.23, chase-bf109-diver-v-b239 −0.20 → −0.02.
+Hits per run on the dive side 2-6x (P-47 on Spitfire 3.7 → 15.7), P-47 stall time per run about halved
+(boom on A6M5 5.1 s → 2.5 s). The judge still says "neither bot fired" for some: its fire seconds count only ticks
+with a shot, about 1 s a run for every plane, so read the hits.
+
+**Still failing:** boom-bf109-on-spitfire (−0.62) and boom-bf109-on-la5fn (−0.19): after the pass the Spitfire
+matches the 109's speed about 500 behind, so the 109 never gets away to climb; it runs until the arena edge turns
+it. That looks like plane numbers (speed and climb at 700) rather than flying. turn-a6m5-v-spitfire unchanged.

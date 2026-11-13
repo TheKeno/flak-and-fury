@@ -795,12 +795,19 @@ const DIVE_LEAD = 0.5; // the most the dive-from-height nose lead may swing off 
 const DIVE_START = 350; // a dive starts no closer than this: closer is no pass, just a head-on merge
 const DIVE_RANGE = 1.6; // the dive opens fire this much further out
 const BAND_FIGHT = 250; // closer than this a diving style fights where it is instead of climbing to its band
+// Over this height (above the ground) a diving style runs out and climbs away from an enemy behind it
+// rather than turning back to it. Lower down it turns and fights as before: low fights are the turn
+// fighters' (the turn and low duels), and the dive planes have no height to use there.
+const HIGH_FIGHT = 450;
 const RUN_OUT_TIME = 4; // seconds the run-out after a pass lasts at most before the climb back
 
 function chaseWant(world, p, b, skill, o, cmd) {
   const d = Math.hypot(o.x - p.x, o.y - p.y);
   const seen = d < skill.lookout;
-  if (!seen) {
+  // (A diving style running out from its pass keeps to its plan a little past its lookout: it knows where
+  // the enemy is. Steering for the radar plot there turned it round in a loop, the chaser close behind.)
+  const runningOut = p.y - world.terrain.heightAt(p.x) > HIGH_FIGHT && b.tac?.style >= 0.5 && b.zoom?.phase === 'climb' && d < skill.lookout * 1.5;
+  if (!seen && !runningOut) {
     // A radar contact: fly towards where it was plotted.
     const plot = radarPicture(world, p.team).get(o.id) ?? { x: o.x, y: o.y };
     return { angle: Math.atan2(plot.y - p.y, plot.x - p.x), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
@@ -857,8 +864,9 @@ function chaseWant(world, p, b, skill, o, cmd) {
   const goal = Math.max(o.y + heightOver, bandY);
   const over = goal - p.y;
   // (A diving bot already in its climb-back flies that instead: this climb heads for the enemy, which
-  // behind it means a slow half loop.)
-  const zooming = tac.style >= 0.5 && b.zoom?.phase === 'climb';
+  // behind it means a slow half loop. Nor in its dive: come down near the enemy's height while it was
+  // still 400 off, this pulled the diver up towards it, a loop that stalled the P-47 over the top.)
+  const zooming = tac.style >= 0.5 && (b.zoom?.phase === 'climb' || b.zoom?.phase === 'dive');
   // (Already above it by the dive height: make the pass first, the climb-back then goes to the band.)
   const toBand = goal > o.y + heightOver && d > BAND_FIGHT && p.y - o.y < heightOver;
   if (heightOver > 0 && (d > 400 || toBand) && over > heightOver * 0.3 && !zooming) {
@@ -884,9 +892,18 @@ function chaseWant(world, p, b, skill, o, cmd) {
       // Style 0.5 turn-fights only when the zoom has failed (slow, with the enemy close).
       const zoomV = stall * Math.max(tac.zoomSpeed ?? 1.6, tac.minFightSpeed);
       const runOut = tac.extendRange ?? 450;
-      if (above >= want && d > DIVE_START) b.zoom = { phase: 'dive', since: world.tick };
-      // (A pass broken off head-on always runs out: turning there hands it the tail.)
-      else if (tac.style < 1 && !tac.zoomAfterPass && !b.zoom.broke && (p.speed < climbSpeed || d < 450)) boom = false; // turn-fight at once, unless a free zoom
+      // The enemy behind it (just dived past, or following it out): turning back to it is a half loop,
+      // which bled a heavy plane from dive speed to a stall over the top (P-47: 200 to 55). High up it runs
+      // on instead (HIGH_FIGHT); caught slow and close it still turns and fights (below).
+      const behind = (o.x - p.x) * Math.cos(p.angle) + (o.y - p.y) * Math.sin(p.angle) < 0;
+      const runOn = behind && height > HIGH_FIGHT;
+      // Run out to the edge of its sight with some height over the enemy (not the full dive height: a
+      // chaser climbing after it never let it get that, but 60% of it: with less the wingover put it under
+      // the enemy), it comes round in a wingover, nose down, for a pass from above. Always nose down: over
+      // the top from fighting speed a heavy plane stalls.
+      const comeRound = b.zoom.out && d > skill.lookout * 0.9 && above > want * 0.6;
+      if ((above >= want || comeRound) && d > DIVE_START) b.zoom = { phase: 'dive', since: world.tick, short: true };
+      else if (tac.style < 1 && !tac.zoomAfterPass && !b.zoom.broke && !runOn && (p.speed < climbSpeed || d < 450)) boom = false; // turn-fight at once, unless a free zoom
       else if (tac.style < 1 && p.speed < stall * (1 + skill.stallMargin + 0.25) && d < 200) boom = false;
       else {
         // Out once far enough, or after RUN_OUT_TIME against an enemy as fast as itself (it never gets
@@ -896,9 +913,12 @@ function chaseWant(world, p, b, skill, o, cmd) {
         else if (d < runOut * 0.5) { b.zoom.out = false; b.zoom.runT = 0; }
         // The run-out climbs on the dive's speed while it has speed over the climb-back speed (it used to
         // sink, level or a little down, and the height edge was gone by the next pass), then runs level.
-        const spare = (p.speed - zoomV * 1.15) / zoomV;
+        // With the enemy following close behind it climbs only as steeply as keeps it faster than the enemy:
+        // a climb at zoomSpeed alone (1.6 x stall) was slower than the chaser, which caught it on the climb.
+        const keepV = height > HIGH_FIGHT && behind && d < runOut * 1.5 ? Math.max(zoomV, Math.min(o.speed + 10, p.def.maxSpeed * 0.95)) : zoomV;
+        const spare = (p.speed - keepV * 1.15) / keepV;
         const runPitch = spare > 0 ? clamp(spare, 0.04, 0.3) : height > 200 ? -0.08 : 0.02;
-        const pitch = !b.zoom.out ? runPitch : clamp(((p.speed - zoomV) / zoomV) * 1.5 + 0.12, 0.04, 0.6);
+        const pitch = !b.zoom.out ? runPitch : clamp(((p.speed - keepV) / keepV) * 1.5 + 0.12, 0.04, 0.6);
         const dir = !b.zoom.out ? b.zoom.dir ?? (Math.sign(p.x - o.x) || facing(p)) : facing(p);
         return { angle: angleFor(dir, pitch), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
       }
@@ -935,7 +955,12 @@ function chaseWant(world, p, b, skill, o, cmd) {
   b.lastAim = aim;
   // Turning back from the climb-out into the dive: nose down (a wingover), not a slow half loop over the
   // top that ends in a stall.
-  const shortWay = diving && p.y - o.y > 40;
+  // (Coming round with the enemy behind, with some hysteresis: a hard limit flipped as the height over the
+  // enemy hovered near it, and the nose bobbed up and down for seconds without ever coming round. Not on
+  // the pass itself: there it pushed under a target slipping past, and the pass ended below it.)
+  const back = (o.x - p.x) * Math.cos(p.angle) + (o.y - p.y) * Math.sin(p.angle) < 0;
+  if (diving) b.zoom.short = p.y - o.y > (b.zoom.short && back ? 15 : 40);
+  const shortWay = diving && b.zoom.short;
   const closing = ((o.x - p.x) * (p.vx - o.vx) + (o.y - p.y) * (p.vy - o.vy)) / Math.max(1, d);
   let throttle = 1;
   let speed;
@@ -943,7 +968,11 @@ function chaseWant(world, p, b, skill, o, cmd) {
   if (boom && b.zoom?.phase === 'dive') {
     // The pass is over once past it, once it has slipped out of the nose close in, or once it is the
     // higher one: zoom away rather than turn after it.
-    if ((d < 90 && closing < 0) || (d < 220 && (off > 1.2 || p.y < o.y - 30))) b.zoom = { phase: 'climb', since: world.tick };
+    // The run-out keeps the way it was flying through the pass: worked out from where the enemy lies, it
+    // flipped as the two crossed, and the nose swung up and back down (a near loop that bled the speed).
+    // A dive that has come down to the enemy's height still far off (it ran away level) is spent too:
+    // run on and climb back, rather than chase it level from behind at its own speed.
+    if ((d < 90 && closing < 0) || (d < 220 && (off > 1.2 || p.y < o.y - 30)) || (d > 400 && p.y < o.y + 20)) b.zoom = { phase: 'climb', since: world.tick, dir: facing(p) };
     // The target has turned head-on into the dive (its nose within passBreak of us) while our own nose is
     // not on it: break the pass off and run out straight on over it, climbing on the dive's speed, instead
     // of a merge where only its guns bear. It has to come round after a faster plane. (With our nose on it,
@@ -1162,6 +1191,10 @@ function emergencyWant(world, p, b) {
 }
 
 const HEAD_ON_TIME = 0.9; // seconds before meeting that a head-on pass is broken off (1.4 cost kills, saved no more planes)
+// On a diving pass, against the plane it dives on: the target turning to meet the dive broke the pass off
+// about 250 out at the dive's closing speed, before the guns had settled, so the dive planes fired a
+// fraction of a second per pass. It fires through and breaks this close instead (closeCall still guards).
+const HEAD_ON_DIVE_TIME = 0.4;
 
 // Another plane coming straight at us: { over, level } says which way to break. Level with each other,
 // the side's number decides, so the two never break the same way. Too low to go under, the lower plane
@@ -1169,12 +1202,14 @@ const HEAD_ON_TIME = 0.9; // seconds before meeting that a head-on pass is broke
 function headOnThreat(world, p) {
   const hx = Math.cos(p.angle);
   const hy = Math.sin(p.angle);
+  const b = p.bot;
+  const diveOn = b?.mode === 'chase' && b.zoom?.phase === 'dive' ? b.target : null;
   for (const o of world.planes) {
     if (o === p || o.state !== 'air') continue;
     const dx = o.x - p.x;
     const dy = o.y - p.y;
     const d = Math.hypot(dx, dy);
-    if (d > (p.speed + o.speed) * HEAD_ON_TIME || d < 1) continue;
+    if (d > (p.speed + o.speed) * (o.id === diveOn ? HEAD_ON_DIVE_TIME : HEAD_ON_TIME) || d < 1) continue;
     const ahead = (hx * dx + hy * dy) / d; // other plane in front of me
     const facingMe = -(Math.cos(o.angle) * dx + Math.sin(o.angle) * dy) / d; // and pointing back at me
     if (ahead > 0.8 && facingMe > 0.6) {
