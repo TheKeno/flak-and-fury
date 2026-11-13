@@ -1,6 +1,6 @@
 {
   "_notes": "Bot tactics per plane: how bots fight in each plane (src/sim/tactics.js, TUNING.md \"Bot tactics\"). Written by the bot trainer (Balance Lab: Train bots; node tools/train-bots.mjs); bot-tactics.previous.json holds the values before the last training, for Restore. A plane not listed flies by default. Fighters also have a role (ROLE_OF in src/sim/tactics.js): it forces some values (boom and zoom style 0.5, a turn fighter never chases a diver) and starts the rest; a plane value written here overrides the role start, never a forced one.",
-  "trained": "2026-11-11T22:03:12.422Z",
+  "trained": "2026-11-13T00:34:54.987Z",
   "default": {
     "style": 0,
     "heightOver": 0,

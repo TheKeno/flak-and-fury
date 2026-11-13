@@ -1,132 +1,122 @@
-01:34:55 Tuning the fighters air-to-air: 5 h budget, 16 threads. Record: C:\Users\Simon\Documents\Claude\Flak & Fury\balance\results\2026-11-13-00-34-55-tune-planes.json
+18:07:12 Tuning the fighters air-to-air: 5 h budget, 8 threads. Record: C:\Users\Simon\Documents\Claude\Flak & Fury\balance\results\2026-11-13-17-07-12-tune-planes.json
 FAIL turn-a6m5-v-spitfire score -0.41 (9-22-1) bot: neither bot fired (1.4 s and 0.9 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-PASS turn-a6m5-v-bf109 score +0.72 (27-4-1)
-PASS turn-a6m5-v-p47 score +0.69 (27-5-0)
-PASS turn-b239-v-p47 score +0.38 (22-10-0)
-PASS turn-b239-v-bf109 score +0.66 (26-5-1)
-PASS turn-spitfire-v-p47 score +0.75 (28-4-0)
-PASS turn-spitfire-v-p38 score +0.88 (30-2-0)
-PASS turn-la5fn-v-p47 score +0.56 (25-7-0)
-PASS low-a6m5-on-p47-tail score +0.88 (30-2-0)
-PASS low-a6m5-on-bf109-tail score +0.63 (26-6-0)
-PASS low-b239-on-p38-tail score +0.69 (26-4-2)
-FAIL boom-p47-on-a6m5 score -0.56 (6-24-2) bot: the expected winner spent 4.5 s stalled per run: it flies the fight into stalls
-FAIL boom-p47-on-b239 score +0.09 (16-13-3) bot: neither bot fired (0.9 s and 0.5 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-p47-on-spitfire score -1 (0-32-0) bot: neither bot fired (0.2 s and 1 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-bf109-on-spitfire score -0.81 (3-29-0) bot: neither bot fired (0.4 s and 1.1 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-bf109-on-la5fn score -0.28 (10-19-3) bot: neither bot fired (1.1 s and 0.9 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-p38-on-la5fn score +0.16 (18-13-1) bot: neither bot fired (0.7 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL chase-p47-diver-v-a6m5 score -0.12 (14-18-0) bot: the expected winner spent 4.7 s stalled per run: it flies the fight into stalls
-FAIL chase-bf109-diver-v-b239 score -0.28 (11-20-1) bot: neither bot fired (1.4 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS turn-a6m5-v-bf109 score +0.53 (24-7-1)
+PASS turn-a6m5-v-p47 score +0.56 (25-7-0)
+PASS turn-b239-v-p47 score +0.34 (20-9-3)
+PASS turn-b239-v-bf109 score +0.59 (25-6-1)
+PASS turn-spitfire-v-p47 score +0.81 (29-3-0)
+PASS turn-spitfire-v-p38 score +0.81 (29-3-0)
+PASS turn-la5fn-v-p47 score +0.84 (29-2-1)
+PASS low-a6m5-on-p47-tail score +0.56 (25-7-0)
+PASS low-a6m5-on-bf109-tail score +0.69 (27-5-0)
+PASS low-b239-on-p38-tail score +0.56 (23-5-4)
+PASS boom-p47-on-a6m5 score +0.38 (21-9-2)
+PASS boom-p47-on-b239 score +0.44 (22-8-2)
+FAIL boom-p47-on-spitfire score +0.22 (18-11-3) bot: neither bot fired (0.7 s and 0.3 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-bf109-on-spitfire score -0.62 (6-26-0) bot: neither bot fired (0.7 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-bf109-on-la5fn score -0.06 (15-17-0) bot: neither bot fired (1.1 s and 0.8 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-p38-on-la5fn score +0.13 (17-13-2) bot: neither bot fired (0.8 s and 0.6 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS chase-p47-diver-v-a6m5 score +0.31 (19-9-4)
+FAIL chase-bf109-diver-v-b239 score -0.06 (14-16-2) bot: neither bot fired (1.4 s and 0.6 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
 PASS control-spitfire-mirror score -0.06 (15-17-0)
-PASS control-p47d-mirror score -0.09 (12-15-5)
+PASS control-p47d-mirror score -0.06 (14-16-2)
 PASS control-a6m5-mirror score -0.19 (13-19-0)
-FAIL high-p47-v-spitfire score -1 (0-32-0) bot: neither bot fired (0.1 s and 1 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL high-p38-v-la5fn score +0.06 (17-15-0) bot: the expected winner spent 4 s stalled per run: it flies the fight into stalls
-FAIL high-bf109-v-a6m5 score +0.16 (16-11-5) bot: neither bot fired (1.4 s and 0.6 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-13 of 25 duels pass (normal, 16 seeds x 2 sides, 19 s).
-Failed: turn-a6m5-v-spitfire, boom-p47-on-a6m5, boom-p47-on-b239, boom-p47-on-spitfire, boom-bf109-on-spitfire, boom-bf109-on-la5fn, boom-p38-on-la5fn, chase-p47-diver-v-a6m5, chase-bf109-diver-v-b239, high-p47-v-spitfire, high-p38-v-la5fn, high-bf109-v-a6m5
-Points at the bot: 12, at plane numbers: 0, at the duel set-up: 0.
-01:43:51 Gate: bf109g6 38%, spitfire 68%, p47d 29%, la5fn 54%, a6m5 56%, b239 55%.
-01:43:51 p47d: 29%, trying to make it stronger.
-01:50:22   kept hp 1 → 1.1: 29% → 31% (gain 1.1 ± 0.8 points).
-01:50:22 p47d: 31%, trying to make it stronger.
-01:56:56   kept hp 1.1 → 1.15: 31% → 32% (gain 1.1 ± 0.8 points).
-01:56:56 p47d: 32%, trying to make it stronger.
-02:03:17   emergencyBoost 1 → 1.1: not kept (moved -0.2 points towards even, within the noise (± 0.9)).
-02:05:29   dragCoef 1 → 0.9: not kept (moved 0 points towards even, within the noise (± 0.9)).
-02:05:29   p47d: nothing kept (no step within its limits moved it towards even beyond the noise).
-02:05:29 spitfire: 67%, trying to make it weaker.
-02:12:48   kept hp 1 → 0.9: 67% → 65% (gain 1.7 ± 0.8 points).
-02:12:48 p47d: 32%, trying to make it stronger.
-02:15:04   emergencyBoost 1 → 1.1: not kept (moved 0.2 points towards even, within the noise (± 0.8)).
-02:17:14   kept convergence 1 → 1.1: 32% → 33% (gain 1 ± 0.8 points).
-02:17:15 p47d: 33%, trying to make it stronger.
-02:20:43   p47d: nothing kept (no step left within its limits and guards).
-02:20:43 spitfire: 65%, trying to make it weaker.
-02:28:01   kept stallSpeed 1 → 1.1: 65% → 63% (gain 2.6 ± 0.8 points).
-02:28:01 spitfire: 63%, trying to make it weaker.
-02:34:43   kept hp 0.9 → 0.85: 63% → 61% (gain 1.7 ± 0.8 points).
-02:34:43 bf109g6: 39%, trying to make it stronger.
-02:44:49   ratedHeight 1 → 1.1: not kept (moved 0.5 points towards even, within the noise (± 0.7)).
-02:44:49   bf109g6: nothing kept (no step within its limits moved it towards even beyond the noise).
-02:44:49 spitfire: 61%, trying to make it weaker.
-02:54:55   kept convergence 1 → 0.9: 61% → 60% (gain 1.3 ± 0.7 points).
-02:54:55 bf109g6: 39%, trying to make it stronger.
-02:56:00   bf109g6: nothing kept (no step left within its limits and guards).
-02:56:00 spitfire: 60%, trying to make it weaker.
-03:02:34   kept convergence 0.9 → 0.85: 60% → 58% (gain 1.5 ± 0.9 points).
-03:02:34 spitfire: 58%, trying to make it weaker.
-03:06:35   spitfire: nothing kept (no step left within its limits and guards).
-03:06:35 a6m5: 58%, trying to make it weaker.
-03:13:12   kept ratedHeight 1 → 0.95: 58% → 57% (gain 1.2 ± 1 points).
-03:13:12 spitfire: 59%, trying to make it weaker.
-03:17:12   kept slowTurnSpeed 1 → 0.95: 59% → 57% (gain 1.2 ± 0.9 points).
-03:17:12 spitfire: 57%, trying to make it weaker.
-03:20:24   spitfire: nothing kept (no step left within its limits and guards).
-03:20:24 b239: 57%, trying to make it weaker.
-03:27:51   kept stallSpeed 1 → 1.05: 57% → 55% (gain 2.6 ± 1.1 points).
-03:27:51 a6m5: 58%, trying to make it weaker.
-03:34:35   kept thrust 1 → 0.95: 58% → 57% (gain 1.1 ± 1 points).
-03:34:35 a6m5: 57%, trying to make it weaker.
-03:41:16   kept hp 1 → 0.95: 57% → 55% (gain 1.4 ± 0.9 points).
-03:41:16 la5fn: 57%, trying to make it weaker.
-03:48:12   kept turnRate 1 → 0.95: 57% → 54% (gain 2.6 ± 1 points).
-03:48:12 b239: 56%, trying to make it weaker.
-03:55:45   kept stallSpeed 1.05 → 1.1: 56% → 53% (gain 3 ± 1 points).
-03:55:45 a6m5: 56%, trying to make it weaker.
-04:02:25   kept hp 0.95 → 0.9: 56% → 55% (gain 1.3 ± 1 points).
-04:02:25 a6m5: 55%, trying to make it weaker.
-04:09:05   kept hp 0.9 → 0.85: 55% → 54% (gain 1.4 ± 0.9 points).
-04:09:05 la5fn: 55%, trying to make it weaker.
-04:15:58   kept turnRate 0.95 → 0.9: 55% → 52% (gain 3 ± 0.9 points).
-04:15:58 Tuning settled; confirming.
-04:27:11 Check at normal: bf109g6 38% → 43%, spitfire 67% → 61%, p47d 29% → 36%, la5fn 54% → 52%, a6m5 56% → 54%, b239 55% → 55%.
-04:30:08 Check at easy: bf109g6 39% → 46%, spitfire 70% → 65%, p47d 30% → 38%, la5fn 52% → 48%, a6m5 62% → 58%, b239 48% → 46%.
-04:33:01 Check at ace: bf109g6 40% → 44%, spitfire 67% → 60%, p47d 33% → 39%, la5fn 55% → 53%, a6m5 50% → 50%, b239 55% → 54%.
-FAIL turn-a6m5-v-spitfire score -0.03 (15-16-1) bot: neither bot fired (1.4 s and 0.5 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-PASS turn-a6m5-v-bf109 score +0.38 (21-9-2)
-FAIL turn-a6m5-v-p47 score +0.06 (17-15-0) planes: the expected winner flew cleanly (on its sights 37.4 s against 7.3 s, damage 79.4 against 38.8) and still did not win: the plane numbers do not give the edge the duel claims
-PASS turn-b239-v-p47 score +0.59 (24-5-3)
-PASS turn-b239-v-bf109 score +0.5 (22-6-4)
-PASS turn-spitfire-v-p47 score +0.47 (23-8-1)
-PASS turn-spitfire-v-p38 score +0.47 (23-8-1)
-PASS turn-la5fn-v-p47 score +0.75 (28-4-0)
-PASS low-a6m5-on-p47-tail score +0.38 (22-10-0)
+FAIL high-p47-v-spitfire score -0.34 (9-20-3) bot: neither bot fired (0.4 s and 0.5 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS high-p38-v-la5fn score +0.31 (21-11-0)
+PASS high-bf109-v-a6m5 score +0.53 (21-4-7)
+18 of 25 duels pass (normal, 16 seeds x 2 sides, 20 s).
+Failed: turn-a6m5-v-spitfire, boom-p47-on-spitfire, boom-bf109-on-spitfire, boom-bf109-on-la5fn, boom-p38-on-la5fn, chase-bf109-diver-v-b239, high-p47-v-spitfire
+Points at the bot: 7, at plane numbers: 0, at the duel set-up: 0.
+18:17:01 Gate: bf109g6 39%, spitfire 67%, p47d 31%, la5fn 55%, a6m5 55%, b239 54%.
+18:17:01 p47d: 31%, trying to make it stronger.
+18:27:54   emergencyBoost 1 → 1.1: not kept (moved 0.6 points towards even, within the noise (± 0.7)).
+18:32:15   ratedHeight 1 → 1.1: not kept (moved 0.1 points towards even, within the noise (± 0.3)).
+18:32:15   p47d: nothing kept (no step within its limits moved it towards even beyond the noise).
+18:32:15 spitfire: 67%, trying to make it weaker.
+18:39:54   kept hp 1 → 0.9: 67% → 64% (gain 2.4 ± 0.8 points).
+18:39:54 p47d: 31%, trying to make it stronger.
+18:43:27   emergencyBoost 1 → 1.1: not kept (moved 0.6 points towards even, within the noise (± 0.7)).
+18:45:45   convergence 1 → 1.1: not kept (moved 0.2 points towards even, within the noise (± 0.8)).
+18:45:45   p47d: nothing kept (no step within its limits moved it towards even beyond the noise).
+18:45:45 spitfire: 64%, trying to make it weaker.
+18:53:26   kept stallSpeed 1 → 1.1: 64% → 61% (gain 3 ± 0.9 points).
+18:53:26 spitfire: 61%, trying to make it weaker.
+19:00:26   kept hp 0.9 → 0.85: 61% → 60% (gain 1.5 ± 0.9 points).
+19:00:26 bf109g6: 40%, trying to make it stronger.
+19:06:37   emergencyBoost 1 → 1.05: not kept (moved 0.1 points towards even, within the noise (± 0.9)).
+19:06:37   bf109g6: nothing kept (no step within its limits moved it towards even beyond the noise).
+19:06:37 spitfire: 60%, trying to make it weaker.
+19:17:49   kept slowTurnSpeed 1 → 0.95: 60% → 59% (gain 1.1 ± 0.7 points).
+19:17:49 bf109g6: 40%, trying to make it stronger.
+19:19:23   emergencyBoost 1 → 1.05: not kept (moved 0.3 points towards even, within the noise (± 0.9)).
+19:19:23   bf109g6: nothing kept (no step within its limits moved it towards even beyond the noise).
+19:19:23 spitfire: 59%, trying to make it weaker.
+19:28:06   convergence 1 → 0.95: not kept (moved 0.5 points towards even, within the noise (± 0.7)).
+19:32:42   convergence 1 → 1.05: not kept (moved 0.3 points towards even, within the noise (± 0.6)).
+19:32:42   spitfire: nothing kept (no step within its limits moved it towards even beyond the noise).
+19:32:42 la5fn: 57%, trying to make it weaker.
+19:40:02   kept stallSpeed 1 → 1.05: 57% → 55% (gain 1.8 ± 1 points).
+19:40:02 spitfire: 59%, trying to make it weaker.
+19:42:17   convergence 1 → 0.95: not kept (moved 0.4 points towards even, within the noise (± 0.9)).
+19:43:44   convergence 1 → 1.05: not kept (moved 0.5 points towards even, within the noise (± 0.6)).
+19:43:44   spitfire: nothing kept (no step within its limits moved it towards even beyond the noise).
+19:43:44 a6m5: 57%, trying to make it weaker.
+19:51:03   kept hp 1 → 0.95: 57% → 56% (gain 1.3 ± 1 points).
+19:51:03 b239: 56%, trying to make it weaker.
+19:59:15   kept stallSpeed 1 → 1.05: 56% → 54% (gain 2.2 ± 1 points).
+19:59:15 a6m5: 56%, trying to make it weaker.
+20:10:53   emergencyBoost 1 → 0.95: not kept (moved 0.5 points towards even, within the noise (± 0.8)).
+20:13:22   kept hp 0.95 → 0.9: 56% → 55% (gain 1.2 ± 1 points).
+20:13:22 la5fn: 56%, trying to make it weaker.
+20:20:45   kept stallSpeed 1.05 → 1.1: 56% → 53% (gain 2.7 ± 1 points).
+20:20:45 a6m5: 56%, trying to make it weaker.
+20:28:21   kept thrust 1 → 0.95: 56% → 54% (gain 1.8 ± 1 points).
+20:28:21 Tuning settled; confirming.
+20:40:53 Check at normal: bf109g6 39% → 42%, spitfire 66% → 61%, p47d 31% → 35%, la5fn 55% → 54%, a6m5 55% → 54%, b239 55% → 54%.
+20:44:00 Check at easy: bf109g6 40% → 45%, spitfire 70% → 65%, p47d 32% → 36%, la5fn 51% → 47%, a6m5 59% → 59%, b239 47% → 47%.
+20:47:03 Check at ace: bf109g6 40% → 45%, spitfire 66% → 60%, p47d 34% → 36%, la5fn 55% → 55%, a6m5 50% → 50%, b239 55% → 53%.
+FAIL turn-a6m5-v-spitfire score -0.28 (11-20-1) bot: neither bot fired (1.2 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL turn-a6m5-v-bf109 score +0.13 (18-14-0) planes: the expected winner flew cleanly (on its sights 47 s against 8.3 s, damage 58.1 against 39.7) and still did not win: the plane numbers do not give the edge the duel claims
+FAIL turn-a6m5-v-p47 score +0.19 (19-13-0) planes: the expected winner flew cleanly (on its sights 29.9 s against 6.6 s, damage 73.2 against 35.8) and still did not win: the plane numbers do not give the edge the duel claims
+FAIL turn-b239-v-p47 score -0.03 (15-16-1) bot: neither bot fired (0.8 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS turn-b239-v-bf109 score +0.72 (27-4-1)
+PASS turn-spitfire-v-p47 score +0.63 (26-6-0)
+PASS turn-spitfire-v-p38 score +0.53 (24-7-1)
+PASS turn-la5fn-v-p47 score +0.69 (26-4-2)
+PASS low-a6m5-on-p47-tail score +0.5 (24-8-0)
 PASS low-a6m5-on-bf109-tail score +0.5 (24-8-0)
-PASS low-b239-on-p38-tail score +0.41 (22-9-1)
-FAIL boom-p47-on-a6m5 score +0.09 (16-13-3) bot: the expected winner spent 5.4 s stalled per run: it flies the fight into stalls
-FAIL boom-p47-on-b239 score -0.06 (14-16-2) bot: neither bot fired (1.1 s and 1 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-p47-on-spitfire score -0.87 (2-30-0) bot: neither bot fired (0.2 s and 0.9 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-bf109-on-spitfire score -0.59 (6-25-1) bot: neither bot fired (0.5 s and 0.8 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-bf109-on-la5fn score -0.16 (12-17-3) bot: neither bot fired (1.3 s and 0.8 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL boom-p38-on-la5fn score +0.22 (19-12-1) bot: neither bot fired (1 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-PASS chase-p47-diver-v-a6m5 score +0.44 (23-9-0)
-FAIL chase-bf109-diver-v-b239 score -0.03 (15-16-1) planes: the expected winner flew cleanly (on its sights 16.7 s against 15.6 s, damage 69.5 against 53.2) and still did not win: the plane numbers do not give the edge the duel claims
-PASS control-spitfire-mirror score -0.19 (13-19-0)
-PASS control-p47d-mirror score -0.03 (13-14-5)
-PASS control-a6m5-mirror score -0.12 (13-17-2)
-FAIL high-p47-v-spitfire score -0.75 (4-28-0) bot: neither bot fired (0.1 s and 0.8 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-FAIL high-p38-v-la5fn score +0 (16-16-0) bot: neither bot fired (0.8 s and 0.6 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
-PASS high-bf109-v-a6m5 score +0.59 (23-4-5)
-14 of 25 duels pass (normal, 16 seeds x 2 sides, 19 s).
-Failed: turn-a6m5-v-spitfire, turn-a6m5-v-p47, boom-p47-on-a6m5, boom-p47-on-b239, boom-p47-on-spitfire, boom-bf109-on-spitfire, boom-bf109-on-la5fn, boom-p38-on-la5fn, chase-bf109-diver-v-b239, high-p47-v-spitfire, high-p38-v-la5fn
-Points at the bot: 9, at plane numbers: 2, at the duel set-up: 0.
-04:33:23 Done in 2 h 58 min. Record: C:\Users\Simon\Documents\Claude\Flak & Fury\balance\results\2026-11-13-00-34-55-tune-planes.json (open it in the Balance Lab's Results tab).
+FAIL low-b239-on-p38-tail score +0.28 (20-11-1) bot: neither bot fired (1.3 s and 0.4 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+PASS boom-p47-on-a6m5 score +0.44 (21-7-4)
+FAIL boom-p47-on-b239 score -0.09 (12-15-5) bot: neither bot fired (0.9 s and 0.6 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-p47-on-spitfire score +0.13 (17-13-2) bot: neither bot fired (0.7 s and 0.3 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-bf109-on-spitfire score -0.53 (7-24-1) bot: neither bot fired (0.7 s and 0.7 s per run): the fight stays a circle or a missed pass, so the position is never turned into shots
+FAIL boom-bf109-on-la5fn score +0.28 (20-11-1) planes: the expected winner flew cleanly (on its sights 13.6 s against 11 s, damage 79.1 against 47.6) and still did not win: the plane numbers do not give the edge the duel claims
+PASS boom-p38-on-la5fn score +0.44 (23-9-0)
+PASS chase-p47-diver-v-a6m5 score +0.41 (20-7-5)
+FAIL chase-bf109-diver-v-b239 score +0.13 (16-12-4) planes: the expected winner flew cleanly (on its sights 14.1 s against 17.3 s, damage 79.4 against 49.5) and still did not win: the plane numbers do not give the edge the duel claims
+PASS control-spitfire-mirror score +0 (16-16-0)
+PASS control-p47d-mirror score -0.06 (14-16-2)
+PASS control-a6m5-mirror score -0.28 (11-20-1)
+PASS high-p47-v-spitfire score +0.41 (20-7-5)
+PASS high-p38-v-la5fn score +0.47 (23-8-1)
+PASS high-bf109-v-a6m5 score +0.31 (20-10-2)
+15 of 25 duels pass (normal, 16 seeds x 2 sides, 20 s).
+Failed: turn-a6m5-v-spitfire, turn-a6m5-v-bf109, turn-a6m5-v-p47, turn-b239-v-p47, low-b239-on-p38-tail, boom-p47-on-b239, boom-p47-on-spitfire, boom-bf109-on-spitfire, boom-bf109-on-la5fn, chase-bf109-diver-v-b239
+Points at the bot: 6, at plane numbers: 4, at the duel set-up: 0.
+20:47:27 Done in 2 h 40 min. Record: C:\Users\Simon\Documents\Claude\Flak & Fury\balance\results\2026-11-13-17-07-12-tune-planes.json (open it in the Balance Lab's Results tab).
 
-The tuner flew 33912 air battles in the arena (4 against 4). A plane's number is its exchange share: of all the planes lost in its fights, the share that were the enemy's. 50% is even; even here means 45-55% (60 matches per setup).
-Before: Bf 109 G-6 38%, Spitfire LF Mk IX 68%, P-47D Thunderbolt 29%, La-5FN 54%, A6M5 Zero 56%, Brewster B-239 55%.
-After: Bf 109 G-6 42%, Spitfire LF Mk IX 61%, P-47D Thunderbolt 36%, La-5FN 52%, A6M5 Zero 55%, Brewster B-239 54%.
-11 changes on P-47D Thunderbolt, Spitfire LF Mk IX, A6M5 Zero, Brewster B-239, La-5FN, all within ±15% of today's numbers.
-Bf 109 G-6 is still outside even (42%): no step left within its limits and guards. That needs a talk: a historical variant or gun fit, a wider limit for it, or accepting it as the underdog.
-Spitfire LF Mk IX is still outside even (61%): no step left within its limits and guards. That needs a talk: a historical variant or gun fit, a wider limit for it, or accepting it as the underdog.
-P-47D Thunderbolt is still outside even (36%): no step left within its limits and guards. That needs a talk: a historical variant or gun fit, a wider limit for it, or accepting it as the underdog.
+The tuner flew 28640 air battles in the arena (4 against 4). A plane's number is its exchange share: of all the planes lost in its fights, the share that were the enemy's. 50% is even; even here means 45-55% (60 matches per setup).
+Before: Bf 109 G-6 39%, Spitfire LF Mk IX 67%, P-47D Thunderbolt 31%, La-5FN 55%, A6M5 Zero 55%, Brewster B-239 54%.
+After: Bf 109 G-6 42%, Spitfire LF Mk IX 61%, P-47D Thunderbolt 35%, La-5FN 53%, A6M5 Zero 54%, Brewster B-239 55%.
+7 changes on Spitfire LF Mk IX, La-5FN, A6M5 Zero, Brewster B-239, all within ±15% of today's numbers.
+Bf 109 G-6 is still outside even (42%): no step within its limits moved it towards even beyond the noise. That needs a talk: a historical variant or gun fit, a wider limit for it, or accepting it as the underdog.
+Spitfire LF Mk IX is still outside even (61%): no step within its limits moved it towards even beyond the noise. That needs a talk: a historical variant or gun fit, a wider limit for it, or accepting it as the underdog.
+P-47D Thunderbolt is still outside even (35%): no step within its limits moved it towards even beyond the noise. That needs a talk: a historical variant or gun fit, a wider limit for it, or accepting it as the underdog.
 The check on fresh seeds: Bf 109 G-6, Spitfire LF Mk IX, P-47D Thunderbolt still outside even there.
 It stopped because there was nothing left to do.
-Duels that passed before and fail now: turn-a6m5-v-p47. Watch for that in the test flights.
+Duels that passed before and fail now: turn-a6m5-v-bf109, turn-a6m5-v-p47, turn-b239-v-p47, low-b239-on-p38-tail, boom-p47-on-b239. Watch for that in the test flights.
 Nothing changes in data/planes.json until you press Apply. Fly the test flights first.
-- Fly the P-47D Thunderbolt for about 5 minutes against the Spitfire LF Mk IX (normal bots). Changed: hit points +15%, gun convergence range +10%. Feel for how many hits it takes; at which range the bullets meet. Does it still feel like a P-47D Thunderbolt?
-- Fly the Spitfire LF Mk IX for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: hit points -15%, stall speed +10%, gun convergence range -15%, slow-turn speed (bonus below) -5%. Feel for how many hits it takes; how slow it can fly and turn; at which range the bullets meet; up to which speed the tight turn helps. Does it still feel like a Spitfire LF Mk IX?
-- Fly the A6M5 Zero for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: rated height (full power up to) -5%, engine thrust -5%, hit points -15%. Feel for power and climb up high; climb and acceleration; how many hits it takes. Does it still feel like a A6M5 Zero?
-- Fly the Brewster B-239 for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: stall speed +10%. Feel for how slow it can fly and turn. Does it still feel like a Brewster B-239?
-- Fly the La-5FN for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: turn rate -10%. Feel for how fast it turns. Does it still feel like a La-5FN?
+- Fly the Spitfire LF Mk IX for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: hit points -15%, stall speed +10%, slow-turn speed (bonus below) -5%. Feel for how many hits it takes; how slow it can fly and turn; up to which speed the tight turn helps. Does it still feel like a Spitfire LF Mk IX?
+- Fly the La-5FN for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: stall speed +10%. Feel for how slow it can fly and turn. Does it still feel like a La-5FN?
+- Fly the A6M5 Zero for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: hit points -10%, engine thrust -5%. Feel for how many hits it takes; climb and acceleration. Does it still feel like a A6M5 Zero?
+- Fly the Brewster B-239 for about 5 minutes against the P-47D Thunderbolt (normal bots). Changed: stall speed +5%. Feel for how slow it can fly and turn. Does it still feel like a Brewster B-239?

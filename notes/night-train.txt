@@ -1,9 +1,9 @@
-Training bots: 6 planes, about 44736 arena matches on 16 threads.
+Training bots: 6 planes, about 44736 arena matches on 8 threads.
 Measuring how the bots fly now (288 matches)...
 Round 1 of 4, Bf 109 G-6: no change beat the noise.
 Round 1 of 4, Spitfire LF Mk IX: no change beat the noise.
 Round 1 of 4, P-47D Thunderbolt: no change beat the noise.
-Round 1 of 4, La-5FN: no change beat the noise.
+Round 1 of 4, La-5FN: emergencyUse 0.5 → 1, bandMargin 350 → 600.
 Round 1 of 4, A6M5 Zero: no change beat the noise.
 Round 1 of 4, Brewster B-239: no change beat the noise.
 Round 2 of 4, Bf 109 G-6: no change beat the noise.
@@ -26,20 +26,20 @@ Round 4 of 4, A6M5 Zero: no change beat the noise.
 Round 4 of 4, Brewster B-239: no change beat the noise.
 Measuring how the bots fly after training...
 
-Trained in 1 h 31 min. New tactics in data/bot-tactics.json (the old ones kept for --restore). Record: C:\Users\Simon\Documents\Claude\Flak & Fury\balance\results\2026-11-12-23-03-46-train-bots.json
+Trained in 1 h 35 min. New tactics in data/bot-tactics.json (the old ones kept for --restore). Record: C:\Users\Simon\Documents\Claude\Flak & Fury\balance\results\2026-11-13-15-31-16-train-bots.json
 
-The bots trained for 4 rounds: 44736 air-only matches, 2 against 2, 6 game-minutes each. A change was kept only when it won by more than luck.
+The bots trained for 4 rounds: 44544 air-only matches, 2 against 2, 6 game-minutes each. A change was kept only when it won by more than luck.
 
-Bf 109 G-6: kept its tactics: nothing tried beat the noise. Now it dives on the enemy from above when it can, otherwise turn-fights, never breaks off, opens fire at 130% of the usual range, throttles back in turns. Kills per life 0.44 before, 0.44 after; own crashes and collisions 0.07 per life before, 0.07 after.
+Bf 109 G-6: kept its tactics: nothing tried beat the noise. Now it dives on the enemy from above when it can, otherwise turn-fights, never breaks off, opens fire at 130% of the usual range, throttles back in turns. Kills per life 0.41 before, 0.42 after; own crashes and collisions 0.09 per life before, 0.09 after.
 
-Spitfire LF Mk IX: kept its tactics: nothing tried beat the noise. Now it turn-fights, never breaks off, opens fire at 115% of the usual range, throttles back in turns. Kills per life 1.13 before, 1.13 after; own crashes and collisions 0.09 per life before, 0.09 after.
+Spitfire LF Mk IX: kept its tactics: nothing tried beat the noise. Now it turn-fights, never breaks off, opens fire at 115% of the usual range, throttles back in turns. Kills per life 1.11 before, 1.08 after; own crashes and collisions 0.11 per life before, 0.12 after.
 
-P-47D Thunderbolt: kept its tactics: nothing tried beat the noise. Now it dives on the enemy from above when it can, otherwise turn-fights, never breaks off, opens fire at 130% of the usual range, throttles back in turns. Kills per life 0.28 before, 0.28 after; own crashes and collisions 0.1 per life before, 0.1 after.
+P-47D Thunderbolt: kept its tactics: nothing tried beat the noise. Now it dives on the enemy from above when it can, otherwise turn-fights, never breaks off, opens fire at 130% of the usual range, throttles back in turns. Kills per life 0.35 before, 0.35 after; own crashes and collisions 0.09 per life before, 0.1 after.
 
-La-5FN: kept its tactics: nothing tried beat the noise. Now it turn-fights, never breaks off, opens fire at 130% of the usual range, throttles back in turns. Kills per life 0.66 before, 0.66 after; own crashes and collisions 0.13 per life before, 0.13 after.
+La-5FN: learned to change leaves its height band by (350 → 600), emergency power (0.5 → 1). Now it turn-fights, never breaks off, opens fire at 130% of the usual range, throttles back in turns. Kills per life 0.64 before, 0.65 after; own crashes and collisions 0.11 per life before, 0.16 after.
 
-A6M5 Zero: kept its tactics: nothing tried beat the noise. Now it turn-fights, never breaks off, throttles back in turns. Kills per life 0.67 before, 0.67 after; own crashes and collisions 0.07 per life before, 0.07 after.
+A6M5 Zero: kept its tactics: nothing tried beat the noise. Now it turn-fights, never breaks off, throttles back in turns. Kills per life 0.63 before, 0.65 after; own crashes and collisions 0.08 per life before, 0.09 after.
 
-Brewster B-239: kept its tactics: nothing tried beat the noise. Now it turn-fights, never breaks off, opens fire at 115% of the usual range, throttles back in turns. Kills per life 0.56 before, 0.56 after; own crashes and collisions 0.1 per life before, 0.1 after.
+Brewster B-239: kept its tactics: nothing tried beat the noise. Now it turn-fights, never breaks off, opens fire at 115% of the usual range, throttles back in turns. Kills per life 0.53 before, 0.51 after; own crashes and collisions 0.11 per life before, 0.1 after.
 
 The kills-per-life numbers are from a short check (every pairing, a few matches), so small changes there can be luck. The Balance Lab run started next shows the effect on the real battle.
