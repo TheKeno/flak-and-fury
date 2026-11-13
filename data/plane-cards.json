@@ -20,9 +20,9 @@
       "turn": 4,
       "dive": 226,
       "firepower": 65.8,
-      "toughness": 105,
-      "stall": 54,
-      "tightBelow": 110,
+      "toughness": 89,
+      "stall": 59,
+      "tightBelow": 105,
       "stiffAbove": 175
     },
     "p47d": {
