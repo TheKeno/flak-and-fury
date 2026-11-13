@@ -95,3 +95,9 @@ confirm, measured from its own match rate.
    and the plain-words summary at the end. The record is `balance/results/<date>-tune-planes.json`: open it in
    the Balance Lab (Results) for the owner: test flights first, then Apply or Discard. After Apply: commit
    `data/planes.json` and the record, and run `node tools/plane-cards.mjs` (the hangar cards go stale).
+
+**Live log (added 2026-11-13, owner's wish):** from the next run on, `night-start.ps1` prints a live log of
+`notes/night-*.txt` into the run's own window (`tools/night-watch.mjs --new`: stage stamps in yellow, retrain in
+cyan, tuner in green, each line with the time it appeared). Minimise that window; closing it stops the run.
+`tools/night-watch.cmd` (double-click) opens the same log in a window of its own, safe to close, for a run
+already going (like this one). Never edit a night `.cmd` while it runs: cmd reads it line by line as it goes.
