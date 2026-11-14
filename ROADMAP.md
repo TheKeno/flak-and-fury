@@ -7,6 +7,21 @@ later.
 
 ## Decisions
 
+- **Dive planes climb to their band before fighting (decided 2026-11-14, discussion; not built):** after the
+  Spitfire was toned down the Bf 109 G-6 (40% exchange share) and P-47D (32%) are still well behind, and the tuner
+  cannot close it within ±15%. Likely cause: the arena starts every fight from the airfields, low, where the turn
+  fighters rule by design, and both bots have `bandClimb` 0 (never climb to their engine's band: Bf 109 rated 600,
+  P-47 1050); the trainer never takes it because one step doesn't beat the noise. **Decided:** like style 0.5 last week,
+  **force `bandClimb` for the boom-and-zoom role** (Bf 109, P-47, P-38; a forced value in `src/sim/tactics.js` the
+  trainer never touches): climb first, dive from there. Try the values 0.6 / 0.8 / 1 and keep the best by the duels
+  (32 seeds, none may break) and an arena check like the Spitfire's of 2026-11-13 (exchange share on the tuner's
+  fresh seeds 101-140: a short script calling `newState()` and `check()` from `src/balance/tuner.js` with
+  `runPool` from `tools/balance.mjs`, about 10 min on 8 threads; the "before" is the same run with today's tactics). Watch: a climbing bot must not be easy prey on the way up (it may turn to fight
+  when the enemy is close, as the rule already says). If they are still well short after this, next is option 3
+  of the same talk: lean on each plane's historical strength (P-47 toughness and firepower, Bf 109 climb or the
+  gondola fit). Also agreed as worth doing: check the arena measure itself (part of the battles starting at
+  height, or counting survival), since the tuner aims at whatever it measures.
+
 - **Plane roles and balancing plan (decided 2026-11-09, discussion; step 2 built 2026-11-09, see Done):** after the first bot training showed
   turn rate still decides every fight. **The rule:** a plane that does more on the ground is weaker in the air (shot down
   more often), and the two even out over a match; air-to-air need not be even, the front must. History sets each plane's
