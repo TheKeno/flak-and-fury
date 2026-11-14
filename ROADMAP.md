@@ -1017,6 +1017,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Keyboard control of the menus (UI):** move through and pick every menu entry (title, setup, options, pause) with the arrow keys, Enter and Esc, no mouse needed.
 - **Zero sprites: the Ki-43's are a placeholder (Planes):** the A6M Zero replaces the Ki-43 in the fighter roster (Decisions, step 4, "Changed 2026-11-12 evening") and flies with the Ki-43's sprites until it gets its own: owner finds a 3-view, outline in the Outline Lab, owner approves the shape, then sprites and frames (`tools/make-sprites.mjs`). History rules the looks: the placeholder must go before release.
 - **Fly the Stuka fix (Gameplay):** part 3e made dive bombers reach `bots.bomberRange` and bomb tanks under flak (headless: 0.8 → 8.8 bombs a run, no patrol sawtooth); the owner hasn't flown it yet. Check: `?plane=spitfire&enemy=ju87`, do the Stukas go for tanks and bomb?
 - **Bots too easy against the player (Gameplay):** after part 3e (bots now fight the player instead of running) the owner found them maybe too easy to play against (2026-11-12). Player-only knobs keep the balance tools clean: `bots.playerPull`, or a level's aim/evade numbers against humans. After part 4.
