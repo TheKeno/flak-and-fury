@@ -140,3 +140,9 @@ A second tuner beside the one above (which stays as it was): the six main fighte
   Lab doesn't read this record. `FF_PLANES` takes the band keys too, so `tools/band-check.mjs` can fly tuned numbers.
 - **Cost:** about 1.8 matches a second on 8 threads; a gate is 1800 matches per band (about 17 min), a step about
   1500-2500 (15-25 min; a rated-height or carried step more), the confirm 5400 (about 50 min).
+- **First run (2026-11-15, 8 h budget, settled in 4 h 18 min):** record
+  `balance/results/2026-11-15-17-35-37-tune-bands.json`, log `notes/tune-bands-2026-11-15.txt`. Kept: Zero turn
+  low 0.92, Spitfire turn mid 1.02, P-47 turn 1.02 in all bands. On fresh seeds the low gap went from about 35 to
+  28, mid 6 to 4, high stayed on target. Steps of 2-4% move a matchup about as much as the noise, and the low
+  planes' own lifts did nothing measurable: the low band needs bigger steps or another lever (owner's call).
+  Not applied yet.

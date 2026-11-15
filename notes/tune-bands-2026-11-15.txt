@@ -1,0 +1,163 @@
+
+[18:35:37] Band tuning 2026-11-15-17-35-37: 8 h budget, 8 threads. Home bands: b239 low, la5fn low, spitfire mid, a6m5 mid, bf109g6 high, p47d high.
+
+[18:51:49] == gate, band low (airOffset 0, start 300, seeds 1-60)
+[18:51:49] b239 56.6% ±0.4, la5fn 56.0% ±0.5, spitfire 56.9% ±0.4, a6m5 55.8% ±0.4, bf109g6 41.1% ±0.5, p47d 33.7% ±0.3
+[18:51:49] row against column (exchange share of the row plane):
+[18:51:49]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[18:51:49] b239                     51%      50%      49%      65%      68%
+[18:51:49] la5fn           49%               49%      49%      64%      70%
+[18:51:49] spitfire        50%      51%               50%      64%      69%
+[18:51:49] a6m5            51%      51%      50%               60%      66%
+[18:51:49] bf109g6         35%      36%      36%      40%               59%
+[18:51:49] p47d            32%      30%      31%      34%      41%         
+[18:51:49] gap 36.6 points; missed: la5fn<a6m5 6.3 (home at least 55%), la5fn<spitfire 6.2 (home at least 55%), b239<a6m5 5.9 (home at least 55%), b239<spitfire 5.1 (home at least 55%), p47d<la5fn 5 (nobody under 35%), p47d<spitfire 4 (nobody under 35%), p47d<b239 2.6 (nobody under 35%), p47d<a6m5 1.4 (nobody under 35%)
+
+[19:07:24] == gate, band mid (airOffset 300, start 300, seeds 1-60)
+[19:07:24] b239 47.2% ±0.3, la5fn 48.4% ±0.3, spitfire 54.0% ±0.3, a6m5 54.5% ±0.3, bf109g6 50.7% ±0.3, p47d 45.2% ±0.3
+[19:07:24] row against column (exchange share of the row plane):
+[19:07:24]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[19:07:24] b239                     51%      45%      42%      51%      48%
+[19:07:24] la5fn           49%               45%      42%      51%      55%
+[19:07:24] spitfire        55%      55%               49%      52%      58%
+[19:07:24] a6m5            58%      58%      51%               50%      55%
+[19:07:24] bf109g6         50%      49%      48%      50%               58%
+[19:07:24] p47d            53%      45%      42%      45%      42%         
+[19:07:24] gap 7.4 points; missed: a6m5<bf109g6 4.7 (home at least 55%), spitfire<bf109g6 2.7 (home at least 55%)
+
+[19:21:49] == gate, band high (airOffset 700, start 300, seeds 1-60)
+[19:21:49] b239 43.6% ±0.4, la5fn 39.8% ±0.4, spitfire 50.3% ±0.4, a6m5 48.6% ±0.6, bf109g6 59.5% ±0.4, p47d 58.2% ±0.4
+[19:21:49] row against column (exchange share of the row plane):
+[19:21:49]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[19:21:49] b239                     55%      44%      42%      39%      38%
+[19:21:49] la5fn           45%               41%      38%      37%      39%
+[19:21:49] spitfire        56%      59%               50%      43%      44%
+[19:21:49] a6m5            58%      62%      50%               37%      36%
+[19:21:49] bf109g6         61%      63%      57%      64%               53%
+[19:21:49] p47d            62%      62%      56%      64%      47%         
+[19:21:49] gap 0 points; missed: none
+
+[19:21:49] == round 1, band low
+[19:21:49] low: la5fn against a6m5 48.7%, short by 6.34 points (home at least 55%); band gap 36.57.
+[19:31:11]   la5fn power.low 1.08 → 1.12: not kept (moved the matchup 0.1 points, within the noise (± 1.9)).
+[19:35:07]   la5fn turn.low 1.06 → 1.1: not kept (moved the matchup 0.9 points, within the noise (± 1.5)).
+[19:35:07]   nothing kept: no finalist beat the noise.
+[19:35:07] low: la5fn against spitfire 48.8%, short by 6.17 points (home at least 55%); band gap 36.57.
+[19:38:05]   la5fn power.low 1.08 → 1.12: not kept (moved the matchup 0.1 points, within the noise (± 1.8)).
+[19:38:05]   la5fn turn.low 1.06 → 1.1: not kept (moved the matchup 1.3 points, within the noise (± 1.6)).
+[19:38:05]   nothing kept: no finalist beat the noise.
+[19:38:05] low: b239 against a6m5 49.1%, short by 5.89 points (home at least 55%); band gap 36.57.
+[19:44:41]   kept a6m5 turn.low 0.96 → 0.92: the matchup +2.9 ± 1.8 points, gap 36.6 → 30.2.
+[19:44:41] low: la5fn against spitfire 48.8%, short by 6.17 points (home at least 55%); band gap 30.2.
+[19:46:37]   la5fn power.low 1.08 → 1.12: not kept (moved the matchup 0.1 points, within the noise (± 1.8); gap 30.2 → 30.5).
+[19:47:19]   la5fn turn.low 1.06 → 1.1: not kept (moved the matchup 1.3 points, within the noise (± 1.6); gap 30.2 → 30.2).
+[19:47:19]   nothing kept: no finalist beat the noise.
+[19:47:19] low: b239 against spitfire 49.9%, short by 5.13 points (home at least 55%); band gap 30.2.
+[19:51:47]   spitfire turn.low 0.96 → 0.92: not kept (moved the matchup 1.6 points, within the noise (± 1.8)).
+[19:55:37]   spitfire power.low 0.95 → 0.91: not kept (moved the matchup -0.5 points, within the noise (± 1.9); gap 30.2 → 31.9).
+[19:55:37]   nothing kept: no finalist beat the noise.
+[19:55:37] low: p47d against la5fn 30%, short by 4.97 points (nobody under 35%); band gap 30.2.
+[20:26:48]   kept p47d turn.low 1 → 1.04 (carried: 1.04 / 1.04 / 1.04): the matchup +2.2 ± 1.5 points, gap 36.1 → 33.3 (low, mid, high).
+[20:26:48] low: b239 against spitfire 49.9%, short by 5.13 points (home at least 55%); band gap 25.8.
+[20:28:46]   spitfire turn.low 0.96 → 0.92: not kept (moved the matchup 1.6 points, within the noise (± 1.8)).
+[20:32:28]   b239 turn.low 1.06 → 1.1: not kept (moved the matchup 1.1 points, within the noise (± 1.9); gap 25.8 → 25.9).
+[20:32:28]   nothing kept: no finalist beat the noise.
+[20:32:28] low: la5fn against a6m5 50.8%, short by 4.16 points (home at least 55%); band gap 25.8.
+[20:40:05]   a6m5 turn.low 0.92 → 0.88: not kept (moved the matchup 0.6 points, within the noise (± 2.1)).
+[20:44:07]   a6m5 power.low 0.95 → 0.91: not kept (moved the matchup 0.7 points, within the noise (± 2.1); gap 25.8 → 25.7).
+[20:44:07]   nothing kept: no finalist beat the noise.
+
+[20:44:07] == round 1, band mid
+[20:44:07] mid: a6m5 against bf109g6 51.8%, short by 3.19 points (home at least 55%); band gap 5.86.
+[20:58:12]   bf109g6 turn.mid 0.98 → 0.96: not kept (moved the matchup 0.6 points, within the noise (± 2)).
+[20:58:12]   nothing kept: no finalist beat the noise.
+[20:58:12] mid: spitfire against bf109g6 52.3%, short by 2.67 points (home at least 55%); band gap 5.86.
+[21:04:58]   kept spitfire turn.mid 1 → 1.02: the matchup +1.7 ± 1.6 points, gap 5.9 → 4.2.
+[21:04:58] mid: a6m5 against bf109g6 51.8%, short by 3.19 points (home at least 55%); band gap 4.15.
+[21:09:42]   nothing kept: no step shrank the gap on the screening seeds.
+[21:09:42] mid: spitfire against bf109g6 54%, short by 0.96 points (home at least 55%); band gap 4.15.
+[21:12:32]   nothing kept: no step shrank the gap on the screening seeds.
+
+[21:12:32] == round 1, band high
+[21:16:13] high: a6m5 against p47d 33.3%, short by 1.66 points (nobody under 35%); band gap 1.66.
+[21:43:59]   kept p47d turn.high 1.04 → 1.02 (carried: 1.02 / 1.02 / 1.02): the matchup +2.3 ± 2 points, gap 30.9 → 28.9 (low, mid, high).
+
+[21:43:59] == round 2, band low
+[21:43:59] low: p47d against la5fn 31.3%, short by 3.7 points (nobody under 35%); band gap 24.74.
+[21:53:55]   la5fn power.low 1.08 → 1.06: not kept (moved the matchup 0.7 points, within the noise (± 1.7)).
+[21:53:55]   nothing kept: no finalist beat the noise.
+[21:53:55] low: b239 against a6m5 52%, short by 2.96 points (home at least 55%); band gap 24.74.
+[22:02:59]   a6m5 turn.low 0.92 → 0.9: not kept (moved the matchup 1.8 points, within the noise (± 1.9)).
+[22:02:59]   nothing kept: no finalist beat the noise.
+[22:02:59] low: p47d against spitfire 32.3%, short by 2.74 points (nobody under 35%); band gap 24.74.
+[22:09:27]   spitfire turn.low 0.96 → 0.94: not kept (moved the matchup 0.5 points, within the noise (± 1.3); gap 24.7 → 24.8).
+[22:09:27]   nothing kept: no finalist beat the noise.
+
+[22:09:27] == round 2, band mid
+[22:09:27] mid: spitfire against bf109g6 54%, short by 0.96 points (home at least 55%); band gap 4.15.
+[22:11:17]   nothing kept: no step shrank the gap on the screening seeds.
+
+[22:11:17] == round 2, band high
+
+[22:11:17] Tuning ended (settled). Confirming on fresh seeds.
+
+[22:26:02] == check, band low, tuned numbers, fresh seeds 101-160
+[22:26:02] b239 56.3% ±0.4, la5fn 56.2% ±0.4, spitfire 57.2% ±0.4, a6m5 53.4% ±0.4, bf109g6 41.7% ±0.4, p47d 35.2% ±0.3
+[22:26:02] row against column (exchange share of the row plane):
+[22:26:02]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[22:26:02] b239                     52%      49%      51%      63%      66%
+[22:26:02] la5fn           48%               49%      51%      64%      68%
+[22:26:02] spitfire        51%      51%               51%      64%      69%
+[22:26:02] a6m5            49%      49%      49%               58%      64%
+[22:26:02] bf109g6         37%      36%      36%      43%               57%
+[22:26:02] p47d            34%      32%      31%      36%      43%         
+[22:26:02] gap 27.9 points; missed: la5fn<spitfire 6.3 (home at least 55%), b239<spitfire 5.9 (home at least 55%), p47d<spitfire 3.9 (nobody under 35%), la5fn<a6m5 3.7 (home at least 55%), b239<a6m5 3.6 (home at least 55%), p47d<la5fn 3.2 (nobody under 35%), p47d<b239 1.4 (nobody under 35%)
+
+[22:40:21] == check, band mid, tuned numbers, fresh seeds 101-160
+[22:40:21] b239 46.6% ±0.3, la5fn 49.1% ±0.4, spitfire 54.9% ±0.3, a6m5 54.6% ±0.3, bf109g6 50.0% ±0.3, p47d 44.9% ±0.3
+[22:40:21] row against column (exchange share of the row plane):
+[22:40:21]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[22:40:21] b239                     49%      44%      44%      50%      48%
+[22:40:21] la5fn           51%               45%      42%      51%      56%
+[22:40:21] spitfire        56%      55%               49%      54%      60%
+[22:40:21] a6m5            56%      58%      51%               52%      56%
+[22:40:21] bf109g6         50%      49%      46%      48%               57%
+[22:40:21] p47d            52%      44%      41%      45%      43%         
+[22:40:21] gap 3.9 points; missed: a6m5<bf109g6 2.9 (home at least 55%), spitfire<bf109g6 1.1 (home at least 55%)
+
+[22:53:45] == check, band high, tuned numbers, fresh seeds 101-160
+[22:53:45] b239 44.1% ±0.4, la5fn 39.2% ±0.3, spitfire 50.2% ±0.4, a6m5 47.9% ±0.6, bf109g6 60.0% ±0.4, p47d 58.5% ±0.4
+[22:53:45] row against column (exchange share of the row plane):
+[22:53:45]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[22:53:45] b239                     56%      45%      43%      38%      38%
+[22:53:45] la5fn           44%               41%      37%      37%      37%
+[22:53:45] spitfire        55%      59%               50%      43%      44%
+[22:53:45] a6m5            57%      63%      50%               35%      35%
+[22:53:45] bf109g6         62%      63%      57%      65%               53%
+[22:53:45] p47d            62%      63%      56%      65%      47%         
+[22:53:45] gap 0.3 points; missed: none
+
+[22:53:45] Changes:
+[22:53:45] - a6m5: turn 0.96 / 1 / 1 → 0.92 / 1 / 1
+[22:53:45] - p47d: turn 1 / 1 / 1 → 1.02 / 1.02 / 1.02
+[22:53:45] - spitfire: turn 0.96 / 1 / 1 → 0.96 / 1.02 / 1
+[22:53:45] low: gap 36.6 points (gate, seeds 1-60) → 27.9 (tuned, fresh seeds 101-160)
+[22:53:45] mid: gap 7.4 points (gate, seeds 1-60) → 3.9 (tuned, fresh seeds 101-160)
+[22:53:45] high: gap 0 points (gate, seeds 1-60) → 0.3 (tuned, fresh seeds 101-160)
+[22:53:45] Record: balance\results\2026-11-15-17-35-37-tune-bands.json. Apply after the owner's yes: node tools/tune-bands.mjs --apply balance/results/2026-11-15-17-35-37-tune-bands.json
+[22:53:45] Band tuning done in 4 h 18 min.
+
+Findings (Claude, 2026-11-15): the first per-band tuner run, 8 h budget, settled after 4 h 18 min (round 2 kept
+nothing). Kept: Zero turn low 0.96 → 0.92; Spitfire turn mid 1 → 1.02; P-47 turn 1 → 1.02 in all three bands
+(helped low, carried up to keep its flat shape). The Bf 109's rated height was tried and never kept.
+Same seeds 101-160 as the last band check (before → tuned):
+- Low: gap about 35 → 27.9. B-239 and La-5FN against the Zero 49-50 → 51%, against the Spitfire still 49%
+  (need 55). P-47 31-34 → 31-36% (floor 35).
+- Mid: gap about 6 → 3.9. Zero against the Bf 109 50 → 52%, Spitfire 54% (need 55).
+- High: on target before and after (gap 0.3).
+What it shows: steps of 2-4% in one band move a matchup 0-2 points, about the noise of 60 seeds, so most steps
+could not be told from luck. The low planes' own power and turn +4% did nothing measurable against the mid
+planes; only making the visitors weaker low moved anything. Closing the low band this way needs either bigger
+steps (the Zero is already at 0.92 low) or a different lever; that is a question for the owner, not more hours.
+The P-47's turn lift goes against the old identity lock (the P-47 a poor turner); the band tuner has no lock.
+Nothing applied to data/planes.json yet.
