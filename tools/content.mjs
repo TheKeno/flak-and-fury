@@ -24,5 +24,9 @@ export function loadContent(maps = ['countryside']) {
   });
   const tuned = envOverrides();
   if (tuned) content.planeDefs = applyOverrides(content.planeDefs, tuned);
+  // FF_TACTICS: { planeId: { knob: value } } over data/bot-tactics.json, for trying a tactic in the tools.
+  const tac = process.env.FF_TACTICS ? JSON.parse(process.env.FF_TACTICS) : null;
+  if (tac) content.tactics = { ...content.tactics, planes: Object.fromEntries(Object.entries({ ...content.tactics?.planes, ...tac })
+    .map(([id, v]) => [id, { ...content.tactics?.planes?.[id], ...v }])) };
   return content;
 }

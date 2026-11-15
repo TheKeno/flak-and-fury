@@ -24,6 +24,15 @@ later.
   of the P-47's deaths come under 300 and only 1% above 600. The bots turn-fight and the fight spirals down
   to where turning wins. Before tuning per band, something must keep a fight in its band (a hold-height rule
   for the bots, or the game's flak and bombers); the owner's call which.
+  **Hold-height rule tried (2026-11-15, not kept):** a band floor for the dive planes (0.6 x rated height:
+  P-47 630, Bf 109 360, P-38 600). Under it a pass never turns into a turn fight (it runs out and climbs back),
+  and in the second version an enemy under the floor is not followed down either (it waits at the floor).
+  Both made things worse: the P-47 against the Spitfire from a 1000 start 22% → 13% → 10%; over the four
+  turn and all-round planes P-47 kills 232 → 132 → 63 for deaths 503 → 471 → 416, Bf 109 kills 246 → 167 →
+  125. The turn fighters climb up after them and still win: the gap is turning (at 1000 the Zero turns 143
+  degrees a second to the P-47's 68), not where the fight happens. So bot rules can't make the band; the edge
+  in a band has to come from the planes' own numbers (step 2), or from the game side. Details:
+  `notes/boom-and-zoom-diagnosis.md`, "A hold-height rule". The next step is the owner's call.
 
 - **Dive planes climb to their band before fighting (decided 2026-11-14, discussion; tried 2026-11-15 and not
   kept, see the result at the end):** after the
@@ -724,6 +733,7 @@ later.
 
 ## Done
 
+- **Hold-height rule for the dive planes: tried, not kept (Gameplay, 2026-11-15):** a band floor (0.6 x rated height) under which they neither turn-fight nor follow an enemy down. P-47 against the Spitfire 22% → 10%, its kills more than halved; the turn fighters climb after them and still win. Reverted; `FF_TACTICS` (tools) kept for trying a tactic. Numbers in the "Balance by height band" decision.
 - **Dive planes forced to climb to their band: tried, not kept (Gameplay, 2026-11-15):** `bandClimb` 0.6 / 0.8 / 1 forced for the boom role in `ROLE_FORCED` (`src/sim/tactics.js`). Every value made it worse: P-47 arena share 32% → 25 / 23 / 22%, Bf 109 40% → 41 / 40 / 37%, duels 19 → 19 / 17 / 15 of 25. Reverted; code unchanged. Diagnosis: the climb is not where they die; in the arena they mostly turn-fight (style 0.5's fallback), see `notes/boom-and-zoom-diagnosis.md`. Numbers in the Decisions entry; the next step is the owner's call.
 - **Night run after the dive fix; Spitfire toned down (Gameplay, 2026-11-13):** night run on half the cores (`tools/night-tune-half.cmd`, 4 h 15 min). Retrain: only the La-5FN changed (`bandMargin` 350 → 600, `emergencyUse` 1). Tuner: 7 changes on four planes; all together they broke five duels (19 → 15 of 25: the Zero and B-239 lost their turn fights against the P-47 and Bf 109), so **only the Spitfire's were applied** (hp 105 → 89, `stallSpeed` 54 → 59, `slowTurnSpeed` 110 → 105): checked alone on fresh seeds, Spitfire exchange share 66% → 59%, duels still 19 of 25, high-p47-v-spitfire now passes; the record notes the partial apply. **Still open, needs a talk:** the Bf 109 (40%) and P-47 (32%) stay underdogs and the Spitfire is still above even; the tuner cannot move them within ±15% (a historical variant or gun fit, wider limits, or accepting it). The owner test-flies once the planes are in place, not before.
 - **Bots fly the dive and zoom (Gameplay, 2026-11-13):** after the night run (retrain found nothing; the tuner's 11 changes held, not applied) six faults in the dive-plane flying fixed in `src/sim/ai.js`: the head-on break killed the pass's fire 250 out (now 0.4 s against the dive target), a half loop after the pass stalled the P-47 (high up it now runs on and climbs, keeping 10 faster than the chaser), a mid-dive climb rule, radar steering at the lookout edge, and nose bobbing in the wingover. Low fights unchanged on purpose (`HIGH_FIGHT` 450). Duels **13 → 18 of 25** (32 seeds), none lost; P-47 hits on its passes 2-6x, stalls about halved. The Bf 109 on the Spitfire and La-5FN still loses (speed parity, numbers). Details: `notes/boom-and-zoom-diagnosis.md` "The dive-and-zoom flying". Next: a new night run (retrain + tuner) on the owner's go; the held tuner record is now out of date. Tests pass.

@@ -197,3 +197,34 @@ fell 134 → 51. The low planes have no reason to come up, so the P-47 spends it
 then dives into the same low fight. The Bf 109's band is barely above the Zero's (600 against 550), so for it
 the bands change nothing. Bands need something that brings the fight up to them (high bombers, escorts, a
 high start in the arena); on their own they hurt the P-47.
+
+## A hold-height rule (2026-11-15, tried, not kept)
+
+The band check showed the fights fall to the ground even when they start at 1000. Tried: a band floor for the
+dive planes, tactics `holdFloor` x rated height (0.6: P-47 630, Bf 109 360, P-38 600), in `chaseWant`
+(`src/sim/ai.js`):
+
+- **A:** under its floor, the zoom after a pass never falls back to a turn fight (style 0.5's fallback):
+  it runs out and climbs back. Caught slow and close, it still fights.
+- **A+B:** also an enemy under the floor (by 50) is not followed down: it holds 80 over the floor, nose
+  loosely towards it, so the enemy has to climb into its band. (A dive already under way finishes.)
+
+Measured with every plane started at 1000 (`airStart`): P-47 and Bf 109 against the Spitfire, La-5FN, A6M5
+and B-239, both ways round, 4 seeds, 8 minutes, and P-47 against the Spitfire alone, 8 seeds, 4 minutes:
+
+| | none | A | A+B |
+|---|---|---|---|
+| P-47 v Spitfire, exchange share | 21.5% | 13.4% | 10.0% |
+| P-47 kills / deaths (four foes) | 232 / 503 | 132 / 471 | 63 / 416 |
+| P-47 deaths under 300 / 300-600 / over 600 | 334 / 159 / 10 | 279 / 178 / 14 | 176 / 216 / 24 |
+| Bf 109 kills / deaths | 246 / 476 | 167 / 472 | 125 / 451 |
+
+Deaths fall a little and move up, kills collapse. Waiting at its floor the P-47 is found by turn fighters
+that climb after it, and up there it still loses the turn fight (at 1000 slow: Zero 143 degrees a second,
+P-47 68). Holding height only gives up the passes on low enemies, its only kills. So no bot rule keeps
+a fight in the band in its favour: the gap is turning. The band edge has to come from the numbers (turn
+fighters' turn or power fading with height, or the dive planes' speed and climb up high) or from the game
+side (flak low, high bombers). Reverted. `FF_TACTICS` in `tools/content.mjs` was kept: it sets tactics
+per plane for the tools, e.g. `FF_TACTICS='{"p47d":{"holdFloor":0.6}}'`. The rule's diff is in this session's scratch
+only; the bullets above describe it fully.
+
