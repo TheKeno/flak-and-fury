@@ -306,3 +306,48 @@ the bot fix (a plane turning back home no longer ratchets up), which touches eve
 - Low: barely moved. B-239 46/48% v Spitfire/Zero, La-5FN 48/49% (need 55). The mid planes are strong low too.
 - Floor: P-47 low 30-32%, Bf 109 low 35-38%.
 Next rough pass: the mid planes a little weaker low, the Bf 109 a little weaker mid.
+
+[16:19:49] Band check 2026-11-15T15:19: starts low, mid, high, seeds 101-160, 8 threads.
+
+[16:38:17] == band low, airOffset 0, start 300 (1108 s)
+[16:38:17] b239 56.4% ±0.4, la5fn 55.9% ±0.5, spitfire 56.9% ±0.4, a6m5 55.0% ±0.4, bf109g6 41.9% ±0.4, p47d 34.0% ±0.3
+[16:38:17] row against column (exchange share of the row plane):
+[16:38:17]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[16:38:17] b239                     52%      49%      50%      63%      68%
+[16:38:17] la5fn           48%               49%      49%      64%      69%
+[16:38:17] spitfire        51%      51%               50%      63%      69%
+[16:38:17] a6m5            50%      51%      50%               59%      66%
+[16:38:17] bf109g6         37%      36%      37%      42%               58%
+[16:38:17] p47d            32%      31%      31%      34%      42%         
+
+[16:55:04] == band mid, airOffset 300, start 300 (1007 s)
+[16:55:04] b239 46.4% ±0.4, la5fn 48.7% ±0.4, spitfire 55.0% ±0.3, a6m5 54.7% ±0.3, bf109g6 50.8% ±0.3, p47d 44.4% ±0.3
+[16:55:04] row against column (exchange share of the row plane):
+[16:55:04]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[16:55:04] b239                     49%      43%      43%      50%      48%
+[16:55:04] la5fn           51%               45%      41%      51%      55%
+[16:55:04] spitfire        57%      55%               49%      54%      60%
+[16:55:04] a6m5            57%      59%      51%               50%      56%
+[16:55:04] bf109g6         50%      49%      46%      50%               60%
+[16:55:04] p47d            52%      45%      40%      44%      40%         
+
+[17:09:55] == band high, airOffset 700, start 300 (891 s)
+[17:09:55] b239 43.9% ±0.4, la5fn 39.5% ±0.3, spitfire 50.6% ±0.4, a6m5 47.5% ±0.6, bf109g6 60.3% ±0.4, p47d 58.3% ±0.4
+[17:09:55] row against column (exchange share of the row plane):
+[17:09:55]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[17:09:55] b239                     56%      45%      43%      38%      37%
+[17:09:55] la5fn           44%               41%      37%      37%      39%
+[17:09:55] spitfire        55%      59%               51%      43%      44%
+[17:09:55] a6m5            57%      63%      49%               35%      35%
+[17:09:55] bf109g6         62%      63%      57%      65%               55%
+[17:09:55] p47d            63%      61%      56%      66%      45%         
+
+[17:09:55] Band check done.
+
+Findings (Claude, 2026-11-15): second rough pass (the run above): Spitfire and Zero power 0.95 / 1 / 1, turn
+0.96 / 1 / 1; Bf 109 mid 0.98 (power and turn).
+- Low: the low planes now even with the mid planes there (49-50%, was 46-49), still short of 55.
+- Mid: unchanged in effect: Spitfire 54% and Zero 50% against the Bf 109 (need 55); the rest on target.
+- High: on target (Bf 109 57-65%, P-47 56-66% against visitors; the two 55/45).
+- Floor: P-47 low 31-34%; everyone else at 35% or more.
+Hand passes move a few points per 45-minute run; the rest is the tuner's job (stage 3).

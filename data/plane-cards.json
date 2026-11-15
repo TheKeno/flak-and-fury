@@ -14,11 +14,11 @@
       "stiffAbove": 195
     },
     "spitfire": {
-      "speedLow": 154,
+      "speedLow": 151,
       "speedHigh": 133,
-      "climb": 62,
-      "turn": 4,
-      "dive": 226,
+      "climb": 58,
+      "turn": 4.1,
+      "dive": 225,
       "firepower": 65.8,
       "toughness": 89,
       "stall": 59,
@@ -62,11 +62,11 @@
       "stiffAbove": 140
     },
     "a6m5": {
-      "speedLow": 126,
+      "speedLow": 124,
       "speedHigh": 112,
-      "climb": 55,
-      "turn": 3.7,
-      "dive": 184,
+      "climb": 52,
+      "turn": 3.8,
+      "dive": 183,
       "firepower": 47,
       "toughness": 90,
       "stall": 50,

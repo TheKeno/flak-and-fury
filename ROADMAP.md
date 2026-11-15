@@ -43,6 +43,10 @@ later.
   target** (Bf 109 56-64% against visitors, P-47 56-66%, the two 54/46); mid nearly (the Bf 109 holds the
   Spitfire and Zero to 54% and 51% there); **low barely moved** (B-239 and La-5FN 46-49% against the mid planes);
   P-47 low 30-32% (floor 35).
+  **Second rough pass (same day):** Spitfire and Zero 0.95/1/1 power, 0.96/1/1 turn; Bf 109 mid 0.98. Low planes
+  now even with the mid planes low (49-50%, need 55); mid short only against the Bf 109 (Spitfire 54%, Zero 50%);
+  high on target; P-47 low 31-34% (floor 35). **Next:** the owner test-flies the shapes for feel, then the tuner
+  (stage 3) is taught the per-band targets and levers (`bands` values, one band at a time) and closes the gaps.
   Why: one set of numbers can't win in one band without winning in all (a better turn helps everywhere); per-band
   stats make three separate balancings. Fought high, the P-47 already beats the Spitfire 55% (step 2 of the
   decision below), so the plane side works once the fight stays up.
