@@ -1,0 +1,63 @@
+Band check 2026-11-15 (first part, run hidden): starts runway, 300, seeds 101-130, 8 threads.
+
+== start runway (428 s)
+bf109g6 41.5% ±0.6, p47d 33.6% ±0.5, p38j 44.6% ±0.6, spitfire 59.9% ±0.6, la5fn 57.3% ±0.7, a6m5 56.9% ±0.6, b239 56.1% ±0.6
+row against column (exchange share of the row plane):
+            bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+bf109g6                  58%      48%      33%      32%      38%      39%
+p47d            42%               41%      27%      29%      30%      33%
+p38j            52%      60%               35%      38%      41%      44%
+spitfire        67%      73%      66%               51%      51%      52%
+la5fn           68%      71%      62%      49%               47%      47%
+a6m5            62%      70%      59%      49%      53%               49%
+b239            62%      67%      57%      48%      53%      51%         
+
+== start 300 (679 s)
+bf109g6 42.8% ±0.6, p47d 35.2% ±0.4, p38j 45.3% ±0.5, spitfire 58.2% ±0.5, la5fn 56.9% ±0.6, a6m5 56.1% ±0.5, b239 55.4% ±0.5
+row against column (exchange share of the row plane):
+            bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+bf109g6                  59%      48%      36%      35%      40%      38%
+p47d            41%               41%      30%      31%      33%      35%
+p38j            52%      59%               38%      37%      44%      44%
+spitfire        64%      70%      62%               51%      50%      52%
+la5fn           65%      69%      63%      49%               48%      47%
+a6m5            60%      67%      56%      50%      52%               51%
+b239            62%      65%      56%      48%      53%      49%         
+
+Band check 2026-11-15T10:17: starts 600, 1000, seeds 101-130, 8 threads.
+
+== start 600 (651 s)
+bf109g6 43.0% ±0.6, p47d 35.4% ±0.4, p38j 46.5% ±0.5, spitfire 59.4% ±0.5, la5fn 56.2% ±0.6, a6m5 54.7% ±0.5, b239 54.9% ±0.6
+row against column (exchange share of the row plane):
+            bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+bf109g6                  59%      48%      34%      36%      43%      38%
+p47d            41%               42%      30%      31%      34%      34%
+p38j            52%      58%               36%      40%      46%      46%
+spitfire        66%      70%      64%               52%      53%      53%
+la5fn           64%      69%      60%      48%               48%      48%
+a6m5            57%      66%      54%      47%      52%               52%
+b239            62%      66%      54%      47%      52%      48%         
+
+== start 1000 (624 s)
+bf109g6 42.5% ±0.6, p47d 35.5% ±0.4, p38j 45.5% ±0.5, spitfire 59.0% ±0.5, la5fn 55.9% ±0.6, a6m5 56.0% ±0.5, b239 55.6% ±0.5
+row against column (exchange share of the row plane):
+            bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+bf109g6                  58%      48%      35%      35%      41%      39%
+p47d            43%               43%      30%      31%      32%      34%
+p38j            52%      57%               38%      40%      43%      43%
+spitfire        65%      70%      62%               53%      52%      52%
+la5fn           65%      69%      60%      47%               48%      46%
+a6m5            59%      68%      57%      48%      52%               52%
+b239            61%      66%      57%      48%      54%      48%         
+
+Band check done.
+
+Findings (Claude, 2026-11-15):
+- The start height changes almost nothing: P-47 33.6 / 35.2 / 35.4 / 35.5% (runway / 300 / 600 / 1000),
+  Bf 109 41.5 / 42.8 / 43.0 / 42.5%, P-38 44.6 / 45.3 / 46.5 / 45.5%; the matchup grid barely moves.
+- The fights fall to the ground: with every plane started at 1000 (2 seeds, P-47 and Bf 109 against the four
+  others), of the P-47's 257 deaths 168 were under 300 and 86 at 300-600, only 3 above 600; the Bf 109 the same.
+- The sheet: at 1000 the P-47 is faster than the Spitfire (top 156 against 133, climb 39 against 33), but the
+  turn fighters out-turn it at every height (slow turn at 1000: Zero 143, B-239 100, La-5FN 98, Spitfire 88,
+  P-47 68 deg/s). The bots turn-fight, the fight spirals down, and it ends low where turning rules.
+So a band only counts if the fight stays in it; today nothing keeps it there.

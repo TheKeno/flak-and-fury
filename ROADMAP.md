@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Balance by height band (decided 2026-11-15, discussion; step 1 being built):** forcing styles does not
+- **Balance by height band (decided 2026-11-15, discussion; step 1 built and measured the same day):** forcing styles does not
   work (turning wins low, where every arena fight happens), and height bands alone keep the fights low (see
   the entry below). **Decided:** three bands, **low** (about 300: B-239, La-5FN, Ki-43), **mid** (about 600:
   Spitfire, Zero, Bf 109) and **high** (about 1000: P-38, P-47), and the fighters are balanced to be good in
@@ -18,6 +18,12 @@ later.
   fights: the flak and high bombers in the backlog ("Pull fights up"). Risks noted: fights drift down, the
   mid band is crowded (Spitfire 450, Zero 550, Bf 109 600), the measure costs three arenas, and players need
   to be told their plane's band.
+  **Step 1 measured (2026-11-15, `tools/band-check.mjs`, `notes/band-check-2026-11-15.txt`):** the start
+  height changes almost nothing (P-47 34 / 35 / 35 / 36% from the runway / 300 / 600 / 1000, Bf 109 42-43%,
+  P-38 45-47%; the grid barely moves), because **the fights fall to the ground**: started at 1000, two-thirds
+  of the P-47's deaths come under 300 and only 1% above 600. The bots turn-fight and the fight spirals down
+  to where turning wins. Before tuning per band, something must keep a fight in its band (a hold-height rule
+  for the bots, or the game's flak and bombers); the owner's call which.
 
 - **Dive planes climb to their band before fighting (decided 2026-11-14, discussion; tried 2026-11-15 and not
   kept, see the result at the end):** after the
