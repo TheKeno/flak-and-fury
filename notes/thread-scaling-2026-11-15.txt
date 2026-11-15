@@ -1,0 +1,69 @@
+[21:13:44] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 8, 16, 24, 32, pid 3486867.
+[21:14:59] 8 threads: 300 matches in 75.1 s, 4.00 matches/s, 2.00 thread-s per match.
+[21:16:06] 16 threads: 300 matches in 66.4 s, 4.52 matches/s, 3.54 thread-s per match.
+[21:17:10] 24 threads: 300 matches in 64.7 s, 4.64 matches/s, 5.18 thread-s per match.
+[21:18:17] 32 threads: 300 matches in 66.9 s, 4.49 matches/s, 7.13 thread-s per match.
+[21:18:17] Summary (speed against the first count):
+[21:18:17]    8 threads: 75.1 s, x1.00 faster than 8
+[21:18:17]   16 threads: 66.4 s, x1.13 faster than 8
+[21:18:17]   24 threads: 64.7 s, x1.16 faster than 8
+[21:18:17]   32 threads: 66.9 s, x1.12 faster than 8
+[21:18:17] Thread scaling done.
+[21:19:20] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 32, 8, node flags [--v8-pool-size=32], pid 3498726.
+[21:20:25] 32 threads: 300 matches in 64.7 s, 4.63 matches/s, 6.90 thread-s per match.
+[21:21:45] 8 threads: 300 matches in 79.8 s, 3.76 matches/s, 2.13 thread-s per match.
+[21:21:45] Summary (speed against the first count):
+[21:21:45]   32 threads: 64.7 s, x1.00 faster than 32
+[21:21:45]    8 threads: 79.8 s, x0.81 faster than 32
+[21:21:45] Thread scaling done.
+[21:21:45] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 32, node flags [--single-threaded-gc], pid 3503818.
+[21:22:52] 32 threads: 300 matches in 67.3 s, 4.45 matches/s, 7.18 thread-s per match.
+[21:22:52] Summary (speed against the first count):
+[21:22:52]   32 threads: 67.3 s, x1.00 faster than 32
+[21:22:52] Thread scaling done.
+ALL-GC-TESTS-DONE
+[21:24:40] 4 processes x 8 threads at once:
+[21:24:40] process 1: 8 threads, 300 matches: 50% done at 131.0 s, 90% at 236.4 s, 99% at 259.8 s, last at 260.8 s
+[21:24:40] process 1: last 6 to finish: #296 a6m5-p47d seed 9110 at 257.8 s; #294 a6m5-bf109g6 seed 9110 at 258.0 s; #295 bf109g6-a6m5 seed 9110 at 258.1 s; #297 p47d-a6m5 seed 9110 at 259.8 s; #298 bf109g6-p47d seed 9110 at 260.3 s; #299 p47d-bf109g6 seed 9110 at 260.8 s
+[21:24:40] process 4: 8 threads, 300 matches: 50% done at 132.3 s, 90% at 237.9 s, 99% at 260.4 s, last at 260.9 s
+[21:24:40] process 4: last 6 to finish: #296 a6m5-p47d seed 9110 at 259.3 s; #294 a6m5-bf109g6 seed 9110 at 259.5 s; #295 bf109g6-a6m5 seed 9110 at 259.6 s; #297 p47d-a6m5 seed 9110 at 260.4 s; #298 bf109g6-p47d seed 9110 at 260.7 s; #299 p47d-bf109g6 seed 9110 at 260.9 s
+[21:24:40] process 3: 8 threads, 300 matches: 50% done at 132.7 s, 90% at 238.2 s, 99% at 259.8 s, last at 261.0 s
+[21:24:40] process 3: last 6 to finish: #296 a6m5-p47d seed 9110 at 258.8 s; #294 a6m5-bf109g6 seed 9110 at 258.9 s; #295 bf109g6-a6m5 seed 9110 at 259.3 s; #297 p47d-a6m5 seed 9110 at 259.8 s; #298 bf109g6-p47d seed 9110 at 260.9 s; #299 p47d-bf109g6 seed 9110 at 261.0 s
+[21:24:40] process 2: 8 threads, 300 matches: 50% done at 133.6 s, 90% at 240.8 s, 99% at 261.1 s, last at 261.9 s
+[21:24:40] process 2: last 6 to finish: #294 a6m5-bf109g6 seed 9110 at 260.6 s; #296 a6m5-p47d seed 9110 at 260.8 s; #295 bf109g6-a6m5 seed 9110 at 261.0 s; #297 p47d-a6m5 seed 9110 at 261.1 s; #298 bf109g6-p47d seed 9110 at 261.6 s; #299 p47d-bf109g6 seed 9110 at 261.9 s
+[21:29:02] 4-PROCESS-TEST-DONE
+[21:29:37] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 32, node flags [--max-semi-space-size=1 --min-semi-space-size=1], pid 3520305.
+[21:30:33] 32 threads: 300 matches in 56.0 s, 5.36 matches/s, 5.97 thread-s per match.
+[21:30:33] Summary (speed against the first count):
+[21:30:33]   32 threads: 56.0 s, x1.00 faster than 32
+[21:30:33] Thread scaling done.
+[21:30:33] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 32, node flags [--max-semi-space-size=4 --min-semi-space-size=4], pid 3522509.
+[21:31:41] 32 threads: 300 matches in 68.3 s, 4.39 matches/s, 7.29 thread-s per match.
+[21:31:41] Summary (speed against the first count):
+[21:31:41]   32 threads: 68.3 s, x1.00 faster than 32
+[21:31:41] Thread scaling done.
+[21:31:41] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 32, node flags [--max-semi-space-size=512 --min-semi-space-size=512], pid 3524611.
+[21:32:53] 32 threads: 300 matches in 71.5 s, 4.19 matches/s, 7.63 thread-s per match.
+[21:32:53] Summary (speed against the first count):
+[21:32:53]   32 threads: 71.5 s, x1.00 faster than 32
+[21:32:53] Thread scaling done.
+[21:32:55] NURSERY-TESTS-DONE
+[21:33:42] Pinned to cores 0-7 (96 MB L3):
+[21:33:43] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 8, node flags [], pid 3528601.
+[21:35:06] 8 threads: 300 matches in 83.0 s, 3.61 matches/s, 2.21 thread-s per match.
+[21:35:06] Summary (speed against the first count):
+[21:35:06]    8 threads: 83.0 s, x1.00 faster than 8
+[21:35:06] Thread scaling done.
+[21:35:06] Pinned to cores 8-15 (32 MB L3):
+[21:35:06] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 8, node flags [], pid 3531737.
+[21:36:24] 8 threads: 300 matches in 78.4 s, 3.83 matches/s, 2.09 thread-s per match.
+[21:36:24] Summary (speed against the first count):
+[21:36:24]    8 threads: 78.4 s, x1.00 faster than 8
+[21:36:24] Thread scaling done.
+[21:36:24] Pinned to all 16 cores 0-15, no hyperthreads:
+[21:36:24] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 16, node flags [], pid 3533962.
+[21:37:31] 16 threads: 300 matches in 67.3 s, 4.46 matches/s, 3.59 thread-s per match.
+[21:37:31] Summary (speed against the first count):
+[21:37:31]   16 threads: 67.3 s, x1.00 faster than 16
+[21:37:31] Thread scaling done.
+[21:37:32] CACHE-TESTS-DONE

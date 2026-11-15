@@ -1,0 +1,8 @@
+[21:48:07] Sim speed, old (HEAD) against new (working tree), core 15, 3 rounds:
+[21:48:07] round 1 old: 13 arena matches in 28.1 s (2.16 s each); wrote /tmp/claude-1000/-home-jonatanh--claude-spares-spare-TTqvbD/0c43bd68-a831-4314-acc7-02544dcd843e/scratchpad/ab-old.json
+[21:48:41] round 1 new: 13 arena matches in 22.3 s (1.71 s each); wrote /tmp/claude-1000/-home-jonatanh--claude-spares-spare-TTqvbD/0c43bd68-a831-4314-acc7-02544dcd843e/scratchpad/ab-new.json
+[21:49:09] round 2 old: 13 arena matches in 27.8 s (2.14 s each); wrote /tmp/claude-1000/-home-jonatanh--claude-spares-spare-TTqvbD/0c43bd68-a831-4314-acc7-02544dcd843e/scratchpad/ab-old.json
+[21:49:43] round 2 new: 13 arena matches in 21.7 s (1.67 s each); wrote /tmp/claude-1000/-home-jonatanh--claude-spares-spare-TTqvbD/0c43bd68-a831-4314-acc7-02544dcd843e/scratchpad/ab-new.json
+[21:50:10] round 3 old: 13 arena matches in 28.9 s (2.22 s each); wrote /tmp/claude-1000/-home-jonatanh--claude-spares-spare-TTqvbD/0c43bd68-a831-4314-acc7-02544dcd843e/scratchpad/ab-old.json
+[21:50:45] round 3 new: 13 arena matches in 22.9 s (1.76 s each); wrote /tmp/claude-1000/-home-jonatanh--claude-spares-spare-TTqvbD/0c43bd68-a831-4314-acc7-02544dcd843e/scratchpad/ab-new.json
+[21:51:14] SIM-SPEED-DONE

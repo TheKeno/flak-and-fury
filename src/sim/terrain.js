@@ -162,14 +162,20 @@ export function buildTerrain(map, pads = [], zones = DEFAULT_ZONES) {
   // rim obeys the same rule (only on ground not dug, and never stacked), so rims can't pile into spikes
   // or refill a pit. Closure, not a property: it never changes, so it stays out of the snapshots.
   const original = heights.slice();
+  // The highest ground anywhere (an upper bound, kept up as rims rise; digging leaves it): lets the
+  // collision checks skip everything flying above the tallest thing on the ground.
+  let top = -Infinity;
+  for (let x = 0; x <= width; x++) top = Math.max(top, heights[x]);
   const crater = (cx, radius, depth) => {
     for (let x = Math.max(0, Math.floor(cx - radius * 1.6)); x <= Math.min(width, Math.ceil(cx + radius * 1.6)); x++) {
       const d = Math.abs(x - cx) / radius;
       if (d < 1) heights[x] = Math.min(heights[x], Math.max(4, original[x] - depth * (1 - d * d)));
       else if (heights[x] >= original[x]) heights[x] = Math.max(heights[x], original[x] + depth * 0.25 * Math.max(0, 1 - (d - 1) / 0.6)); // thrown-up rim
+      top = Math.max(top, heights[x]);
       scorch[x] = Math.min(255, scorch[x] + Math.round(200 * Math.max(0, 1 - d / 1.6)));
     }
   };
+  const highest = () => top;
 
-  return { width, heights, scorch, heightAt, slopeAngle, crater };
+  return { width, heights, scorch, heightAt, slopeAngle, crater, highest };
 }

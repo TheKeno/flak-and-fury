@@ -108,10 +108,45 @@ export function mountPoint(world, obj, forward, up) {
 }
 
 // Half a squad's length: its men stand either side of its x (while forming up, not evenly).
-export const squadHalf = (obj) => obj.soldiers.reduce((m, s) => Math.max(m, Math.abs(s.dx)), 0) + obj.def.width / 2;
+export function squadHalf(obj) {
+  let m = 0;
+  for (const s of obj.soldiers) m = Math.max(m, Math.abs(s.dx));
+  return m + obj.def.width / 2;
+}
 
 // Half the width of a ground object's hit box.
 const halfWidth = (obj) => (obj.soldiers ? squadHalf(obj) : (obj.width ?? obj.def.width) / 2);
+
+// Half widths by index in world.ground, worked out once per pass (speed: every bullet and plane checks
+// every object, and a squad's takes a walk over its men). Valid within one bullets step or one collision
+// pass: squads only move and objects only leave the list in the army step; ones added meanwhile (past
+// the end) are worked out each time. NaN: not worked out yet.
+const groundHalves = (world) => new Float64Array(world.ground.length).fill(NaN);
+// What one pass over world.ground (a bullets step, the collision check) works out once and shares.
+export const groundPass = (world) => ({ halves: groundHalves(world), ceiling: groundCeiling(world) });
+
+// What nothing on the ground reaches above (speed: most bullets and planes are well above it, and can skip
+// every object): the highest ground or river bank, plus the tallest object, plus 1 for rounding. The
+// objects' part is worked out once per pass (their heights are set when they're made); objects added
+// meanwhile (past `count`) aren't in it, so then there's no skipping. The ground's part is read live
+// (terrain.highest(), which terrain.crater keeps up), since a crash mid-pass can throw up a rim.
+export function groundCeiling(world) {
+  let bank = -Infinity;
+  for (const rv of world.map.rivers ?? []) bank = Math.max(bank, rv.bank ?? Infinity);
+  let tall = 1; // a bridge's deck reaches 1 above its bank
+  for (const o of world.ground) tall = Math.max(tall, o.height ?? o.def.height ?? Infinity);
+  return { bank, tall: tall + 1, count: world.ground.length };
+}
+function aboveAll(world, ceiling, y) {
+  if (!ceiling || world.ground.length !== ceiling.count || !world.terrain.highest) return false;
+  return y > Math.max(world.terrain.highest(), ceiling.bank) + ceiling.tall;
+}
+function halfIn(halves, obj, i) {
+  if (!halves || i >= halves.length) return halfWidth(obj);
+  let h = halves[i];
+  if (h !== h) h = halves[i] = halfWidth(obj);
+  return h;
+}
 
 const riverOf = (world, obj) => world.map.rivers?.find((rv) => Math.abs(rv.x + rv.width / 2 - obj.x) < 1);
 
@@ -129,9 +164,29 @@ export function groundBox(world, obj) {
 
 // Like radar: how well a team's ground crew can work, 0..1, from its hangar's state.
 export function hangarHealth(world, team) {
-  const hangar = world.ground.find((o) => o.type === 'hangar' && o.team === team);
+  const hangar = hangarOf(world, team);
   if (!hangar) return 1;
   return hangar.alive ? Math.max(0, hangar.hp / hangar.maxHp) : 0;
+}
+
+// A team's hangar (the first in world.ground), remembered by its index (speed: the servicing asks every
+// tick for every plane). Hangars are only made with the map, so the index holds while the object there is
+// still that team's hangar; with none, while the list keeps its length. Kept outside the world (no
+// snapshot state).
+const hangars = new WeakMap(); // world -> { list, len, [team]: index or -1 }
+function hangarOf(world, team) {
+  const list = world.ground;
+  let c = hangars.get(world);
+  if (!c || c.list !== list) hangars.set(world, (c = { list, len: -1 }));
+  const i = c[team];
+  if (i >= 0) {
+    const o = list[i];
+    if (o && o.type === 'hangar' && o.team === team) return o;
+  } else if (i === -1 && c.len === list.length) return null;
+  const k = list.findIndex((o) => o.type === 'hangar' && o.team === team);
+  c[team] = k;
+  c.len = list.length;
+  return k >= 0 ? list[k] : null;
 }
 
 // How well a team's radar works, 0..1: the scope is fed by the best of its radar stations, so it
@@ -226,13 +281,18 @@ function segmentEnters(ax, ay, bx, by, [l, b, r, t]) {
 }
 
 // A bullet's step from (ox, oy) to (b.x, b.y). Returns true if it struck something and is spent.
-export function bulletHitsGround(world, b, ox, oy) {
+// pass: groundPass(world), shared by the bullets of one step (optional, for speed).
+export function bulletHitsGround(world, b, ox, oy, pass = null) {
+  if (pass && aboveAll(world, pass.ceiling, Math.min(oy, b.y))) return false;
+  const halves = pass?.halves;
   const left = Math.min(ox, b.x);
   const right = Math.max(ox, b.x);
-  for (const obj of world.ground) {
+  const ground = world.ground;
+  for (let i = 0; i < ground.length; i++) {
+    const obj = ground[i];
     if (!obj.alive || !isEnemy(world, obj, b.team)) continue;
     // Nowhere near it along the ground: skip the box (speed; the 1 keeps rounding out of it).
-    const half = halfWidth(obj);
+    const half = halfIn(halves, obj, i);
     if (right < obj.x - half - 1 || left > obj.x + half + 1) continue;
     const k = segmentEnters(ox, oy, b.x, b.y, groundBox(world, obj));
     if (k === null) continue;
@@ -317,13 +377,21 @@ export function crashShockwave(world, x, y) {
 // down, and costs the plane a little.
 export function planesHitStructures(world, crash) {
   const cfg = world.collisions;
+  const ground = world.ground;
+  let pass = null;
   for (const p of world.planes) {
     if (p.state === 'dead') continue;
     const margin = p.def.hitRadius * 0.6;
-    for (const obj of world.ground) {
+    pass ??= groundPass(world);
+    // Above everything: no squad, obstacle or structure below can be met (each needs p.y within
+    // margin, or GEAR_REACH, of an object's top).
+    if (aboveAll(world, pass.ceiling, p.y - margin - GEAR_REACH)) continue;
+    const halves = pass.halves;
+    for (let i = 0; i < ground.length; i++) {
+      const obj = ground[i];
       if (!obj.alive) continue;
       // Nowhere near it along the ground: nothing below can happen (speed; the 2 keeps rounding out).
-      if (Math.abs(p.x - obj.x) > halfWidth(obj) + margin + 2) continue;
+      if (Math.abs(p.x - obj.x) > halfIn(halves, obj, i) + margin + 2) continue;
       if (obj.soldiers) {
         if (isEnemy(world, obj, p.team)) runDown(world, p, obj, margin, crash);
         if (p.state === 'dead') break;

@@ -1,7 +1,7 @@
 // Guns, bombs, damage and explosions.
 import { clamp } from './math.js';
 import { GRAVITY, attitude, isUpright } from './plane.js';
-import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
+import { bulletHitsGround, bombStrikesGround, blastGround, groundPass } from './ground.js';
 import { ignite, fireHit, stepFire } from './fire.js';
 import { digCrater } from './runway.js';
 import { stallAt, slowBonusAt } from './air.js';
@@ -231,19 +231,29 @@ export function flyingDef(p, world) {
   const drag = podDrag(p);
   // Stall speed rises with height (src/sim/air.js); the slow-turn band moves up with it. In the air only:
   // on the ground the plane is its plain def (the hangar and the take-off run read it).
-  const h = p.state === 'air' ? stallAt(world, p.y) : 1;
+  const air = p.state === 'air';
+  const h = air ? stallAt(world, p.y) : 1;
   if (f === 0 && drag === 0 && h === 1) return p.def;
   const d = p.def;
-  return Object.assign(Object.create(d), {
+  const sb = air ? slowBonusAt(world, d, p.y) : 1;
+  // The same view again while nothing it is made from has changed (speed: the bot and the flight model
+  // ask several times a tick). The tick is in the key so a tuning-panel edit shows from the next tick.
+  const c = flyingViews.get(p);
+  if (c && c.d === d && c.w === w && c.tick === world.tick && c.f === f && c.drag === drag && c.h === h && c.sb === sb) return c.view;
+  const view = Object.assign(Object.create(d), {
     thrust: d.thrust * (1 - w.thrust * f),
     stallSpeed: d.stallSpeed * (1 + w.stall * f) * h,
     slowTurnSpeed: d.slowTurnSpeed * h,
-    slowTurnBonus: d.slowTurnBonus * (p.state === 'air' ? slowBonusAt(world, d, p.y) : 1),
+    slowTurnBonus: d.slowTurnBonus * sb,
     takeoffSpeed: d.takeoffSpeed * (1 + w.takeoff * f),
     turnRate: d.turnRate * (1 - w.turn * f),
     dragCoef: d.dragCoef * (1 + drag),
   });
+  flyingViews.set(p, { d, w, tick: world.tick, f, drag, h, sb, view });
+  return view;
 }
+// plane -> its last flyingDef view and what it was made from (outside the world: no snapshot state).
+const flyingViews = new WeakMap();
 
 // Every gun on the plane, the pilot's and the gunners', for ammunition checks and rearming.
 export const allGuns = (p) => [...p.guns, ...(p.turrets ?? [])];
@@ -450,6 +460,7 @@ function segDist(ax, ay, bx, by, px, py) {
 export function stepBullets(world, dt) {
   const list = world.bullets;
   const depth = (world.damage ?? DEFAULT_DAMAGE).depthSize;
+  const pass = list.length ? groundPass(world) : null;
   for (let i = list.length - 1; i >= 0; i--) {
     const b = list[i];
     const ox = b.x;
@@ -467,6 +478,9 @@ export function stepBullets(world, dt) {
         // Wing gun rounds off to the side (z) miss: the target is depthSize times as deep
         // (its inner wings) as high.
         const r = p.def.hitRadius;
+        // Well clear of the step's box: it can't be within r (speed; the 1 keeps rounding out of it).
+        const reach = r + 1;
+        if (p.x < Math.min(ox, b.x) - reach || p.x > Math.max(ox, b.x) + reach || p.y < Math.min(oy, b.y) - reach || p.y > Math.max(oy, b.y) + reach) continue;
         const d = segDist(ox, oy, b.x, b.y, p.x, p.y);
         if (d > r || (b.z && (d / r) ** 2 + (b.z / (r * depth)) ** 2 > 1)) continue;
         const dmg = b.damage * world.rng.range(0.5, 1.5); // the random damage of the old classics
@@ -476,7 +490,7 @@ export function stepBullets(world, dt) {
         break;
       }
     }
-    if (!gone) gone = bulletHitsGround(world, b, ox, oy);
+    if (!gone) gone = bulletHitsGround(world, b, ox, oy, pass);
     if (!gone && b.y <= world.terrain.heightAt(b.x)) {
       world.events.push({ type: 'impact', surface: 'ground', x: b.x, y: world.terrain.heightAt(b.x) });
       gone = true;
