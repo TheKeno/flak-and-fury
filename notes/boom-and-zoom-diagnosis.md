@@ -160,3 +160,24 @@ with a shot, about 1 s a run for every plane, so read the hits.
 **Still failing:** boom-bf109-on-spitfire (−0.62) and boom-bf109-on-la5fn (−0.19): after the pass the Spitfire
 matches the 109's speed about 500 behind, so the 109 never gets away to climb; it runs until the arena edge turns
 it. That looks like plane numbers (speed and climb at 700) rather than flying. turn-a6m5-v-spitfire unchanged.
+
+## Where the dive planes die in the arena (2026-11-15)
+
+After forcing `bandClimb` for the boom role made the arena worse (P-47 32% → 25/23/22% at 0.6/0.8/1; ROADMAP
+Decisions), a look at what the P-47 and Bf 109 bots fly in the arena (8 min, 4 a side, each against the
+Spitfire, La-5FN, A6M5 and B-239 from both sides, 3 seeds; temporary marks in `chaseWant`, not committed;
+the script was a scratch file).
+
+**The climb is not where they die.** With `bandClimb` 0.6 the P-47 spends about 4% of its air time climbing to
+its band and the Bf 109 almost none (its band is low and it is soon above it). 10 s before death only 14 of 340
+P-47 deaths were climbing to the band. With the climb the P-47 does not die much more (314 → 340 deaths) but
+scores far fewer kills (134 → 89: from dives 28 → 16, from turn fights 79 → 52); the Bf 109 hardly changes
+(152 → 144 kills, 267 → 314 deaths).
+
+**They mostly turn-fight.** Per plane, with today's tactics (`bandClimb` 0), about 35% of air time is a turn
+fight after a pass (style 0.5 falls back to turning when the zoom is not free) and about 20% close-in chasing
+with no pass plan; diving is only 8-10%, the run-out and climb-back 5%. Two-thirds of their kills come from
+those turn fights (P-47 79 of 134, Bf 109 101 of 152), a fifth from dives. 10 s before death most were
+turn-fighting (P-47 136 of 314, Bf 109 89 of 267) or running out (`extend`, 77 and 66); the killer was behind
+them in about 85% and the plane they had been fighting in about 90%. So in the arena the boom role plays the
+turn fighters' game, where by design it loses: the climb only made it arrive later to the same turn fight.
