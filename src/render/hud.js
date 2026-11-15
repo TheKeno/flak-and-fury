@@ -3,7 +3,7 @@ import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
 import { bombsLeft } from '../sim/weapons.js';
 import { hangarHealth } from '../sim/ground.js';
 import { approach, recoveryTime } from '../sim/plane.js';
-import { bestBand, bandAt } from '../sim/air.js';
+import { bestHeight, strengthAt } from '../sim/air.js';
 
 const APPROACH_ALT = 80; // landing cues show below this height, gear down and descending
 const CUE = { ok: '#80d070', hard: '#e0b040', bad: '#d06050' };
@@ -42,17 +42,15 @@ function fpsNow() {
   return fpsShown;
 }
 
-// Height gauge beside ALT: the plane's height from the bottom of the map to the ceiling, with a tick
-// at its best band (per-band stats) or else its rated height (src/sim/air.js). The fill turns amber
-// where the plane is weaker: over its rated height, or out of its best band (power x turn down 4%+).
+// Height gauge beside ALT: the plane's height from the bottom of the map to the ceiling (the height thin
+// air reads; ALT itself is above the ground), with a tick where the plane is strongest (thin air and its
+// per-band values, src/sim/air.js). The fill turns amber where it is clearly weaker: under 92% of that.
+const WEAK = 0.92;
 function altGauge(ctx, x, y, w, world, plane) {
   const top = world.map.ceiling;
   const k = Math.min(1, Math.max(0, plane.y / top));
-  const best = bestBand(world, plane.def);
-  const rated = best ?? plane.def.ratedHeight;
-  const band = bandAt(world, plane.def, plane.y, 'power') * bandAt(world, plane.def, plane.y, 'turn');
-  const peak = best == null ? 1 : bandAt(world, plane.def, best, 'power') * bandAt(world, plane.def, best, 'turn');
-  const high = best != null ? band < peak * 0.96 : rated != null && plane.y > rated;
+  const rated = bestHeight(world, plane.def, top);
+  const high = strengthAt(world, plane.def, plane.y) < strengthAt(world, plane.def, rated) * WEAK;
   bar(ctx, x, y, w, k, high ? '#d0a050' : '#8c9480');
   if (rated != null && rated < top) {
     ctx.fillStyle = '#e8e0c0';

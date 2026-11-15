@@ -79,16 +79,6 @@ export function bandAt(world, def, y, key) {
   }
   return v[v.length - 1];
 }
-// The band height where the plane is at its best (the most power x turn), for the HUD; null without bands.
-export function bestBand(world, def) {
-  const v = def.bands;
-  if (!v) return null;
-  const hs = cfgOf(world).bandHeights ?? DEFAULT_FLIGHT.bandHeights;
-  let best = 0;
-  const at = (i) => (v.power?.[i] ?? 1) * (v.turn?.[i] ?? 1);
-  for (let i = 1; i < hs.length; i++) if (at(i) > at(best)) best = i;
-  return hs[best];
-}
 
 // The propeller's pull at speed v, as a share of the plane's thrust.
 export function propAt(world, v) {
@@ -138,4 +128,24 @@ export function updateNegG(p, world, pull, dt) {
   // Pushing on: keep it sputtering at least half the cut time after the push ends.
   if (p.cutout <= 0) world.events.push({ type: 'negGCutout', plane: p.id, x: p.x, y: p.y });
   p.cutout = Math.max(p.cutout, p.cutout > 0 ? cfg.negGCut * 0.5 : cfg.negGCut);
+}
+
+// How strong the plane is at y for its own engine and per-band values: power x turn share, leaving out the
+// thin-air grip every plane loses alike (with it every plane would be best at the ground).
+export const strengthAt = (world, def, y) => powerAt(world, def, y) * bandAt(world, def, y, 'power') * (turnAt(world, def, y) / gripAt(world, y));
+// The height (absolute y, 25 a step, up to top) where the plane is strongest, for the HUD: the top of a
+// flat stretch (a plane with full power up to its rated height is best right there). Cached per plane
+// and flight settings object (the tuning panel edits them in place, so a slider change shows on the next match).
+const bestCache = new WeakMap();
+export function bestHeight(world, def, top) {
+  const key = cfgOf(world);
+  let m = bestCache.get(key);
+  if (!m) bestCache.set(key, (m = new WeakMap()));
+  let best = m.get(def);
+  if (best == null) {
+    best = 0;
+    for (let y = 0; y <= top; y += 25) if (strengthAt(world, def, y) >= strengthAt(world, def, best) - 1e-9) best = y;
+    m.set(def, best);
+  }
+  return best;
 }
