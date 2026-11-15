@@ -9,7 +9,7 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
   checks, tuner, retrain, duels at many seeds) runs in its own cmd window, started outside the app like the
   night runs (`Invoke-CimMethod Win32_Process Create` with `cmd.exe /s /k "title ... & node tools\..."`), so the
   owner can watch progress and stop it by closing the window. The tool prints progress lines and writes its
-  results to a file in `notes/` (as `tools/band-check.mjs` does). At most 8 threads. Claude watches that file
+  results to a file in `notes/`, every line starting with the clock time (`[HH:MM:SS]`) (as `tools/band-check.mjs` does). At most 8 threads. Claude watches that file
   for the end line, and for the window going away (closed or crashed), with a background `until` loop. Short
   runs (`node --test`, quick checks) stay hidden.
 - **Test muted:** open the game as `http://localhost:8080/?mute` in the browser pane, never the plain
