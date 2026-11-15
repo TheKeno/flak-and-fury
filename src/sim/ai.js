@@ -1338,15 +1338,17 @@ function fly(world, p, b, skill, want, cmd) {
   // up the moment it passed the limit, bled back under it, levelled again, and so crept up in a long climb
   // at the limit speed (to the ceiling in thin air) instead of ever turning round.
   const rushSpeed = flyingDef(p, world).stallSpeed * 1.5;
+  // On the way home too: a burning or weak-engined plane turning back ratcheted up the same way (2026-11-15).
+  const cruising = b.mode === 'patrol' || b.mode === 'home';
   if (Math.abs(diff) <= 2.2 || pulling || want.short) b.rushing = false;
   else if (p.speed < rushSpeed) b.rushing = true;
-  else if (b.rushing && p.speed > rushSpeed * (b.mode === 'patrol' ? world.bots.rushExit ?? 1 : 1)) b.rushing = false;
+  else if (b.rushing && p.speed > rushSpeed * (cruising ? world.bots.rushExit ?? 1 : 1)) b.rushing = false;
   if (b.rushing) {
-    // On patrol it builds the speed going down towards its patrol height, never level: with the propeller
+    // On patrol (and home) it builds the speed going down towards its patrol height, never level: with the propeller
     // pulling hard when slow (src/sim/air.js), each try at the loop gained height and the level run kept it,
     // so the bot ratcheted up to the ceiling (2026-11-12). In a fight it stays level (the duels).
     const wantPitch = Math.asin(clamp(Math.sin(want.angle), -1, 1));
-    angle = angleFor(facing(p), b.mode === 'patrol' ? clamp(Math.min(0, wantPitch), -0.3, 0) : 0);
+    angle = angleFor(facing(p), cruising ? clamp(Math.min(0, wantPitch), -0.3, 0) : 0);
     diff = angleDiff(angle, p.angle);
     rushing = true; // full throttle to build the speed
   }

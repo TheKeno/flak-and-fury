@@ -519,6 +519,8 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     topSpeed,
     ...PLANE_FIELDS.map((f) => add(slider(def, f, showTopSpeed))),
     add(negGRow(def)),
+    // Per-band stats (src/sim/air.js bandAt): engine power and turn rate in the low, mid and high band.
+    ...['power', 'turn'].flatMap((k) => (def.bands?.[k] ?? []).map((_, i) => add(slider(def.bands[k], [String(i), `Band ${k}: ${['low', 'mid', 'high'][i] ?? i}`, 0.75, 1.25, 0.01, `Multiplier on the plane's ${k === 'power' ? 'engine power' : 'turn rate'} at the ${['low', 'mid', 'high'][i]} band height (Flight: bandHeights), blended between the bands. Keep one peak per plane, within ±25%.`], showTopSpeed)))),
     ...(wingGuns ? [add(slider(def, ['convergence', 'Wing gun convergence', 50, 500, 5, 'World units ahead where the wing guns meet. Short of it or past it their rounds pass beside a target dead ahead.']))] : []),
   );
   const ammoSection = section(

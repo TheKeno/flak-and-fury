@@ -34,6 +34,15 @@ later.
   (55-65%); the **Bf 109 short** (46-53% against visitors, 42% against the P-47). So stage 2's shapes: the low
   planes stronger low (or the mid planes weaker low), the Bf 109 stronger high (or the P-47 a little weaker
   high), the P-47 a little less hopeless low.
+  **Stage 2 built (2026-11-15):** `bands` per plane (`src/sim/air.js` `bandAt`, `flight.bandHeights` 300/600/1000;
+  the test fights happen at real y 100-450, so the band test sits on these heights), HUD altimeter tick at the
+  best band (amber out of it), tuning panel sliders, tests. A bot fix it turned up: a plane turning back home
+  ratcheted upward instead of looping round (as patrol did until 2026-11-12); now it builds speed level.
+  **First rough pass:** B-239 and La-5FN 1.08/1/0.95 power, 1.06/1/0.96 turn; Bf 109 0.95/1/1.05 and
+  0.96/1/1.04, rated height 600 → 850 (DB 605A near 5.8 km against the Merlin 66 near 3). **High band on
+  target** (Bf 109 56-64% against visitors, P-47 56-66%, the two 54/46); mid nearly (the Bf 109 holds the
+  Spitfire and Zero to 54% and 51% there); **low barely moved** (B-239 and La-5FN 46-49% against the mid planes);
+  P-47 low 30-32% (floor 35).
   Why: one set of numbers can't win in one band without winning in all (a better turn helps everywhere); per-band
   stats make three separate balancings. Fought high, the P-47 already beats the Spitfire 55% (step 2 of the
   decision below), so the plane side works once the fight stays up.

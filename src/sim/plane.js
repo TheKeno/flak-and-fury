@@ -3,7 +3,7 @@ import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './wea
 import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
 import { crashShockwave } from './ground.js';
 import { updateEmergency } from './emergency.js';
-import { powerAt, dragAt, turnAt, updateNegG, propAt } from './air.js';
+import { powerAt, dragAt, turnAt, updateNegG, propAt, bandAt } from './air.js';
 
 
 export const GRAVITY = 90;
@@ -903,8 +903,8 @@ function stepAir(p, cmd, world, dt) {
   // The autopilot holds the speed it started with (a steep climb into the wall must not stall mid-turn).
   if (!edging) {
     // Above its rated height the engine loses power; the thin air drags a little less (src/sim/air.js).
-    // The propeller pulls less the faster it goes (propAt, src/sim/air.js).
-    const thrust = d.thrust * p.throttle * p.power * powerAt(world, d, p.y) * propAt(world, p.speed);
+    // The propeller pulls less the faster it goes (propAt, src/sim/air.js). Per-band power: bandAt.
+    const thrust = d.thrust * p.throttle * p.power * powerAt(world, d, p.y) * bandAt(world, d, p.y, 'power') * propAt(world, p.speed);
     const drag = d.dragCoef * p.speed * p.speed * (1 + GEAR_DRAG * p.gear) * dragAt(world, p.y);
     // Hard turns bleed speed, more for a heavily loaded wing (turnBleed per plane).
     const induced = Math.abs(turn) * p.speed * (d.turnBleed ?? DEFAULT_TURN_BLEED);

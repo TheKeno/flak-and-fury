@@ -115,6 +115,7 @@
     "thinTop": 1200,
     "turnPower": 0.8,
     "slowPower": 1,
+    "bandHeights": [300, 600, 1000],
     "stallRise": 0.12,
     "propFall": 1,
     "propSpeed": 120,

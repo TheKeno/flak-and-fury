@@ -13,6 +13,12 @@
 // hang on its prop at the edge of the stall (height bands, 2026-11-15). Stall speed rises with height for every plane, by
 // stallRise at thinTop (the slow-turn band, slowTurnSpeed, moves up with it; see flyingDef).
 //
+// Per-band stats (decision "Main fighters tuned per band", 2026-11-15). A plane may have `bands`: { power:
+// [a, b, c], turn: [a, b, c] }, multipliers on its engine power and turn rate at the band heights
+// (bandHeights: 300, 600, 1000, the low, mid and high bands), blended in a straight line between them and
+// flat outside. So a plane can be strong in its own band and weaker in the others: the Bf 109 poor low,
+// best high. They sit on top of the thin air above, which stays the same physics for every plane.
+//
 // Propeller thrust falls with speed (fighter design pass, 2026-11-12). An engine gives power, and a
 // propeller's pull is about power over speed, so a plane pulls hard when slow and runs out of push near
 // its top speed: climb comes from power, top speed from power against drag, and the dive almost only from
@@ -39,6 +45,7 @@ export const DEFAULT_FLIGHT = {
   propFall: 1, // how propeller thrust falls with speed: 0 constant, 1 power over speed
   propSpeed: 120, // speed (units/s) at which a plane's pull is its thrust
   propStatic: 1.6, // the most a slow plane's pull rises to, times its thrust
+  bandHeights: [300, 600, 1000], // where a plane's per-band values (def.bands) apply: low, mid, high
   airOffset: 0, // tools only: added to every height the thin air reads, to try a fight high up
   negG: false, // the negative-g cutout on or off for every plane
   negGLimit: 1.5, // g of push (turn rate x speed / gravity, nose towards the belly) that starves a carburettor
@@ -57,6 +64,30 @@ export function powerAt(world, def, y) {
   const h = y + (cfgOf(world).airOffset ?? 0);
   if (rated == null || h <= rated) return 1;
   return 1 / (1 + (h - rated) / cfgOf(world).fadeSpan);
+}
+
+// A plane's per-band multiplier (def.bands[key], key 'power' or 'turn') at height y; 1 without one.
+export function bandAt(world, def, y, key) {
+  const v = def.bands?.[key];
+  if (!v) return 1;
+  const cfg = cfgOf(world);
+  const hs = cfg.bandHeights ?? DEFAULT_FLIGHT.bandHeights;
+  const h = y + (cfg.airOffset ?? 0);
+  if (h <= hs[0]) return v[0];
+  for (let i = 1; i < hs.length; i++) {
+    if (h <= hs[i]) return v[i - 1] + ((v[i] - v[i - 1]) * (h - hs[i - 1])) / (hs[i] - hs[i - 1]);
+  }
+  return v[v.length - 1];
+}
+// The band height where the plane is at its best (the most power x turn), for the HUD; null without bands.
+export function bestBand(world, def) {
+  const v = def.bands;
+  if (!v) return null;
+  const hs = cfgOf(world).bandHeights ?? DEFAULT_FLIGHT.bandHeights;
+  let best = 0;
+  const at = (i) => (v.power?.[i] ?? 1) * (v.turn?.[i] ?? 1);
+  for (let i = 1; i < hs.length; i++) if (at(i) > at(best)) best = i;
+  return hs[best];
 }
 
 // The propeller's pull at speed v, as a share of the plane's thrust.
@@ -79,10 +110,11 @@ export function levelTop(flight, thrust, dragCoef) {
 const thinness = (cfg, y) => Math.min(1, Math.max(0, (y + (cfg.airOffset ?? 0)) / cfg.thinTop));
 export const dragAt = (world, y) => 1 - cfgOf(world).thinDrag * thinness(cfgOf(world), y);
 export const gripAt = (world, y) => 1 - cfgOf(world).thinGrip * thinness(cfgOf(world), y);
-// Turn rate share at y from the air and the engine: thin-air grip times the power the turn needs.
+// Turn rate share at y from the air and the engine: thin-air grip times the power the turn needs, times
+// the plane's own per-band turn value.
 export function turnAt(world, def, y) {
   const k = cfgOf(world).turnPower ?? 0;
-  return gripAt(world, y) * (1 - k * (1 - powerAt(world, def, y)));
+  return gripAt(world, y) * (1 - k * (1 - powerAt(world, def, y))) * bandAt(world, def, y, 'turn');
 }
 // Share of the slow-turn bonus left at y: falls with the power lost above the rated height.
 export function slowBonusAt(world, def, y) {

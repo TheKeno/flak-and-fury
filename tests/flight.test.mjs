@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld } from '../src/sim/world.js';
-import { powerAt } from '../src/sim/air.js';
+import { powerAt, bandAt } from '../src/sim/air.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
@@ -57,11 +57,12 @@ test('every plane has a rated height, a turn bleed, an emergency rating and a cu
   }
 });
 
-test('the height bands: low-rated planes low, the Bf 109 and Spitfire LF middle, turbochargers high', () => {
+// Bands of the main fighters (decision "Main fighters tuned per band", 2026-11-15): the Bf 109 is a high plane.
+test('the height bands: low-rated planes low, the Spitfire LF middle, the Bf 109 and turbochargers high', () => {
   const P = load('data/planes.json');
   for (const id of ['ki43', 'b239', 'la5fn']) assert.ok(P[id].ratedHeight <= 350, id);
-  for (const id of ['spitfire', 'bf109g6']) assert.ok(P[id].ratedHeight > 350 && P[id].ratedHeight <= 700, id);
-  for (const id of ['p47d', 'p38j']) assert.ok(P[id].ratedHeight > 700, id);
+  for (const id of ['spitfire', 'a6m5']) assert.ok(P[id].ratedHeight > 350 && P[id].ratedHeight <= 700, id);
+  for (const id of ['p47d', 'p38j', 'bf109g6']) assert.ok(P[id].ratedHeight > 700, id);
   assert.ok(P.spitfire.ratedHeight < P.bf109g6.ratedHeight, 'the LF is rated lower than the 109');
   assert.match(P.spitfire.name, /LF Mk IX/);
 });
@@ -158,4 +159,22 @@ test('negative g is switched off in the settings for now: no plane cuts out, bot
   const { world, p } = makeWorld('spitfire', 600, { speed: 130, negG: settings.flight.negG });
   assert.ok(!run(world, 60, PUSH).some((e) => e.type === 'negGCutout'));
   assert.ok(p.power > 0.9);
+});
+
+test('per-band stats: blended between the band heights, flat outside, one peak per plane', () => {
+  const { world } = makeWorld('bf109g6', 300);
+  const def = { bands: { power: [0.9, 1, 1.2] } };
+  assert.equal(bandAt(world, def, 100, 'power'), 0.9);
+  assert.equal(bandAt(world, def, 1300, 'power'), 1.2);
+  assert.ok(Math.abs(bandAt(world, def, 450, 'power') - 0.95) < 1e-9);
+  assert.equal(bandAt(world, def, 450, 'turn'), 1, 'no values: 1');
+  // Each plane's shape rises to one best band and falls after it, within about 25% of its base.
+  const P = load('data/planes.json');
+  for (const [id, d] of Object.entries(P)) {
+    for (const v of Object.values(d.bands ?? {})) {
+      const top = v.indexOf(Math.max(...v));
+      assert.ok(v.every((x, i) => (i < top ? x <= v[i + 1] : i === v.length - 1 || x >= v[i + 1])), `${id} ${v}`);
+      assert.ok(v.every((x) => x >= 0.75 && x <= 1.25), `${id} ${v}`);
+    }
+  }
 });

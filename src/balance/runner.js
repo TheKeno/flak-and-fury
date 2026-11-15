@@ -93,6 +93,8 @@ const emptyStats = () => ({
   killsAbove: 0, killsLevel: 0, killsBelow: 0,
   deathBy: { fighter: 0, flak: 0, tankMg: 0, groundFire: 0, crash: 0, collision: 0, other: 0 },
   bombsDropped: 0, bombKills: 0, strafeKills: 0,
+  // Planes shot down by height (world y, 100 a bucket, the last one 1200 and up): where the fights happen.
+  shotDownAt: new Array(13).fill(0),
 });
 
 // The front: halfway between each side's most forward tank or infantry squad; a side with none out is
@@ -209,6 +211,7 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
           if (victim == null || !by?.plane || by.team === victim) break;
           const s = stats[by.team];
           s.airKills++;
+          stats[victim].shotDownAt[Math.max(0, Math.min(12, Math.floor(e.y / 100)))]++;
           const killer = planeById(e.by);
           const dy = killer ? killer.y - e.y : 0;
           if (dy > ABOVE) s.killsAbove++;

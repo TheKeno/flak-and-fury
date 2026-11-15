@@ -259,3 +259,50 @@ Targets: home plane >= 55% against each visitor, 50 +-3 against its band-mate, n
   52% against the visitors, and only 42% against the P-47 (band-mate, should be 50 +-3).
 So the gaps: the low planes need about +7 points low against the mid planes; the Bf 109 about +8 high (against
 everyone, the P-47 included); the P-47 needs a little more low (31 -> 35%), or the floor is relaxed for it.
+
+[15:30:02] Band check 2026-11-15T14:30: starts low, mid, high, seeds 101-160, 8 threads.
+
+[15:48:18] == band low, airOffset 0, start 300 (1096 s)
+[15:48:18] b239 55.8% ±0.5, la5fn 55.5% ±0.5, spitfire 57.9% ±0.4, a6m5 56.8% ±0.4, bf109g6 40.8% ±0.4, p47d 33.2% ±0.3
+[15:48:18] row against column (exchange share of the row plane):
+[15:48:18]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[15:48:18] b239                     52%      46%      48%      65%      68%
+[15:48:18] la5fn           48%               48%      49%      64%      69%
+[15:48:18] spitfire        54%      53%               50%      63%      70%
+[15:48:18] a6m5            52%      51%      50%               62%      69%
+[15:48:18] bf109g6         35%      36%      37%      38%               58%
+[15:48:18] p47d            32%      31%      30%      31%      42%         
+
+[16:04:27] == band mid, airOffset 300, start 300 (969 s)
+[16:04:27] b239 46.1% ±0.3, la5fn 48.8% ±0.4, spitfire 54.5% ±0.3, a6m5 54.9% ±0.3, bf109g6 51.0% ±0.3, p47d 44.6% ±0.3
+[16:04:27] row against column (exchange share of the row plane):
+[16:04:27]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[16:04:27] b239                     49%      44%      42%      49%      48%
+[16:04:27] la5fn           51%               45%      43%      51%      55%
+[16:04:27] spitfire        56%      56%               48%      54%      59%
+[16:04:27] a6m5            58%      57%      52%               51%      56%
+[16:04:27] bf109g6         52%      49%      46%      49%               59%
+[16:04:27] p47d            52%      45%      41%      44%      41%         
+
+[16:18:41] == band high, airOffset 700, start 300 (854 s)
+[16:18:41] b239 43.8% ±0.4, la5fn 39.4% ±0.3, spitfire 50.8% ±0.4, a6m5 47.7% ±0.6, bf109g6 59.8% ±0.4, p47d 58.4% ±0.4
+[16:18:41] row against column (exchange share of the row plane):
+[16:18:41]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[16:18:41] b239                     56%      45%      43%      38%      37%
+[16:18:41] la5fn           44%               41%      37%      37%      39%
+[16:18:41] spitfire        55%      59%               51%      44%      44%
+[16:18:41] a6m5            57%      63%      49%               36%      35%
+[16:18:41] bf109g6         62%      63%      56%      64%               54%
+[16:18:41] p47d            63%      61%      56%      66%      46%         
+
+[16:18:41] Band check done.
+
+Findings (Claude, 2026-11-15): stage 2 rough shapes (the run above). B-239 and La-5FN power 1.08/1/0.95, turn
+1.06/1/0.96; Bf 109 power 0.95/1/1.05, turn 0.96/1/1.04 and rated height 600 -> 850; the others unchanged. Also
+the bot fix (a plane turning back home no longer ratchets up), which touches every plane on its way home.
+- High: now on target. Bf 109 56-64% against visitors (was 46-53), P-47 56-66%; Bf 109 v P-47 54/46 (4 off even).
+- Mid: Spitfire and Zero still beat the low planes and P-47, but the Bf 109 now holds them to 54% and 51%
+  (rated 850 gives it full power at 600).
+- Low: barely moved. B-239 46/48% v Spitfire/Zero, La-5FN 48/49% (need 55). The mid planes are strong low too.
+- Floor: P-47 low 30-32%, Bf 109 low 35-38%.
+Next rough pass: the mid planes a little weaker low, the Bf 109 a little weaker mid.
