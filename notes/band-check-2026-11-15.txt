@@ -212,3 +212,50 @@ Fought high, the planes' own numbers already give the P-47 its band (55%, the ta
 rule is about 9 points of that. The Bf 109 gains (36 -> 46%) but still loses its own band to the Spitfire LF:
 its rated height (600) is barely above the Spitfire's (450). So the plane numbers work; what's missing is
 fights that stay high (step 3, the game side).
+
+[14:26:32] Band check 2026-11-15T13:26: starts low, mid, high, seeds 101-160, 8 threads.
+
+[14:41:51] == band low, airOffset 0, start 300 (919 s)
+[14:41:51] b239 54.5% ±0.4, la5fn 54.5% ±0.5, spitfire 58.1% ±0.4, a6m5 56.5% ±0.4, bf109g6 42.1% ±0.4, p47d 34.3% ±0.3
+[14:41:51] row against column (exchange share of the row plane):
+[14:41:51]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[14:41:51] b239                     53%      47%      48%      61%      65%
+[14:41:51] la5fn           48%               48%      46%      63%      69%
+[14:41:51] spitfire        54%      52%               52%      64%      69%
+[14:41:51] a6m5            52%      54%      49%               61%      67%
+[14:41:51] bf109g6         39%      37%      36%      40%               59%
+[14:41:51] p47d            35%      31%      31%      33%      41%         
+
+[14:57:43] == band mid, airOffset 300, start 300 (952 s)
+[14:57:43] b239 46.6% ±0.4, la5fn 49.4% ±0.4, spitfire 55.8% ±0.3, a6m5 55.5% ±0.3, bf109g6 47.2% ±0.4, p47d 45.4% ±0.3
+[14:57:43] row against column (exchange share of the row plane):
+[14:57:43]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[14:57:43] b239                     51%      43%      42%      48%      49%
+[14:57:43] la5fn           49%               45%      42%      55%      55%
+[14:57:43] spitfire        57%      55%               50%      58%      60%
+[14:57:43] a6m5            58%      58%      51%               56%      56%
+[14:57:43] bf109g6         52%      45%      42%      44%               53%
+[14:57:43] p47d            51%      45%      40%      44%      47%         
+
+[15:12:25] == band high, airOffset 700, start 300 (882 s)
+[15:12:25] b239 45.9% ±0.4, la5fn 42.7% ±0.4, spitfire 53.1% ±0.4, a6m5 49.1% ±0.5, bf109g6 49.2% ±0.4, p47d 60.0% ±0.3
+[15:12:25] row against column (exchange share of the row plane):
+[15:12:25]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[15:12:25] b239                     56%      44%      45%      47%      38%
+[15:12:25] la5fn           44%               42%      40%      47%      40%
+[15:12:25] spitfire        56%      58%               53%      54%      45%
+[15:12:25] a6m5            55%      60%      47%               48%      35%
+[15:12:25] bf109g6         53%      53%      46%      52%               42%
+[15:12:25] p47d            62%      60%      55%      65%      59%         
+
+[15:12:25] Band check done.
+
+Findings (Claude, 2026-11-15): stage 1 of "Main fighters tuned per band" (the run above, no plane changed).
+Targets: home plane >= 55% against each visitor, 50 +-3 against its band-mate, nobody under 35%.
+- Low (B-239, La-5FN): band-mates 53/48, fine. They beat the high planes (61-69%) but not the mid ones:
+  B-239 47% v Spitfire, 48% v Zero; La-5FN 48% and 46%. Floor broken: P-47 31% v La-5FN and Spitfire.
+- Mid (Spitfire, Zero): already on target: 55-60% against every visitor, 50/51 between them.
+- High (Bf 109, P-47): the P-47 is on target (55-65% against every visitor). The Bf 109 is not: 53, 53, 46,
+  52% against the visitors, and only 42% against the P-47 (band-mate, should be 50 +-3).
+So the gaps: the low planes need about +7 points low against the mid planes; the Bf 109 about +8 high (against
+everyone, the P-47 included); the P-47 needs a little more low (31 -> 35%), or the floor is relaxed for it.

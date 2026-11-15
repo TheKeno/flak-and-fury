@@ -7,6 +7,37 @@ later.
 
 ## Decisions
 
+- **Main fighters tuned per band, with per-band stats (decided 2026-11-15, discussion; follows "Balance by height
+  band" below and replaces its band list):** only the six **main fighters** (one per nation) are tuned until the
+  owner says otherwise; the Ki-43 (replaced by the Zero) and the P-38J (heavy fighter) stay in the game but out
+  of fighter tuning. **Bands, two each:** **low** B-239, La-5FN; **mid** Spitfire LF Mk IX, A6M5 Zero; **high**
+  Bf 109 G-6, P-47D (the DB 605 was rated well above the Spitfire LF's Merlin 66). **Targets, each measured in
+  its band:** a home plane wins against every visitor (at least 55% exchange share), equals its band-mate (50 ±3),
+  and nobody falls under about 35% anywhere; visitors among themselves are free. **Tested per band** with
+  `airOffset` (the thin air reads every height that much higher, so a fight that falls still flies in its band):
+  low +0, mid +300, high +700, started at 300. **The order:**
+  1. **Measure the six as they are, per band** (no plane changed): how far each is from its target.
+  2. **Per-band stats, two only:** each main fighter gets an engine power and a turn rate value at 300, 600 and
+     1000, blended smoothly between (flat outside). One peak per plane (it rises to its best band and falls after;
+     the Bf 109 poor low, better mid, best high), at most about ±25% from its base. Toughness, guns and ammunition
+     never change with height. Thin air stays as shared physics under it. The player must see it: the HUD
+     altimeter mark shows the plane's best band. It must feel gradual (no step at a band edge).
+  3. **Rough the shapes in by hand**, the owner test-flies them for feel, **then the tuner** balances one band at a
+     time to the targets (night runs; 36 values).
+  4. **Make the bands happen in play** (its own session; backlog "Pull fights up"): flak low, high bombers, and a
+     second measure, kills and deaths by height in the real arena. Then retry a simple "don't follow down" rule
+     for the high planes, which per-band stats should finally make pay.
+  **Stage 1 measured (2026-11-15, `tools/band-check.mjs --bands low,mid,high --seeds 101-160`, 45 min,
+  `notes/band-check-2026-11-15.txt`):** **mid on target** (Spitfire and Zero 55-60% against every visitor, 50/51
+  between them). **Low:** B-239 and La-5FN even (53/48) and beat the high planes (61-69%), but lose narrowly to
+  the mid planes there (46-48%, need 55%); the P-47 falls to 31% low (floor 35%). **High:** the P-47 on target
+  (55-65%); the **Bf 109 short** (46-53% against visitors, 42% against the P-47). So stage 2's shapes: the low
+  planes stronger low (or the mid planes weaker low), the Bf 109 stronger high (or the P-47 a little weaker
+  high), the P-47 a little less hopeless low.
+  Why: one set of numbers can't win in one band without winning in all (a better turn helps everywhere); per-band
+  stats make three separate balancings. Fought high, the P-47 already beats the Spitfire 55% (step 2 of the
+  decision below), so the plane side works once the fight stays up.
+
 - **Balance by height band (decided 2026-11-15, discussion; step 1 built and measured the same day):** forcing styles does not
   work (turning wins low, where every arena fight happens), and height bands alone keep the fights low (see
   the entry below). **Decided:** three bands, **low** (about 300: B-239, La-5FN, Ki-43), **mid** (about 600:
