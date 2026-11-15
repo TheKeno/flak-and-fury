@@ -51,8 +51,10 @@ export function stepHangarDoors(world, dt) {
   for (const o of world.ground) {
     if (o.type !== 'hangar') continue;
     // Open while a plane of the team is waiting or on its way out, or the crew who pushed it are not home.
-    const leaving = world.planes.some((p) => p.team === o.team && p.state === 'ground' && p.exitTo != null && p.exitPhase !== 'shove' && !p.hold)
-      || world.crew.some((c) => c.team === o.team && c.push);
+    // Plain loops, not .some(): this runs every tick, and a closure per hangar is garbage every tick.
+    let leaving = false;
+    for (const p of world.planes) if (p.team === o.team && p.state === 'ground' && p.exitTo != null && p.exitPhase !== 'shove' && !p.hold) { leaving = true; break; }
+    if (!leaving) for (const c of world.crew) if (c.team === o.team && c.push) { leaving = true; break; }
     if (leaving) o.doorHold = o.def.doorHold ?? 1.5;
     else if (o.doorHold > 0) o.doorHold -= dt;
     const open = leaving || o.doorHold > 0;
@@ -121,21 +123,35 @@ const halfWidth = (obj) => (obj.soldiers ? squadHalf(obj) : (obj.width ?? obj.de
 // every object, and a squad's takes a walk over its men). Valid within one bullets step or one collision
 // pass: squads only move and objects only leave the list in the army step; ones added meanwhile (past
 // the end) are worked out each time. NaN: not worked out yet.
-const groundHalves = (world) => new Float64Array(world.ground.length).fill(NaN);
-// What one pass over world.ground (a bullets step, the collision check) works out once and shares.
-export const groundPass = (world) => ({ halves: groundHalves(world), ceiling: groundCeiling(world) });
+// What one pass over world.ground (a bullets step, the collision check) works out once and shares. One
+// per world and kind of pass, reused tick after tick (speed: no garbage); the two passes never overlap.
+const passes = new WeakMap(); // world -> { [kind]: pass }
+export function groundPass(world, kind) {
+  let byKind = passes.get(world);
+  if (!byKind) passes.set(world, (byKind = {}));
+  let pass = byKind[kind];
+  if (!pass || pass.halves.length !== world.ground.length) pass = byKind[kind] = { halves: new Float64Array(world.ground.length), ceiling: null };
+  pass.halves.fill(NaN);
+  pass.ceiling = groundCeiling(world, pass.ceiling);
+  return pass;
+}
 
 // What nothing on the ground reaches above (speed: most bullets and planes are well above it, and can skip
 // every object): the highest ground or river bank, plus the tallest object, plus 1 for rounding. The
 // objects' part is worked out once per pass (their heights are set when they're made); objects added
 // meanwhile (past `count`) aren't in it, so then there's no skipping. The ground's part is read live
 // (terrain.highest(), which terrain.crater keeps up), since a crash mid-pass can throw up a rim.
-export function groundCeiling(world) {
+// into: an old ceiling to fill in again (no garbage).
+export function groundCeiling(world, into = null) {
   let bank = -Infinity;
   for (const rv of world.map.rivers ?? []) bank = Math.max(bank, rv.bank ?? Infinity);
   let tall = 1; // a bridge's deck reaches 1 above its bank
   for (const o of world.ground) tall = Math.max(tall, o.height ?? o.def.height ?? Infinity);
-  return { bank, tall: tall + 1, count: world.ground.length };
+  const c = into ?? {};
+  c.bank = bank;
+  c.tall = tall + 1;
+  c.count = world.ground.length;
+  return c;
 }
 function aboveAll(world, ceiling, y) {
   if (!ceiling || world.ground.length !== ceiling.count || !world.terrain.highest) return false;
@@ -382,7 +398,7 @@ export function planesHitStructures(world, crash) {
   for (const p of world.planes) {
     if (p.state === 'dead') continue;
     const margin = p.def.hitRadius * 0.6;
-    pass ??= groundPass(world);
+    pass ??= groundPass(world, 'planes');
     // Above everything: no squad, obstacle or structure below can be met (each needs p.y within
     // margin, or GEAR_REACH, of an object's top).
     if (aboveAll(world, pass.ceiling, p.y - margin - GEAR_REACH)) continue;

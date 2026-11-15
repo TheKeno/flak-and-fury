@@ -238,18 +238,20 @@ export function flyingDef(p, world) {
   const sb = air ? slowBonusAt(world, d, p.y) : 1;
   // The same view again while nothing it is made from has changed (speed: the bot and the flight model
   // ask several times a tick). The tick is in the key so a tuning-panel edit shows from the next tick.
-  const c = flyingViews.get(p);
+  let c = flyingViews.get(p);
   if (c && c.d === d && c.w === w && c.tick === world.tick && c.f === f && c.drag === drag && c.h === h && c.sb === sb) return c.view;
-  const view = Object.assign(Object.create(d), {
-    thrust: d.thrust * (1 - w.thrust * f),
-    stallSpeed: d.stallSpeed * (1 + w.stall * f) * h,
-    slowTurnSpeed: d.slowTurnSpeed * h,
-    slowTurnBonus: d.slowTurnBonus * sb,
-    takeoffSpeed: d.takeoffSpeed * (1 + w.takeoff * f),
-    turnRate: d.turnRate * (1 - w.turn * f),
-    dragCoef: d.dragCoef * (1 + drag),
-  });
-  flyingViews.set(p, { d, w, tick: world.tick, f, drag, h, sb, view });
+  // Plain stores in a fixed order, not Object.assign (which left the view a slow dictionary object, about
+  // 1 KB of garbage a plane a tick).
+  const view = Object.create(d);
+  view.thrust = d.thrust * (1 - w.thrust * f);
+  view.stallSpeed = d.stallSpeed * (1 + w.stall * f) * h;
+  view.slowTurnSpeed = d.slowTurnSpeed * h;
+  view.slowTurnBonus = d.slowTurnBonus * sb;
+  view.takeoffSpeed = d.takeoffSpeed * (1 + w.takeoff * f);
+  view.turnRate = d.turnRate * (1 - w.turn * f);
+  view.dragCoef = d.dragCoef * (1 + drag);
+  if (!c) flyingViews.set(p, (c = {}));
+  c.d = d; c.w = w; c.tick = world.tick; c.f = f; c.drag = drag; c.h = h; c.sb = sb; c.view = view;
   return view;
 }
 // plane -> its last flyingDef view and what it was made from (outside the world: no snapshot state).
@@ -460,7 +462,7 @@ function segDist(ax, ay, bx, by, px, py) {
 export function stepBullets(world, dt) {
   const list = world.bullets;
   const depth = (world.damage ?? DEFAULT_DAMAGE).depthSize;
-  const pass = list.length ? groundPass(world) : null;
+  const pass = list.length ? groundPass(world, 'bullets') : null;
   for (let i = list.length - 1; i >= 0; i--) {
     const b = list[i];
     const ox = b.x;

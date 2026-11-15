@@ -121,6 +121,12 @@ async function main(args) {
   printReport(run);
 }
 
+// Each worker's young generation (V8's nursery for short-lived objects), in MB. The sim allocates about
+// 1.5 GB a second per thread; a nursery small enough to stay in the core's own cache keeps that off the
+// shared memory bus, which otherwise caps the speed past about 8 threads (notes/thread-scaling-*.txt).
+// FF_YOUNG_MB overrides it (0: V8's default).
+const YOUNG_MB = Number(process.env.FF_YOUNG_MB ?? 6);
+
 // Runs jobs on worker threads: onResult(index, result) as each finishes; stop() true stops handing out
 // more (the matches in progress finish). Shared with the bot trainer (tools/train-bots.mjs).
 export function runPool(jobs, threads, map, onResult, stop = () => false) {
@@ -129,7 +135,10 @@ export function runPool(jobs, threads, map, onResult, stop = () => false) {
     let live = Math.max(1, Math.min(threads, jobs.length));
     if (!jobs.length) return resolve();
     for (let w = 0, n = live; w < n; w++) {
-      const worker = new Worker(fileURLToPath(import.meta.url), { workerData: { map } });
+      const worker = new Worker(fileURLToPath(import.meta.url), {
+        workerData: { map },
+        ...(YOUNG_MB > 0 && { resourceLimits: { maxYoungGenerationSizeMb: YOUNG_MB } }),
+      });
       const feed = () => {
         if (stop() || next >= jobs.length) {
           worker.terminate();

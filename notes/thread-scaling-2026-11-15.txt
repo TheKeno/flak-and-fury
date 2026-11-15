@@ -67,3 +67,78 @@ ALL-GC-TESTS-DONE
 [21:37:31]   16 threads: 67.3 s, x1.00 faster than 16
 [21:37:31] Thread scaling done.
 [21:37:32] CACHE-TESTS-DONE
+[22:41:30] Ananicy test (sim after 5ba4d09), owner away:
+[22:41:30] as node (ananicy rule):
+[22:41:30] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 32, node flags [], pid 3639491.
+[22:42:17] 32 threads: 300 matches in 46.2 s, 6.49 matches/s, 4.93 thread-s per match.
+[22:42:17] Summary (speed against the first count):
+[22:42:17]   32 threads: 46.2 s, x1.00 faster than 32
+[22:42:17] Thread scaling done.
+[22:42:17] as ff-sim (no rule):
+[22:42:17] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 32, 24, 16, 8, node flags [], pid 3641287.
+[22:43:03] 32 threads: 300 matches in 46.1 s, 6.50 matches/s, 4.92 thread-s per match.
+[22:43:43] 24 threads: 300 matches in 39.8 s, 7.53 matches/s, 3.19 thread-s per match.
+[22:44:22] 16 threads: 300 matches in 39.0 s, 7.70 matches/s, 2.08 thread-s per match.
+[22:45:11] 8 threads: 300 matches in 49.3 s, 6.09 matches/s, 1.31 thread-s per match.
+[22:45:11] Summary (speed against the first count):
+[22:45:11]   32 threads: 46.1 s, x1.00 faster than 32
+[22:45:11]   24 threads: 39.8 s, x1.16 faster than 32
+[22:45:11]   16 threads: 39.0 s, x1.18 faster than 32
+[22:45:11]    8 threads: 49.3 s, x0.94 faster than 32
+[22:45:11] Thread scaling done.
+[22:45:11] ANANICY-TEST-DONE
+[22:46:21] Nursery test on the idle PC (as ff-sim):
+[22:46:21] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 16, 32, 8, node flags [--max-semi-space-size=1 --min-semi-space-size=1], pid 3647827.
+[22:46:52] 16 threads: 300 matches in 31.2 s, 9.62 matches/s, 1.66 thread-s per match.
+[22:47:32] 32 threads: 300 matches in 39.6 s, 7.57 matches/s, 4.23 thread-s per match.
+[22:48:24] 8 threads: 300 matches in 52.0 s, 5.76 matches/s, 1.39 thread-s per match.
+[22:48:24] Summary (speed against the first count):
+[22:48:24]   16 threads: 31.2 s, x1.00 faster than 16
+[22:48:24]   32 threads: 39.6 s, x0.79 faster than 16
+[22:48:24]    8 threads: 52.0 s, x0.60 faster than 16
+[22:48:24] Thread scaling done.
+[22:48:24] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 16, node flags [--max-semi-space-size=2 --min-semi-space-size=2], pid 3651063.
+[22:48:54] 16 threads: 300 matches in 30.0 s, 10.01 matches/s, 1.60 thread-s per match.
+[22:48:54] Summary (speed against the first count):
+[22:48:54]   16 threads: 30.0 s, x1.00 faster than 16
+[22:48:54] Thread scaling done.
+[22:48:54] NURSERY2-DONE
+[22:49:30] Worker young generation (resourceLimits.maxYoungGenerationSizeMb), 16 threads, as ff-sim:
+[22:49:30] FF_YOUNG_MB=0
+[22:49:30] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 16, node flags [], pid 3652901.
+[22:50:09] 16 threads: 300 matches in 39.0 s, 7.70 matches/s, 2.08 thread-s per match.
+[22:50:09] Summary (speed against the first count):
+[22:50:09]   16 threads: 39.0 s, x1.00 faster than 16
+[22:50:09] Thread scaling done.
+[22:50:09] FF_YOUNG_MB=3
+[22:50:09] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 16, node flags [], pid 3653949.
+[22:50:40] 16 threads: 300 matches in 30.7 s, 9.76 matches/s, 1.64 thread-s per match.
+[22:50:40] Summary (speed against the first count):
+[22:50:40]   16 threads: 30.7 s, x1.00 faster than 16
+[22:50:40] Thread scaling done.
+[22:50:40] FF_YOUNG_MB=6
+[22:50:40] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 16, node flags [], pid 3654782.
+[22:51:10] 16 threads: 300 matches in 30.2 s, 9.94 matches/s, 1.61 thread-s per match.
+[22:51:10] Summary (speed against the first count):
+[22:51:10]   16 threads: 30.2 s, x1.00 faster than 16
+[22:51:10] Thread scaling done.
+[22:51:10] FF_YOUNG_MB=12
+[22:51:10] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 16, node flags [], pid 3655580.
+[22:51:43] 16 threads: 300 matches in 32.6 s, 9.21 matches/s, 1.74 thread-s per match.
+[22:51:43] Summary (speed against the first count):
+[22:51:43]   16 threads: 32.6 s, x1.00 faster than 16
+[22:51:43] Thread scaling done.
+[22:51:43] YOUNG-DONE
+[22:54:35] After the allocation cuts and the 6 MB worker young generation, as node:
+[22:54:35] Thread scaling: band mid, 6 planes, seeds 101-110, thread counts 8, 16, 24, 32, node flags [], pid 3661060.
+[22:55:22] 8 threads: 300 matches in 47.6 s, 6.31 matches/s, 1.27 thread-s per match.
+[22:55:53] 16 threads: 300 matches in 30.6 s, 9.79 matches/s, 1.63 thread-s per match.
+[22:56:24] 24 threads: 300 matches in 31.1 s, 9.66 matches/s, 2.48 thread-s per match.
+[22:56:57] 32 threads: 300 matches in 33.5 s, 8.96 matches/s, 3.57 thread-s per match.
+[22:56:57] Summary (speed against the first count):
+[22:56:57]    8 threads: 47.6 s, x1.00 faster than 8
+[22:56:57]   16 threads: 30.6 s, x1.55 faster than 8
+[22:56:57]   24 threads: 31.1 s, x1.53 faster than 8
+[22:56:57]   32 threads: 33.5 s, x1.42 faster than 8
+[22:56:57] Thread scaling done.
+[22:56:58] FINAL-SCALING-DONE

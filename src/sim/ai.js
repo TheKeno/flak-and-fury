@@ -375,8 +375,15 @@ function skyline(world, x) {
 // Highest ground (and anything standing on it) from x over the next `span` units in direction dir.
 function floorAhead(world, x, dir, span) {
   let floor = skyline(world, x);
-  // Every 10 units: a tower or a pine is only 10 wide.
-  for (let k = 10; k <= span; k += 10) floor = Math.max(floor, skyline(world, clamp(x + dir * k, 0, world.map.width)));
+  // Every 10 units: a tower or a pine is only 10 wide. skyline's lookup written out here (speed: a call
+  // per step returned a boxed number each, a lot of garbage); the first call above keeps the cache fresh.
+  const cols = world.botSkyline.cols;
+  const heightAt = world.terrain.heightAt;
+  const width = world.map.width;
+  for (let k = 10; k <= span; k += 10) {
+    const at = clamp(x + dir * k, 0, width);
+    floor = Math.max(floor, Math.max(heightAt(at), cols[Math.floor(at / 10)] ?? -Infinity));
+  }
   return floor;
 }
 
