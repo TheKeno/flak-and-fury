@@ -7,7 +7,8 @@ later.
 
 ## Decisions
 
-- **Dive planes climb to their band before fighting (decided 2026-11-14, discussion; not built):** after the
+- **Dive planes climb to their band before fighting (decided 2026-11-14, discussion; tried 2026-11-15 and not
+  kept, see the result at the end):** after the
   Spitfire was toned down the Bf 109 G-6 (40% exchange share) and P-47D (32%) are still well behind, and the tuner
   cannot close it within ±15%. Likely cause: the arena starts every fight from the airfields, low, where the turn
   fighters rule by design, and both bots have `bandClimb` 0 (never climb to their engine's band: Bf 109 rated 600,
@@ -21,6 +22,21 @@ later.
   of the same talk: lean on each plane's historical strength (P-47 toughness and firepower, Bf 109 climb or the
   gondola fit). Also agreed as worth doing: check the arena measure itself (part of the battles starting at
   height, or counting survival), since the tuner aims at whatever it measures.
+  **Result (2026-11-15): worse at every value, not kept** (`ROLE_FORCED.boom` stays `{ style: 0.5 }`). Arena
+  exchange share on seeds 101-140 (normal) and duels on 32 seeds, today's tactics against forced `bandClimb`:
+
+  | | Bf 109 | P-47 | Spitfire | La-5FN | A6M5 | B-239 | Duels pass |
+  |---|---|---|---|---|---|---|---|
+  | today (0) | 40.1% | 32.2% | 58.8% | 56.6% | 56.1% | 56.2% | 19 of 25 |
+  | 0.6 | 40.6% | 25.4% | 59.9% | 57.8% | 58.0% | 58.3% | 19 (same ones) |
+  | 0.8 | 39.6% | 22.6% | 60.7% | 58.3% | 59.3% | 59.5% | 17 (turn-a6m5-v-bf109, turn-b239-v-bf109 break) |
+  | 1 | 37.4% | 21.8% | 61.7% | 58.5% | 60.4% | 60.2% | 15 (also low-b239-on-p38-tail, boom-p47-on-b239) |
+
+  The P-47 loses most (the higher the climb, the worse); the Bf 109 does not move. None of the four failing
+  boom duels got better. So the low start is not the main reason, or the climb itself costs more than the
+  height wins (not diagnosed: whether they die on the way up or never get their passes in). Next is the
+  owner's call: option 3 (each plane's historical strength), the arena measure check, or a diagnosis of
+  the climb first.
 
 - **Plane roles and balancing plan (decided 2026-11-09, discussion; step 2 built 2026-11-09, see Done):** after the first bot training showed
   turn rate still decides every fight. **The rule:** a plane that does more on the ground is weaker in the air (shot down
@@ -681,6 +697,7 @@ later.
 
 ## Done
 
+- **Dive planes forced to climb to their band: tried, not kept (Gameplay, 2026-11-15):** `bandClimb` 0.6 / 0.8 / 1 forced for the boom role in `ROLE_FORCED` (`src/sim/tactics.js`). Every value made it worse: P-47 arena share 32% → 25 / 23 / 22%, Bf 109 40% → 41 / 40 / 37%, duels 19 → 19 / 17 / 15 of 25. Reverted; code unchanged. Numbers in the Decisions entry; the next step is the owner's call.
 - **Night run after the dive fix; Spitfire toned down (Gameplay, 2026-11-13):** night run on half the cores (`tools/night-tune-half.cmd`, 4 h 15 min). Retrain: only the La-5FN changed (`bandMargin` 350 → 600, `emergencyUse` 1). Tuner: 7 changes on four planes; all together they broke five duels (19 → 15 of 25: the Zero and B-239 lost their turn fights against the P-47 and Bf 109), so **only the Spitfire's were applied** (hp 105 → 89, `stallSpeed` 54 → 59, `slowTurnSpeed` 110 → 105): checked alone on fresh seeds, Spitfire exchange share 66% → 59%, duels still 19 of 25, high-p47-v-spitfire now passes; the record notes the partial apply. **Still open, needs a talk:** the Bf 109 (40%) and P-47 (32%) stay underdogs and the Spitfire is still above even; the tuner cannot move them within ±15% (a historical variant or gun fit, wider limits, or accepting it). The owner test-flies once the planes are in place, not before.
 - **Bots fly the dive and zoom (Gameplay, 2026-11-13):** after the night run (retrain found nothing; the tuner's 11 changes held, not applied) six faults in the dive-plane flying fixed in `src/sim/ai.js`: the head-on break killed the pass's fire 250 out (now 0.4 s against the dive target), a half loop after the pass stalled the P-47 (high up it now runs on and climbs, keeping 10 faster than the chaser), a mid-dive climb rule, radar steering at the lookout edge, and nose bobbing in the wingover. Low fights unchanged on purpose (`HIGH_FIGHT` 450). Duels **13 → 18 of 25** (32 seeds), none lost; P-47 hits on its passes 2-6x, stalls about halved. The Bf 109 on the Spitfire and La-5FN still loses (speed parity, numbers). Details: `notes/boom-and-zoom-diagnosis.md` "The dive-and-zoom flying". Next: a new night run (retrain + tuner) on the owner's go; the held tuner record is now out of date. Tests pass.
 - **Fighter design pass built, the tuner air-to-air (Gameplay, 2026-11-12):** as decided the same day (Decisions,
