@@ -50,6 +50,35 @@ export function buildWorld(content, { map = 'countryside', seed = 1, tactics = c
   return world;
 }
 
+// Puts a plane into the air as the sim would have it (gear up, engine running, full throttle).
+export function launch(p, { x, y, angle, speed, throttle = 1 }) {
+  const left = Math.cos(angle) < 0;
+  p.state = 'air';
+  p.x = x;
+  p.y = y;
+  p.angle = angle;
+  p.speed = speed;
+  p.vx = Math.cos(angle) * speed;
+  p.vy = Math.sin(angle) * speed;
+  p.sink = 0;
+  p.inverted = left; // facing left, upright: the sim's convention (spawnAtAirfield)
+  p.rollAngle = left ? Math.PI : 0;
+  p.gear = 0;
+  p.gearDown = false;
+  p.throttle = throttle;
+  p.rpm = p.def.engine.cruiseRpm;
+  p.fresh = false;
+  p.engineRunning = true; // planes wait in the hangar with the engine off
+  p.hold = false;
+  p.park = null;
+  p.groundTurn = null; // left at the hangar head-on frame, it held the guns silent (no duel ever fired)
+  p.groundLoop = null;
+  p.exitPhase = null;
+  p.exitTo = null;
+  p.liftBlend = 0;
+  p.stalled = false;
+}
+
 // The bot trainer's air-only arena: the same map and airfields, but no ground war (no tank waves, no
 // troops) and no flak or MG nests, so only the planes decide a fight and a match runs much faster.
 const ARMED_GROUND = new Set(['flak', 'mgNest']);
@@ -84,7 +113,7 @@ function frontOf(world, home) {
 // onProgress(share 0..1) is called about once per game-second.
 // arena: the air-only arena (no ground war); tactics: bot tactics instead of content.tactics.
 // overrides: tuned plane numbers ({ planeId: { lever: multiplier } }, src/balance/levers.js), the auto-tuner's trials.
-export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, arena = false, tactics, overrides, onProgress } = {}) {
+export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, arena = false, airStart = null, tactics, overrides, onProgress } = {}) {
   if (overrides) content = { ...content, planeDefs: applyOverrides(content.planeDefs, overrides) };
   const world = buildWorld(content, { map, seed, arena, ...(tactics !== undefined && { tactics }) });
   for (const [team, defId] of [[0, a], [1, b]]) {
@@ -114,8 +143,27 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
   const ticks = Math.round(minutes * 60 * TICK_RATE);
   const every = Math.round(sample * TICK_RATE);
   const dt = 1 / TICK_RATE;
+  // Band start (airStart: a height, absolute world y): every plane starts in the air at that height over
+  // its own half, and again after each respawn, so the fights begin in that band (the height-band measure;
+  // the plain arena starts them on the runway, low, where the turn fighters rule). A plane that lands to
+  // be serviced takes off from the runway as usual.
+  const lastState = new Map();
+  const startInAir = (p) => {
+    const dir = Math.sign(middle - home[p.team]) || 1;
+    const i = p.bot?.index ?? 0;
+    const x = home[p.team] + (middle - home[p.team]) * 0.5 - dir * i * 60;
+    const y = Math.max(airStart + i * 20, world.terrain.heightAt(x) + 150);
+    launch(p, { x, y, angle: dir > 0 ? 0 : Math.PI, speed: p.def.maxSpeed * 0.75 });
+  };
   for (let t = 0; t <= ticks; t++) {
     if (t > 0) stepWorld(world, {});
+    if (airStart != null) {
+      for (const p of world.planes) {
+        const was = lastState.get(p.id);
+        if (p.state === 'ground' && was !== 'air' && was !== 'ground') startInAir(p);
+        lastState.set(p.id, p.state);
+      }
+    }
     if (t % every === 0) {
       const f = frontOf(world, home);
       front.push(Math.round((f.x - middle) * dir0 * 10) / 10);
@@ -213,5 +261,5 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
   const idOf = (def) => Object.keys(content.planeDefs).find((id) => content.planeDefs[id] === def) ?? null;
   // What each side ended up flying: a check that the bots stayed locked to their type.
   const flown = [0, 1].map((team) => [...new Set(world.planes.filter((p) => p.team === team && !p.wreck).map((p) => idOf(p.def)))]);
-  return { a, b, seed, minutes, perSide, skill, map, sample, arena, front, reached, destroyed, stats, flown };
+  return { a, b, seed, minutes, perSide, skill, map, sample, arena, airStart, front, reached, destroyed, stats, flown };
 }

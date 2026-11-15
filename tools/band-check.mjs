@@ -20,9 +20,12 @@ const bands = opt('--bands', 'runway,300,600,1000').split(',');
 const [s0, s1] = opt('--seeds', '101-130').split('-').map(Number);
 const threads = Number(opt('--threads', 8));
 const logFile = `${root}notes/band-check-${new Date().toISOString().slice(0, 10)}.txt`;
+// Every line starts with the local clock time (HH:MM:SS), so the owner can see when things happened.
+const clock = () => new Date().toLocaleTimeString('sv-SE');
+const stamp = (line) => line.replace(/^(\n*)/, `$1[${clock()}] `);
 const say = (line) => {
-  console.log(line);
-  appendFileSync(logFile, line + '\n');
+  console.log(stamp(line));
+  appendFileSync(logFile, stamp(line) + '\n');
 };
 
 say(`\nBand check ${new Date().toISOString().slice(0, 16)}: starts ${bands.join(', ')}, seeds ${s0}-${s1}, ${threads} threads.`);
@@ -40,7 +43,7 @@ for (const band of bands) {
       if (now - lastShown > 15000 || done === jobs.length) {
         lastShown = now;
         const s = (now - t0) / 1000;
-        console.log(`  start ${band}: ${done} of ${jobs.length} matches, ${Math.round(s / 60)} min, about ${Math.round(((jobs.length - done) * s) / done / 60)} min left`);
+        console.log(`[${clock()}]   start ${band}: ${done} of ${jobs.length} matches, ${Math.round(s / 60)} min, about ${Math.round(((jobs.length - done) * s) / done / 60)} min left`);
       }
     });
     return results;

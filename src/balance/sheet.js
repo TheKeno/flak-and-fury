@@ -2,7 +2,9 @@
 // sim (src/sim/plane.js) with a held command, so a later change to the flight model shows up here at
 // once. Flown at LOW (the ground war, full power) unless the number says High. The duel tool (src/balance/duel.js) names one of these numbers as the reason a duel's winner is
 // expected to win. Pure (no DOM, no Node APIs).
-import { buildWorld } from './runner.js';
+import { buildWorld, launch } from './runner.js';
+
+export { launch }; // (lives in runner.js: the band start puts arena planes in the air too)
 import { addPlane, TICK_RATE } from '../sim/world.js';
 import { stepPlane, stiffness, turnAuthority } from '../sim/plane.js';
 import { turnAt } from '../sim/air.js';
@@ -15,35 +17,6 @@ const DT = 1 / TICK_RATE;
 export const LOW = 300;
 export const HIGH = 1000;
 const NO_FIRE = { turn: 0, throttle: 1, roll: false, fire: false, bomb: false, gear: false, abandon: false, emergency: false, hangar: null };
-
-// Puts a plane into the air as the sim would have it (gear up, engine running, full throttle).
-export function launch(p, { x, y, angle, speed, throttle = 1 }) {
-  const left = Math.cos(angle) < 0;
-  p.state = 'air';
-  p.x = x;
-  p.y = y;
-  p.angle = angle;
-  p.speed = speed;
-  p.vx = Math.cos(angle) * speed;
-  p.vy = Math.sin(angle) * speed;
-  p.sink = 0;
-  p.inverted = left; // facing left, upright: the sim's convention (spawnAtAirfield)
-  p.rollAngle = left ? Math.PI : 0;
-  p.gear = 0;
-  p.gearDown = false;
-  p.throttle = throttle;
-  p.rpm = p.def.engine.cruiseRpm;
-  p.fresh = false;
-  p.engineRunning = true; // planes wait in the hangar with the engine off
-  p.hold = false;
-  p.park = null;
-  p.groundTurn = null; // left at the hangar head-on frame, it held the guns silent (no duel ever fired)
-  p.groundLoop = null;
-  p.exitPhase = null;
-  p.exitTo = null;
-  p.liftBlend = 0;
-  p.stalled = false;
-}
 
 // A lone plane in an empty sky, to fly with held commands.
 function testFlight(content, id) {

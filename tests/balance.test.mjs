@@ -52,6 +52,20 @@ test('a match keeps each side in its own plane type, samples the front and is th
   assert.deepEqual(runMatch(content, job), r);
 });
 
+test('a band start puts every plane in the air from the first tick; a respawn starts there again', () => {
+  const job = { a: 'p47d', b: 'spitfire', seed: 9101, perSide: 2, arena: true, sample: 30 };
+  // 10 s: from the runway the planes are still in the hangar or rolling; from the band all fly all the time.
+  const runway = runMatch(content, { ...job, minutes: 10 / 60 });
+  const band = runMatch(content, { ...job, minutes: 10 / 60, airStart: 1000 });
+  assert.equal(band.airStart, 1000);
+  for (const s of band.stats) assert.ok(s.airTime > 2 * 10 - 0.1, `air time ${s.airTime}`);
+  for (const s of runway.stats) assert.ok(s.airTime < 10);
+  // Longer: planes die and come back, and the side that lost them still flies most of the match.
+  const long = runMatch(content, { ...job, minutes: 3, airStart: 1000 });
+  assert.ok(long.stats.some((s) => s.deaths > 0), 'someone is shot down');
+  for (const s of long.stats) assert.ok(s.airTime > s.aliveTime * 0.8, 'respawns start in the air, not on the runway');
+});
+
 // A made-up run: a, b and c fly against each other; push(x, y) is how far x's side moves the front.
 function fakeRun(push, n = 8, wobble = 20) {
   const planes = ['a', 'b', 'c'];

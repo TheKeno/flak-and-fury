@@ -117,7 +117,7 @@ async function flyMany(state, sets, runJobs) {
       if (leverKey(ov[a])) overrides[a] = ov[a];
       if (leverKey(ov[b])) overrides[b] = ov[b];
       keys.push(key);
-      jobs.push({ a, b, seed: m.seed - 1 + seed, minutes: m.minutes, perSide: m.perSide, skill, map: m.map, sample: m.sample, arena: true, overrides });
+      jobs.push({ a, b, seed: m.seed - 1 + seed, minutes: m.minutes, perSide: m.perSide, skill, map: m.map, sample: m.sample, arena: true, ...(m.airStart != null && { airStart: m.airStart }), overrides });
     }
   }
   if (!jobs.length) return;
