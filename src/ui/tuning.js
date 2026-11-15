@@ -190,6 +190,7 @@ const FLIGHT_FIELDS = [
   ['thinGrip', 'Thin air: less grip', 0, 0.5, 0.01, 'Share of turn rate gone at the top height, for every plane.'],
   ['thinTop', 'Thin air: top height', 300, 2000, 10, 'Height where drag and grip are at their thinnest.'],
   ['turnPower', 'Thin air: turning needs power', 0, 1, 0.025, 'Above its rated height a plane’s turn rate falls by this share of the power it has lost (0.375: 60% power keeps 85% of the turn). Nothing changes under the rated height.'],
+  ['slowPower', 'Thin air: slow turns need power', 0, 1, 0.025, 'Above its rated height a plane’s slow-turn bonus (the tight turn near the stall) falls by this share of the power it has lost (1: 64% power keeps 64% of the bonus). Nothing changes under the rated height.'],
   ['stallRise', 'Thin air: stall speed rise', 0, 0.4, 0.01, 'Share stall speed rises by at the top height, for every plane (straight line from the ground up); the slow-turn band moves up with it.'],
   ['propFall', 'Propeller: pull falls with speed', 0, 1.5, 0.05, 'How a propeller’s pull falls as speed rises: 0 the same at every speed, 1 power over speed (real). A plane’s thrust is its pull at the speed below. Climb comes from power, the dive almost only from drag.'],
   ['propSpeed', 'Propeller: reference speed', 40, 250, 5, 'Speed (units/s) at which a plane’s pull equals its thrust.'],

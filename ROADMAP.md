@@ -33,6 +33,16 @@ later.
   degrees a second to the P-47's 68), not where the fight happens. So bot rules can't make the band; the edge
   in a band has to come from the planes' own numbers (step 2), or from the game side. Details:
   `notes/boom-and-zoom-diagnosis.md`, "A hold-height rule". The next step is the owner's call.
+  **Step 2 (2026-11-15, kept): thin air hits turning harder above the rated height** (`settings.flight`
+  `turnPower` 0.375 → 0.8, new `slowPower` 1: the slow-turn bonus fades with the power lost). Turn sheet at
+  1000, slow turn: Zero 143 → 95 deg/s, Ki-43 131 → 81, Spitfire 88 → 63, P-38 82 and P-47 68 unchanged; nothing
+  changes at 300. In the arena it barely moves (P-47 35.5 → 37.1%, P-38 45.5 → 48.1% from a 1000 start), since
+  the fights still fall low. **A fight forced high** (tools-only `airOffset`: the thin air reads every height
+  that much higher, so a fight that falls still flies high), against the Spitfire on seeds 101-160: **P-47 30.8%
+  → 55.0%** at about 1000 (45.7% with the old thin air), **Bf 109 35.8 → 41.6% (about 600) → 46.2% (about
+  1000)**. So the plane numbers already give the P-47 its band; what is missing is fights that stay high (step
+  3). The Bf 109 still loses its own band to the Spitfire LF (rated 600 against 450); a possible touch: rated
+  height about 700 (DB 605 against Merlin 66). Numbers: `notes/band-check-2026-11-15.txt`.
 
 - **Dive planes climb to their band before fighting (decided 2026-11-14, discussion; tried 2026-11-15 and not
   kept, see the result at the end):** after the
@@ -1086,6 +1096,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Bf 109 mid-band touch (Planes):** fought high the Bf 109 still loses to the Spitfire LF (46% at about 1000, 42% at about 600; "Balance by height band", step 2); try `ratedHeight` 600 → about 700 (DB 605 rated well above the Merlin 66) and re-measure with `airOffset`. Best after the fights stay high ("Pull fights up").
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
 - **Keyboard control of the menus (UI):** move through and pick every menu entry (title, setup, options, pause) with the arrow keys, Enter and Esc, no mouse needed.
 - **Zero sprites: the Ki-43's are a placeholder (Planes):** the A6M Zero replaces the Ki-43 in the fighter roster (Decisions, step 4, "Changed 2026-11-12 evening") and flies with the Ki-43's sprites until it gets its own: owner finds a 3-view, outline in the Outline Lab, owner approves the shape, then sprites and frames (`tools/make-sprites.mjs`). History rules the looks: the placeholder must go before release.

@@ -28,5 +28,7 @@ export function loadContent(maps = ['countryside']) {
   const tac = process.env.FF_TACTICS ? JSON.parse(process.env.FF_TACTICS) : null;
   if (tac) content.tactics = { ...content.tactics, planes: Object.fromEntries(Object.entries({ ...content.tactics?.planes, ...tac })
     .map(([id, v]) => [id, { ...content.tactics?.planes?.[id], ...v }])) };
+  // FF_FLIGHT: { key: value } over settings.flight (thin air, src/sim/air.js), for trying flight rules in the tools.
+  if (process.env.FF_FLIGHT) content.settings = { ...content.settings, flight: { ...content.settings.flight, ...JSON.parse(process.env.FF_FLIGHT) } };
   return content;
 }

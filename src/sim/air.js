@@ -7,8 +7,10 @@
 // ceiling. The air itself thins for everyone: drag and the wings' grip (turn rate) fall off a little
 // with height, by thinDrag and thinGrip at thinTop (straight line from the ground up, no more above it).
 // Turning needs power: above its rated height a plane's turn rate falls with its power too, by turnPower
-// of the power lost (0.375: 60% power keeps 85% of the turn), so a high, slow, short-of-breath plane no
-// longer out-turns everyone on the slow-turn bonus. Stall speed rises with height for every plane, by
+// of the power lost (0.8 in the data: 64% power keeps 71% of the turn), so a high, slow, short-of-breath plane no
+// longer out-turns everyone on the slow-turn bonus. The slow-turn bonus (the tight turn near the stall)
+// fades the same way, by slowPower of the power lost: a turn fighter high above its engine's band can't
+// hang on its prop at the edge of the stall (height bands, 2026-11-15). Stall speed rises with height for every plane, by
 // stallRise at thinTop (the slow-turn band, slowTurnSpeed, moves up with it; see flyingDef).
 //
 // Propeller thrust falls with speed (fighter design pass, 2026-11-12). An engine gives power, and a
@@ -32,10 +34,12 @@ export const DEFAULT_FLIGHT = {
   thinGrip: 0.1, // share of turn rate gone at thinTop
   thinTop: 1200, // height (absolute y) where the air is thinnest for drag and grip
   turnPower: 0.375, // share of the power lost above the rated height that the turn rate loses too
+  slowPower: 0, // share of the power lost above the rated height that the slow-turn bonus loses
   stallRise: 0.12, // share stall speed (and slowTurnSpeed) rise by at thinTop
   propFall: 1, // how propeller thrust falls with speed: 0 constant, 1 power over speed
   propSpeed: 120, // speed (units/s) at which a plane's pull is its thrust
   propStatic: 1.6, // the most a slow plane's pull rises to, times its thrust
+  airOffset: 0, // tools only: added to every height the thin air reads, to try a fight high up
   negG: false, // the negative-g cutout on or off for every plane
   negGLimit: 1.5, // g of push (turn rate x speed / gravity, nose towards the belly) that starves a carburettor
   negGHold: 0.12, // seconds of such a push before it cuts out (a tap to aim doesn't)
@@ -50,8 +54,9 @@ export const cutsOut = (world, def) => !!cfgOf(world).negG && !!def.negGCutout;
 // Engine power share at height y (1 at or under the rated height). No ratedHeight: never fades.
 export function powerAt(world, def, y) {
   const rated = def.ratedHeight;
-  if (rated == null || y <= rated) return 1;
-  return 1 / (1 + (y - rated) / cfgOf(world).fadeSpan);
+  const h = y + (cfgOf(world).airOffset ?? 0);
+  if (rated == null || h <= rated) return 1;
+  return 1 / (1 + (h - rated) / cfgOf(world).fadeSpan);
 }
 
 // The propeller's pull at speed v, as a share of the plane's thrust.
@@ -71,13 +76,18 @@ export function levelTop(flight, thrust, dragCoef) {
 }
 
 // How thin the air is at y, 0 (ground) .. 1 (thinTop), for drag and grip.
-const thinness = (cfg, y) => Math.min(1, Math.max(0, y / cfg.thinTop));
+const thinness = (cfg, y) => Math.min(1, Math.max(0, (y + (cfg.airOffset ?? 0)) / cfg.thinTop));
 export const dragAt = (world, y) => 1 - cfgOf(world).thinDrag * thinness(cfgOf(world), y);
 export const gripAt = (world, y) => 1 - cfgOf(world).thinGrip * thinness(cfgOf(world), y);
 // Turn rate share at y from the air and the engine: thin-air grip times the power the turn needs.
 export function turnAt(world, def, y) {
   const k = cfgOf(world).turnPower ?? 0;
   return gripAt(world, y) * (1 - k * (1 - powerAt(world, def, y)));
+}
+// Share of the slow-turn bonus left at y: falls with the power lost above the rated height.
+export function slowBonusAt(world, def, y) {
+  const k = cfgOf(world).slowPower ?? 0;
+  return 1 - k * (1 - powerAt(world, def, y));
 }
 // Stall speed (and the slow-turn band) factor at y.
 export const stallAt = (world, y) => 1 + (cfgOf(world).stallRise ?? 0) * thinness(cfgOf(world), y);

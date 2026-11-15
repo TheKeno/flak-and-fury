@@ -172,8 +172,12 @@ then the wear rates scale by `heatTime` / the plane's heat time, so a full heat 
 `ratedHeight` its power fades to 1 / (1 + over / `fadeSpan`) (800: a third less 400 units higher, half at
 800). For every plane drag falls by `thinDrag` (0.15) and the turn rate by `thinGrip` (0.1) from the ground
 up to `thinTop` (1200). **Turning needs power:** above its rated height a plane's turn rate also falls by
-`turnPower` (0.375) of the power it has lost (60% power keeps 85% of the turn; nothing under the rated
-height). **Stall speed rises with height:** by `stallRise` (0.12) at `thinTop`, straight from the ground up,
+`turnPower` (0.8; 0.375 until 2026-11-15) of the power it has lost (64% power keeps 71% of the turn; nothing
+under the rated height), and its slow-turn bonus by `slowPower` (1) of it (64% power keeps 64% of the bonus).
+Both are the height-band edge (ROADMAP, "Balance by height band", step 2): a turn fighter high above its
+engine's band can't out-turn the turbocharged P-47 and P-38 there. `airOffset` (0) is for the tools only
+(`FF_FLIGHT='{"airOffset":700}'`): it adds that height to every height the thin air reads, to try a fight
+high up. **Stall speed rises with height:** by `stallRise` (0.12) at `thinTop`, straight from the ground up,
 for every plane; its `slowTurnSpeed` moves up with it (`flyingDef`). **Propeller thrust falls with speed**
 (fighter design pass, 2026-11-12): a plane's pull is `thrust` × (`propSpeed` / speed)^`propFall`, levelled off at
 `propStatic` × `thrust` when slow (120, 1, 1.6). So climb comes from power, top speed from power against drag,

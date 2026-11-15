@@ -4,7 +4,7 @@ import { GRAVITY, attitude, isUpright } from './plane.js';
 import { bulletHitsGround, bombStrikesGround, blastGround } from './ground.js';
 import { ignite, fireHit, stepFire } from './fire.js';
 import { digCrater } from './runway.js';
-import { stallAt } from './air.js';
+import { stallAt, slowBonusAt } from './air.js';
 
 const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
@@ -238,6 +238,7 @@ export function flyingDef(p, world) {
     thrust: d.thrust * (1 - w.thrust * f),
     stallSpeed: d.stallSpeed * (1 + w.stall * f) * h,
     slowTurnSpeed: d.slowTurnSpeed * h,
+    slowTurnBonus: d.slowTurnBonus * (p.state === 'air' ? slowBonusAt(world, d, p.y) : 1),
     takeoffSpeed: d.takeoffSpeed * (1 + w.takeoff * f),
     turnRate: d.turnRate * (1 - w.turn * f),
     dragCoef: d.dragCoef * (1 + drag),

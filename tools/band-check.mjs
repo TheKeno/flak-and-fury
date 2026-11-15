@@ -28,7 +28,9 @@ const say = (line) => {
   appendFileSync(logFile, stamp(line) + '\n');
 };
 
-say(`\nBand check ${new Date().toISOString().slice(0, 16)}: starts ${bands.join(', ')}, seeds ${s0}-${s1}, ${threads} threads.`);
+say(`\nBand check ${new Date().toISOString().slice(0, 16)}: starts ${bands.join(', ')}, seeds ${s0}-${s1}, ${threads} threads.`
+  + (opt('--planes', null) ? ` Planes ${planes.join(', ')}.` : '')
+  + ['FF_FLIGHT', 'FF_TACTICS', 'FF_PLANES'].filter((k) => process.env[k]).map((k) => ` ${k}=${process.env[k]}`).join(''));
 for (const band of bands) {
   const t0 = Date.now();
   const airStart = band === 'runway' ? null : Number(band);

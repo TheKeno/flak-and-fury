@@ -61,3 +61,154 @@ Findings (Claude, 2026-11-15):
   turn fighters out-turn it at every height (slow turn at 1000: Zero 143, B-239 100, La-5FN 98, Spitfire 88,
   P-47 68 deg/s). The bots turn-fight, the fight spirals down, and it ends low where turning rules.
 So a band only counts if the fight stays in it; today nothing keeps it there.
+
+[13:06:02] Band check 2026-11-15T12:06: starts runway, 300, 600, 1000, seeds 101-130, 8 threads.
+
+[13:13:31] == start runway (449 s)
+[13:13:31] bf109g6 42.4% ±0.6, p47d 34.3% ±0.5, p38j 45.5% ±0.6, spitfire 60.0% ±0.6, la5fn 55.5% ±0.6, a6m5 57.7% ±0.6, b239 54.7% ±0.6
+[13:13:31] row against column (exchange share of the row plane):
+[13:13:31]             bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+[13:13:31] bf109g6                  59%      48%      35%      38%      37%      38%
+[13:13:31] p47d            41%               39%      27%      33%      30%      36%
+[13:13:31] p38j            52%      61%               36%      40%      43%      42%
+[13:13:31] spitfire        65%      73%      64%               52%      50%      56%
+[13:13:31] la5fn           63%      67%      60%      48%               47%      48%
+[13:13:31] a6m5            63%      70%      57%      50%      53%               53%
+[13:13:31] b239            62%      64%      58%      44%      52%      48%         
+
+[13:24:55] == start 300 (684 s)
+[13:24:55] bf109g6 43.1% ±0.5, p47d 35.1% ±0.4, p38j 47.3% ±0.5, spitfire 58.5% ±0.5, la5fn 55.1% ±0.6, a6m5 56.3% ±0.5, b239 54.5% ±0.5
+[13:24:55] row against column (exchange share of the row plane):
+[13:24:55]             bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+[13:24:55] bf109g6                  59%      48%      36%      38%      39%      40%
+[13:24:55] p47d            41%               39%      31%      31%      33%      35%
+[13:24:55] p38j            52%      61%               39%      43%      45%      45%
+[13:24:55] spitfire        64%      69%      62%               52%      52%      53%
+[13:24:55] la5fn           63%      69%      57%      48%               47%      47%
+[13:24:55] a6m5            62%      67%      55%      48%      53%               53%
+[13:24:55] b239            60%      65%      55%      47%      53%      47%         
+
+[13:35:52] == start 600 (657 s)
+[13:35:52] bf109g6 44.2% ±0.5, p47d 35.6% ±0.4, p38j 47.6% ±0.5, spitfire 59.1% ±0.5, la5fn 54.8% ±0.5, a6m5 56.1% ±0.5, b239 52.5% ±0.5
+[13:35:52] row against column (exchange share of the row plane):
+[13:35:52]             bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+[13:35:52] bf109g6                  59%      48%      38%      38%      41%      41%
+[13:35:52] p47d            41%               41%      30%      34%      32%      37%
+[13:35:52] p38j            52%      59%               40%      43%      45%      47%
+[13:35:52] spitfire        62%      70%      60%               54%      53%      56%
+[13:35:52] la5fn           62%      66%      57%      46%               48%      49%
+[13:35:52] a6m5            59%      69%      55%      47%      52%               55%
+[13:35:52] b239            59%      63%      53%      44%      51%      45%         
+
+[13:46:48] == start 1000 (656 s)
+[13:46:48] bf109g6 43.5% ±0.5, p47d 37.1% ±0.4, p38j 48.1% ±0.5, spitfire 58.6% ±0.5, la5fn 54.2% ±0.6, a6m5 55.3% ±0.5, b239 53.2% ±0.5
+[13:46:48] row against column (exchange share of the row plane):
+[13:46:48]             bf109g6     p47d     p38j spitfire    la5fn     a6m5     b239
+[13:46:48] bf109g6                  59%      45%      38%      37%      42%      40%
+[13:46:48] p47d            42%               44%      32%      33%      35%      38%
+[13:46:48] p38j            55%      57%               40%      45%      47%      46%
+[13:46:48] spitfire        62%      69%      60%               55%      51%      55%
+[13:46:48] la5fn           63%      67%      56%      45%               47%      48%
+[13:46:48] a6m5            58%      65%      53%      49%      54%               53%
+[13:46:48] b239            60%      62%      54%      45%      52%      47%         
+
+[13:46:48] Band check done.
+
+Findings (Claude, 2026-11-15, step 2, the run above): thin air hits turning harder above the rated height
+(settings.flight turnPower 0.375 -> 0.8, new slowPower 1: the slow-turn bonus fades with the power lost).
+On paper at 1000 the Zero's slow turn falls 143 -> 95 deg/s, Spitfire 88 -> 63, Ki-43 131 -> 81, P-47 68 and
+P-38 82 unchanged; nothing changes at 300. In the arena it barely moves (against the step 1 run):
+P-47 runway / 300 / 600 / 1000: 34.3 / 35.1 / 35.6 / 37.1% (was 33.6 / 35.2 / 35.4 / 35.5),
+P-38 45.5 / 47.3 / 47.6 / 48.1% (was 44.6 / 45.3 / 46.5 / 45.5), Bf 109 42.4 / 43.1 / 44.2 / 43.5% (was
+41.5 / 42.8 / 43.0 / 42.5). The 1000 start gains the most (P-47 +1.6, P-38 +2.6 points), still far from 55%.
+The fights still fall to where the planes are unchanged, so the plane numbers up high hardly count.
+
+[13:52:14] Band check 2026-11-15T12:52: starts 300, seeds 101-160, 8 threads. Planes bf109g6, spitfire. FF_FLIGHT={"airOffset":300} 
+
+[13:53:20] == start 300 (65 s)
+[13:53:20] bf109g6 41.6% ±0.6, spitfire 58.4% ±0.6
+[13:53:20] row against column (exchange share of the row plane):
+[13:53:20]             bf109g6 spitfire
+[13:53:20] bf109g6                  42%
+[13:53:20] spitfire        58%         
+
+[13:53:20] Band check done.
+
+[13:53:20] Band check 2026-11-15T12:53: starts 300, seeds 101-160, 8 threads. Planes bf109g6, spitfire. FF_FLIGHT={"airOffset":700} 
+
+[13:54:14] == start 300 (54 s)
+[13:54:14] bf109g6 46.2% ±0.7, spitfire 53.8% ±0.7
+[13:54:14] row against column (exchange share of the row plane):
+[13:54:14]             bf109g6 spitfire
+[13:54:14] bf109g6                  46%
+[13:54:14] spitfire        54%         
+
+[13:54:14] Band check done.
+
+[13:54:36] Band check 2026-11-15T12:54: starts 300, seeds 101-160, 8 threads. Planes bf109g6, spitfire.
+
+[13:55:44] == start 300 (68 s)
+[13:55:44] bf109g6 35.8% ±0.6, spitfire 64.2% ±0.6
+[13:55:44] row against column (exchange share of the row plane):
+[13:55:44]             bf109g6 spitfire
+[13:55:44] bf109g6                  36%
+[13:55:44] spitfire        64%         
+
+[13:55:44] Band check done.
+
+[13:55:44] Band check 2026-11-15T12:55: starts 300, seeds 101-160, 8 threads. Planes p47d, spitfire.
+
+[13:56:46] == start 300 (62 s)
+[13:56:46] p47d 30.8% ±0.5, spitfire 69.2% ±0.5
+[13:56:46] row against column (exchange share of the row plane):
+[13:56:46]                p47d spitfire
+[13:56:46] p47d                     31%
+[13:56:46] spitfire        69%         
+
+[13:56:46] Band check done.
+
+[13:56:46] Band check 2026-11-15T12:56: starts 300, seeds 101-160, 8 threads. Planes p47d, spitfire. FF_FLIGHT={"airOffset":700}
+
+[13:57:39] == start 300 (53 s)
+[13:57:39] p47d 55.0% ±0.7, spitfire 45.0% ±0.7
+[13:57:39] row against column (exchange share of the row plane):
+[13:57:39]                p47d spitfire
+[13:57:39] p47d                     55%
+[13:57:39] spitfire        45%         
+
+[13:57:39] Band check done.
+
+[13:57:46] Band check 2026-11-15T12:57: starts 300, seeds 101-160, 8 threads. Planes p47d, spitfire. FF_FLIGHT={"airOffset":700,"turnPower":0.375,"slowPower":0}
+
+[13:58:41] == start 300 (55 s)
+[13:58:41] p47d 45.7% ±0.6, spitfire 54.3% ±0.6
+[13:58:41] row against column (exchange share of the row plane):
+[13:58:41]                p47d spitfire
+[13:58:41] p47d                     46%
+[13:58:41] spitfire        54%         
+
+[13:58:41] Band check done.
+
+[13:58:41] Band check 2026-11-15T12:58: starts 300, seeds 101-160, 8 threads. Planes bf109g6, spitfire. FF_FLIGHT={"airOffset":700,"turnPower":0.375,"slowPower":0}
+
+[13:59:37] == start 300 (56 s)
+[13:59:37] bf109g6 42.2% ±0.7, spitfire 57.8% ±0.7
+[13:59:37] row against column (exchange share of the row plane):
+[13:59:37]             bf109g6 spitfire
+[13:59:37] bf109g6                  42%
+[13:59:37] spitfire        58%         
+
+[13:59:37] Band check done.
+
+Findings (Claude, 2026-11-15): a fight forced high. airOffset (settings.flight, tools only, via FF_FLIGHT) adds
+a height to every plane's altitude for the thin air (power, grip, drag, stall), so a fight that falls to the
+ground still flies as if it were that much higher. Start 300, seeds 101-160, exchange share against the Spitfire:
+
+                         no offset (~300)   +300 (~600)   +700 (~1000)   +700, old thin air (turnPower 0.375, slowPower 0)
+  Bf 109 v Spitfire          35.8%            41.6%          46.2%          42.2%
+  P-47 v Spitfire            30.8%              -            55.0%          45.7%
+
+Fought high, the planes' own numbers already give the P-47 its band (55%, the target), and the new thin-air
+rule is about 9 points of that. The Bf 109 gains (36 -> 46%) but still loses its own band to the Spitfire LF:
+its rated height (600) is barely above the Spitfire's (450). So the plane numbers work; what's missing is
+fights that stay high (step 3, the game side).
