@@ -45,10 +45,11 @@ function fpsNow() {
 // Height gauge beside ALT: the plane's height from the bottom of the map to the ceiling (the height thin
 // air reads; ALT itself is above the ground), with a tick at the main fighter's designated band height
 // (`band` in data/planes.json), or for other planes where it is strongest (thin air and per-band values,
-// src/sim/air.js). The fill is muted green there and blends to orange the further from it: full orange at
+// src/sim/air.js). The fill is green there and blends to orange the further from it: full orange at
 // the ground below it, the ceiling above it (owner, 2026-11-15).
-const BEST_RGB = [110, 143, 82];
-const WORST_RGB = [194, 122, 58];
+// The HULL meter's green and warning orange, so the two bars read alike.
+const BEST_RGB = [120, 184, 104]; // #78b868
+const WORST_RGB = [224, 160, 64]; // #e0a040
 function altGauge(ctx, x, y, w, world, plane) {
   const top = world.map.ceiling;
   const k = Math.min(1, Math.max(0, plane.y / top));
