@@ -181,3 +181,19 @@ those turn fights (P-47 79 of 134, Bf 109 101 of 152), a fifth from dives. 10 s 
 turn-fighting (P-47 136 of 314, Bf 109 89 of 267) or running out (`extend`, 77 and 66); the killer was behind
 them in about 85% and the plane they had been fighting in about 90%. So in the arena the boom role plays the
 turn fighters' game, where by design it loses: the climb only made it arrive later to the same turn fight.
+
+## Height bands for every fighter (2026-11-15, the owner's idea, test only)
+
+Idea: no forced styles; every fighter works from its own height band (its `ratedHeight`: B-239 300, La-5FN and
+Ki-43 350, Spitfire 450, A6M5 550, Bf 109 600, P-38 1000, P-47 1050), climbs there before each fight and goes
+back after, and fights as it likes. Tested with two temporary switches (not committed): patrol at the band
+instead of `cruiseHeight`, and the band climb of `chaseWant` for every style (`bandClimb` 1, at least 60 over).
+Patrol height alone changes nothing: in the arena a bot is patrolling about 1% of its air time.
+
+Arena, seeds 101-140 (normal), today → bands: Bf 109 40.1 → 40.7%, **P-47 32.2 → 21.8%**, Spitfire 58.8 →
+60.5%, La-5FN 56.6 → 60.7%, A6M5 56.1 → 55.0%, B-239 56.2 → 61.4%. The fights still happen low: of the P-47's
+deaths (3 seeds against the four others) 177 of 309 under 300 and 123 at 300-600, only 9 above 600; its kills
+fell 134 → 51. The low planes have no reason to come up, so the P-47 spends its time climbing to 1050 and
+then dives into the same low fight. The Bf 109's band is barely above the Zero's (600 against 550), so for it
+the bands change nothing. Bands need something that brings the fight up to them (high bombers, escorts, a
+high start in the arena); on their own they hurt the P-47.

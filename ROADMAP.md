@@ -41,6 +41,11 @@ later.
   diving 8-10%), two-thirds of their kills and most of their deaths come from those turn fights. Next is the
   owner's call: try forcing `style` 1 (pure boom and zoom, never turns; it lost before the 2026-11-13 dive fix,
   not tried since), option 3 (historical strengths), or the arena measure check.
+  **Owner's idea tested the same day: a height band for every fighter** (no forced styles; each climbs to its
+  `ratedHeight` before a fight and patrols there, fights as it likes). Arena: P-47 32% → 22%, Bf 109 40% → 41%,
+  the rest about the same. The fights stay low (low planes have no reason to climb), so the P-47 only loses
+  time climbing; the Bf 109's band is barely above the Zero's (600 against 550). Bands need something that
+  pulls fights up to them. Details: `notes/boom-and-zoom-diagnosis.md`. Code unchanged.
 
 - **Plane roles and balancing plan (decided 2026-11-09, discussion; step 2 built 2026-11-09, see Done):** after the first bot training showed
   turn rate still decides every fight. **The rule:** a plane that does more on the ground is weaker in the air (shot down
