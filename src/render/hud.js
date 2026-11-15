@@ -3,7 +3,7 @@ import { ownAirfieldAt, serviceProgress } from '../sim/airfield.js';
 import { bombsLeft } from '../sim/weapons.js';
 import { hangarHealth } from '../sim/ground.js';
 import { approach, recoveryTime } from '../sim/plane.js';
-import { bestHeight, strengthAt } from '../sim/air.js';
+import { strengthRange } from '../sim/air.js';
 
 const APPROACH_ALT = 80; // landing cues show below this height, gear down and descending
 const CUE = { ok: '#80d070', hard: '#e0b040', bad: '#d06050' };
@@ -44,14 +44,17 @@ function fpsNow() {
 
 // Height gauge beside ALT: the plane's height from the bottom of the map to the ceiling (the height thin
 // air reads; ALT itself is above the ground), with a tick where the plane is strongest (thin air and its
-// per-band values, src/sim/air.js). The fill turns amber where it is clearly weaker: under 92% of that.
-const WEAK = 0.92;
+// per-band values, src/sim/air.js). The fill is muted green over the plane's strongest stretch and blends
+// to orange the furthest from it: the ground below it, the ceiling above it (owner, 2026-11-15).
+const BEST_RGB = [110, 143, 82];
+const WORST_RGB = [194, 122, 58];
 function altGauge(ctx, x, y, w, world, plane) {
   const top = world.map.ceiling;
   const k = Math.min(1, Math.max(0, plane.y / top));
-  const rated = bestHeight(world, plane.def, top);
-  const high = strengthAt(world, plane.def, plane.y) < strengthAt(world, plane.def, rated) * WEAK;
-  bar(ctx, x, y, w, k, high ? '#d0a050' : '#8c9480');
+  const { best: rated, low } = strengthRange(world, plane.def, top);
+  const t = plane.y < low ? (low - plane.y) / low : plane.y > rated ? Math.min(1, (plane.y - rated) / (top - rated)) : 0;
+  const rgb = BEST_RGB.map((c, i) => Math.round(c + (WORST_RGB[i] - c) * t));
+  bar(ctx, x, y, w, k, `rgb(${rgb.join(',')})`);
   if (rated != null && rated < top) {
     ctx.fillStyle = '#e8e0c0';
     ctx.fillRect(x + 0.8 + Math.round(w * (rated / top)), y - 1, 1, 5);

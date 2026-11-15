@@ -136,16 +136,28 @@ export const strengthAt = (world, def, y) => powerAt(world, def, y) * bandAt(wor
 // The height (absolute y, 25 a step, up to top) where the plane is strongest, for the HUD: the top of a
 // flat stretch (a plane with full power up to its rated height is best right there). Cached per plane
 // and flight settings object (the tuning panel edits them in place, so a slider change shows on the next match).
+// strengthRange also gives the strongest and weakest values up to top (the HUD's colour scale).
 const bestCache = new WeakMap();
-export function bestHeight(world, def, top) {
+export function strengthRange(world, def, top) {
   const key = cfgOf(world);
   let m = bestCache.get(key);
   if (!m) bestCache.set(key, (m = new WeakMap()));
-  let best = m.get(def);
-  if (best == null) {
-    best = 0;
-    for (let y = 0; y <= top; y += 25) if (strengthAt(world, def, y) >= strengthAt(world, def, best) - 1e-9) best = y;
-    m.set(def, best);
+  let r = m.get(def);
+  if (!r || r.top !== top) {
+    // best: the top of the strongest stretch, low: its bottom (a plane with full power from the ground up
+    // to its rated height is at its best all the way).
+    r = { top, best: 0, low: 0, max: -Infinity, min: Infinity };
+    for (let y = 0; y <= top; y += 25) {
+      const s = strengthAt(world, def, y);
+      if (s > r.max + 1e-9) r.low = y;
+      if (s >= r.max - 1e-9) {
+        r.best = y;
+        r.max = Math.max(r.max, s);
+      }
+      r.min = Math.min(r.min, s);
+    }
+    m.set(def, r);
   }
-  return best;
+  return r;
 }
+export const bestHeight = (world, def, top) => strengthRange(world, def, top).best;
