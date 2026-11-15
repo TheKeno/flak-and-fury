@@ -64,6 +64,8 @@ test('the height bands: low-rated planes low, the Spitfire LF middle, the Bf 109
   for (const id of ['spitfire', 'a6m5']) assert.ok(P[id].ratedHeight > 350 && P[id].ratedHeight <= 700, id);
   for (const id of ['p47d', 'p38j', 'bf109g6']) assert.ok(P[id].ratedHeight > 700, id);
   assert.ok(P.spitfire.ratedHeight < P.bf109g6.ratedHeight, 'the LF is rated lower than the 109');
+  const band = Object.fromEntries(Object.entries(P).filter(([, d]) => d.band).map(([id, d]) => [id, d.band]));
+  assert.deepEqual(band, { bf109g6: 'high', spitfire: 'mid', p47d: 'high', la5fn: 'low', a6m5: 'mid', b239: 'low' });
   assert.match(P.spitfire.name, /LF Mk IX/);
 });
 

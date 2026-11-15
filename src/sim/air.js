@@ -161,3 +161,10 @@ export function strengthRange(world, def, top) {
   return r;
 }
 export const bestHeight = (world, def, top) => strengthRange(world, def, top).best;
+// A main fighter's designated band ('low', 'mid', 'high'; decision "Main fighters tuned per band") as its
+// height in bandHeights; null for a plane without one.
+export const BAND_NAMES = ['low', 'mid', 'high'];
+export function homeHeight(world, def) {
+  const i = BAND_NAMES.indexOf(def.band);
+  return i < 0 ? null : (cfgOf(world).bandHeights ?? DEFAULT_FLIGHT.bandHeights)[i];
+}
