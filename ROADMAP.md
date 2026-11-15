@@ -47,6 +47,9 @@ later.
   now even with the mid planes low (49-50%, need 55); mid short only against the Bf 109 (Spitfire 54%, Zero 50%);
   high on target; P-47 low 31-34% (floor 35). **Next:** the owner test-flies the shapes for feel, then the tuner
   (stage 3) is taught the per-band targets and levers (`bands` values, one band at a time) and closes the gaps.
+  **Owner test flight (2026-11-15, Bf 109 and Zero):** "really fun to play"; no change in the plane's own feel
+  noticed between bands in a busy fight, and that is how it should be. So the band edges stay gradual and
+  unnoticed in play; the tuner may move the `bands` values within the ±25% limit without a feel check each time.
   Why: one set of numbers can't win in one band without winning in all (a better turn helps everywhere); per-band
   stats make three separate balancings. Fought high, the P-47 already beats the Spitfire 55% (step 2 of the
   decision below), so the plane side works once the fight stays up.
