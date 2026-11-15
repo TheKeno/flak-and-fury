@@ -9,3 +9,4 @@ Thumbs.db
 .blueprints-path
 balance/results/train-bots-checkpoint.json
 balance/results/tune-checkpoint.json
+balance/results/tune-bands-checkpoint.json

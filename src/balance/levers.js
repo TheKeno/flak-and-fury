@@ -34,6 +34,20 @@ const ROUND = { dragCoef: 6, turnRate: 3, slowTurnBonus: 3, turnBleed: 4, engine
 const roundTo = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
 export const roundField = (key, v) => roundTo(v, ROUND[key] ?? 0);
 
+// Per-band levers (the per-band tuner, src/balance/band-tuner.js): 'power.low', 'turn.high' and so on set one of
+// a plane's `bands` values (src/sim/air.js bandAt) to an absolute value, not a multiplier. A plane without
+// `bands` reads 1 in every band.
+export const BAND_NAMES = ['low', 'mid', 'high'];
+const BAND_KEY = /^(power|turn)\.(low|mid|high)$/;
+export const isBandKey = (key) => BAND_KEY.test(key);
+export function bandValues(def, stat) {
+  return def.bands?.[stat] ? [...def.bands[stat]] : [1, 1, 1];
+}
+export function bandValue(def, key) {
+  const [, stat, band] = key.match(BAND_KEY);
+  return bandValues(def, stat)[BAND_NAMES.indexOf(band)];
+}
+
 // A plane's absolute value for a lever at a multiplier (ammo: one value per gun mount).
 export function leverValue(def, key, mult) {
   if (key === 'ammo') return (def.armament?.guns ?? []).map((g) => Math.round((g.ammo ?? 0) * mult));
@@ -45,6 +59,13 @@ export function tunedDef(def, mults) {
   if (!mults || !Object.keys(mults).length) return def;
   const d = { ...def };
   for (const [key, mult] of Object.entries(mults)) {
+    if (isBandKey(key)) {
+      const [stat, band] = key.split('.');
+      const v = bandValues(d, stat);
+      v[BAND_NAMES.indexOf(band)] = mult;
+      d.bands = { ...d.bands, [stat]: v };
+      continue;
+    }
     if (mult === 1 || !LEVER[key]) continue;
     if (key === 'ammo') {
       const ammo = leverValue(def, 'ammo', mult);
@@ -66,16 +87,21 @@ export function applyOverrides(planeDefs, overrides) {
 // A stable text key of one plane's multipliers (the tuner's match cache), '' when untouched.
 export function leverKey(mults) {
   if (!mults) return '';
-  return Object.keys(mults).filter((k) => mults[k] !== 1).sort().map((k) => `${k}${mults[k]}`).join(',');
+  return Object.keys(mults).filter((k) => isBandKey(k) || mults[k] !== 1).sort().map((k) => `${k}${mults[k]}`).join(',');
 }
 
-// The changes as absolute values, for the report and Apply: [{ plane, key, mult, from, to }].
+// The changes as absolute values, for the report and Apply: [{ plane, key, mult, from, to }] (a band
+// value: mult null, from and to the band values).
 export function changesOf(planeDefs, overrides) {
   const out = [];
   for (const [plane, mults] of Object.entries(overrides ?? {})) {
     for (const [key, mult] of Object.entries(mults)) {
-      if (mult === 1) continue;
       const def = planeDefs[plane];
+      if (isBandKey(key)) {
+        if (mult !== bandValue(def, key)) out.push({ plane, key, mult: null, from: bandValue(def, key), to: mult });
+        continue;
+      }
+      if (mult === 1) continue;
       out.push({ plane, key, mult, from: key === 'ammo' ? leverValue(def, 'ammo', 1) : def[key], to: leverValue(def, key, mult) });
     }
   }

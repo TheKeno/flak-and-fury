@@ -115,8 +115,11 @@ function frontOf(world, home) {
 // onProgress(share 0..1) is called about once per game-second.
 // arena: the air-only arena (no ground war); tactics: bot tactics instead of content.tactics.
 // overrides: tuned plane numbers ({ planeId: { lever: multiplier } }, src/balance/levers.js), the auto-tuner's trials.
-export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, arena = false, airStart = null, tactics, overrides, onProgress } = {}) {
+// airOffset: the tools-only thin-air offset (settings.flight.airOffset) for this match, so one pool can fly
+// several height bands (the per-band tuner, src/balance/band-tuner.js).
+export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, skill = 'normal', map = 'countryside', sample = 10, arena = false, airStart = null, airOffset = null, tactics, overrides, onProgress } = {}) {
   if (overrides) content = { ...content, planeDefs: applyOverrides(content.planeDefs, overrides) };
+  if (airOffset != null) content = { ...content, settings: { ...content.settings, flight: { ...content.settings.flight, airOffset } } };
   const world = buildWorld(content, { map, seed, arena, ...(tactics !== undefined && { tactics }) });
   for (const [team, defId] of [[0, a], [1, b]]) {
     const def = content.planeDefs[defId];

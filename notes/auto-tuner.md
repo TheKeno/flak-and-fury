@@ -101,3 +101,42 @@ confirm, measured from its own match rate.
 cyan, tuner in green, each line with the time it appeared). Minimise that window; closing it stops the run.
 `tools/night-watch.cmd` (double-click) opens the same log in a window of its own, safe to close, for a run
 already going (like this one). Never edit a night `.cmd` while it runs: cmd reads it line by line as it goes.
+
+## The per-band tuner (stage 3 of "Main fighters tuned per band", built 2026-11-15)
+
+A second tuner beside the one above (which stays as it was): the six main fighters, one height band at a time.
+`src/balance/band-tuner.js` (pure), `tools/tune-bands.mjs` (the run), `tests/band-tuner.test.mjs` (a stand-in battle).
+
+- **Measure:** like `tools/band-check.mjs --bands low,mid,high`: arena matches (8 game-minutes, 4 a side) started
+  at 300 with the thin air read +0 / +300 / +700 higher (`airOffset`, now a field of each match job, so one
+  pool flies all three bands). The gate: every pair both ways on seeds 1-60, per band. Heights are world units.
+- **Targets per band** (home: a plane's `band` field): a home plane at least 55% exchange share against every
+  visitor, the band-mates 50 ±3, nobody under 35% (so a home plane at most 65% against a visitor); visitors
+  among themselves free. The band's **gap** is the points short of every target, summed. A target counts as
+  met when it is short by no more than one standard error (`metZ`).
+- **Levers:** the band's own `bands` values (`power.low`, `turn.mid`, ...: absolute values in the override,
+  `src/balance/levers.js`), within 0.75-1.25; and the Bf 109's rated height (`ratedPlanes`, the old lever's
+  ±15% steps, about 720-980), judged on all three bands since it touches all. Steps 0.04 while the target is
+  more than 4 points short, then 0.02.
+- **Shape:** each plane rises to its home band and falls after. A step that would break that **carries** the
+  neighbours along (a P-47, flat 1/1/1, helped low lifts its mid and high with it) and is judged on every band
+  it touched; but the home band keeps a lead of at least 0.02 over the bands next to it (or what it had, so the
+  flat P-47 may stay flat): a visitor helped in its weak band never flattens its peak.
+- **A step:** the worst missed target in the band (not stuck); candidates: its weak plane stronger or its strong
+  plane weaker, by power or turn (and the rated height for the Bf 109); screened on 16 seeds by how much each
+  shrinks the gap of its bands; the best 2 on the full 60 seeds. Kept when the target matchup moves beyond 2
+  standard errors (paired, same matches) and by 0.5 points, and the gap of its bands shrinks by 0.5. A target
+  with nothing kept is skipped until something else is kept (twice: for good).
+- **Order:** low, mid, high, at most 8 steps per band per round, up to 3 rounds; a round with nothing kept ends
+  it. A band's matches are re-flown with the current numbers when it comes round again, so what the other bands'
+  steps did to it (the bands blend between 300, 600 and 1000) is seen.
+- **Confirm:** the tuned numbers on fresh seeds 101-160 in every band (the "before" on those seeds is the last
+  band-check run in `notes/band-check-2026-11-15.txt`, same matches).
+- **The run:** `node tools/tune-bands.mjs [--hours 8] [--threads 8] [--resume] [--quick]`, in a visible cmd window;
+  log `notes/tune-bands-<date>.txt` (clock times; last line "Band tuning done." or "stopped"/"failed"), checkpoint
+  `balance/results/tune-bands-checkpoint.json` (git-ignored), record `balance/results/<stamp>-tune-bands.json`.
+  **Apply** after the owner's yes: `node tools/tune-bands.mjs --apply <record>` writes the `bands` lines (and the
+  rated height) into `data/planes.json`, only if the file still holds the values the run started from. The Balance
+  Lab doesn't read this record. `FF_PLANES` takes the band keys too, so `tools/band-check.mjs` can fly tuned numbers.
+- **Cost:** about 1.8 matches a second on 8 threads; a gate is 1800 matches per band (about 17 min), a step about
+  1500-2500 (15-25 min; a rated-height or carried step more), the confirm 5400 (about 50 min).
