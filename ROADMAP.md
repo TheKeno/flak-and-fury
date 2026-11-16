@@ -24,7 +24,7 @@ later.
      altimeter mark shows the plane's best band. It must feel gradual (no step at a band edge).
   3. **Rough the shapes in by hand**, the owner test-flies them for feel, **then the tuner** balances one band at a
      time to the targets (night runs; 36 values).
-  4. **Make the bands happen in play** (its own session; backlog "Pull fights up"): flak low, high bombers, and a
+  4. **Make the bands happen in play** (now part of milestone 8, "Direction: the front", 2026-11-16; backlog "Pull fights up"): flak low, high bombers, and a
      second measure, kills and deaths by height in the real arena. Then retry a simple "don't follow down" rule
      for the high planes, which per-band stats should finally make pay.
   **Stage 1 measured (2026-11-15, `tools/band-check.mjs --bands low,mid,high --seeds 101-160`, 45 min,
@@ -397,6 +397,11 @@ later.
 
 - **Direction: the front, first map the Kursk salient (decided 2026-11-08, discussion; not built):** resolves the
   owner's MOBA note. This is milestone 8.
+  - **Fights at different heights (owner, 2026-11-16):** flak, AI bombers and paradrop planes are used to force the
+    fights to happen at different heights, so each height band (low, mid, high; decision "Main fighters tuned per
+    band") gets its own fights in play: e.g. flak pushing planes up or down, bombers and transports flying at set
+    heights that fighters must climb or dive to. This takes over stage 4 of that decision ("Make the bands happen in
+    play").
   - **The player is air support.** Dogfighting and bombing stay the core. The AI ground war is the story, and the
     player's job is to help the troops reach their goals. Without air support the ground war roughly stalls; the planes
     (players, bot wingmen, enemy bots) tip it. The aim: a loop where the player is always active in the air and what
