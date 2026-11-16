@@ -452,12 +452,13 @@ Between 350 and 400 neither kind reaches.
 
 | Field | What it does | Try |
 |---|---|---|
-| `range` | How far it can engage a plane. For MG nests and infantry this is their ceiling: fly higher. | heavy flak 1100 – 1500, light flak 350 – 450, MG 180 – 350 |
+| `range` | How far it can engage a plane. For MG nests and infantry this is their ceiling: fly higher. | heavy flak 1300 – 1700, light flak 350 – 450, MG 180 – 350 |
 | `turnRate` | How fast the barrel swings (rad/s). Slow flak can't follow a fast plane crossing close by. | 0.5 – 3 |
 | `spread` | Random aim error (rad). | 0.005 – 0.08 |
 | `velocity` | Muzzle speed. Faster = less lead needed, more accurate at range. | 250 – 400 |
 | `damage` | Light flak, MG nests and infantry: damage per round (±50%). | light flak 1.5 – 4, others 0.5 – 2 |
 | `interval` | Heavy flak: seconds between shots. Infantry: per soldier, varies by half. | 1.5 – 4 |
+| `trackRange` | Heavy flak: how far out its predictor starts following a plane (the fix builds before the gun can reach it). | 1800 – 2600 |
 | `minAltitude` | Heavy flak: planes lower than this above the ground are ignored; the low band is the light flak's. | 350 – 450 |
 | `maxAltitude` | Light flak: planes higher than this above the ground are left alone. | 300 – 400 |
 | `minElevation` | Flak: lowest the barrel can point (rad). For the heavy gun this sets how wide its cone over itself is (0.7: about 830 either side at 700 up). | heavy 0.5 – 0.9, light 0.1 |
@@ -532,6 +533,22 @@ map the first columns meet at about 2.5 minutes (it was about 5).
 
 `waves` (in `data/settings.json`): `first` (seconds before the first wave), `interval` (seconds between
 waves), `tanks` and `squads` per wave (one truck per squad), `maxTanks` (a side never has more tanks out than this; waves then bring only infantry), `squadSize` (men per truck), `openTrucks` (chance a truck has no tarp, 0.1 – 0.4), `engineers` (sent when the bridge is down; 0 = none, off since milestone 8: the new map has no river).
+
+`raids` (in `data/settings.json`, the tuning panel's **Bomber raids**; `src/sim/director.js`): each side's battle
+director sends a raid of AI bombers against the enemy's tank depot or radar station (picked at random among
+those standing; no raid with neither left). `first` (seconds before the first raid call, 60 – 180) and
+`interval` (seconds between calls, 120 – 300; 0 = no raids); `warning` (seconds from the radio call and the
+radar marker to the bombers coming in over their own map edge, 15 – 30); `height` (they fly straight and level
+at this height, 900 – 1050; the second side 70 lower so the two raids pass each other); `bombers` per raid
+(1 – 4) and `spacing` between them; `speed` they hold (80 – 100); `planes` (the bomber each team flies: today
+the Blenheim and the Pe-3 stand in); `bomb` and `bombs` (the bomb type and how many each carries, dropped one
+by one), `bombGap` (seconds between two bombs: the stick is laid across the target, and a longer gap means
+fewer hits, 0.8 – 1.6), `aimError` (how far off the middle the stick may be laid, 30 – 80); `abortHp` (a
+bomber below this share of its hit points, or on fire, turns for home with its bombs, 0.3 – 0.6). After
+bombing they swing round and fly home the way they came. With the numbers as they are an unopposed raid
+takes about a third of its target's hit points; with the enemy's heavy flak standing about half the bombers
+are turned back or shot down first, and the target takes about half as much. The enemy's raid is called by
+your radar: with your station destroyed there is no warning. No raids in the air-only arena.
 
 `pads` (in `data/settings.json`, the tuning panel's **Structure pads**): every structure placed on the
 map (anything with a `sprite`: guns, tents, towers, buildings, radar, depots) stands on a level pad, so

@@ -13,7 +13,7 @@ import { createHangarPanel } from './ui/hangar-panel.js';
 import { hangarRefusal, callingMessage } from './ui/hangar-messages.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
-import { surfaceAt } from './sim/ground.js';
+import { surfaceAt, radarHealth } from './sim/ground.js';
 import { NO_COMMAND, parkInBlocker, holdForPilot } from './sim/plane.js';
 import { setLoadout, setGuns } from './sim/weapons.js';
 import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
@@ -44,6 +44,7 @@ const world = createWorld({
   flight: content.settings.flight,
   damage: content.settings.damage,
   waves: content.settings.waves,
+  raids: content.settings.raids,
   pads: content.settings.pads,
   zones: content.settings.zones,
   landing: content.settings.landing,
@@ -394,6 +395,7 @@ let radarWarnAt = 0;
 let hangarWarnAt = 0;
 let hangarReq = null; // 'call' (park in) or 'out' (roll out): rides on the next command, one tick
 let holdPanelShown = false; // the hangar panel has opened for this park-in
+let raidWarnAt = 0; // no second "bombers over" line before this time (each bomber reports its own bombs)
 function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
@@ -453,6 +455,17 @@ function handleEvents() {
         renderer.message('RADAR STATION UNDER ATTACK', '#ffb070');
         radarWarnAt = performance.now() + 10000;
       }
+    }
+    // The directors' bomber raids (src/sim/director.js), called on the radio ahead of time. The enemy's are
+    // called by our radar: with the station down there is no warning, only the bombs.
+    if (e.type === 'raidWarning') {
+      const what = e.kind === 'depot' ? 'DEPOT' : 'RADAR';
+      if (e.team === player.team) renderer.message(`RADIO: OUR BOMBERS INBOUND, HIGH, FOR THE ENEMY ${what}`, '#a8e090', 7);
+      else if (radarHealth(world, player.team) > 0) renderer.message(`RADIO: ENEMY BOMBERS INBOUND, HIGH, FOR OUR ${what} - CLIMB!`, '#ffb070', 7);
+    }
+    if (e.type === 'raidBombs' && e.team !== player.team && performance.now() > raidWarnAt) {
+      renderer.message(`ENEMY BOMBERS OVER OUR ${e.kind === 'depot' ? 'DEPOT' : 'RADAR'}`, '#ff8070');
+      raidWarnAt = performance.now() + 15000;
     }
     if (e.type === 'waveOut') {
       renderer.message(e.team === player.team ? 'OUR TANKS ARE ROLLING OUT' : 'ENEMY TANK COLUMN ON THE MOVE', e.team === player.team ? '#a8e090' : '#ffb070');

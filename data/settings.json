@@ -150,6 +150,24 @@
     "engineers": 0,
     "openTrucks": 0.25
   },
+  "raids": {
+    "first": 100,
+    "interval": 200,
+    "warning": 20,
+    "height": 1000,
+    "bombers": 2,
+    "spacing": 90,
+    "speed": 90,
+    "aimError": 50,
+    "bomb": "bomb_50",
+    "bombs": 4,
+    "bombGap": 1.2,
+    "abortHp": 0.5,
+    "planes": [
+      "blenheim4",
+      "pe3"
+    ]
+  },
   "pads": {
     "margin": 4,
     "blend": 40

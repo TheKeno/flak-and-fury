@@ -11,7 +11,7 @@ export const MAX_PLAYERS = 4;
 export const MAX_PER_SIDE = 2;
 
 const controllerOf = (p) => p.seats[0]?.controller ?? '';
-export const isPlayer = (p) => !p.wreck && !controllerOf(p).startsWith('bot');
+export const isPlayer = (p) => !p.wreck && !p.raid && !controllerOf(p).startsWith('bot'); // raid: the director's bombers (src/sim/director.js)
 export const isBot = (p) => controllerOf(p).startsWith('bot');
 export const playersOn = (world, team) => world.planes.filter((p) => p.team === team && isPlayer(p));
 

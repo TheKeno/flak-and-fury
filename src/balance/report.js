@@ -28,6 +28,8 @@ const sideOf = (m, plane) => (m.a === plane ? 0 : 1);
 // -1 lower, 0 neither). floor: differences below this are too small to mention. look: what to look at
 // in TUNING.md.
 const lives = (s, m) => s.deaths + m.perSide;
+// One band's share of a [low, mid, high] count (null with nothing counted, or in a run from before the height count).
+const bandShare = (at, i) => (at && at[0] + at[1] + at[2] ? at[i] / (at[0] + at[1] + at[2]) : null);
 export const METRICS = [
   { key: 'airKills', label: 'air kills per match', per: (s) => s.airKills, better: 1, floor: 0.5, look: 'Planes: turnRate, thrust, maxSpeed; Weapons: damage of its guns' },
   { key: 'deaths', label: 'deaths per match', per: (s) => s.deaths, better: -1, floor: 0.5, look: 'Planes: hp, hitRadius, turnRate, maxSpeed' },
@@ -38,6 +40,10 @@ export const METRICS = [
   { key: 'lifeTime', label: 'seconds alive per life', per: (s, m) => s.aliveTime / lives(s, m), better: 1, floor: 15, look: 'Planes: hp, hitRadius, maxSpeed' },
   { key: 'above', label: 'share of kills from above', pct: true, per: (s) => (s.airKills ? s.killsAbove / s.airKills : null), better: 0, floor: 0.1, look: 'Planes: thrust (climb), maxSpeed' },
   { key: 'level', label: 'share of kills level or turning', pct: true, per: (s) => (s.airKills ? (s.killsLevel + s.killsBelow) / s.airKills : null), better: 0, floor: 0.1, look: 'Planes: turnRate, slowTurnBonus' },
+  { key: 'killsLow', label: 'share of kills in the low band', pct: true, per: (s) => bandShare(s.killsAt, 0), better: 0, floor: 0.1, look: 'Planes: bands (power and turn per band); Settings: flight.bandHeights' },
+  { key: 'killsMid', label: 'share of kills in the mid band', pct: true, per: (s) => bandShare(s.killsAt, 1), better: 0, floor: 0.1, look: 'Planes: bands (power and turn per band); Settings: flight.bandHeights' },
+  { key: 'killsHigh', label: 'share of kills in the high band', pct: true, per: (s) => bandShare(s.killsAt, 2), better: 0, floor: 0.1, look: 'Planes: bands (power and turn per band); Settings: raids' },
+  { key: 'bomberKills', label: 'enemy bombers shot down per match', per: (s) => s.bomberKills ?? null, better: 1, floor: 0.3, look: 'Planes: thrust (climb), armament; Settings: raids' },
   { key: 'byFighter', label: 'deaths to fighters per match', per: (s) => s.deathBy.fighter, better: -1, floor: 0.5, look: 'Planes: turnRate, maxSpeed, hp, hitRadius' },
   { key: 'byFlak', label: 'deaths to flak per match', per: (s) => s.deathBy.flak, better: -1, floor: 0.3, look: 'Planes: hp, hitRadius; Ground targets: flak' },
   { key: 'byTankMg', label: 'deaths to tank MGs per match', per: (s) => s.deathBy.tankMg + s.deathBy.groundFire, better: -1, floor: 0.3, look: 'Planes: hp, hitRadius; Ground targets: tank aa* values, mgNest' },
@@ -50,6 +56,35 @@ export const METRICS = [
   { key: 'strafe', label: 'strafing kills per match', per: (s) => s.strafeKills, better: 1, floor: 0.5, look: 'Weapons: gun damage; Ground targets: bulletFactor, roofFactor' },
   { key: 'soldiers', label: 'soldiers killed per match', per: (s) => s.soldierKills, better: 1, floor: 2, look: 'Weapons: gun damage; Ground targets: infantry' },
 ];
+
+// The height count over a list of matches (src/balance/runner.js): where fighters were shot down by fighters
+// (kills) and by anything (lost), as [low, mid, high], per plane (its own kills and losses) and for all; and what
+// became of the bomber raids. null for a run from before the height count.
+export function heightCount(matches, planes = []) {
+  if (!matches.some((m) => m.stats[0].killsAt)) return null;
+  const blank = () => ({ kills: [0, 0, 0], lost: [0, 0, 0] });
+  const all = blank();
+  const by = Object.fromEntries(planes.map((id) => [id, blank()]));
+  const raid = { raids: 0, sent: 0, bombed: 0, aborted: 0, home: 0, lostToFighters: 0, lostToFlak: 0, lostOther: 0 };
+  for (const m of matches) {
+    [m.a, m.b].forEach((id, side) => {
+      const s = m.stats[side];
+      if (!s.killsAt) return;
+      for (let i = 0; i < 3; i++) {
+        all.kills[i] += s.killsAt[i];
+        all.lost[i] += s.lostAt[i];
+        if (by[id]) {
+          by[id].kills[i] += s.killsAt[i];
+          by[id].lost[i] += s.lostAt[i];
+        }
+      }
+      for (const k of Object.keys(raid)) raid[k] += s.raid?.[k] ?? 0;
+    });
+  }
+  const share = (at) => at.map((n) => round(n / (at[0] + at[1] + at[2] || 1), 2));
+  const shares = (c) => ({ ...c, killShare: share(c.kills), lostShare: share(c.lost) });
+  return { all: shares(all), planes: Object.fromEntries(Object.entries(by).map(([id, c]) => [id, shares(c)])), raid };
+}
 
 // One metric for one plane over a list of matches: mean, standard error.
 function metricOver(metric, matches, plane) {
@@ -175,6 +210,7 @@ export function analyse(run) {
     drift: round(drift),
     noise: round(noiseSd),
     strength, baselines, matchups,
+    heights: heightCount(matches, planes),
   };
   report.summary = summarise(report, run);
   return report;
@@ -219,6 +255,12 @@ function summarise(r, run) {
       const note = worst.notes[0];
       if (note) out.push(`What differs most there: ${note}`);
     }
+  }
+  if (r.heights) {
+    const h = r.heights;
+    const pct = (x) => `${Math.round(x * 100)}%`;
+    out.push(`Where the fighters fell (shot down by fighters): ${pct(h.all.killShare[0])} low, ${pct(h.all.killShare[1])} mid, ${pct(h.all.killShare[2])} high.`);
+    if (h.raid.sent) out.push(`Bomber raids: ${h.raid.sent} bombers sent, ${h.raid.bombed} bombed, ${h.raid.aborted} turned back hit, ${h.raid.lostToFighters} shot down by fighters, ${h.raid.lostToFlak} by flak, ${h.raid.home} came home.`);
   }
   out.push('These numbers show what differs between the planes, not why. Change one value, run again and compare the two runs.');
   return out;

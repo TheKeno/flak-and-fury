@@ -820,6 +820,27 @@ function levelPlan(p, world, out, to, swing) {
   return plan;
 }
 
+// Starts the turn-back (level out, then swing round) for a plane heading out.
+function startTurnBack(p, plan, out) {
+  p.edgeLevel = 0;
+  p.edgeLevelTime = plan.time;
+  p.edgeLevelDiff = wrapAngle(p.angle - (out > 0 ? 0 : Math.PI));
+  p.edgeLevelOff = 0;
+  p.edgeDir = out;
+  p.speed = plan.speed;
+  p.stalled = false;
+  p.rolling = false; // a roll still being drawn snaps to rest
+}
+
+// The same turn-back anywhere in the sky: how the raid bombers turn for home (src/sim/director.js).
+export function turnBack(p, world) {
+  if (p.state !== 'air' || p.edgeLevel != null || p.edgeTurn != null || p.dying || p.blackout || p.tumble > 0) return false;
+  const to = world.takeoff ?? DEFAULT_TAKEOFF;
+  const out = Math.cos(p.angle) >= 0 ? 1 : -1;
+  startTurnBack(p, levelPlan(p, world, out, to, to.edgeTurnTime ?? DEFAULT_TAKEOFF.edgeTurnTime), out);
+  return true;
+}
+
 function stepAir(p, cmd, world, dt) {
   const d = flyingDef(p, world);
   // At a map edge the plane levels out, swings round and flies back level (see the edge code below): rolling
@@ -964,16 +985,7 @@ function stepAir(p, cmd, world, dt) {
       // Far from the wall nothing needs working out; close enough, the plan says go.
       if (room < 900) {
         const plan = levelPlan(p, world, out, to, swing);
-        if (room <= plan.travel + plan.drift + plan.speed * dt) { // (plus a tick's travel, so it never starts a tick late)
-          p.edgeLevel = 0;
-          p.edgeLevelTime = plan.time;
-          p.edgeLevelDiff = wrapAngle(p.angle - (out > 0 ? 0 : Math.PI));
-          p.edgeLevelOff = 0;
-          p.edgeDir = out;
-          p.speed = plan.speed;
-          p.stalled = false;
-          p.rolling = false; // a roll still being drawn snaps to rest
-        }
+        if (room <= plan.travel + plan.drift + plan.speed * dt) startTurnBack(p, plan, out); // (plus a tick's travel, so it never starts a tick late)
       }
     } else if (room <= 0) {
       // A plane that is dying, blacked out or tumbling gets no autopilot: it just bounces off, as before.

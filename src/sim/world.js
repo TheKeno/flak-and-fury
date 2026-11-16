@@ -16,6 +16,7 @@ import { DEFAULT_FLIGHT } from './air.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
 import { DEFAULT_DECOR } from './decor.js';
 import { changeSeat } from './seats.js';
+import { createDirector, stepDirector, raidCommand, DEFAULT_RAIDS } from './director.js';
 import { DEFAULT_BAILOUT, bailOut, stepBailedPilot, stepGroundWreck, stepParachutes } from './bailout.js';
 
 export const TICK_RATE = 60;
@@ -38,6 +39,7 @@ export const DEFAULT_RULES = {
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 // waves: how often and how big the tank columns are (src/sim/army.js).
+// raids: the directors' bomber raids (src/sim/director.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
 // emergency: war emergency power, its boost, wear and heat (src/sim/emergency.js).
 // flight: thin air up high and the negative-g cutout (src/sim/air.js).
@@ -61,6 +63,7 @@ export function createWorld({
   flight = { ...DEFAULT_FLIGHT },
   damage = { ...DEFAULT_DAMAGE },
   waves = { ...DEFAULT_WAVES },
+  raids = { ...DEFAULT_RAIDS },
   pads = { ...DEFAULT_PADS },
   zones = { ...DEFAULT_ZONES },
   landing = { ...DEFAULT_LANDING },
@@ -88,6 +91,7 @@ export function createWorld({
     flight,
     damage,
     waves,
+    raids,
     landing,
     takeoff,
     weight,
@@ -112,6 +116,7 @@ export function createWorld({
   world.terrain = buildTerrain(world.map, structurePads(world.map, groundDefs, pads), zones);
   createGround(world);
   createArmy(world);
+  createDirector(world);
   return world;
 }
 
@@ -199,11 +204,19 @@ export function stepWorld(world, commands) {
   world.events.length = 0;
   world.tick++;
   stepBotSwitch(world);
-  for (const p of world.planes) {
+  stepDirector(world, DT);
+  for (const p of [...world.planes]) {
     const pilot = p.seats.find((s) => s.role === 'pilot');
     const ctl = pilot?.controller ?? '';
     let cmd = commands[ctl];
-    if (ctl.startsWith('bot')) {
+    if (p.raid) {
+      // A raid bomber: flown by the director; it is dropped once it has flown home off the map.
+      cmd = raidCommand(world, p);
+      if (!cmd) {
+        world.planes.splice(world.planes.indexOf(p), 1);
+        continue;
+      }
+    } else if (ctl.startsWith('bot')) {
       if (world.rules.bots === 'off') cmd = NO_COMMAND;
       else cmd = botCommand(world, p, ctl.split(':')[1]);
       if (world.rules.bots === 'passive') cmd = { ...cmd, fire: false, bomb: false };
@@ -222,8 +235,8 @@ export function stepWorld(world, commands) {
     if (p.wreck && p.state === 'ground') stepGroundWreck(world, p, DT);
     else stepPlane(p, cmd ?? NO_COMMAND, world, DT);
   }
-  // Wrecks are gone once they've hit the ground.
-  for (let i = world.planes.length - 1; i >= 0; i--) if (world.planes[i].wreck && world.planes[i].state === 'dead') world.planes.splice(i, 1);
+  // Wrecks and raid bombers are gone once they've hit the ground.
+  for (let i = world.planes.length - 1; i >= 0; i--) if ((world.planes[i].wreck || world.planes[i].raid) && world.planes[i].state === 'dead') world.planes.splice(i, 1);
   stepHangarDoors(world, DT);
   stepCrew(world, DT);
   stepArmy(world, DT);

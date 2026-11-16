@@ -483,7 +483,7 @@ later.
     see Done "Milestone 8 step 1"); (2) **light and heavy flak on today's map** (**built 2026-11-16**, see Done "Milestone 8 step 2"; the owner's
     test flight is still open; the light gun's look is approved) (the heavy gun from today's
     `flak`, the new light gun with its outline shown to the owner before data work, one area of each kind placed,
-    bots respect both); (3) **AI bomber raids and the height count on today's map** (one raid per side every few
+    bots respect both); (3) **AI bomber raids and the height count on today's map** (**raids, flak reach and the height count built 2026-11-16**, not yet flown by the owner; the long runs and "don't follow down" are left: see `notes/milestone8-step3.md`) (one raid per side every few
     minutes, high, on the depot or radar, whose effects are built; the Blenheim and Pe-3 stand in; radio call and
     radar marker ahead; kills and deaths by height; then rerun the band check and retry "don't follow down" for
     the high planes); (4) the target chain and its effects on the redesigned map, each target with its own flak

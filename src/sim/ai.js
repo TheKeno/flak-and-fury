@@ -65,6 +65,7 @@ export const levelOf = (world, name) => world.bots.levels[name] ?? world.bots.le
 
 const IDLE = () => ({ turn: 0, throttle: 0, roll: false, fire: false, bomb: false, gear: false, abandon: false, emergency: false });
 const isBotPlane = (p) => p.seats.some((s) => s.controller.startsWith('bot'));
+const isAi = (p) => isBotPlane(p) || Boolean(p.raid); // not a human: a bot or a raid bomber (src/sim/director.js)
 // Absolute nose angle for flying towards dir (1 right, -1 left) at a pitch (rad, + up).
 const angleFor = (dir, pitch) => (dir > 0 ? pitch : Math.PI - pitch);
 const facing = (p) => (Math.cos(p.angle) >= 0 ? 1 : -1);
@@ -108,7 +109,7 @@ function newMemory(world, p) {
   const mates = world.planes.filter((o) => o.team === p.team && isBotPlane(o));
   const index = Math.max(0, mates.indexOf(p));
   // A bot alongside a human waits its turn behind the human.
-  const humans = world.planes.some((o) => o.team === p.team && !isBotPlane(o));
+  const humans = world.planes.some((o) => o.team === p.team && !isBotPlane(o) && !o.raid);
   return {
     mode: 'patrol',
     think: 0,
@@ -478,7 +479,7 @@ function decide(world, p, b, skill) {
   // Never from a human on its tail: diving away again and again from the player (never fighting back) was
   // dull and too easy (part 3e); it breaks and fights instead. Bots against bots keep the rule.
   const room = p.y - world.terrain.heightAt(p.x) > 180;
-  if (threat && isBotPlane(threat.plane) && b.mode === 'chase' && b.tac.style >= 0.5 && b.zoom?.phase === 'climb' && (room || p.speed > threat.plane.speed + 10)) {
+  if (threat && isAi(threat.plane) && b.mode === 'chase' && b.tac.style >= 0.5 && b.zoom?.phase === 'climb' && (room || p.speed > threat.plane.speed + 10)) {
     b.mode = 'extend';
     b.extendT = world.rng.range(2, 3);
     b.target = threat.plane.id;
@@ -543,7 +544,7 @@ function pickEnemy(world, p, skill, known) {
     // A human counts as nearer (playerPull): bots that went for the nearest plane spent much of a fight on the
     // player's wingman and flew off in front of the player (part 3e). No humans in bot-only matches.
     const score = k.d + (k.seen ? 0 : 300) - (k.plane.id === p.bot?.target ? 150 : 0) - hurt * (p.bot?.tac?.finishBonus ?? 0)
-      - (isBotPlane(k.plane) ? 0 : world.bots.playerPull ?? 0);
+      - (isAi(k.plane) ? 0 : world.bots.playerPull ?? 0);
     if (score < bestScore) {
       best = k;
       bestScore = score;
@@ -1081,7 +1082,7 @@ function attackWant(world, p, b, skill, cmd) {
 }
 
 // Where a bomb let go now would hit the ground: { x, t }, flying it as stepBombs does.
-function bombImpact(world, p) {
+export function bombImpact(world, p) {
   const def = nextStation(p)?.def;
   if (!def) return null;
   let x = p.x;

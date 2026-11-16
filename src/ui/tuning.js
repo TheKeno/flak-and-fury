@@ -241,6 +241,7 @@ const DEFENCE_FIELDS = {
   ],
   flak: [
     ['range', 'Reach', 100, 2000, 10, 'How far away it can engage a plane. Heavy flak: past the high band.'],
+    ['trackRange', 'Tracks from', 100, 3000, 10, 'The predictor follows a plane from this far out, so the fix is already under way when the plane comes into reach.'],
     ['minAltitude', 'Blind below', 0, 800, 5, 'Planes lower than this above the ground are ignored: the low band belongs to the light flak.'],
     ['minElevation', 'Lowest barrel angle', 0, 1.2, 0.05, 'The barrel cannot point lower than this (rad), so far-off low planes are safe.'],
     ['turnRate', 'Barrel swing speed', 0.1, 4, 0.05, 'How fast the gun traverses (rad/s). Low = fast crossing planes outrun it.'],
@@ -351,6 +352,19 @@ const ZONE_FIELDS = [
   ['wood', 'Wood: hills kept', 0, 1.5, 0.05, 'Share of the hills kept in a Wood zone. Applies on reload.'],
   ['ridge', 'Ridge: hills kept', 0, 1.5, 0.05, 'Share of the hills kept in a Ridge zone. Above 1 = steeper than the noise. Applies on reload.'],
   ['blend', 'Zone blend', 10, 300, 5, 'Distance over which one kind of ground eases into the next. Applies on reload.'],
+];
+const RAID_FIELDS = [
+  ['first', 'First raid after', 0, 600, 10, 'Seconds from the start before each side calls its first bomber raid.'],
+  ['interval', 'Time between raids', 0, 900, 10, 'Seconds from one raid call to the next. 0: no raids.'],
+  ['warning', 'Warning time', 0, 60, 1, 'Seconds from the radio call and the radar marker to the bombers coming in over their own map edge.'],
+  ['height', 'Raid height', 400, 1100, 10, 'The height the bombers fly at, straight and level (the high band is about 1000). The second side flies a little lower so the raids pass each other.'],
+  ['bombers', 'Bombers per raid', 0, 6, 1, 'How many fly in each raid. 0: no raids.'],
+  ['spacing', 'Gap between bombers', 40, 300, 10, 'Distance from one bomber to the next in the line.'],
+  ['speed', 'Raid speed', 70, 140, 1, 'The speed the bombers hold. Slower gives fighters and flak more time.'],
+  ['bombs', 'Bombs per bomber', 0, 12, 1, 'Light bombs (raids.bomb in the data file), dropped one by one in a stick laid across the target.'],
+  ['bombGap', 'Time between bombs', 0.4, 3, 0.1, 'Seconds between two bombs of a stick. Longer spreads the stick wider: fewer hits on the target.'],
+  ['aimError', 'Bomb aimer error', 0, 200, 5, 'How far off the middle of the target a stick may be laid, either way.'],
+  ['abortHp', 'Turns back below', 0, 1, 0.05, 'A bomber with less than this share of its hit points left, or on fire, gives up the run and turns for home with its bombs.'],
 ];
 const WAVE_FIELDS = [
   ['first', 'First wave after', 0, 300, 5, 'Seconds from the start before the first tank columns roll out.'],
@@ -651,6 +665,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
+  const raidSection = section('Bomber raids', false, ...RAID_FIELDS.map((f) => add(slider(settings.raids, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
   const negGBox = el('input', { type: 'checkbox', onchange: () => (settings.flight.negG = negGBox.checked) });
   negGBox.checked = !!settings.flight.negG;
@@ -793,6 +808,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.flight, saved.settings.flight);
     Object.assign(settings.damage, saved.settings.damage);
     Object.assign(settings.waves, saved.settings.waves);
+    Object.assign(settings.raids, saved.settings.raids);
     Object.assign(settings.pads, saved.settings.pads);
     Object.assign(settings.zones, saved.settings.zones);
     Object.assign(settings.decor, saved.settings.decor);
@@ -872,6 +888,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     botSection,
     groundSection,
     waveSection,
+    raidSection,
     zoneSection,
     decorSection,
     padSection,

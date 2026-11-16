@@ -253,6 +253,37 @@ export function createRadar(world, cfg) {
         }
       }
 
+      // The operator's marks for a bomber raid (world.director, src/sim/director.js): while it is only called,
+      // a blinking arrowhead at the map edge and height it will come in at; until it is over, a caret above
+      // what it is after. The bombers themselves are echoes like any plane.
+      for (const side of Object.values(world.director ?? {})) {
+        const raid = side.raid;
+        if (!raid) continue;
+        ctx.strokeStyle = rgba(0.7 * bright);
+        ctx.lineWidth = RES * 0.5;
+        const target = world.ground.find((o) => o.id === raid.target);
+        if (target) {
+          const x = toX(target.x);
+          const y = toY(raid.y);
+          ctx.beginPath();
+          ctx.moveTo(x - RES * 1.5, y - RES * 1.5);
+          ctx.lineTo(x, y);
+          ctx.lineTo(x + RES * 1.5, y - RES * 1.5);
+          ctx.stroke();
+        }
+        if (!raid.flying && Math.floor(t * 3) % 2 === 0) {
+          const x = toX(raid.x);
+          const y = toY(raid.y);
+          for (const k of [0, 2]) {
+            ctx.beginPath();
+            ctx.moveTo(x + side.dir * RES * (k - 1.5), y - RES * 1.5);
+            ctx.lineTo(x + side.dir * RES * k, y);
+            ctx.lineTo(x + side.dir * RES * (k - 1.5), y + RES * 1.5);
+            ctx.stroke();
+          }
+        }
+      }
+
       // The sweeping beam with its glowing trail.
       const bx = pad + sweep * (cw - pad * 2);
       const trail = cw * 0.07;

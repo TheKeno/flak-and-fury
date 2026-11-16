@@ -1634,8 +1634,9 @@ export function createRenderer(canvas, world, assets) {
     startLastFlightTimer() {
       if (lastFlight) lastFlight.until = performance.now() + hudCfg.lastFlightTime * 1000;
     },
-    message(text, colour = '#f0e8c0') {
-      messages.push({ text, colour, until: performance.now() + 3500 });
+    // seconds: how long it stays (a radio call stays longer than a passing remark).
+    message(text, colour = '#f0e8c0', seconds = 3.5) {
+      messages.push({ text, colour, until: performance.now() + seconds * 1000 });
     },
     onEvent(e) {
       gore.onEvent(e);

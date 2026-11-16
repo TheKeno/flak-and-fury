@@ -4,6 +4,7 @@
 // The sim is not changed for it: everything is read from world.events and the world each tick.
 import { importLdtk } from '../content/ldtk.js';
 import { createWorld, setBots, stepWorld, TICK_RATE } from '../sim/world.js';
+import { bandIndex } from '../sim/air.js';
 import { applyOverrides } from './levers.js';
 
 // Kills scored with the killer this much higher than the victim count as "from above" (world units).
@@ -34,6 +35,7 @@ export function buildWorld(content, { map = 'countryside', seed = 1, tactics = c
     flight: { ...s.flight },
     damage: { ...s.damage },
     waves: { ...s.waves },
+    raids: { ...s.raids },
     pads: s.pads,
     zones: s.zones,
     landing: { ...s.landing },
@@ -84,6 +86,7 @@ export function launch(p, { x, y, angle, speed, throttle = 1 }) {
 const ARMED_GROUND = new Set(['flak', 'lightFlak', 'mgNest']);
 export function clearForArena(world) {
   world.army = null;
+  world.director = null; // and no bomber raids
   world.ground = world.ground.filter((o) => !o.mobile && !ARMED_GROUND.has(o.type));
 }
 
@@ -91,10 +94,19 @@ const emptyStats = () => ({
   airKills: 0, deaths: 0, tankKills: 0, truckKills: 0, soldierKills: 0, otherGroundKills: 0,
   shots: 0, hits: 0, damageTaken: 0, aliveTime: 0, airTime: 0, serviceTime: 0,
   killsAbove: 0, killsLevel: 0, killsBelow: 0,
-  deathBy: { fighter: 0, flak: 0, tankMg: 0, groundFire: 0, crash: 0, collision: 0, other: 0 },
+  deathBy: { fighter: 0, flak: 0, tankMg: 0, groundFire: 0, crash: 0, collision: 0, other: 0, gunner: 0 }, // gunner: a raid bomber's
   bombsDropped: 0, bombKills: 0, strafeKills: 0,
   // Planes shot down by height (world y, 100 a bucket, the last one 1200 and up): where the fights happen.
   shotDownAt: new Array(13).fill(0),
+  // The height count, by band [low, mid, high] (flight.bandHeights; the bands meet half way between): enemy
+  // fighters this side's fighters shot down, by where the victim was; and this side's fighters shot down by
+  // anything of the enemy's (fighters, flak, ground fire, a bomber's gunner), by where they were.
+  killsAt: [0, 0, 0],
+  lostAt: [0, 0, 0],
+  // The bomber raids (src/sim/director.js). raid: what became of this side's own bombers. bomberKills: enemy
+  // bombers this side's fighters shot down (not in airKills).
+  bomberKills: 0,
+  raid: { raids: 0, sent: 0, bombed: 0, aborted: 0, home: 0, lostToFighters: 0, lostToFlak: 0, lostOther: 0 },
 });
 
 // The front: halfway between each side's most forward tank or infantry squad; a side with none out is
@@ -140,10 +152,13 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
   const whoIs = (id) => {
     if (id == null) return null;
     if (teamOf.has(id)) return { plane: true, team: teamOf.get(id) };
+    if (raidTeam.has(id)) return { plane: true, raid: true, team: raidTeam.get(id) };
     const o = world.ground.find((g) => g.id === id);
     return o ? { plane: false, kind: o.type, team: o.team } : null;
   };
   const planeById = (id) => world.planes.find((p) => p.id === id);
+  const raidTeam = new Map(); // raid bomber id -> team (they come and go; teamOf holds the fighters only)
+  const flight = content.settings.flight;
 
   const ticks = Math.round(minutes * 60 * TICK_RATE);
   const every = Math.round(sample * TICK_RATE);
@@ -182,6 +197,10 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
     }
     if (t === 0) continue;
     for (const p of world.planes) {
+      if (p.raid && !raidTeam.has(p.id)) {
+        raidTeam.set(p.id, p.team);
+        stats[p.team].raid.sent++;
+      }
       const s = stats[teamOf.get(p.id)];
       if (!s || p.wreck) continue;
       if (p.state !== 'dead') s.aliveTime += dt;
@@ -208,12 +227,36 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
         case 'bombRelease':
           if (teamOf.has(e.plane)) stats[teamOf.get(e.plane)].bombsDropped++;
           break;
+        case 'raidIn':
+          stats[e.team].raid.raids++;
+          break;
+        case 'raidBombs':
+          stats[e.team].raid.bombed++;
+          break;
+        case 'raidAbort':
+          stats[e.team].raid.aborted++;
+          break;
+        case 'raidHome':
+          stats[e.team].raid.home++;
+          break;
         case 'shotDown': {
-          const victim = teamOf.get(e.plane);
           const by = whoIs(e.by);
-          if (victim == null || !by?.plane || by.team === victim) break;
+          if (raidTeam.has(e.plane)) {
+            // A bomber down: to fighters (their bomberKills), to flak, or to anything else (fire, a collision).
+            const own = raidTeam.get(e.plane);
+            const foe = by && by.team !== own;
+            if (foe && by.plane && !by.raid) stats[by.team].bomberKills++;
+            stats[own].raid[foe && by.plane ? 'lostToFighters' : foe && (by.kind === 'flak' || by.kind === 'lightFlak') ? 'lostToFlak' : 'lostOther']++;
+            break;
+          }
+          const victim = teamOf.get(e.plane);
+          if (victim == null || !by || by.team === victim) break;
+          const band = bandIndex(flight, e.y);
+          stats[victim].lostAt[band]++;
+          if (!by.plane || by.raid) break; // a ground gun or a bomber's gunner: no fighter's kill
           const s = stats[by.team];
           s.airKills++;
+          s.killsAt[band]++;
           stats[victim].shotDownAt[Math.max(0, Math.min(12, Math.floor(e.y / 100)))]++;
           const killer = planeById(e.by);
           const dy = killer ? killer.y - e.y : 0;
@@ -230,6 +273,7 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
           const by = whoIs(e.by);
           let cause = 'other';
           if (e.cause === 'collision') cause = 'collision';
+          else if (by?.raid) cause = by.team === victim ? 'other' : 'gunner';
           else if (by?.plane) cause = by.team === victim ? 'other' : 'fighter';
           else if (by?.kind === 'flak' || by?.kind === 'lightFlak') cause = 'flak';
           else if (by?.kind === 'tank') cause = 'tankMg';

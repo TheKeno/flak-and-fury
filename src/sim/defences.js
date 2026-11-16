@@ -46,9 +46,10 @@ export function reachAt(def, h) {
 // Nearest enemy plane in reach of a gun at (x, y); failing that (not for flak), the nearest enemy
 // soldier, as a point to aim at. Planes lower than minAltitude or higher than maxAltitude (a tank's
 // MGs: mgAltitude) above the ground are left alone.
-function pickTarget(world, obj, x, y, def = obj.def) {
+// reach: how far it looks (a heavy gun's predictor follows planes further out than the gun shoots).
+function pickTarget(world, obj, x, y, def = obj.def, reach = def.range) {
   let best = null;
-  let bestD = def.range;
+  let bestD = reach;
   for (const p of world.planes) {
     if (p.team === obj.team || p.state === 'dead' || p.dying || p.wreck) continue;
     if (obj.crew === 'in') continue; // a tank in a ground fight: the crew will not expose themselves
@@ -135,7 +136,8 @@ function stepFlak(world, obj, dt) {
   const px = obj.x;
   const py = surfaceAt(world, obj.x) + h;
   obj.cooldown = Math.max(0, obj.cooldown - dt);
-  const target = pickTarget(world, obj, px, py);
+  // The predictor follows a plane from trackRange, so the fix is under way before the gun can reach it.
+  const target = pickTarget(world, obj, px, py, def, Math.max(def.range, def.trackRange ?? 0));
   obj.target = target?.id ?? null;
   if (!target) {
     obj.fixId = null;
@@ -154,7 +156,7 @@ function stepFlak(world, obj, dt) {
   obj.fixVx = target.vx;
   obj.fixVy = target.vy;
   const { angle } = lead(px, py, target, def.velocity, def.drop);
-  if (!swing(obj, angle, dt) || obj.cooldown > 0) return;
+  if (!swing(obj, angle, dt) || obj.cooldown > 0 || Math.hypot(target.x - px, target.y - py) > def.range) return;
   obj.cooldown = def.interval;
   // The shell is laid on a point off the target: far off without a fix (missFar), close with one (missNear).
   const miss = def.fixTime ? (def.missFar + (def.missNear - def.missFar) * obj.fix) * world.rng.range(0.5, 1) : 0;
