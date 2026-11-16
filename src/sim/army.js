@@ -139,7 +139,7 @@ function enemyAhead(world, u) {
 // Enemy ground targets in reach of a tank's main gun, best first: other tanks, then defences and
 // soldiers, then the rest; nearer first within each.
 function gunTargets(world, u) {
-  const rank = (o) => (o.type === 'tank' ? 0 : o.type === 'flak' || o.type === 'mgNest' || o.soldiers ? 1 : 2);
+  const rank = (o) => (o.type === 'tank' ? 0 : o.type === 'flak' || o.type === 'lightFlak' || o.type === 'mgNest' || o.soldiers ? 1 : 2);
   const found = [];
   for (const o of world.ground) {
     if (!o.alive || o.team == null || o.team === u.team) continue;

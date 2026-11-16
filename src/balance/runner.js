@@ -81,7 +81,7 @@ export function launch(p, { x, y, angle, speed, throttle = 1 }) {
 
 // The bot trainer's air-only arena: the same map and airfields, but no ground war (no tank waves, no
 // troops) and no flak or MG nests, so only the planes decide a fight and a match runs much faster.
-const ARMED_GROUND = new Set(['flak', 'mgNest']);
+const ARMED_GROUND = new Set(['flak', 'lightFlak', 'mgNest']);
 export function clearForArena(world) {
   world.army = null;
   world.ground = world.ground.filter((o) => !o.mobile && !ARMED_GROUND.has(o.type));
@@ -231,7 +231,7 @@ export function runMatch(content, { a, b, seed = 1, minutes = 20, perSide = 4, s
           let cause = 'other';
           if (e.cause === 'collision') cause = 'collision';
           else if (by?.plane) cause = by.team === victim ? 'other' : 'fighter';
-          else if (by?.kind === 'flak') cause = 'flak';
+          else if (by?.kind === 'flak' || by?.kind === 'lightFlak') cause = 'flak';
           else if (by?.kind === 'tank') cause = 'tankMg';
           else if (by) cause = 'groundFire';
           else if (e.by == null) cause = 'crash';

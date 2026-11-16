@@ -427,7 +427,7 @@ A propeller strike always tears the man apart and sends his helmet spinning high
 
 ## Ground targets: `data/ground.json`
 
-One entry per kind of ground object (`flak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`,
+One entry per kind of ground object (`flak` (the heavy gun), `lightFlak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`,
 `tank`, `engineers`, `depot`, `bridge`, `hangar`, and the decor: `hedge`, `wall`, `tree`, `pine`, `barn`). Also in the
 tuning panel's **Ground targets** section;
 its **Restore targets** button rebuilds every object at full strength (new hit points only apply then),
@@ -441,25 +441,34 @@ clears the tank columns and starts the waves again.
 | `solid` | Planes that fly into it crash (and damage it). | |
 | `spacing` | Infantry only: gap between soldiers in a squad. | 3 – 8 |
 
-**Shooting** (flak, MG nests, infantry). Defences shoot at enemy planes in the air and on the ground
-(taxiing or stranded), aiming ahead of the plane. A straight, level pass over the enemy's forward
-defences costs roughly 20 hit points at treetop height, 50–90 at 80–150, 30–60 at 250–400 and little
-above 600; weaving and changing speed throws their aim off.
+**Shooting** (heavy flak, light flak, MG nests, infantry). Defences shoot at enemy planes in the air and
+on the ground (taxiing or stranded), aiming ahead of the plane. Two kinds of flak split the sky (milestone 8,
+"Fights at different heights"): **light flak** (`lightFlak`) fires streams of tracer at anything up to
+`maxAltitude` (350) and nothing above it; **heavy flak** (`flak`) is blind below `minAltitude` (400) and
+reaches past the high band, with bursts that start wide and creep in on a plane flying straight. A straight,
+level pass over a light gun area costs a fighter roughly 60 hit points at 150 and 35 at 300; 16 seconds
+straight over the heavy guns cost about 35 at 700 or 1000, and nothing to a plane that keeps weaving.
+Between 350 and 400 neither kind reaches.
 
 | Field | What it does | Try |
 |---|---|---|
-| `range` | How far it can engage a plane. For MG nests and infantry this is their ceiling: fly higher. | flak 500 – 900, MG 180 – 350 |
+| `range` | How far it can engage a plane. For MG nests and infantry this is their ceiling: fly higher. | heavy flak 1100 – 1500, light flak 350 – 450, MG 180 – 350 |
 | `turnRate` | How fast the barrel swings (rad/s). Slow flak can't follow a fast plane crossing close by. | 0.5 – 3 |
 | `spread` | Random aim error (rad). | 0.005 – 0.08 |
 | `velocity` | Muzzle speed. Faster = less lead needed, more accurate at range. | 250 – 400 |
-| `damage` | MG nests and infantry: damage per round (±50%). | 0.5 – 2 |
-| `interval` | Flak: seconds between shots. Infantry: per soldier, varies by half. | 1.5 – 4 |
-| `minAltitude` | Flak: planes lower than this above the ground are ignored. This is why flying low works. | 40 – 100 |
-| `minElevation` | Flak: lowest the barrel can point (rad), so far-off low planes are out of its sights. | 0.2 – 0.5 |
-| `fuseError` | Flak: how far off the time fuse can be, as a share of the shell's flight time. | 0.03 – 0.15 |
-| `burstRadius`, `burstDamage` | Flak: reach of the shrapnel and its damage at the centre. | 18 – 35, 15 – 40 |
-| `fireChance` | Flak: chance a burst right next to you sets the plane on fire (less further out). | 0.1 – 0.4 |
-| `burst`, `pause`, `rpm` | MG nests: seconds of firing, seconds of rest, rounds per minute while firing. | |
+| `damage` | Light flak, MG nests and infantry: damage per round (±50%). | light flak 1.5 – 4, others 0.5 – 2 |
+| `interval` | Heavy flak: seconds between shots. Infantry: per soldier, varies by half. | 1.5 – 4 |
+| `minAltitude` | Heavy flak: planes lower than this above the ground are ignored; the low band is the light flak's. | 350 – 450 |
+| `maxAltitude` | Light flak: planes higher than this above the ground are left alone. | 300 – 400 |
+| `minElevation` | Flak: lowest the barrel can point (rad). For the heavy gun this sets how wide its cone over itself is (0.7: about 830 either side at 700 up). | heavy 0.5 – 0.9, light 0.1 |
+| `fuseError` | Heavy flak: how far off the time fuse can be, as a share of the shell's flight time. Its shells burst on the fuse alone, never on passing a plane. | 0.01 – 0.05 |
+| `burstRadius`, `burstDamage` | Heavy flak: reach of the shrapnel and its damage at the centre. | 25 – 40, 15 – 40 |
+| `fireChance` | Heavy flak: chance a burst right next to you sets the plane on fire (less further out). | 0.1 – 0.4 |
+| `missFar`, `missNear` | Heavy flak: how far off the plane a shell is laid without a fix, and with a full one. | 80 – 160, 5 – 20 |
+| `fixTime` | Heavy flak: seconds of straight, steady flight until the bursts have crept all the way in. | 6 – 15 |
+| `fixSteady`, `fixLoss` | Heavy flak: the change of velocity per second that still counts as straight, and how fast the fix falls for each unit beyond it. | 5 – 15, 0.01 – 0.05 |
+| `burst`, `pause`, `rpm` | Light flak and MG nests: seconds of firing, seconds of rest, rounds per minute while firing. | |
+| `tracerEvery` | Light flak: every nth round is a tracer (1: all of them). | 1 – 4 |
 
 MG nests and infantry also shoot enemy soldiers when there's no plane in reach.
 
@@ -586,8 +595,8 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   the high-rated planes; it sits above the level's 800-high box in the editor, which is fine: the game only
   uses x positions), `terrainBase`/`terrainAmplitude` (hill height) and the three sky colours. The
   level's width is the world's width.
-- **Objects layer:** `Airfield` (stretch it for a longer runway; `team` and `nation`), `Flak`,
-  `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`, `Depot`
+- **Objects layer:** `Airfield` (stretch it for a longer runway; `team` and `nation`), `Flak` (the heavy
+  gun), `LightFlak`, `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`, `Depot`
   (sends out that side's tank waves). Each has a `team` (Team_0 is the west airfield's side). Only the x
   position matters: the game stands every object on the ground. Every airfield gets a hangar by itself.
 - **Zones layer:** `Field`, `Village`, `Wood`, `Ridge`: stretch each over the ground it covers. A field

@@ -200,6 +200,27 @@ function flak() {
   return g.rowsOut();
 }
 
+// Light flak gun (2 cm Flak 38 or 37 mm 61-K) on its low three-footed platform, the gunner on his seat
+// behind the shield, without the barrel. Drawn about 1.4 times its real size (a 2.3 m mount, 1.6 m
+// high, at 0.2 m per pixel would be 12x8: too small to read from the air). 26x13; barrel pivot (13, 5).
+function lightflak() {
+  const g = grid(26, 13);
+  // Platform and levelling feet.
+  g.rows({ 10: [6, 19], 11: [3, 22], 12: [1, 24] }, (y) => (y === 10 ? 'i' : 'I'));
+  // Pedestal, cradle and magazine.
+  g.rows({ 7: [10, 15], 8: [10, 15], 9: [10, 15] }, 'V');
+  g.disc(13, 5, 2.6, 'v');
+  g.rows({ 4: [9, 10], 5: [9, 10], 6: [9, 10] }, 'i');
+  // Shield.
+  g.rows({ 1: [17, 19], 2: [17, 19], 3: [17, 19], 4: [17, 19], 5: [17, 19], 6: [17, 19], 7: [17, 19], 8: [17, 19] }, 'V');
+  // Gunner: helmet, back, seat.
+  g.rows({ 1: [5, 8], 2: [5, 8], 3: [5, 8] }, 'V');
+  g.rows({ 4: [5, 8], 5: [5, 8], 6: [5, 8], 7: [5, 8] }, 'q');
+  g.rows({ 8: [4, 9], 9: [6, 8] }, 'I');
+  g.outline();
+  return g.rowsOut();
+}
+
 // Machine-gun nest: a ring of sandbags with a firing slit. 24x10; gun pivot (13, 3).
 function mgnest() {
   const g = grid(24, 10);
@@ -381,6 +402,7 @@ const SPRITES = {
   hangar: hangar(),
   ...hangarSteps(),
   flak: flak(),
+  lightflak: lightflak(),
   mgnest: mgnest(),
   tent: tent(),
   tower: tower(),

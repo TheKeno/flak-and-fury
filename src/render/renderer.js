@@ -114,8 +114,8 @@ function buildCloud(rng) {
   return c;
 }
 
-const METAL = new Set(['flak', 'mgNest', 'radar']); // these spark when hit; the rest throw up dust
-const BLAST_SIZE = { flak: 0.8, mgNest: 0.5, tent: 0.5, tower: 0.7, building: 1.1, radar: 1.1 };
+const METAL = new Set(['flak', 'lightFlak', 'mgNest', 'radar']); // these spark when hit; the rest throw up dust
+const BLAST_SIZE = { flak: 0.8, lightFlak: 0.6, mgNest: 0.5, tent: 0.5, tower: 0.7, building: 1.1, radar: 1.1 };
 
 const hash = (n) => (Math.imul(n | 0, 2654435761) >>> 0) % 997;
 
@@ -884,8 +884,8 @@ export function createRenderer(canvas, world, assets) {
       const sy = Math.round(toScreenY(surfaceAt(world, obj.x))) + 2;
       const left = sx - Math.round(img.width / 2);
       const dir = facingOf(obj);
-      const turns = obj.type === 'flak' || obj.type === 'mgNest' || obj.type === 'tank';
-      const gun = obj.type === 'flak' || obj.type === 'mgNest';
+      const turns = obj.type === 'flak' || obj.type === 'lightFlak' || obj.type === 'mgNest' || obj.type === 'tank';
+      const gun = turns && obj.type !== 'tank';
       // Each nation's own tank (obj.model, set by the sim), drawn from its Outline Lab layers.
       const veh = obj.type === 'tank' && assets.vehicles?.[obj.model ?? obj.def.sprite];
       if (veh) {
@@ -917,11 +917,12 @@ export function createRenderer(canvas, world, assets) {
       const pivot = (px) => (dir > 0 ? left + px : left + img.width - 1 - px);
       const aim = obj.aim ?? (dir > 0 ? 0.8 : Math.PI - 0.8); // resting elevation until it has a target
       if (obj.type === 'flak') drawBarrel(pivot(14), top + 6, aim, 20, 3, '#3e4630');
+      if (obj.type === 'lightFlak') drawBarrel(pivot(13), top + 5, aim, 12, 1, '#24261f');
       if (obj.type === 'mgNest') drawBarrel(pivot(13), top + 2, aim, 9, 1, '#24261f');
       const flash = groundFlashes.get(obj.id);
       if (gun && flash > 0) {
         groundFlashes.set(obj.id, flash - 1);
-        const [px, py, len, r] = obj.type === 'flak' ? [pivot(14), top + 6, 22, 3] : [pivot(13), top + 2, 11, 2];
+        const [px, py, len, r] = obj.type === 'flak' ? [pivot(14), top + 6, 22, 3] : obj.type === 'lightFlak' ? [pivot(13), top + 5, 14, 2] : [pivot(13), top + 2, 11, 2];
         const fx = Math.round(px + Math.cos(aim) * len);
         const fy = Math.round(py - Math.sin(aim) * len);
         ctx.fillStyle = '#ffc850';

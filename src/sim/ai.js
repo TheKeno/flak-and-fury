@@ -15,6 +15,7 @@ import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 import { tacticsFor } from './tactics.js';
+import { reachAt } from './defences.js';
 import { DEFAULT_FLIGHT, turnAt, cutsOut } from './air.js';
 
 const DT = 1 / 60;
@@ -314,15 +315,16 @@ function tailThreat(world, p, known) {
 // ---------------------------------------------------------------------------------------------------
 // Ground defences seen from the air.
 
-// How deep (world units) the point is inside an enemy flak gun's reach, above its minimum height; 0 if
+// How deep (world units) the point is inside an enemy flak gun's reach, heavy or light, at its height
+// (heavy flak is blind below its minimum height, light flak reaches no higher than its ceiling); 0 if
 // outside every one.
+const isFlak = (o) => o.type === 'flak' || o.type === 'lightFlak';
 function flakDepth(world, team, x, y) {
   let depth = 0;
   for (const o of world.ground) {
-    if (o.type !== 'flak' || !o.alive || o.team === team) continue;
-    if (y - world.terrain.heightAt(x) < (o.def.minAltitude ?? 0)) continue;
-    const d = Math.hypot(x - o.x, y - surfaceAt(world, o.x));
-    depth = Math.max(depth, o.def.range + world.bots.flakMargin - d);
+    if (!isFlak(o) || !o.alive || o.team === team) continue;
+    const reach = reachAt(o.def, y - surfaceAt(world, o.x));
+    if (reach > 0) depth = Math.max(depth, reach + world.bots.flakMargin - Math.abs(x - o.x));
   }
   return depth;
 }
@@ -332,8 +334,10 @@ function flakLine(world, team) {
   const dir = enemyDir(world, team);
   let line = dir > 0 ? world.map.width : 0;
   for (const o of world.ground) {
-    if (o.type !== 'flak' || !o.alive || o.team === team) continue;
-    const reach = Math.sqrt(Math.max(0, o.def.range ** 2 - world.bots.cruiseHeight ** 2)) + world.bots.flakMargin;
+    if (!isFlak(o) || !o.alive || o.team === team) continue;
+    const at = reachAt(o.def, world.bots.cruiseHeight);
+    if (at <= 0) continue; // this gun can't touch a plane at patrol height
+    const reach = at + world.bots.flakMargin;
     const edge = o.x - dir * reach;
     line = dir > 0 ? Math.min(line, edge) : Math.max(line, edge);
   }

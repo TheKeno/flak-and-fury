@@ -1,6 +1,8 @@
 // Ground defences shoot at enemy planes, flying or on the ground (taxiing or stranded).
-// Flak guns: slow, accurate, reach high, time-fused shells that burst into shrapnel and can start
-// fires; they can't get a fix on planes flying low. MG nests: fast bursts, short reach.
+// Heavy flak ('flak'): slow, reaches high, time-fused shells that burst into shrapnel and can start
+// fires; blind below minAltitude. Its bursts start wide and creep in on a plane that holds a straight
+// course (the gunners' fix); a turning plane loses them. Light flak: streams of tracer, direct hits,
+// deadly up to maxAltitude and no higher. MG nests: fast bursts, short reach.
 // Infantry: each soldier fires his rifle now and then; weak alone, dangerous in numbers.
 // Tanks' coaxial MGs: only at planes flying very low or on the ground. Their roof MG (anti-aircraft)
 // sprays short, wild bursts at planes passing low over the column: more show than threat.
@@ -14,7 +16,7 @@ import { surfaceAt, mountPoint } from './ground.js';
 
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
-const MUZZLE = { flak: [5, 10], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5] };
+const MUZZLE = { flak: [5, 10], lightFlak: [4, 6], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5] };
 const TANK_AA = [10.5, 3, -2]; // roof MG: pivot height, barrel length, offset along the hull
 const TRACER_EVERY = 4;
 const MAX_TURN = 0.06; // fire only when the barrel is this close to the aim point (rad)
@@ -28,12 +30,22 @@ export function armGround(world, obj) {
   obj.firing = 0;
   obj.rest = 0;
   obj.target = null;
+  if (obj.type === 'flak') Object.assign(obj, { fix: 0, fixId: null, fixVx: 0, fixVy: 0 });
   for (const s of obj.soldiers ?? []) s.cooldown = world.rng.range(0, obj.def.interval);
 }
 
+// How far out (world units along the ground) a gun reaches a plane h above it: 0 below its minAltitude,
+// above its maxAltitude or beyond its range; never lower than the barrel can point. The bots and the
+// tests read a gun's reach from here.
+export function reachAt(def, h) {
+  if (h < (def.minAltitude ?? 0) || h > (def.maxAltitude ?? Infinity) || h >= def.range) return 0;
+  const r = Math.sqrt(def.range ** 2 - h ** 2);
+  return def.minElevation > 0 ? Math.min(r, h / Math.tan(def.minElevation)) : r;
+}
+
 // Nearest enemy plane in reach of a gun at (x, y); failing that (not for flak), the nearest enemy
-// soldier, as a point to aim at. Planes lower than minAltitude or higher than mgAltitude above the
-// ground are left alone.
+// soldier, as a point to aim at. Planes lower than minAltitude or higher than maxAltitude (a tank's
+// MGs: mgAltitude) above the ground are left alone.
 function pickTarget(world, obj, x, y, def = obj.def) {
   let best = null;
   let bestD = def.range;
@@ -42,7 +54,7 @@ function pickTarget(world, obj, x, y, def = obj.def) {
     if (obj.crew === 'in') continue; // a tank in a ground fight: the crew will not expose themselves
     const height = p.y - world.terrain.heightAt(p.x);
     if (def.minAltitude && height < def.minAltitude) continue;
-    if (def.mgAltitude && height > def.mgAltitude) continue;
+    if (height > (def.maxAltitude ?? def.mgAltitude ?? Infinity)) continue;
     const d = Math.hypot(p.x - x, p.y - y);
     if (d < bestD) {
       best = p;
@@ -125,11 +137,31 @@ function stepFlak(world, obj, dt) {
   obj.cooldown = Math.max(0, obj.cooldown - dt);
   const target = pickTarget(world, obj, px, py);
   obj.target = target?.id ?? null;
-  if (!target) return;
-  const { angle, t } = lead(px, py, target, def.velocity, def.drop);
+  if (!target) {
+    obj.fixId = null;
+    obj.fix = 0;
+    return;
+  }
+  // The fix: grows while the target holds its course and speed, falls with every change of them
+  // (beyond fixSteady, the wobble of level flight). A new target starts from nothing.
+  if (target.id !== obj.fixId) {
+    obj.fixId = target.id;
+    obj.fix = 0;
+  } else if (def.fixTime) {
+    const accel = Math.hypot(target.vx - obj.fixVx, target.vy - obj.fixVy) / dt;
+    obj.fix = Math.min(1, Math.max(0, obj.fix + dt / def.fixTime - Math.max(0, accel - def.fixSteady) * def.fixLoss * dt));
+  }
+  obj.fixVx = target.vx;
+  obj.fixVy = target.vy;
+  const { angle } = lead(px, py, target, def.velocity, def.drop);
   if (!swing(obj, angle, dt) || obj.cooldown > 0) return;
   obj.cooldown = def.interval;
-  const a = obj.aim + world.rng.range(-def.spread, def.spread);
+  // The shell is laid on a point off the target: far off without a fix (missFar), close with one (missNear).
+  const miss = def.fixTime ? (def.missFar + (def.missNear - def.missFar) * obj.fix) * world.rng.range(0.5, 1) : 0;
+  const off = world.rng.range(0, Math.PI * 2);
+  const laid = lead(px, py, { x: target.x + Math.cos(off) * miss, y: target.y + Math.sin(off) * miss, vx: target.vx, vy: target.vy }, def.velocity, def.drop);
+  const t = laid.t;
+  const a = laid.angle + world.rng.range(-def.spread, def.spread);
   const x = px + Math.cos(obj.aim) * len;
   const y = py + Math.sin(obj.aim) * len;
   world.shells.push({
@@ -233,13 +265,13 @@ export function stepDefences(world, dt) {
   for (const obj of world.ground) {
     if (!obj.alive) continue;
     if (obj.type === 'flak') stepFlak(world, obj, dt);
-    else if (obj.type === 'mgNest' || obj.type === 'tank') stepMg(world, obj, dt);
+    else if (obj.type === 'mgNest' || obj.type === 'lightFlak' || obj.type === 'tank') stepMg(world, obj, dt);
     if (obj.type === 'tank') stepTankAa(world, obj, dt);
     else if (obj.type === 'infantry') stepInfantry(world, obj, dt);
   }
 }
 
-// A shell bursts when its fuse runs out, when it passes right by an enemy plane, or on the ground.
+// A shell bursts when its fuse runs out, when it passes right by an enemy plane (not heavy flak), or on the ground.
 function burst(world, s) {
   const def = s.def;
   world.events.push({ type: 'flakBurst', x: s.x, y: s.y });
@@ -264,7 +296,9 @@ export function stepShells(world, dt) {
     s.x += s.vx * dt;
     s.y += s.vy * dt;
     s.fuse -= dt;
-    const close = world.planes.some(
+    // A gun that works up a fix fires on the time fuse alone: bursting on every plane it passes would
+    // turn each shell laid short or long of the target into a hit.
+    const close = !s.def.fixTime && world.planes.some(
       (p) => p.state !== 'dead' && p.team !== s.team && Math.hypot(p.x - s.x, p.y - s.y) < p.def.hitRadius,
     );
     const ground = world.terrain.heightAt(s.x);

@@ -362,6 +362,7 @@ const CAUSES = {
   rough: () => 'HIT ROUGH GROUND TOO FAST',
   taxiRoll: () => 'TRIED TO ROLL WHILE TAXIING',
   flak: () => 'SHOT DOWN BY FLAK',
+  lightFlak: () => 'SHOT DOWN BY LIGHT FLAK',
   mgNest: () => 'SHOT DOWN BY AN MG NEST',
   infantry: () => 'SHOT DOWN BY INFANTRY',
   tank: () => 'SHOT DOWN BY A TANK',

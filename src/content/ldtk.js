@@ -10,6 +10,7 @@
 // LDtk entity name -> ground object type in data/ground.json.
 export const GROUND_ENTITIES = {
   Flak: 'flak',
+  LightFlak: 'lightFlak',
   MgNest: 'mgNest',
   Infantry: 'infantry',
   Tent: 'tent',

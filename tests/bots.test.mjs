@@ -7,6 +7,7 @@ import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, setBots, stepWorld, randomPlane } from '../src/sim/world.js';
 import { autopilotCommand } from '../src/sim/ai.js';
 import { makeGroundObject } from '../src/sim/ground.js';
+import { reachAt } from '../src/sim/defences.js';
 import { ignite } from '../src/sim/fire.js';
 import { armPlane } from '../src/sim/weapons.js';
 
@@ -70,12 +71,11 @@ test('a bot takes off, patrols behind the front and stays out of the ground and 
     const p = bot(world, GERMAN, skill);
     let airborne = 0;
     let inFlak = 0;
-    const flak = world.ground.filter((o) => o.type === 'flak' && o.team !== p.team);
+    const flak = world.ground.filter((o) => (o.type === 'flak' || o.type === 'lightFlak') && o.team !== p.team);
     const events = run(world, 180, {
       until: () => {
         if (p.state === 'air') airborne++;
-        const h = p.y - world.terrain.heightAt(p.x);
-        if (p.state === 'air' && flak.some((o) => h > o.def.minAltitude && Math.hypot(p.x - o.x, p.y - world.terrain.heightAt(o.x)) < o.def.range)) inFlak++;
+        if (p.state === 'air' && flak.some((o) => Math.abs(p.x - o.x) < reachAt(o.def, p.y - world.terrain.heightAt(o.x)))) inFlak++;
         return false;
       },
     });

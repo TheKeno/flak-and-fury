@@ -1,4 +1,4 @@
-// Headless tests for flak, MG nests and infantry. Run: node --test tests/
+// Headless tests for heavy and light flak, MG nests and infantry. Run: node --test tests/
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -41,20 +41,75 @@ function flyLevel(world, p, { from, speed, height, seconds }) {
 
 const damageTaken = (p) => p.def.hp - p.hp;
 
-test('flak bursts around a plane flying high over it and hurts it', () => {
+// As flyLevel, but the plane weaves up and down (weave: world units either way), really changing course.
+// Returns the plane's distance from every flak burst, in order.
+function flyPast(world, p, { from, speed, height, seconds, weave = 0 }) {
+  const misses = [];
+  Object.assign(p, { state: 'air', x: from, gear: 0, gearDown: false });
+  for (let i = 0; i < seconds * 60; i++) {
+    const t = i / 60;
+    const vy = weave * 2 * Math.cos(t * 2);
+    Object.assign(p, { y: world.terrain.heightAt(p.x) + height + weave * Math.sin(t * 2), vx: speed, vy, speed: Math.hypot(speed, vy), angle: Math.atan2(vy, speed), inverted: false, burning: false });
+    stepWorld(world, {});
+    for (const e of world.events) if (e.type === 'flakBurst') misses.push(Math.hypot(e.x - p.x, e.y - p.y));
+  }
+  return misses;
+}
+
+const only = (world, type) => {
+  for (const o of world.ground) if (o.team === 1 && o.type !== type) o.alive = false;
+};
+const mean = (list) => list.reduce((a, b) => a + b, 0) / list.length;
+
+test('heavy flak bursts around a plane flying straight and high over it and hurts it', () => {
   const { world, player } = makeWorld();
-  const flak = find(world, 'flak', 1, 2540);
-  const events = flyLevel(world, player, { from: flak.x - 500, speed: 110, height: 320, seconds: 9 });
-  assert.ok(events.filter((e) => e.type === 'flakFire' && e.id === flak.id).length >= 2, 'the gun fired');
+  only(world, 'flak');
+  const events = flyLevel(world, player, { from: 2900, speed: 110, height: 700, seconds: 16 });
+  assert.ok(events.filter((e) => e.type === 'flakFire').length >= 4, 'the guns fired');
   assert.ok(events.some((e) => e.type === 'shrapnel'), 'shrapnel reached the plane');
   assert.ok(damageTaken(player) > 0);
 });
 
-test('flak can\'t get a fix on a plane hugging the ground', () => {
-  const { world, player } = makeWorld();
-  const flak = find(world, 'flak', 1, 2540);
-  const events = flyLevel(world, player, { from: flak.x - 500, speed: 110, height: 35, seconds: 9 });
-  assert.equal(events.filter((e) => e.type === 'flakFire' && e.id === flak.id).length, 0);
+test('heavy flak is blind to a plane in the low band, and reaches the high band', () => {
+  const fires = (height) => {
+    const { world, player } = makeWorld();
+    only(world, 'flak');
+    return flyLevel(world, player, { from: 2900, speed: 110, height, seconds: 16 }).filter((e) => e.type === 'flakFire').length;
+  };
+  assert.equal(fires(35), 0, 'hugging the ground');
+  assert.equal(fires(300), 0, 'in the low band');
+  assert.ok(fires(1000) >= 4, 'in the high band');
+});
+
+test("heavy flak creeps in on a plane that flies straight and loses one that weaves", () => {
+  const straight = makeWorld();
+  only(straight.world, 'flak');
+  const misses = flyPast(straight.world, straight.player, { from: 2900, speed: 110, height: 700, seconds: 16 });
+  assert.ok(misses.length >= 6, `bursts (${misses.length})`);
+  assert.ok(mean(misses.slice(0, 3)) > mean(misses.slice(-3)) * 1.5, `the bursts close in: ${misses.map(Math.round).join(' ')}`);
+  assert.ok(damageTaken(straight.player) > 10, 'the straight flyer is hurt');
+  const weaving = makeWorld();
+  only(weaving.world, 'flak');
+  const wide = flyPast(weaving.world, weaving.player, { from: 2900, speed: 110, height: 700, seconds: 16, weave: 40 });
+  assert.ok(mean(wide.slice(-3)) > mean(misses.slice(-3)) * 2, `the bursts stay wide of a weaving plane: ${wide.map(Math.round).join(' ')}`);
+  assert.ok(damageTaken(weaving.player) < damageTaken(straight.player) / 3, 'and it is barely hurt');
+});
+
+test('light flak hurts a plane in the low band badly and cannot reach one above it', () => {
+  const pass = (height) => {
+    const { world, player } = makeWorld();
+    only(world, 'lightFlak');
+    const events = flyLevel(world, player, { from: 2500, speed: 110, height, seconds: 12 });
+    return { shots: events.filter((e) => e.type === 'groundShot').length, damage: damageTaken(player) };
+  };
+  const low = pass(150);
+  assert.ok(low.shots > 20, `fired at the low plane (${low.shots})`);
+  assert.ok(low.damage > 30, `and hurt it badly (${low.damage.toFixed(0)})`);
+  assert.equal(pass(380).shots, 0, 'never fired above its ceiling');
+  const nests = makeWorld();
+  only(nests.world, 'mgNest');
+  flyLevel(nests.world, nests.player, { from: 2500, speed: 110, height: 150, seconds: 12 });
+  assert.ok(low.damage > damageTaken(nests.player) * 2, 'far worse than the MG nests');
 });
 
 test('an MG nest fires bursts at a low plane but can\'t reach a high one', () => {

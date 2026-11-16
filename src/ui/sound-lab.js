@@ -171,10 +171,10 @@ const LOOP_TEST = {
 const USED = {
   'gun:rifle': 'Rifle-calibre guns on planes (.303 Browning, MG 17, ShKAS, MG 81Z), plus MG nests and tank machine guns, played lower.',
   'gun:heavy': 'Heavy machine guns on planes: .50 M2 Browning, MG 131, Ho-103.',
-  'gun:cannon20': '20 mm cannon on planes: Hispano, MG 151/20, Type 99, ShVAK.',
+  'gun:cannon20': '20 mm cannon on planes: Hispano, MG 151/20, Type 99, ShVAK. Also the light flak guns, played lower, until they get a sound of their own.',
   'gun:cannon30': '30 mm cannon on planes: MK 108.',
   'gun:infantryRifle': 'Infantry squads firing.',
-  'gun:flakGun': 'Flak guns firing. The burst in the air is Flak burst.',
+  'gun:flakGun': 'Heavy flak guns firing. The burst in the air is Flak burst.',
   'gun:tankGun': 'A tank firing its main gun. The shell landing is Tank shell lands.',
   'sfx:explosionPlane': 'A plane crashing, and a midair collision that kills.',
   'sfx:explosionBomb': 'A bomb exploding.',

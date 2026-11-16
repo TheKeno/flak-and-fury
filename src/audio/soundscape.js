@@ -453,7 +453,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         case 'groundHit':
           if (impactBudget >= 1) {
             impactBudget--;
-            sfx.play(mixer, e.kind === 'flak' || e.kind === 'mgNest' || e.kind === 'radar' || e.kind === 'tank' ? voices.hitGroundObject : voices.thud, where, { gain: 0.5, reverb: 0.2 });
+            sfx.play(mixer, e.kind === 'flak' || e.kind === 'lightFlak' || e.kind === 'mgNest' || e.kind === 'radar' || e.kind === 'tank' ? voices.hitGroundObject : voices.thud, where, { gain: 0.5, reverb: 0.2 });
           }
           break;
         case 'flakFire':
@@ -463,6 +463,8 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
           if (groundBudget >= 1) {
             groundBudget--;
             if (e.kind === 'infantry') sfx.play(mixer, voices.infantryRifle, where, { gain: 0.45, reverb: 0.45 });
+            // Light flak: the 20 mm cannon voice, slowed, until it gets a sound of its own in the Sound Lab.
+            else if (e.kind === 'lightFlak') sfx.play(mixer, voices.cannon20, where, { gain: 0.8, rate: 0.85, reverb: 0.45 });
             else sfx.play(mixer, voices.rifle, where, { gain: 0.6, rate: e.kind === 'tank' ? 0.8 : 0.88, reverb: 0.35 });
           }
           break;

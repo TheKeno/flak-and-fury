@@ -11,7 +11,7 @@
   "iid": "fb14b0f0-a72f-4317-a4a1-6e00c023dafe",
   "jsonVersion": "1.5.3",
   "appBuildId": 473703,
-  "nextUid": 38,
+  "nextUid": 40,
   "identifierStyle": "Capitalize",
   "toc": [],
   "worldLayout": "Free",
@@ -240,7 +240,7 @@
         "tags": [],
         "exportToToc": false,
         "allowOutOfBounds": false,
-        "doc": "Anti-aircraft gun: slow, accurate, reaches high. Fly low to dodge it.",
+        "doc": "Heavy anti-aircraft gun: slow bursts that reach high and creep in on planes flying straight. Blind to planes flying low.",
         "width": 14,
         "height": 9,
         "resizableX": false,
@@ -273,6 +273,84 @@
             "doc": null,
             "__type": "LocalEnum.Team",
             "uid": 13,
+            "type": "F_Enum(1)",
+            "isArray": false,
+            "canBeNull": false,
+            "arrayMinLength": null,
+            "arrayMaxLength": null,
+            "editorDisplayMode": "ValueOnly",
+            "editorDisplayScale": 1,
+            "editorDisplayPos": "Beneath",
+            "editorLinkStyle": "StraightArrow",
+            "editorDisplayColor": null,
+            "editorAlwaysShow": false,
+            "editorShowInWorld": true,
+            "editorCutLongValues": true,
+            "editorTextSuffix": null,
+            "editorTextPrefix": null,
+            "useForSmartColor": false,
+            "exportToToc": false,
+            "searchable": false,
+            "min": null,
+            "max": null,
+            "regex": null,
+            "acceptFileTypes": null,
+            "defaultOverride": {
+              "id": "V_String",
+              "params": [
+                "Team_0"
+              ]
+            },
+            "textLanguageMode": null,
+            "symmetricalRef": false,
+            "autoChainRef": false,
+            "allowOutOfLevelRef": true,
+            "allowedRefs": "OnlySame",
+            "allowedRefsEntityUid": null,
+            "allowedRefTags": [],
+            "tilesetUid": null
+          }
+        ]
+      },
+      {
+        "identifier": "LightFlak",
+        "uid": 38,
+        "tags": [],
+        "exportToToc": false,
+        "allowOutOfBounds": false,
+        "doc": "Light anti-aircraft gun: fast tracer, deadly to planes flying low, reaches no higher than the low band. Fly above it.",
+        "width": 13,
+        "height": 6,
+        "resizableX": false,
+        "resizableY": false,
+        "minWidth": null,
+        "maxWidth": null,
+        "minHeight": null,
+        "maxHeight": null,
+        "keepAspectRatio": false,
+        "tileOpacity": 1,
+        "fillOpacity": 0.45,
+        "lineOpacity": 1,
+        "hollow": false,
+        "color": "#E0A040",
+        "renderMode": "Rectangle",
+        "showName": true,
+        "tilesetId": null,
+        "tileRenderMode": "FitInside",
+        "tileRect": null,
+        "uiTileRect": null,
+        "nineSliceBorders": [],
+        "maxCount": 0,
+        "limitScope": "PerLevel",
+        "limitBehavior": "MoveLastOne",
+        "pivotX": 0.5,
+        "pivotY": 1,
+        "fieldDefs": [
+          {
+            "identifier": "team",
+            "doc": null,
+            "__type": "LocalEnum.Team",
+            "uid": 39,
             "type": "F_Enum(1)",
             "isArray": false,
             "canBeNull": false,
@@ -2919,6 +2997,240 @@
                   "__value": "Team_1",
                   "__tile": null,
                   "defUid": 26,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "LightFlak",
+              "__grid": [
+                617,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "79a22b09-3c80-49c2-86a6-fda6ab6e3873",
+              "width": 13,
+              "height": 6,
+              "defUid": 38,
+              "px": [
+                1235,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 39,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "LightFlak",
+              "__grid": [
+                795,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "4dd9eff1-562a-4993-a3db-7e704601e4d4",
+              "width": 13,
+              "height": 6,
+              "defUid": 38,
+              "px": [
+                1590,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 39,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "LightFlak",
+              "__grid": [
+                872,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "323b2704-3d98-43f3-a456-675495b775a3",
+              "width": 13,
+              "height": 6,
+              "defUid": 38,
+              "px": [
+                1745,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_0",
+                  "__tile": null,
+                  "defUid": 39,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_0"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "LightFlak",
+              "__grid": [
+                1467,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "b7f9288c-6cf1-47ec-9fb5-bb60c80d7d3f",
+              "width": 13,
+              "height": 6,
+              "defUid": 38,
+              "px": [
+                2935,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 39,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "LightFlak",
+              "__grid": [
+                1545,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "15d5a307-4d50-4524-a3da-9b04fcdcca54",
+              "width": 13,
+              "height": 6,
+              "defUid": 38,
+              "px": [
+                3090,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 39,
+                  "realEditorValues": [
+                    {
+                      "id": "V_String",
+                      "params": [
+                        "Team_1"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "__identifier": "LightFlak",
+              "__grid": [
+                1722,
+                372
+              ],
+              "__pivot": [
+                0.5,
+                1
+              ],
+              "__tags": [],
+              "__tile": null,
+              "__smartColor": "#E0A040",
+              "iid": "7a84ebf8-5383-4062-885b-9dcd76e3672f",
+              "width": 13,
+              "height": 6,
+              "defUid": 38,
+              "px": [
+                3445,
+                744
+              ],
+              "fieldInstances": [
+                {
+                  "__identifier": "team",
+                  "__type": "LocalEnum.Team",
+                  "__value": "Team_1",
+                  "__tile": null,
+                  "defUid": 39,
                   "realEditorValues": [
                     {
                       "id": "V_String",
