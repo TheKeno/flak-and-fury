@@ -17,3 +17,4 @@ byte (same hash for all 300 matches, old and new). The 6 MB worker nursery, tune
 machine, was about 5% slower here than V8's default (2.98 matches/s with FF_YOUNG_MB=0; one run). Code read
 through: the shortcuts only skip work that can't change a result (no random draws skipped, caches keyed on
 everything they read, ground objects only leave the list in the army step).
+The owner's call (2026-11-16): the 6 MB nursery only past 8 threads (tools/balance.mjs youngMb); V8's default at 8 or fewer.
