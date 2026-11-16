@@ -52,6 +52,11 @@ later.
   high on target. Small steps hardly beat the noise and the low planes' own lifts did nothing: the low band needs a
   decision (bigger steps, another lever). Applied 2026-11-16 on the owner's yes, without the P-47 turn lift (it stays a poor
   turner) and with the Zero low at 0.94, not 0.92 (it still out-turns the Spitfire low).
+  **Low band settled for now (owner, 2026-11-16):** balance left as it is (low planes about 50% against the mid
+  planes low, P-47 31-36% low as its weakness); milestone 8 forces fights to heights and will reshape the numbers.
+  Tests (`notes/band-check-2026-11-16.txt`): +15% power and turn for the low planes beats the Zero but barely
+  moves the Spitfire and crushes the high planes; the Spitfire's edge is firepower (Hispano damage -25%: B-239 56%
+  against it), but weaker guns plus a mid lift gained only a little (53%). Retune after milestone 8's ground war.
   **Owner test flight (2026-11-15, Bf 109 and Zero):** "really fun to play"; no change in the plane's own feel
   noticed between bands in a busy fight, and that is how it should be. So the band edges stay gradual and
   unnoticed in play; the tuner may move the `bands` values within the ±25% limit without a feel check each time.
@@ -800,6 +805,7 @@ later.
 
 ## Done
 
+- **Low band tests; sim speed checked (Gameplay, 2026-11-16):** Jonatan's sim speed fixes checked on the owner's machine (34% faster at 8 threads, results identical; the 6 MB worker nursery only past 8 threads). Low band tests on 16 threads: stats can't beat the Spitfire low; its edge is firepower; nothing applied, balance left for milestone 8. New tools-only `FF_WEAPONS` override (gun numbers in the test tools). Notes: `notes/sim-speed-check-2026-11-16.txt`, `notes/band-check-2026-11-16.txt`.
 - **Per-band tuner, stage 3 (Gameplay, 2026-11-15):** `tools/tune-bands.mjs` + `src/balance/band-tuner.js` tune the six main fighters one height band at a time to the band targets (levers: `bands` power and turn, one peak per plane, the Bf 109's rated height). First run settled in 4 h 18 min: low gap about 35 → 28, mid 6 → 4, high on target; the low band stays short (low planes about 50% against the mid planes, P-47 31-36%). Record `balance/results/2026-11-15-17-35-37-tune-bands.json`; Zero (low turn 0.94, half the step) and Spitfire applied 2026-11-16, the P-47 turn lift dropped (owner). Findings: `notes/tune-bands-2026-11-15.txt`.
 - **Main fighters per height band, stages 1-2 (Gameplay, 2026-11-15):** thin air hits turning harder above the rated height (`flight.turnPower` 0.375 → 0.8, new `slowPower` 1); tools-only `airOffset` (`FF_FLIGHT`) tests a fight high up (fought high the P-47 beats the Spitfire 55%, not 31%). Decision "Main fighters tuned per band": six main fighters, two per band (low B-239, La-5FN; mid Spitfire, Zero; high Bf 109, P-47). `tools/band-check.mjs --bands low,mid,high` measures each band. **Per-band stats** (`bands`: power and turn at `flight.bandHeights` 300/600/1000, `bandAt` in `src/sim/air.js`), two hand passes, Bf 109 rated 600 → 850: high band on target, low and mid within about 5 points, P-47 low 31-34% (floor 35). Each main fighter has a `band` field; the HUD height bar is green at it and fades to orange toward the ground or the ceiling (HULL colours). Bots turning back home no longer ratchet upward (as patrol until 2026-11-12). Owner test flight: fun, band edges not felt in a fight. Arena stats count planes shot down by height (`shotDownAt`). Numbers: `notes/band-check-2026-11-15.txt`. Next: the tuner (stage 3).
 - **Hold-height rule for the dive planes: tried, not kept (Gameplay, 2026-11-15):** a band floor (0.6 x rated height) under which they neither turn-fight nor follow an enemy down. P-47 against the Spitfire 22% → 10%, its kills more than halved; the turn fighters climb after them and still win. Reverted; `FF_TACTICS` (tools) kept for trying a tactic. Numbers in the "Balance by height band" decision.
