@@ -145,4 +145,6 @@ A second tuner beside the one above (which stays as it was): the six main fighte
   low 0.92, Spitfire turn mid 1.02, P-47 turn 1.02 in all bands. On fresh seeds the low gap went from about 35 to
   28, mid 6 to 4, high stayed on target. Steps of 2-4% move a matchup about as much as the noise, and the low
   planes' own lifts did nothing measurable: the low band needs bigger steps or another lever (owner's call).
-  Not applied yet.
+  Applied 2026-11-16 on the owner's yes, Zero and Spitfire only: the P-47 turn lift was dropped so it stays a poor
+  turner (kept in the record as `droppedByOwner`); the Zero's low turn set to 0.94, half the step, so it
+  still out-turns the Spitfire low (`tests/duels.test.mjs`, the hangar card). 0.94 not flown in a check.

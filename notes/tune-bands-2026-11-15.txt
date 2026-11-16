@@ -160,4 +160,4 @@ could not be told from luck. The low planes' own power and turn +4% did nothing 
 planes; only making the visitors weaker low moved anything. Closing the low band this way needs either bigger
 steps (the Zero is already at 0.92 low) or a different lever; that is a question for the owner, not more hours.
 The P-47's turn lift goes against the old identity lock (the P-47 a poor turner); the band tuner has no lock.
-Nothing applied to data/planes.json yet.
+Applied 2026-11-16 on the owner's yes: Zero and Spitfire; the P-47 turn lift dropped; Zero turn low 0.94 (half the step, untested), so it still out-turns the Spitfire low.
