@@ -13,10 +13,22 @@ const readJson = (path) => JSON.parse(readFileSync(join(root, path), 'utf8'));
 // (tools/balance.mjs, tools/duels.mjs and their worker threads, which share the environment).
 export const envOverrides = () => (process.env.FF_PLANES ? JSON.parse(process.env.FF_PLANES) : null);
 
+// FF_WEAPONS='{"hispano_20":{"damage":2.7}}': { weaponId: { field: value } } over data/weapons.json, for
+// trying a gun change in the tools (every plane carrying that gun gets it).
+function weaponsWithEnv(weapons) {
+  const env = process.env.FF_WEAPONS ? JSON.parse(process.env.FF_WEAPONS) : null;
+  if (!env) return weapons;
+  for (const [id, v] of Object.entries(env)) {
+    if (!weapons[id]) throw new Error(`FF_WEAPONS: no weapon ${id}`);
+    weapons[id] = { ...weapons[id], ...v };
+  }
+  return weapons;
+}
+
 export function loadContent(maps = ['countryside']) {
   const content = cleanContent({
     planes: readJson('data/planes.json'),
-    weapons: readJson('data/weapons.json'),
+    weapons: weaponsWithEnv(readJson('data/weapons.json')),
     ground: readJson('data/ground.json'),
     settings: readJson('data/settings.json'),
     tactics: readJson('data/bot-tactics.json'),
