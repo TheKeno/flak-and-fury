@@ -15,6 +15,7 @@
     "passBreak": 0,
     "bandClimb": 0,
     "bandMargin": 2000,
+    "followDown": 2000,
     "chaseDiver": 1,
     "fightDamaged": 0,
     "finishBonus": 100,

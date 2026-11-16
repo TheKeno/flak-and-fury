@@ -16,7 +16,7 @@ import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 import { tacticsFor } from './tactics.js';
 import { reachAt } from './defences.js';
-import { DEFAULT_FLIGHT, turnAt, cutsOut } from './air.js';
+import { DEFAULT_FLIGHT, turnAt, cutsOut, homeHeight } from './air.js';
 
 const DT = 1 / 60;
 const GENTLE_PUSH = new Set(['patrol', 'chase', 'attack', 'evade', 'extend']); // modes where a carburettor bot avoids negative g
@@ -854,6 +854,14 @@ function chaseWant(world, p, b, skill, o, cmd) {
   if (!tac.chaseDiver && o.y < p.y - 30 && o.vy < -0.25 * o.speed && o.speed > p.speed + 15 && opening) {
     const dir = Math.sign(o.x - p.x) || facing(p);
     return { angle: angleFor(dir, 0.04), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
+  }
+  // Don't follow down (followDown): an enemy further below its home band than that is not gone after. It
+  // holds the floor above it, nose loosely towards it, so the enemy has to climb into its band to fight.
+  // Close by it fights where it is.
+  const home = homeHeight(world, p.def);
+  if (home != null && (tac.followDown ?? 2000) < 2000 && o.y < home - tac.followDown && d > BAND_FIGHT) {
+    const dir = Math.sign(o.x - p.x) || facing(p);
+    return { angle: angleFor(dir, clamp((home - tac.followDown + 60 - p.y) / 200, -0.3, 0.35)), throttle: 1, clear: world.bots.terrainClear, avoidFlak: true };
   }
   // Its height band: an enemy far above its engine's rated height is not climbed after. It waits under it
   // in its band, keeping speed, so the enemy has to come down into the band to fight.

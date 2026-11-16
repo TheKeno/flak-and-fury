@@ -161,14 +161,14 @@ export function strengthRange(world, def, top) {
   return r;
 }
 export const bestHeight = (world, def, top) => strengthRange(world, def, top).best;
-// A main fighter's designated band ('low', 'mid', 'high'; decision "Main fighters tuned per band") as its
-// height in bandHeights; null for a plane without one.
 export const BAND_NAMES = ['low', 'mid', 'high'];
 // Which band a height (world y) lies in: 0 low, 1 mid, 2 high. The bands meet half way between their heights.
 export function bandIndex(flight, y) {
   const h = flight?.bandHeights ?? DEFAULT_FLIGHT.bandHeights;
   return y < (h[0] + h[1]) / 2 ? 0 : y < (h[1] + h[2]) / 2 ? 1 : 2;
 }
+// A main fighter's designated band ('low', 'mid', 'high'; decision "Main fighters tuned per band") as its
+// height in bandHeights; null for a plane without one.
 export function homeHeight(world, def) {
   const i = BAND_NAMES.indexOf(def.band);
   return i < 0 ? null : (cfgOf(world).bandHeights ?? DEFAULT_FLIGHT.bandHeights)[i];
