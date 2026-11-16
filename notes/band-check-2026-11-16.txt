@@ -75,3 +75,50 @@ Findings (Claude, 2026-11-16): the Spitfire guns test, low band, seeds 101-160, 
   not power or turn. But guns work at every height: this would cost the Spitfire in its own mid band too, and the
   Hispano is also on the Mosquito and P-38J.
 - Spitfire ammunition x0.6: B-239 and La-5FN against it 49 → 51-52%; a small effect.
+
+[17:33:53] Band check 2026-11-16T16:33: starts low, mid, high, seeds 101-160, 16 threads. FF_PLANES={"spitfire":{"power.mid":1.06,"turn.mid":1.08}} FF_WEAPONS={"hispano_20":{"damage":2.9}}
+
+[17:43:10] == band low, airOffset 0, start 300 (557 s)
+[17:43:10] b239 57.2% ±0.4, la5fn 56.5% ±0.5, spitfire 55.1% ±0.5, a6m5 55.5% ±0.4, bf109g6 41.9% ±0.4, p47d 33.9% ±0.3
+[17:43:10] row against column (exchange share of the row plane):
+[17:43:10]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[17:43:10] b239                     52%      53%      50%      63%      68%
+[17:43:10] la5fn           48%               51%      50%      64%      69%
+[17:43:10] spitfire        47%      50%               48%      62%      70%
+[17:43:10] a6m5            50%      50%      52%               59%      66%
+[17:43:10] bf109g6         37%      36%      38%      41%               58%
+[17:43:10] p47d            32%      31%      31%      34%      42%         
+
+[17:52:12] == band mid, airOffset 300, start 300 (541 s)
+[17:52:12] b239 47.0% ±0.3, la5fn 48.8% ±0.4, spitfire 54.2% ±0.3, a6m5 55.3% ±0.3, bf109g6 50.7% ±0.3, p47d 44.0% ±0.3
+[17:52:12] row against column (exchange share of the row plane):
+[17:52:12]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[17:52:12] b239                     49%      46%      43%      50%      48%
+[17:52:12] la5fn           51%               44%      42%      51%      55%
+[17:52:12] spitfire        54%      56%               48%      54%      60%
+[17:52:12] a6m5            57%      58%      53%               51%      57%
+[17:52:12] bf109g6         50%      49%      46%      49%               60%
+[17:52:12] p47d            52%      45%      40%      43%      40%         
+
+[18:00:55] == band high, airOffset 700, start 300 (524 s)
+[18:00:55] b239 44.4% ±0.5, la5fn 39.6% ±0.3, spitfire 49.3% ±0.4, a6m5 48.0% ±0.6, bf109g6 60.5% ±0.3, p47d 58.3% ±0.4
+[18:00:55] row against column (exchange share of the row plane):
+[18:00:55]                b239    la5fn spitfire     a6m5  bf109g6     p47d
+[18:00:55] b239                     56%      47%      43%      38%      37%
+[18:00:55] la5fn           44%               41%      37%      37%      39%
+[18:00:55] spitfire        53%      59%               49%      42%      44%
+[18:00:55] a6m5            57%      63%      51%               35%      35%
+[18:00:55] bf109g6         62%      63%      58%      65%               55%
+[18:00:55] p47d            63%      61%      56%      66%      45%         
+
+[18:00:55] Band check done.
+
+Findings (Claude, 2026-11-16): guns down, home band up (Hispano damage 3.6 → 2.9, Spitfire mid power 1 → 1.06,
+turn 1.02 → 1.08), all three bands, seeds 101-160. Test only, nothing applied.
+- Low: B-239 against the Spitfire 49 → 53%, La-5FN 49 → 50%. Less than the -25% guns alone (56/53): the mid lift
+  bleeds down into the low band (bands blend between 300 and 600).
+- Mid (against the tuner's check, same seeds): the Spitfire about the same at home (54-56% against the low
+  planes, 54% against the Bf 109), the Zero 53% against it (was 51).
+- High: unchanged.
+A small gain for a gun change that also reaches the Mosquito and P-38J (not measured). Recommendation: leave the
+balance as it is; milestone 8 (flak, bombers, paradrops forcing fights to heights) will reshape these numbers.
