@@ -12,6 +12,7 @@ import { deflateSync } from 'node:zlib';
 import { BUILDERS, buildModel, renderVehicle, kit, render, rollPose, groundPose, tipBank, project } from './plane-models.mjs';
 import { loadOutline } from './outlines.mjs';
 import { PALETTE } from './plane-palette.mjs';
+import { GAME_SPRITES } from './kursk-sprites.mjs';
 import { readFileSync } from 'node:fs';
 import { wheelGeometry } from '../src/sim/plane.js';
 
@@ -413,6 +414,7 @@ const SPRITES = {
   tree: tree(),
   pine: pine(),
   barn: barn(),
+  ...GAME_SPRITES, // the Kursk scenery and its wrecks (tools/kursk-sprites.mjs)
 };
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {

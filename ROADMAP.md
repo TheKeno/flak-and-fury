@@ -843,6 +843,21 @@ later.
 
 ## Done
 
+- **Kursk map assets (Planes, 2026-11-17):** drawn in `tools/kursk-sprites.mjs` (previews: `notes/kursk-assets-preview*.png`).
+  **In the game** (sprites, `data/ground.json`, a piece in LDtk, own wrecks; `tests/scenery.test.mjs`): 28 kinds of
+  neutral scenery (izbas, shed, cowshed, church, windmill, well, haystack, wattle fence, station, water tower,
+  telegraph pole, merchant's house, trade row, town soviet, grain elevator, shelled house, apple tree, birch,
+  sunflowers, stooks, dugout, hedgehog, wire, mine sign, windsock, stores), and a nation's own look (`looks` in
+  `data/ground.json`) for the heavy flak (8.8 cm Flak 36 for Germany, 85 mm 52-K for the USSR), the radar (Freya,
+  RUS-2) and the depot. Nothing is placed on a map yet: the owner places them in LDtk when the Kursk map is
+  drawn. To look at them: `http://localhost:8080/?mute&showcase=1420` stands them in a row (free look starts there
+  once the plane is out). **Still drafts, not in the game** (need more than a sprite): Pak 40 and ZiS-3 and their
+  nests, bunkers, DZOT, pillbox, dug-in T-34, trenches (new behaviour); paratroopers, locomotive, tender and wagons
+  (the director's events and a track); burning wheat, dust and smoke frames (effects); the per-nation hangars (14
+  door frames each); **Tiger and SU-152** (`data/outlines/tiger.json`, `su-152.json`: starters from published
+  dimensions, to be fitted over the owner's 3-views in the Outline Lab, then the tank roster). The guns' and the
+  timber wrecks' looks are a first pass.
+
 - **Milestone 8 step 2: light and heavy flak (Gameplay, 2026-11-16):** today's `flak` is now the **heavy gun**: blind below 400, reach 1250 in a cone over itself (`minElevation` 0.7: about 830 either side at 700 up), a burst every 3 s. Its gunners work up a **fix**: shells are laid up to 120 off a new target and creep in to about 8 over 10 s of straight flight (`missFar`, `missNear`, `fixTime`); any change of course or speed beyond `fixSteady` shakes it off (`fixLoss`). Heavy shells burst on the time fuse alone (no burst on passing a plane, which turned every shell laid short or long into a hit). Measured: 16 s straight over the two heavy guns costs a fighter about 35 hit points at 700 or 1000, a weaving plane nothing. New **light gun** `lightFlak` (`src/sim/defences.js`, on the MG nest code): all-tracer bursts, 280 rpm, 2.2 a round, reach 400, ceiling `maxAltitude` 350, planes only; a straight pass costs about 60 at 150 up and 35 at 300 (MG nests: about 11). Between 350 and 400 neither reaches. Sprite `lightflak` hand-pixelled in `tools/make-sprites.mjs`, about 1.4 times real size to be readable (picture: `notes/light-flak-outline.png`; the owner said yes to the look, 2026-11-16). **Map** (`maps/countryside.ldtk`, new entity `LightFlak`): both heavy guns stay by each depot; three light guns a side, two in the village (1590, 1745 and 2935, 3090) and one by the depot (1235, 3445). **Bots** read both kinds through one reach rule (`reachAt` in `defences.js`: `flakDepth` and `flakLine` in `ai.js`), so at patrol height (220) only the light guns stop them and above 400 only the heavy ones. Sound: the light gun plays the 20 mm cannon voice lowered until it gets its own in the Sound Lab. Tuning panel and TUNING.md updated; tests for reach, the creep and the light gun in `tests/defences.test.mjs`. All numbers are starting points. **Still open:** the owner's test flight; the Balance Lab's numbers will shift (heavy flak no longer touches the low band).
 
 - **Low band tests; sim speed checked (Gameplay, 2026-11-16):** Jonatan's sim speed fixes checked on the owner's machine (34% faster at 8 threads, results identical; the 6 MB worker nursery only past 8 threads). Low band tests on 16 threads: stats can't beat the Spitfire low; its edge is firepower; nothing applied, balance left for milestone 8. New tools-only `FF_WEAPONS` override (gun numbers in the test tools). Notes: `notes/sim-speed-check-2026-11-16.txt`, `notes/band-check-2026-11-16.txt`.

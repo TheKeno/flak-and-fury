@@ -428,7 +428,10 @@ A propeller strike always tears the man apart and sends his helmet spinning high
 ## Ground targets: `data/ground.json`
 
 One entry per kind of ground object (`flak` (the heavy gun), `lightFlak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`,
-`tank`, `engineers`, `depot`, `bridge`, `hangar`, and the decor: `hedge`, `wall`, `tree`, `pine`, `barn`). Also in the
+`tank`, `engineers`, `depot`, `bridge`, `hangar`, and the decor: `hedge`, `wall`, `tree`, `pine`, `barn`, and the Kursk
+scenery from `izba` to `stores`, placed in LDtk without a team). A piece of scenery may name a `wreck` (the sprite shown
+once it is destroyed); `flak`, `radar` and `depot` have `looks`: a nation's own sprite (and wreck, and for the gun where
+its barrel pivots and how long it is) used instead of the plain one. Also in the
 tuning panel's **Ground targets** section;
 its **Restore targets** button rebuilds every object at full strength (new hit points only apply then),
 clears the tank columns and starts the waves again.

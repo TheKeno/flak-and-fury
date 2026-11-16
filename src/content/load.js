@@ -44,7 +44,11 @@ export async function loadContent(mapName) {
   delete groundDefs._notes;
 
   const spriteNames = [
-    ...new Set([...Object.values(planeDefs).map((d) => d.sprite), ...Object.values(groundDefs).map((d) => d.sprite).filter(Boolean)]),
+    ...new Set([
+      ...Object.values(planeDefs).map((d) => d.sprite),
+      // Ground objects: the plain sprite, its wreck, and each nation's own look with its wreck (data/ground.json).
+      ...Object.values(groundDefs).flatMap((d) => [d.sprite, d.wreck, ...Object.values(d.looks ?? {}).flatMap((l) => [l.sprite, l.wreck])]).filter(Boolean),
+    ]),
     'hangar',
     'hangar-shut',
     ...Array.from({ length: 14 }, (_, i) => `hangar-d${i + 1}`), // door steps, see hangarSteps in tools/make-sprites.mjs

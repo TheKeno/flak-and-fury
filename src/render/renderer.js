@@ -506,7 +506,14 @@ export function createRenderer(canvas, world, assets) {
   // Tanks wear their nation's paint; everything else is drawn as it is.
   // 15 panel steps (0 = open sprite, 15 = shut) so the doors glide instead of jumping.
   const hangarDoorSuffix = (d) => { const k = 15 - Math.round(Math.min(1, Math.max(0, d)) * 15); return k === 0 ? '' : k === 15 ? '-shut' : `-d${k}`; };
+  // A nation's own version of a ground object (def.looks: the heavy flak, the radar, the depot), if it has one.
+  const lookOf = (obj) => {
+    const look = obj.def.looks?.[nationOf(obj.team)];
+    return look && assets.images[look.sprite] ? look : null;
+  };
   function spriteOf(obj) {
+    const look = lookOf(obj);
+    if (look) return [look.sprite, assets.images[look.sprite]];
     // Hangar doors: shut, half or open by the object's door (0..1).
     const door = obj.type === 'hangar' && obj.alive && obj.door != null ? hangarDoorSuffix(obj.door) : '';
     const img = assets.images[obj.def.sprite + door];
@@ -907,6 +914,12 @@ export function createRenderer(canvas, world, assets) {
         continue;
       }
       if (!obj.alive) {
+        // Its own drawn wreck (def.wreck, or its look's), standing where it stood; failing that, a scorched stump.
+        const ruin = assets.images[lookOf(obj)?.wreck ?? obj.def.wreck];
+        if (ruin) {
+          ctx.drawImage(ruin, sx - Math.round(ruin.width / 2), sy - ruin.height);
+          continue;
+        }
         const w = wreckOf(name, img);
         ctx.drawImage(turns && dir < 0 ? flipped(`${name}|wreck`, w) : w, left, sy - w.height);
         continue;
@@ -916,13 +929,17 @@ export function createRenderer(canvas, world, assets) {
       // Barrel pivots, measured on the right-facing sprite.
       const pivot = (px) => (dir > 0 ? left + px : left + img.width - 1 - px);
       const aim = obj.aim ?? (dir > 0 ? 0.8 : Math.PI - 0.8); // resting elevation until it has a target
-      if (obj.type === 'flak') drawBarrel(pivot(14), top + 6, aim, 20, 3, '#3e4630');
+      // The heavy gun's barrel: where and how long, by the nation's gun (def.looks) or the plain one.
+      const look = lookOf(obj);
+      const [fpx, fpy] = look?.pivot ?? [14, 6];
+      const [flen, fthick] = look?.barrel ?? [20, 3];
+      if (obj.type === 'flak') drawBarrel(pivot(fpx), top + fpy, aim, flen, fthick, '#3e4630');
       if (obj.type === 'lightFlak') drawBarrel(pivot(13), top + 5, aim, 12, 1, '#24261f');
       if (obj.type === 'mgNest') drawBarrel(pivot(13), top + 2, aim, 9, 1, '#24261f');
       const flash = groundFlashes.get(obj.id);
       if (gun && flash > 0) {
         groundFlashes.set(obj.id, flash - 1);
-        const [px, py, len, r] = obj.type === 'flak' ? [pivot(14), top + 6, 22, 3] : obj.type === 'lightFlak' ? [pivot(13), top + 5, 14, 2] : [pivot(13), top + 2, 11, 2];
+        const [px, py, len, r] = obj.type === 'flak' ? [pivot(fpx), top + fpy, flen + 2, 3] : obj.type === 'lightFlak' ? [pivot(13), top + 5, 14, 2] : [pivot(13), top + 2, 11, 2];
         const fx = Math.round(px + Math.cos(aim) * len);
         const fy = Math.round(py - Math.sin(aim) * len);
         ctx.fillStyle = '#ffc850';
@@ -930,7 +947,7 @@ export function createRenderer(canvas, world, assets) {
         ctx.fillStyle = '#fff6c8';
         ctx.fillRect(fx - 1, fy - 1, 2, 2);
       }
-      if (obj.type === 'radar') drawAerial(left + 26, top + 5, true);
+      if (obj.type === 'radar' && !look) drawAerial(left + 26, top + 5, true);
       if (obj.type === 'tower') drawPennant(left + 10, top, obj.team);
     }
   }

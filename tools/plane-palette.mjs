@@ -57,6 +57,27 @@ export const PALETTE = {
   Q: [66, 62, 56, 255], // barn roof (old slate)
   m: [122, 40, 36, 255], // roundel red (dull)
   5: [168, 146, 64, 255], // roundel yellow (dull)
+  // The Kursk scenery (tools/kursk-sprites.mjs): dull and sooty.
+  3: [124, 108, 70, 255], // thatch
+  8: [96, 82, 54, 255], // thatch shade
+  9: [68, 58, 40, 255], // thatch, wet and dark
+  O: [104, 60, 48, 255], // brick
+  $: [80, 46, 38, 255], // brick shade
+  '&': [38, 34, 32, 255], // char, soot
+  '%': [86, 82, 78, 255], // ash
+  '+': [146, 124, 68, 255], // ripe wheat, straw
+  '=': [112, 94, 52, 255], // wheat shade
+  '#': [168, 166, 152, 255], // birch bark
+  '@': [88, 68, 58, 255], // rusty sheet-iron roof
+  '!': [66, 52, 46, 255], // sheet-iron shade
+  '~': [84, 68, 50, 255], // turned earth
+  '^': [60, 50, 38, 255], // earth shade
+  '{': [190, 98, 40, 255], // flame
+  '}': [216, 164, 70, 255], // flame core
+  '(': [62, 60, 58, 255], // smoke
+  ')': [96, 92, 88, 255], // smoke, thin
+  '<': [138, 122, 92, 255], // dust
+  '>': [110, 96, 72, 255], // dust shade
   6: [0, 128, 255, 255], // KEY optional marking, dark (black, or the fin's paint with the setting off)
   7: [128, 255, 0, 255], // KEY optional marking, light (white, or the fin's paint)
 };

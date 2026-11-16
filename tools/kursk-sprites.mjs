@@ -9,30 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { PALETTE } from './plane-palette.mjs';
 import { encodePngRgba } from './png.mjs';
 
-// Colours the Kursk scenery adds (dull and sooty: the look is grim). To join PALETTE when the sprites do.
-export const KURSK_PALETTE = {
-  3: [124, 108, 70, 255], // thatch
-  8: [96, 82, 54, 255], // thatch shade
-  9: [68, 58, 40, 255], // thatch, wet and dark
-  O: [104, 60, 48, 255], // brick
-  $: [80, 46, 38, 255], // brick shade
-  '&': [38, 34, 32, 255], // char, soot
-  '%': [86, 82, 78, 255], // ash
-  '+': [146, 124, 68, 255], // ripe wheat, straw
-  '=': [112, 94, 52, 255], // wheat shade
-  '#': [168, 166, 152, 255], // birch bark
-  '@': [88, 68, 58, 255], // rusty sheet-iron roof
-  '!': [66, 52, 46, 255], // sheet-iron shade
-  '~': [84, 68, 50, 255], // turned earth
-  '^': [60, 50, 38, 255], // earth shade
-  '{': [190, 98, 40, 255], // flame
-  '}': [216, 164, 70, 255], // flame core
-  '(': [62, 60, 58, 255], // smoke
-  ')': [96, 92, 88, 255], // smoke, thin
-  '<': [138, 122, 92, 255], // dust
-  '>': [110, 96, 72, 255], // dust shade
-};
-const COLOURS = { ...PALETTE, ...KURSK_PALETTE };
+const COLOURS = PALETTE; // the Kursk colours are in the shared palette (tools/plane-palette.mjs)
 
 function grid(w, h) {
   const px = Array.from({ length: h }, () => Array(w).fill('.'));
@@ -696,7 +673,8 @@ function man(g, x, feet, helmet, tunic, kneel = false) {
 // 8.8 cm Flak 36, emplaced: the cross-shaped platform down on its jacks, the pedestal, the cradle with its
 // two equilibrator cylinders, the long two-piece barrel, the flat shield, the fuze setter on the left.
 // Two of the crew. 56x44; trunnion (26, 30).
-function flak88() {
+// barrel false: the mount alone, as the game draws it (the barrel is its own piece that swings).
+function flak88(barrel = true) {
   const g = grid(56, 44);
   g.box(4, 41, 47, 42, 'I'); // the fore-and-aft legs
   g.box(2, 42, 7, 43, 'i');
@@ -708,7 +686,7 @@ function flak88() {
   g.box(21, 29, 31, 29, 'v');
   g.line(29, 33, 35, 26, 'i'); // equilibrators
   g.line(30, 33, 36, 26, 'I');
-  gunBarrel(g, 26, 30, 0.95, [[-7, -1, 2.5, 'I'], [-1, 13, 2.5, 'v'], [13, 16, 2, 'V'], [16, 28, 1.5, 'V'], [28, 38, 1, 'v']]);
+  if (barrel) gunBarrel(g, 26, 30, 0.95, [[-7, -1, 2.5, 'I'], [-1, 13, 2.5, 'v'], [13, 16, 2, 'V'], [16, 28, 1.5, 'V'], [28, 38, 1, 'v']]);
   g.disc(26, 30, 2.5, 'v');
   g.set(26, 30, 'I');
   for (let y = 18; y <= 37; y++) g.span(y, 34 + Math.round((37 - y) * 0.1), 36 + Math.round((37 - y) * 0.1), y < 20 ? 'v' : 'V'); // shield
@@ -723,7 +701,7 @@ function flak88() {
 
 // 85 mm 52-K, emplaced: the four-wheeled platform up on its jacks with the wheels left on, side outriggers
 // out, a squat pedestal, the barrel with its bell muzzle brake, no shield. Two of the crew. 58x44; trunnion (28, 29).
-function flak85() {
+function flak85(barrel = true) {
   const g = grid(58, 44);
   g.box(7, 36, 49, 37, 'I'); // the platform girder
   g.box(9, 34, 47, 35, 'v');
@@ -740,7 +718,7 @@ function flak85() {
   for (let y = 30; y <= 33; y++) g.span(y, 28 - 5 - (y - 30), 28 + 5 + (y - 30), (x) => (x < 28 ? 'v' : 'V')); // low pedestal
   g.box(23, 26, 33, 30, 'V');
   g.line(31, 31, 37, 25, 'I');
-  gunBarrel(g, 28, 29, 0.9, [[-6, -1, 2.5, 'I'], [-1, 12, 2.5, 'v'], [12, 30, 1.5, 'V'], [30, 34, 2.5, 'I'], [34, 35, 1.5, 'V']]);
+  if (barrel) gunBarrel(g, 28, 29, 0.9, [[-6, -1, 2.5, 'I'], [-1, 12, 2.5, 'v'], [12, 30, 1.5, 'V'], [30, 34, 2.5, 'I'], [34, 35, 1.5, 'V']]);
   g.disc(28, 29, 2.5, 'v');
   g.set(28, 29, 'I');
   g.box(34, 27, 37, 33, 'v'); // the layers' sights and handwheels, either side
@@ -1572,6 +1550,21 @@ export const KURSK_EXTRA = {
   locomotive: locomotive(),
   tender: tender(),
   'flat-wagon': flatWagon(),
+};
+
+// What is in the game (tools/make-sprites.mjs writes these to assets/sprites/; data/ground.json names them):
+// the scenery, each building's wreck as <name>-ruin, the heavy flak mounts without their barrels, and each
+// nation's depot and radar. The rest of this file is still drafts.
+const pick = (set, names) => Object.fromEntries(names.map((n) => [n, set[n]]));
+export const GAME_SPRITES = {
+  ...pick(KURSK, ['izba', 'izba-white', 'izba-burnt', 'shed', 'cowshed', 'church', 'windmill', 'well', 'haystack', 'wattle', 'station',
+    'water-tower', 'telegraph-pole', 'apple-tree', 'birch', 'sunflowers', 'stooks', 'dugout', 'hedgehog', 'town-house', 'trade-row',
+    'soviet', 'elevator', 'town-ruin']),
+  ...pick(KURSK_RUINS, ['izba-ruin', 'izba-white-ruin', 'shed-ruin', 'cowshed-ruin', 'church-ruin', 'windmill-ruin', 'station-ruin',
+    'water-tower-ruin', 'trade-row-ruin', 'soviet-ruin', 'elevator-ruin', 'depot-germany-ruin', 'depot-ussr-ruin']),
+  ...pick(KURSK_MILITARY, ['depot-germany', 'depot-ussr', 'radar-germany', 'radar-ussr', 'windsock', 'stores', 'wire', 'mine-sign']),
+  'flak-88': flak88(false),
+  'flak-85': flak85(false),
 };
 
 // --- The preview sheet -----------------------------------------------------------------------------------

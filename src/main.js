@@ -13,7 +13,7 @@ import { createHangarPanel } from './ui/hangar-panel.js';
 import { hangarRefusal, callingMessage } from './ui/hangar-messages.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
 import { setKeyNames, speedText, sinkText } from './render/hud.js';
-import { surfaceAt, radarHealth } from './sim/ground.js';
+import { surfaceAt, radarHealth, makeGroundObject } from './sim/ground.js';
 import { NO_COMMAND, parkInBlocker, holdForPilot } from './sim/plane.js';
 import { setLoadout, setGuns } from './sim/weapons.js';
 import { placeBots as fillSides, changeSeat, freeSide, playersOn, MAX_PLAYERS } from './sim/seats.js';
@@ -396,6 +396,27 @@ let hangarWarnAt = 0;
 let hangarReq = null; // 'call' (park in) or 'out' (roll out): rides on the next command, one tick
 let holdPanelShown = false; // the hangar panel has opened for this park-in
 let raidWarnAt = 0; // no second "bombers over" line before this time (each bomber reports its own bombs)
+// ?showcase: every piece of scenery stood in a row east of the west airfield, to look at (and bomb). Not for
+// online play or the tools: the objects are added after the world is built.
+if (params.has('showcase')) {
+  let x = 1290;
+  for (const [type, def] of Object.entries(world.groundDefs)) {
+    if (!def.decor || !def.sprite || ['hedge', 'wall', 'tree', 'pine', 'barn'].includes(type)) continue;
+    x += def.width / 2 + 8;
+    world.ground.push(makeGroundObject(world, type, null, x));
+    x += def.width / 2;
+  }
+  // ?showcase=<x> also starts in free look there (the row runs from about 1300 to 2250).
+  const at = Number(params.get('showcase'));
+  // (Once the plane stands on the runway with its engine running: free look before that would keep it in the hangar.)
+  const look = () => {
+    if (player.hold || player.exitPhase || !player.engineRunning) return setTimeout(look, 500);
+    setFreeLook(true);
+    free.x = free.tx = at;
+    free.y = free.ty = surfaceAt(world, at) + 60;
+  };
+  if (at > 0) setTimeout(look, 500);
+}
 function handleEvents() {
   for (const e of world.events) {
     renderer.onEvent(e);
