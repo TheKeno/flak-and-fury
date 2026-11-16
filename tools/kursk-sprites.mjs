@@ -25,6 +25,12 @@ export const KURSK_PALETTE = {
   '!': [66, 52, 46, 255], // sheet-iron shade
   '~': [84, 68, 50, 255], // turned earth
   '^': [60, 50, 38, 255], // earth shade
+  '{': [190, 98, 40, 255], // flame
+  '}': [216, 164, 70, 255], // flame core
+  '(': [62, 60, 58, 255], // smoke
+  ')': [96, 92, 88, 255], // smoke, thin
+  '<': [138, 122, 92, 255], // dust
+  '>': [110, 96, 72, 255], // dust shade
 };
 const COLOURS = { ...PALETTE, ...KURSK_PALETTE };
 
@@ -831,6 +837,743 @@ export const KURSK = {
   'town-ruin': townRuin(),
 };
 
+// --- Destroyed versions ------------------------------------------------------------------------------------
+
+const THATCH = '389';
+const TIMBER = 'tTEDQaA';
+const BRICK = 'O$';
+const ROOF_IRON = '@!';
+const fromRows = (rows) => {
+  const w = Math.max(...rows.map((r) => r.length));
+  const g = grid(w, rows.length);
+  rows.forEach((row, y) => [...row].forEach((c, x) => g.set(x, y, c)));
+  return g;
+};
+
+// The wreck of a building, worked out from its sprite so every building gets one in the same hand: the top
+// is torn off along a ragged line (keep: the share of its height left standing, on average), thatch and
+// sheet iron are gone, timber is charred, windows are holes, brick chimneys and gables stand higher than the
+// rest, a few burnt rafters lean in the gap and rubble or ash lies along the foot.
+function ruin(rows, { keep = 0.5, seed = 1 } = {}) {
+  const src = fromRows(rows);
+  const { w, h } = src;
+  const g = grid(w, h);
+  let bricks = 0;
+  let filled = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const c = src.get(x, y);
+    if (c !== '.') filled++;
+    if (BRICK.includes(c)) bricks++;
+  }
+  const masonry = bricks > filled * 0.25;
+  const cut = [];
+  for (let x = 0; x < w; x++) {
+    let top = 0;
+    while (top < h && src.get(x, top) === '.') top++;
+    const height = h - top;
+    const k = Math.min(1, keep * (0.45 + 1.1 * Math.abs(Math.sin(x * 0.19 + seed * 1.7))) + noise(x * 5 + seed, 0.18));
+    cut[x] = Math.round(h - height * k);
+    for (let y = top; y < h; y++) {
+      const c = src.get(x, y);
+      if (c === '.') continue;
+      const stands = BRICK.includes(c) ? y >= cut[x] - height * 0.3 : y >= cut[x]; // brick outlasts the rest
+      if (!stands || THATCH.includes(c) || ROOF_IRON.includes(c)) continue;
+      const n = noise(x * 13 + y * 7 + seed, 1);
+      const scorched = y < cut[x] + 5;
+      let out = c;
+      if (c === 'n' || c === 'w') out = 'd';
+      else if (c === 'o') out = masonry ? 'o' : '&';
+      else if (TIMBER.includes(c)) out = n < (scorched ? 0.8 : 0.45) ? '&' : n < 0.75 ? 'A' : c;
+      else if ('yYx'.includes(c)) out = n < (scorched ? 0.45 : 0.1) ? '&' : n < 0.35 ? 'Y' : c;
+      else if (BRICK.includes(c)) out = n < (scorched ? 0.3 : 0.06) ? '&' : c;
+      g.set(x, y, out);
+    }
+  }
+  // Burnt rafters fallen into the shell.
+  for (let i = 0; i < Math.max(2, w / 22); i++) {
+    const x0 = Math.round(4 + noise(i * 31 + seed, w - 16));
+    const len = 8 + Math.round(noise(i * 17 + seed, 10));
+    const dir = noise(i * 7 + seed, 1) < 0.5 ? 1 : -1;
+    g.line(x0, h - 3, x0 + dir * len, Math.max(cut[Math.min(w - 1, Math.max(0, x0))] - 2, h - 4 - len), '&');
+  }
+  // Rubble and ash along the foot, spilling a little past the walls.
+  for (let x = 0; x < w; x++) {
+    let top = 0;
+    while (top < h && src.get(x, top) === '.') top++;
+    const near = top < h || src.get(Math.min(w - 1, x + 3), h - 1) !== '.' || src.get(Math.max(0, x - 3), h - 1) !== '.';
+    if (!near) continue;
+    const heap = 1 + Math.round(noise(x * 9 + seed, 2.6) + (top < h ? 1.2 * (1 - keep) : 0));
+    for (let y = h - heap; y < h; y++) {
+      const n = noise(x * 3 + y * 5 + seed, 1);
+      g.set(x, y, masonry ? (n < 0.45 ? '$' : n < 0.7 ? 'J' : n < 0.85 ? 'O' : '%') : n < 0.5 ? '&' : n < 0.8 ? '%' : 'A');
+    }
+  }
+  // Nothing hangs in the air: only what still joins the ground stays.
+  const seen = new Set();
+  const stack = [];
+  for (let x = 0; x < w; x++) if (g.get(x, h - 1) !== '.') stack.push([x, h - 1]);
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    if (seen.has(y * w + x) || g.get(x, y) === '.') continue;
+    seen.add(y * w + x);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) stack.push([x + dx, y + dy]);
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!seen.has(y * w + x)) g.set(x, y, '.');
+  return g.rowsOut();
+}
+
+// A burnt-out goods wagon: the planks gone, the iron frame and posts left, sagging on its wheels.
+function wagonBurnt() {
+  const g = fromRows(wagon());
+  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) {
+    const c = g.get(x, y);
+    if (ROOF_IRON.includes(c)) g.set(x, y, noise(x * 3, 1) < 0.5 ? '.' : '&');
+    else if (TIMBER.includes(c) && y < 21) g.set(x, y, noise(x * 7 + y * 3, 1) < 0.72 ? '.' : '&');
+    else if (c === 'o' && y < 20) g.set(x, y, x % 12 < 2 ? '&' : '.');
+  }
+  for (const x of [4, 16, 26, 41, 51, 63]) g.box(x, 4 + Math.round(noise(x, 3)), x, 20, 'I'); // the posts, bare
+  g.span(20, 4, 63, '&');
+  return g.rowsOut();
+}
+
+// --- Fields, fire and dust ---------------------------------------------------------------------------------
+// Tiles and frames: standing wheat, wheat on fire (three frames to cycle), the black stubble left after,
+// dust thrown up by a column (three frames, growing and thinning), a column of smoke from a burning wreck.
+
+function wheat() {
+  const g = grid(48, 10);
+  for (let x = 0; x < 48; x++) {
+    const top = Math.round(1 + noise(x * 3, 2.2));
+    for (let y = top; y <= 9; y++) g.set(x, y, y === top ? '=' : noise(x * 7 + y * 13, 1) < 0.3 ? '=' : y < top + 3 ? '+' : noise(x + y * 5, 1) < 0.5 ? '+' : '8');
+  }
+  return g.rowsOut();
+}
+
+function wheatBurning(f) {
+  const g = grid(48, 30);
+  for (let x = 0; x < 48; x++) {
+    const env = 0.35 + 0.65 * Math.abs(Math.sin(x * 0.2 + f * 1.3));
+    const fh = Math.round(3 + env * (5 + noise(x * 7 + f * 131, 7)));
+    for (let y = 24; y <= 29; y++) g.set(x, y, noise(x * 5 + y * 3 + f, 1) < 0.6 ? '&' : noise(x * 3 + y * 7 + f, 1) < 0.5 ? 'A' : y > 26 ? '=' : '{'); // the stalks, catching
+    for (let k = 0; k < fh; k++) g.set(x, 23 - k, k < fh * 0.4 ? '}' : noise(x * 3 + k * 7 + f * 11, 1) < 0.75 ? '{' : 'm');
+    // Smoke above, thinning as it rises and leaning downwind.
+    for (let k = fh; k < fh + 14; k++) {
+      const y = 23 - k;
+      const lean = Math.round((k - fh) * 0.35);
+      if (y >= 0 && noise(x * 11 + k * 5 + f * 29, 1) < 0.62 - (k - fh) * 0.04) g.set(x + lean, y, noise(x + k + f, 1) < 0.45 ? ')' : '(');
+    }
+  }
+  return g.rowsOut();
+}
+
+function stubble() {
+  const g = grid(48, 4);
+  for (let x = 0; x < 48; x++) {
+    const top = noise(x * 7, 1) < 0.35 ? 1 : 2;
+    for (let y = top; y <= 3; y++) g.set(x, y, noise(x * 3 + y * 5, 1) < 0.55 ? '&' : noise(x + y, 1) < 0.5 ? '%' : 'A');
+    if (noise(x * 13, 1) < 0.12) g.set(x, 0, '&'); // a burnt stalk still standing
+  }
+  return g.rowsOut();
+}
+
+// f 0..2: the puff grows and thins.
+function dust(f) {
+  const g = grid(40, 22);
+  const blobs = [[12, 15, 5], [21, 13, 6], [29, 16, 5], [17, 9, 4], [26, 8, 4]];
+  for (const [cx, cy, r] of blobs) g.disc(cx + f, cy - f * 1.5, r + f * 1.6, '<');
+  for (let y = 0; y < 22; y++) for (let x = 0; x < 40; x++) {
+    if (g.get(x, y) === '.') continue;
+    const n = noise(x * 7 + y * 13 + f * 5, 1);
+    if (n < 0.12 + f * 0.17 || ((x + y) % 2 === 0 && f === 2 && n < 0.6)) g.set(x, y, '.');
+    else if (y > 14 - f || n > 0.8) g.set(x, y, '>');
+  }
+  return g.rowsOut();
+}
+
+function smokeColumn() {
+  const g = grid(34, 72);
+  for (let y = 71; y >= 0; y -= 2) {
+    const k = (71 - y) / 71;
+    g.disc(8 + k * 16 + Math.sin(y * 0.33) * 2.5, y, 2.5 + k * 6.5, '(');
+  }
+  for (let y = 0; y < 72; y++) for (let x = 0; x < 34; x++) {
+    if (g.get(x, y) === '.') continue;
+    const n = noise(x * 7 + y * 13, 1);
+    const k = (71 - y) / 71;
+    if (n < k * 0.5) g.set(x, y, '.');
+    else if (n > 0.72) g.set(x, y, ')');
+    else if (y > 62 && n < 0.3) g.set(x, y, '{');
+    else if (n < 0.5 && k < 0.5) g.set(x, y, '&');
+  }
+  return g.rowsOut();
+}
+
+// --- Military buildings, by the nation that built them -----------------------------------------------------
+
+const blit = (g, rows, x0, y0) => rows.forEach((row, y) => [...row].forEach((c, x) => c !== '.' && g.set(x0 + x, y0 + y, c)));
+// Fuel drums stood in a row, n of them, on the line yBase.
+function drums(g, x, yBase, n, c = 'v', shade = 'V') {
+  for (let i = 0; i < n; i++) {
+    g.box(x + i * 5, yBase - 6, x + i * 5 + 3, yBase, c);
+    g.box(x + i * 5 + 3, yBase - 6, x + i * 5 + 3, yBase, shade);
+    g.span(yBase - 4, x + i * 5, x + i * 5 + 3, shade);
+    g.span(yBase - 2, x + i * 5, x + i * 5 + 3, shade);
+  }
+}
+function crates(g, x, yBase, cols, rowsN) {
+  for (let r = 0; r < rowsN; r++) for (let c = 0; c < cols - (r ? 1 : 0); c++) {
+    const cx = x + c * 7 + r * 3;
+    g.box(cx, yBase - 4 - r * 5, cx + 5, yBase - r * 5, 'E');
+    g.box(cx, yBase - 4 - r * 5, cx + 5, yBase - 4 - r * 5, 't');
+    g.box(cx + 3, yBase - 4 - r * 5, cx + 3, yBase - r * 5, 'D');
+  }
+}
+// A camouflage net thrown over what lies under it: knots of garnish with gaps, from (x0, y0) sagging to x1.
+function camoNet(g, x0, x1, y0, sag = 3, drop = 4) {
+  for (let x = x0; x <= x1; x++) {
+    const t = (x - x0) / (x1 - x0);
+    const y = Math.round(y0 + sag * Math.sin(t * Math.PI));
+    for (let k = 0; k <= drop; k++) {
+      const n = noise(x * 7 + k * 13, 1);
+      if (n < 0.3) continue;
+      g.set(x, y + k, n < 0.55 ? 'H' : n < 0.8 ? 'G' : n < 0.92 ? 'K' : 'L');
+    }
+  }
+}
+
+// German supply dump (Versorgungslager): a sectional timber store hut with a tarred-felt roof and double
+// doors, fuel drums in ranks, a stack of ammunition crates, a net over part of it. 76x34.
+function depotGermany() {
+  const g = grid(76, 34);
+  for (let y = 6; y <= 13; y++) g.span(y, Math.round(10 - (y - 6) * 1.1), Math.round(45 + (y - 6) * 1.1), (x, yy) => (yy % 4 === 1 ? 'u' : 'Q'));
+  g.box(4, 14, 51, 33, (x, y) => (x % 8 === 4 ? 'T' : noise(x * 7 + y * 3, 1) < 0.08 ? 'D' : 'E')); // wall panels
+  g.box(4, 32, 51, 33, 'J');
+  g.box(20, 18, 35, 33, 'D'); // double doors
+  g.box(27, 18, 28, 33, 'd');
+  g.line(20, 18, 27, 33, 'T');
+  g.line(35, 18, 28, 33, 'T');
+  for (const x of [9, 42]) g.box(x, 19, x + 4, 23, 'n');
+  g.box(21, 15, 34, 16, 'x'); // the unit's tactical board
+  g.span(15, 23, 32, 'I');
+  drums(g, 54, 33, 4, 'I', 'e');
+  drums(g, 56, 26, 3, 'I', 'e');
+  crates(g, 60, 19, 2, 1);
+  camoNet(g, 52, 75, 10, 3, 3);
+  g.outline('nd');
+  return g.rowsOut();
+}
+
+// Soviet supply point: a log store dug half into the ground under a roof of earth and turf, crates under a
+// tarpaulin, drums, a pile of shell boxes. 76x30.
+function depotUssr() {
+  const g = grid(76, 30);
+  for (let x = 1; x <= 50; x++) {
+    const top = Math.round(12 - 8 * Math.sin((x / 51) * Math.PI) ** 0.55);
+    for (let y = top; y <= 15; y++) g.set(x, y, y === top ? (noise(x * 3, 1) < 0.7 ? 'G' : 'L') : noise(x * 7 + y * 5, 1) < 0.35 ? '^' : '~');
+  }
+  logs(g, 5, 16, 46, 29);
+  g.box(19, 19, 31, 29, 'D');
+  g.box(25, 19, 25, 29, 'd');
+  g.span(18, 18, 32, 'T');
+  for (let x = 8; x <= 40; x += 8) if (x < 18 || x > 32) g.box(x, 20, x + 2, 22, 'd');
+  // Stores under a tarpaulin.
+  for (let x = 52; x <= 68; x++) {
+    const top = Math.round(20 - 4 * Math.sin(((x - 52) / 16) * Math.PI) ** 0.5);
+    g.box(x, top, x, 29, noise(x * 5, 1) < 0.3 ? 'q' : 'K');
+  }
+  g.line(52, 22, 50, 29, 'q');
+  g.line(68, 22, 71, 29, 'q');
+  drums(g, 60, 17, 2, 'v', 'V');
+  crates(g, 67, 29, 1, 2);
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// German radar: the Freya (FuMG 80). A square cabin that turns on a cross base, and above it the tall flat
+// "mattress" of dipoles in two tiers. 44x80.
+function radarGermany() {
+  const g = grid(44, 80);
+  // The mattress: a lattice frame with rows of dipoles in front of a mesh.
+  for (const [y0, y1] of [[2, 26], [30, 52]]) {
+    for (let y = y0; y <= y1; y++) for (let x = 5; x <= 38; x++) if ((x + y) % 2 === 0) g.set(x, y, 'I'); // mesh
+    g.box(5, y0, 38, y0, 'i');
+    g.box(5, y1, 38, y1, 'i');
+    g.box(5, y0, 5, y1, 'i');
+    g.box(38, y0, 38, y1, 'i');
+    for (let y = y0 + 4; y < y1; y += 6) for (let x = 8; x <= 33; x += 6) g.box(x, y, x + 3, y, 'x'); // dipoles
+  }
+  g.box(21, 0, 22, 62, 'i'); // the mast through both
+  g.box(13, 62, 30, 75, 'g'); // cabin
+  g.box(13, 62, 30, 63, 'h');
+  g.box(26, 62, 30, 75, 'h');
+  g.box(16, 66, 19, 69, 'n');
+  g.box(22, 67, 25, 75, 'd');
+  g.box(6, 76, 37, 77, 'I'); // the cross base on its pads
+  g.box(4, 78, 9, 79, 'i');
+  g.box(34, 78, 39, 79, 'i');
+  g.box(19, 76, 24, 79, 'i');
+  g.outline('nd');
+  return g.rowsOut();
+}
+
+// Soviet radar: the RUS-2 "Redut". The set rides in a van body on a ZiS-6 lorry; a tall mast beside it
+// carries the aerial, a long boom with a row of rods. 56x80.
+function radarUssr() {
+  const g = grid(56, 80);
+  g.box(27, 4, 28, 71, 'I'); // mast
+  g.line(27, 30, 14, 79, 'e'); // stays
+  g.line(28, 30, 44, 79, 'e');
+  g.box(8, 7, 48, 8, 'i'); // the boom
+  for (let x = 10; x <= 46; x += 6) g.box(x, 2 + ((x / 6) % 2 ? 1 : 0), x, 13 - ((x / 6) % 2 ? 1 : 0), 'i'); // rods
+  g.box(22, 6, 33, 9, 'I'); // the turning head
+  // The lorry: bonnet, cab, van body, three axles.
+  g.box(4, 58, 37, 73, 'v');
+  g.box(4, 58, 37, 59, 'V');
+  g.box(32, 58, 37, 73, 'V');
+  g.box(9, 62, 13, 66, 'n');
+  g.box(18, 62, 23, 73, 'V');
+  g.box(20, 62, 20, 73, 'I');
+  g.box(38, 63, 45, 73, 'v'); // cab
+  g.box(40, 64, 44, 68, 'n');
+  g.box(46, 67, 53, 73, 'v'); // bonnet
+  g.box(46, 67, 53, 67, 'V');
+  g.box(2, 74, 54, 75, 'I');
+  for (const cx of [10, 18, 48]) {
+    g.disc(cx, 76.5, 3, 'e');
+    g.disc(cx, 76.5, 1, 'I');
+  }
+  g.outline('n');
+  return g.rowsOut();
+}
+
+// German field hangar: an arched frame under tarpaulin panels, splinter camouflage painted over it, the tall
+// doors shut. 96x40 (the doors' own frames come when it goes into the game).
+function hangarGermany() {
+  const g = grid(96, 40);
+  for (let x = 2; x <= 93; x++) {
+    const t = (x - 47.5) / 46;
+    const top = Math.round(38 - 34 * Math.sqrt(Math.max(0, 1 - t * t)) ** 0.8);
+    for (let y = top; y <= 39; y++) {
+      const blot = Math.sin(x * 0.21 + y * 0.13) + Math.sin(x * 0.07 - y * 0.29) > 0.6;
+      g.set(x, y, x % 12 === 0 ? 'q' : blot ? 'V' : y < top + 2 ? 'K' : 'q');
+    }
+  }
+  g.box(24, 12, 71, 39, (x) => (x % 6 === 0 ? 'h' : 'g')); // the doors
+  g.box(47, 12, 48, 39, 'd');
+  g.box(24, 12, 71, 13, 'h');
+  for (const x of [30, 38, 56, 64]) g.box(x, 18, x + 3, 21, 'w');
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// Soviet field hangar: a plank shed with a low gable, hidden under a net stuck with branches. 96x38.
+function hangarUssr() {
+  const g = grid(96, 38);
+  for (let y = 4; y <= 11; y++) g.span(y, Math.round(47 - (y - 3) * 5.6), Math.round(48 + (y - 3) * 5.6), (x, yy) => (yy % 3 === 0 ? 'D' : 'Q'));
+  g.box(4, 12, 91, 37, (x, y) => (x % 3 === 0 ? 'D' : noise(x * 7 + y * 3, 1) < 0.07 ? 'D' : 'E'));
+  g.box(24, 14, 71, 37, (x) => (x % 8 === 0 ? 'T' : 'D')); // doors
+  g.box(47, 14, 48, 37, 'd');
+  g.box(24, 14, 71, 15, 'T');
+  camoNet(g, 0, 95, 2, 5, 9);
+  for (let x = 6; x <= 90; x += 9) g.line(x, 6 + Math.round(noise(x, 4)), x + 2, 1 + Math.round(noise(x * 3, 3)), 'G'); // branches stuck in
+  for (const x of [1, 94]) g.line(x, 8, x + (x < 40 ? -1 : 1), 37, 'A'); // net poles
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// Airfield windsock on its pole. 18x40.
+function windsock() {
+  const g = grid(18, 40);
+  g.box(3, 2, 3, 39, 'I');
+  for (let x = 4; x <= 15; x++) {
+    const half = Math.round(3 - (x - 4) * 0.18);
+    g.box(x, 5 - half + Math.round((x - 4) * 0.2), x, 5 + half + Math.round((x - 4) * 0.2), Math.floor((x - 4) / 3) % 2 ? '4' : 'm');
+  }
+  g.outline();
+  return g.rowsOut();
+}
+
+// Stores in the open: drums, crates and jerrycans under a net. 44x16.
+function stores() {
+  const g = grid(44, 16);
+  drums(g, 2, 15, 4, 'v', 'V');
+  crates(g, 22, 15, 3, 2);
+  for (let x = 4; x <= 14; x += 3) g.box(x, 5, x + 1, 8, 'V');
+  camoNet(g, 18, 43, 1, 2, 3);
+  g.outline();
+  return g.rowsOut();
+}
+
+// --- Bunkers and strongpoints --------------------------------------------------------------------------------
+
+// An earth mound with turf on top: x0..x1, crest at yTop, foot at yBase.
+function mound(g, x0, x1, yTop, yBase, sharp = 0.5) {
+  for (let x = x0; x <= x1; x++) {
+    const top = Math.round(yBase - (yBase - yTop) * Math.sin(((x - x0) / (x1 - x0)) * Math.PI) ** sharp);
+    for (let y = top; y <= yBase; y++) g.set(x, y, y === top ? (noise(x * 3, 1) < 0.65 ? 'G' : '~') : noise(x * 7 + y * 5, 1) < 0.35 ? '^' : '~');
+  }
+}
+
+// Soviet DZOT (timber-and-earth firing point): a low turfed mound over a log box, a narrow embrasure with
+// the Maxim's muzzle and water jacket in it, facing right. 60x18.
+function dzot() {
+  const g = grid(60, 18);
+  mound(g, 1, 58, 2, 17, 0.45);
+  logs(g, 34, 8, 50, 17);
+  g.box(40, 11, 50, 13, 'd'); // embrasure
+  g.box(46, 12, 53, 12, 'I'); // the gun
+  g.box(44, 11, 48, 12, 'v');
+  for (let x = 12; x <= 44; x += 4) g.disc(x, 6, 1, x % 8 ? 'T' : 't'); // the roof logs' ends, showing through
+  g.box(6, 12, 10, 17, 'd'); // the way in, at the back
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// German field bunker (Unterstand with a fighting position): squared timber and sandbags, a deeper mound,
+// the MG 34 in a sandbagged embrasure facing left, a stove pipe, the entrance trench behind. 64x22.
+function bunkerGermany() {
+  const g = grid(64, 22);
+  mound(g, 3, 62, 3, 21, 0.4);
+  g.box(8, 10, 26, 21, (x, y) => (y % 4 === 1 ? 'T' : 't')); // squared timber face
+  for (let y = 8; y <= 11; y++) g.span(y, 5, 29, (x) => ((x + (y % 2) * 3) % 6 === 0 ? 'z' : 's')); // sandbag lintel
+  for (let y = 16; y <= 21; y++) g.span(y, 4, 10, (x) => ((x + (y % 2) * 3) % 6 === 0 ? 'z' : 's'));
+  g.box(8, 12, 22, 15, 'd');
+  g.box(3, 13, 12, 13, 'I'); // the MG's barrel
+  g.box(10, 13, 14, 14, 'e');
+  g.box(44, 0, 45, 6, 'I'); // stove pipe
+  g.span(0, 43, 46, 'e');
+  g.box(54, 14, 59, 21, 'd'); // entrance
+  g.span(13, 53, 60, 'T');
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// A T-34 dug in to its turret (Kursk's own strongpoint): the hull buried in a pit behind a bank, only the
+// turret and the long barrel above ground, a net over the back. Facing right. 64x18.
+function tankDugIn() {
+  const g = grid(64, 18);
+  // Turret: the cast 1943 "nut" shape with the cupola-less roof and the mantlet.
+  for (let y = 4; y <= 10; y++) g.span(y, 18 - Math.round((10 - y) * 0.2) + (y < 6 ? 2 : 0), 35 + Math.round((y - 4) * 0.5), (x) => (y < 6 ? 'v' : x > 30 ? 'V' : 'v'));
+  g.box(22, 2, 27, 3, 'V'); // hatch, open
+  g.box(22, 0, 23, 2, 'V');
+  g.box(36, 6, 39, 9, 'V'); // mantlet
+  g.box(40, 7, 58, 8, 'V'); // the F-34 gun
+  g.span(7, 40, 58, 'v');
+  mound(g, 1, 62, 9, 17, 0.35);
+  camoNet(g, 4, 20, 6, 2, 3);
+  g.outline();
+  return g.rowsOut();
+}
+
+// An anti-tank gun dug in: the gun (its drawing) in a pit behind its bank, a net on poles over it. 84x30.
+function gunNest(gun, tall = 0) {
+  const g = grid(84, 30);
+  for (const x of [8, 44]) g.box(x, 4, x, 29, 'A'); // net poles
+  blit(g, gun, 12, 30 - gun.length - 3);
+  camoNet(g, 4, 50, 3, 3, 4 + tall);
+  const pit = gunPit();
+  blit(g, pit, 6, 20);
+  for (let x = 30; x <= 60; x++) for (let y = 20; y <= 24; y++) if (g.get(x, y) === 's' || g.get(x, y) === 'z') g.set(x, y, noise(x * 3 + y, 1) < 0.5 ? '~' : '^'); // lower in front of the muzzle
+  g.outline();
+  return g.rowsOut();
+}
+
+// A length of fire trench as it shows from the side: the parapet of turned earth, the dark of the trench
+// behind it, three helmets and their rifles. helmet: the palette key of the side's steel. 72x10.
+function trench(helmet = 'V') {
+  const g = grid(72, 10);
+  for (let x = 0; x <= 71; x++) {
+    const top = 5 + Math.round(noise(x * 5, 1.8));
+    g.box(x, 4, x, top - 1, noise(x * 3, 1) < 0.9 ? 'd' : '.');
+    for (let y = top; y <= 9; y++) g.set(x, y, noise(x * 7 + y * 5, 1) < 0.35 ? '^' : '~');
+  }
+  for (let x = 0; x <= 71; x += 9) g.box(x, 5, x, 9, 'T'); // revetting stakes
+  g.outline('d~^');
+  for (const x of [12, 34, 55]) {
+    g.box(x, 1, x + 3, 2, helmet);
+    g.box(x, 0, x + 2, 0, helmet);
+    g.box(x + 1, 3, x + 3, 3, 'P');
+    g.line(x + 4, 3, x + 11, 2, 'A'); // rifle on the parapet
+  }
+  return g.rowsOut();
+}
+
+// Barbed wire: a double apron on stakes. 56x12.
+function wire() {
+  const g = grid(56, 12);
+  for (let x = 4; x <= 52; x += 12) g.box(x, 1, x, 11, 'A');
+  for (let x = 0; x <= 55; x++) {
+    for (const [a, b] of [[2, 0.5], [5, 1.7], [8, 3.1]]) {
+      const y = Math.round(a + 1.2 * Math.sin(x * 0.52 + b));
+      if ((x + a) % 4 !== 0) g.set(x, y, 'I');
+      else g.set(x, y, 'i'); // a barb
+    }
+    if (x % 12 !== 4 && (x >> 1) % 2) g.set(x, Math.round(11 - Math.abs(((x + 2) % 12) - 6) * 1.5), 'I'); // the apron's diagonals
+  }
+  return g.rowsOut();
+}
+
+// Minefield marker: a board on a post. 10x14.
+function mineSign() {
+  const g = grid(10, 14);
+  g.box(4, 3, 5, 13, 'A');
+  g.box(1, 1, 8, 6, 'x');
+  g.box(2, 2, 3, 3, 'I'); // skull and bones, as much as six pixels allow
+  g.box(6, 2, 7, 3, 'I');
+  g.span(5, 3, 6, 'I');
+  g.outline();
+  return g.rowsOut();
+}
+
+// A firing-point bunker in concrete, for the last line at an airfield: a low block with a stepped embrasure
+// and a steel door, earth banked against it. 56x20.
+function pillbox() {
+  const g = grid(56, 20);
+  mound(g, 0, 22, 8, 19, 0.6);
+  g.box(12, 4, 46, 19, (x, y) => (y % 5 === 4 ? 'J' : noise(x * 7 + y * 3, 1) < 0.1 ? 'J' : 'j')); // shuttered concrete
+  g.box(10, 3, 48, 5, 'j'); // the roof slab, proud of the wall
+  g.span(5, 10, 48, 'u');
+  g.box(34, 9, 46, 13, 'J'); // stepped embrasure
+  g.box(37, 10, 46, 12, 'u');
+  g.box(40, 11, 46, 11, 'd');
+  g.box(44, 11, 51, 11, 'I');
+  g.box(16, 11, 21, 19, 'I'); // steel door
+  g.set(20, 15, 'i');
+  g.outline('d');
+  return g.rowsOut();
+}
+
+export const KURSK_RUINS = {
+  'izba-ruin': ruin(izba(), { keep: 0.45, seed: 2 }),
+  'izba-white-ruin': ruin(izbaWhite(), { keep: 0.5, seed: 5 }),
+  'shed-ruin': ruin(shed(), { keep: 0.4, seed: 3 }),
+  'cowshed-ruin': ruin(cowshed(), { keep: 0.55, seed: 4 }),
+  'church-ruin': ruin(church(), { keep: 0.3, seed: 6 }),
+  'windmill-ruin': ruin(windmill(), { keep: 0.33, seed: 7 }),
+  'station-ruin': ruin(station(), { keep: 0.55, seed: 8 }),
+  'water-tower-ruin': ruin(waterTower(), { keep: 0.55, seed: 9 }),
+  'trade-row-ruin': ruin(tradeRow(), { keep: 0.6, seed: 10 }),
+  'soviet-ruin': ruin(soviet(), { keep: 0.55, seed: 11 }),
+  'elevator-ruin': ruin(elevator(), { keep: 0.28, seed: 12 }),
+  'wagon-burnt': wagonBurnt(),
+  'depot-germany-ruin': ruin(depotGermany(), { keep: 0.45, seed: 13 }),
+  'depot-ussr-ruin': ruin(depotUssr(), { keep: 0.55, seed: 14 }),
+};
+export const KURSK_FIELD = {
+  wheat: wheat(),
+  'wheat-burning-1': wheatBurning(0),
+  'wheat-burning-2': wheatBurning(1),
+  'wheat-burning-3': wheatBurning(2),
+  stubble: stubble(),
+  'dust-1': dust(0),
+  'dust-2': dust(1),
+  'dust-3': dust(2),
+  'smoke-column': smokeColumn(),
+};
+export const KURSK_MILITARY = {
+  'depot-germany': depotGermany(),
+  'depot-ussr': depotUssr(),
+  'radar-germany': radarGermany(),
+  'radar-ussr': radarUssr(),
+  'hangar-germany': hangarGermany(),
+  'hangar-ussr': hangarUssr(),
+  windsock: windsock(),
+  stores: stores(),
+  dzot: dzot(),
+  'bunker-germany': bunkerGermany(),
+  'tank-dug-in': tankDugIn(),
+  'pak-nest': gunNest(pak40()),
+  'zis-nest': gunNest(zis3()),
+  'trench-germany': trench('V'),
+  'trench-ussr': trench('v'),
+  wire: wire(),
+  'mine-sign': mineSign(),
+  pillbox: pillbox(),
+};
+
+// --- Paratroopers ------------------------------------------------------------------------------------------
+// canopy, shade: the palette keys of the silk; round: a German RZ 20 (round, the man hanging forward from one
+// point behind his shoulders), else a Soviet PD-41 (a flatter, squarer canopy on two risers).
+
+function paraMan(g, x, y, helmet, tunic, forward = false) {
+  g.box(x, y, x + 2, y + 1, helmet);
+  g.box(x + (forward ? 1 : 0), y + 2, x + 2, y + 2, 'P');
+  g.box(x, y + 3, x + 2, y + 6, tunic);
+  g.box(x - 1, y + 3, x - 1, y + 5, tunic); // pack
+  if (forward) {
+    g.line(x + 3, y + 4, x + 5, y + 6, tunic); // arms spread
+    g.line(x, y + 7, x - 2, y + 10, 'I'); // legs trailing
+    g.line(x + 2, y + 7, x + 1, y + 10, 'I');
+  } else {
+    g.box(x, y + 7, x, y + 10, 'I');
+    g.box(x + 2, y + 7, x + 2, y + 10, 'I');
+    g.box(x + 3, y + 4, x + 4, y + 5, 'e'); // weapon across the chest
+  }
+}
+
+function paraOpen(round, canopy, shade, helmet, tunic) {
+  const g = grid(40, 46);
+  for (let x = 2; x <= 37; x++) {
+    const t = (x - 19.5) / 18;
+    const top = round ? Math.round(16 - 14 * Math.sqrt(Math.max(0, 1 - t * t))) : Math.round(10 - 7 * Math.max(0, 1 - t * t * t * t));
+    const bottom = round ? 16 : 11 + Math.round(Math.abs(Math.sin(x * 0.9)) * 1.5);
+    for (let y = top; y <= bottom; y++) g.set(x, y, (x + 1) % 6 === 0 ? shade : x > 26 ? shade : canopy);
+  }
+  if (round) for (let x = 2; x <= 37; x += 6) g.set(x, 17, shade); // scalloped hem
+  const foot = round ? 17 : 12;
+  const [mx, my] = [18, 33];
+  if (round) for (const x of [3, 10, 17, 22, 29, 36]) g.line(x, foot, 19, my - 3, 'J'); // all lines to one point
+  else for (const x of [3, 9, 15]) {
+    g.line(x, foot, mx - 1, my + 2, 'J');
+    g.line(39 - x, foot, mx + 3, my + 2, 'J');
+  }
+  if (round) g.line(19, my - 3, 19, my + 1, 'J');
+  paraMan(g, mx, my, helmet, tunic, round);
+  g.outline('J');
+  return g.rowsOut();
+}
+
+// Just out of the door: the canopy still a streaming sausage above the man.
+function paraStream(canopy, shade, helmet, tunic) {
+  const g = grid(14, 46);
+  for (let y = 2; y <= 22; y++) g.box(6 + Math.round(Math.sin(y * 0.6) * 1.2), y, 7 + Math.round(Math.sin(y * 0.6) * 1.2) + (y > 6 && y < 18 ? 1 : 0), y, y % 4 === 0 ? shade : canopy);
+  g.line(6, 23, 6, 32, 'J');
+  paraMan(g, 5, 33, helmet, tunic, true);
+  g.outline('J');
+  return g.rowsOut();
+}
+
+// Down: the canopy collapsing on the ground, the man on one knee freeing himself.
+function paraLanded(canopy, shade, helmet, tunic) {
+  const g = grid(46, 14);
+  for (let x = 12; x <= 44; x++) {
+    const top = Math.round(12 - 6 * Math.abs(Math.sin((x - 12) * 0.21)) * (1 - (x - 12) / 60));
+    for (let y = top; y <= 13; y++) g.set(x, y, (x + y) % 5 === 0 || y > 11 ? shade : canopy);
+  }
+  g.line(7, 9, 14, 12, 'J');
+  man(g, 3, 13, helmet, tunic, true);
+  g.outline('J');
+  return g.rowsOut();
+}
+
+// A drop container (German Abwurfbehaelter) under its own small canopy. 22x40.
+function dropContainer() {
+  const g = grid(22, 40);
+  for (let x = 2; x <= 19; x++) {
+    const t = (x - 10.5) / 9;
+    for (let y = Math.round(9 - 7 * Math.sqrt(Math.max(0, 1 - t * t))); y <= 9; y++) g.set(x, y, x % 4 === 0 ? 'q' : 'K');
+  }
+  for (const x of [3, 10, 18]) g.line(x, 10, 10, 22, 'J');
+  g.box(8, 23, 12, 39, 'v');
+  g.box(12, 23, 12, 39, 'V');
+  g.box(8, 26, 12, 26, 'm');
+  g.box(8, 36, 12, 36, 'm');
+  g.outline('J');
+  return g.rowsOut();
+}
+
+// --- The engine of the railway -----------------------------------------------------------------------------
+
+// Goods locomotive of the E class (0-10-0), the commonest engine on Soviet lines: a long black boiler, five
+// small coupled wheels, a tall chimney, steam and sand domes, a cab with a curved roof; facing right.
+// Drawn to the size of the wagon. 96x44; then the tender. Rail level is the bottom row.
+function locomotive() {
+  const g = grid(96, 44);
+  g.box(6, 31, 90, 33, 'I'); // frame
+  g.box(22, 13, 82, 28, (x, y) => (y < 16 ? 'i' : y > 25 ? 'u' : x % 14 === 8 ? 'u' : 'e')); // boiler, with its bands
+  g.box(22, 13, 82, 13, 'I');
+  g.box(83, 12, 90, 29, 'I'); // smokebox
+  g.disc(90, 20.5, 2, 'i'); // its door handle wheel
+  g.box(84, 2, 88, 11, 'e'); // chimney
+  g.box(83, 2, 89, 3, 'I');
+  g.disc(58, 11, 4, 'e'); // steam dome
+  g.box(54, 11, 62, 13, 'e');
+  g.box(38, 9, 44, 13, 'I'); // sand dome
+  g.box(70, 9, 72, 13, 'i'); // whistle and safety valves
+  g.box(91, 14, 93, 17, '5'); // headlamp, dull
+  // Cab.
+  g.box(4, 8, 21, 31, 'e');
+  for (let x = 3; x <= 22; x++) {
+    g.set(x, 7 - Math.round(1.5 * Math.sin(((x - 3) / 19) * Math.PI)), 'I');
+    g.set(x, 8, 'I');
+  }
+  g.box(8, 12, 15, 18, 'n');
+  g.box(11, 12, 11, 18, 'I');
+  g.box(4, 22, 21, 22, 'i'); // the line of the number board
+  // Running board, cylinders, buffer beam.
+  g.box(22, 29, 90, 30, 'i');
+  g.box(76, 31, 86, 37, 'I');
+  g.box(76, 33, 86, 34, 'i');
+  g.box(91, 30, 94, 34, 'm');
+  g.box(95, 31, 95, 32, 'i');
+  for (const cx of [28, 39, 50, 61, 72]) {
+    g.disc(cx, 37.5, 5, 'I');
+    g.disc(cx, 37.5, 3.5, 'm'); // wheel centres, dull red
+    g.disc(cx, 37.5, 1, 'i');
+    for (const [dx, dy] of [[3, 0], [-3, 0], [0, 3], [0, -3]]) g.set(cx + dx, 37.5 + dy, 'I');
+  }
+  g.box(28, 39, 72, 39, 'i'); // coupling rod
+  g.line(61, 39, 80, 35, 'i'); // connecting rod to the crosshead
+  g.box(8, 34, 16, 41, 'I'); // steps and ash pan
+  g.outline('n');
+  return g.rowsOut();
+}
+
+// Its tender: a water tank on three axles with the coal heaped at the front. 60x40.
+function tender() {
+  const g = grid(60, 40);
+  g.box(3, 12, 56, 28, (x) => (x % 13 === 3 ? 'u' : 'e'));
+  g.box(3, 12, 56, 13, 'I');
+  for (let x = 30; x <= 55; x++) {
+    const top = Math.round(11 - 4 * Math.sin(((x - 30) / 25) * Math.PI) - noise(x * 7, 1.5));
+    for (let y = top; y <= 11; y++) g.set(x, y, noise(x * 3 + y * 5, 1) < 0.35 ? 'u' : 'd'); // coal
+  }
+  g.box(2, 29, 57, 31, 'I');
+  g.box(0, 29, 1, 31, 'i');
+  g.box(58, 29, 59, 31, 'i');
+  for (const cx of [11, 30, 49]) {
+    g.disc(cx, 34.5, 4.5, 'I');
+    g.disc(cx, 34.5, 3, 'm');
+    g.disc(cx, 34.5, 1, 'i');
+    g.box(cx - 4, 30, cx + 4, 31, 'e');
+  }
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// An open wagon with a load under a tarpaulin (tanks came up to Kursk like this). 68x24.
+function flatWagon() {
+  const g = grid(68, 24);
+  g.box(2, 15, 65, 17, 'I');
+  g.box(4, 9, 63, 14, (x) => (x % 3 === 0 ? 'D' : 'E')); // low drop sides
+  for (let x = 12; x <= 56; x++) {
+    const top = Math.round(8 - 6 * Math.sin(((x - 12) / 44) * Math.PI) ** 0.4 - (x > 40 && x < 50 ? 2 : 0));
+    g.box(x, top, x, 9, noise(x * 5, 1) < 0.3 ? 'q' : 'K');
+  }
+  g.box(0, 15, 1, 16, 'i');
+  g.box(66, 15, 67, 16, 'i');
+  for (const cx of [15, 52]) {
+    g.disc(cx, 19.5, 3, 'I');
+    g.disc(cx, 19.5, 1, 'i');
+    g.box(cx - 3, 16, cx + 3, 17, 'e');
+  }
+  g.outline();
+  return g.rowsOut();
+}
+
+export const KURSK_EXTRA = {
+  'para-germany-stream': paraStream('K', 'q', 'V', 'q'),
+  'para-germany': paraOpen(true, 'K', 'q', 'V', 'q'),
+  'para-germany-landed': paraLanded('K', 'q', 'V', 'q'),
+  'drop-container': dropContainer(),
+  'para-ussr-stream': paraStream('4', 'Y', 'p', 'K'),
+  'para-ussr': paraOpen(false, '4', 'Y', 'p', 'K'),
+  'para-ussr-landed': paraLanded('4', 'Y', 'p', 'K'),
+  locomotive: locomotive(),
+  tender: tender(),
+  'flat-wagon': flatWagon(),
+};
+
 // --- The preview sheet -----------------------------------------------------------------------------------
 
 // Reads one of the game's sprite PNGs (8-bit RGBA, as tools/make-sprites.mjs writes them) for the size comparison.
@@ -877,18 +1620,9 @@ const toImage = (rows) => {
   return { w, h: rows.length, px };
 };
 
-function preview() {
+// Lays rows of images on ground lines and writes the sheet, four times enlarged. track: an image that stands on rails.
+function sheetOf(file, rows, onTrack = []) {
   const root = fileURLToPath(new URL('..', import.meta.url));
-  const game = (name) => readPng(`${root}assets/sprites/${name}.png`);
-  // Rows of the sheet: each a list of [image, sunk (pixels below the ground line)].
-  const k = Object.fromEntries(Object.entries(KURSK).map(([name, rows]) => [name, toImage(rows)]));
-  const rows = [
-    [game('building'), game('t34-76'), k.izba, k['izba-white'], k['izba-burnt'], k.shed, k.well, k.haystack, k.wattle],
-    [k.cowshed, k.church, k.windmill, k['apple-tree'], k.birch, k.sunflowers, k.stooks],
-    [k.station, k['water-tower'], k['telegraph-pole'], k.wagon, k.dugout, k.hedgehog],
-    [k['town-house'], k['trade-row'], k.soviet, k.elevator, k['town-ruin']],
-    [game('flak'), game('lightflak'), k['flak-88'], k['flak-85'], k['pak-40'], k['zis-3'], game('panzer4h'), k['gun-pit']],
-  ];
   const GAP = 8;
   const SKY = [96, 104, 108, 255];
   const EARTH = [58, 52, 40, 255];
@@ -901,11 +1635,11 @@ function preview() {
   rows.forEach((r, i) => {
     const ground = top + rowH[i];
     for (let y = top; y < ground + 8; y++) for (let x = 0; x < W; x++) sheet.set(y < ground ? SKY : y === ground ? GRASS : EARTH, (y * W + x) * 4);
-    // The track runs under the wagon's row.
     let x = GAP;
     for (const s of r) {
-      if (s === k.wagon) for (let tx = x - 10; tx < x + s.w + 10; tx++) for (let ty = 0; ty < 5; ty++) sheet.set(COLOURS[KURSK.track[ty][((tx % 48) + 48) % 48]], ((ground - 2 + ty) * W + tx) * 4);
-      const base = s === k.wagon ? ground - 2 : ground;
+      const railed = onTrack.includes(s);
+      if (railed) for (let tx = x - 6; tx < x + s.w + 6; tx++) for (let ty = 0; ty < 5; ty++) sheet.set(COLOURS[KURSK.track[ty][((tx % 48) + 48) % 48]], ((ground - 2 + ty) * W + tx) * 4);
+      const base = railed ? ground - 2 : ground;
       for (let sy = 0; sy < s.h; sy++)
         for (let sx = 0; sx < s.w; sx++) {
           const a = s.px[(sy * s.w + sx) * 4 + 3];
@@ -915,13 +1649,42 @@ function preview() {
     }
     top = ground + 8;
   });
-  // Four times enlarged, so the pixels can be judged.
   const Z = 4;
   const big = new Uint8Array(W * Z * H * Z * 4);
   for (let y = 0; y < H * Z; y++) for (let x = 0; x < W * Z; x++) big.set(sheet.subarray(((y / Z | 0) * W + (x / Z | 0)) * 4, ((y / Z | 0) * W + (x / Z | 0)) * 4 + 4), (y * W * Z + x) * 4);
-  const out = `${root}notes/kursk-assets-preview.png`;
-  writeFileSync(out, encodePngRgba(W * Z, H * Z, big));
-  console.log(`${Object.keys(KURSK).length} sprites -> ${out} (${W * Z}x${H * Z})`);
+  writeFileSync(`${root}notes/${file}`, encodePngRgba(W * Z, H * Z, big));
+  console.log(`notes/${file} (${W * Z}x${H * Z})`);
+}
+
+function preview() {
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  const game = (name) => readPng(`${root}assets/sprites/${name}.png`);
+  const img = (set) => Object.fromEntries(Object.entries(set).map(([name, rows]) => [name, toImage(rows)]));
+  const k = img(KURSK);
+  const r = img(KURSK_RUINS);
+  const f = img(KURSK_FIELD);
+  const m = img(KURSK_MILITARY);
+  sheetOf('kursk-assets-preview.png', [
+    [game('building'), game('t34-76'), k.izba, k['izba-white'], k['izba-burnt'], k.shed, k.well, k.haystack, k.wattle],
+    [k.cowshed, k.church, k.windmill, k['apple-tree'], k.birch, k.sunflowers, k.stooks],
+    [k.station, k['water-tower'], k['telegraph-pole'], k.wagon, k.dugout, k.hedgehog],
+    [k['town-house'], k['trade-row'], k.soviet, k.elevator, k['town-ruin']],
+    [game('flak'), game('lightflak'), k['flak-88'], k['flak-85'], k['pak-40'], k['zis-3'], game('panzer4h'), k['gun-pit']],
+  ], [k.wagon]);
+  sheetOf('kursk-assets-preview-2.png', [
+    [r['izba-ruin'], r['izba-white-ruin'], r['shed-ruin'], r['cowshed-ruin'], r['church-ruin'], r['windmill-ruin']],
+    [r['station-ruin'], r['water-tower-ruin'], r['wagon-burnt'], r['trade-row-ruin'], r['soviet-ruin'], r['elevator-ruin']],
+    [f.wheat, f['wheat-burning-1'], f['wheat-burning-2'], f['wheat-burning-3'], f.stubble, f['dust-1'], f['dust-2'], f['dust-3'], f['smoke-column']],
+    [m['depot-germany'], r['depot-germany-ruin'], m['radar-germany'], m['hangar-germany'], m.windsock, m.stores],
+    [m['depot-ussr'], r['depot-ussr-ruin'], m['radar-ussr'], m['hangar-ussr'], game('depot'), game('radar'), game('hangar')],
+    [m['bunker-germany'], m['pak-nest'], m['trench-germany'], m.wire, m['mine-sign'], m.pillbox],
+    [m.dzot, m['tank-dug-in'], m['zis-nest'], m['trench-ussr']],
+  ], [r['wagon-burnt']]);
+  const e = img(KURSK_EXTRA);
+  sheetOf('kursk-assets-preview-3.png', [
+    [e['para-germany-stream'], e['para-germany'], e['para-germany-landed'], e['drop-container'], e['para-ussr-stream'], e['para-ussr'], e['para-ussr-landed'], game('opel-blitz')],
+    [e['flat-wagon'], k.wagon, e.tender, e.locomotive],
+  ], [e['flat-wagon'], k.wagon, e.tender, e.locomotive]);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) preview();
