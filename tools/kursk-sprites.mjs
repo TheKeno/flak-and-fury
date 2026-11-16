@@ -1604,7 +1604,10 @@ function readPng(path) {
       px[y * w * 4 + i] = (v + [0, left, up, (left + up) >> 1, paeth][f]) & 255;
     }
   }
-  return { w, h, px };
+  // Drop the empty rows under it (a vehicle sprite keeps room below the ground line), so it stands on the sheet.
+  let rows = h;
+  while (rows > 1 && px.subarray((rows - 1) * w * 4, rows * w * 4).every((v, i) => i % 4 !== 3 || v === 0)) rows--;
+  return { w, h: rows, px: px.subarray(0, rows * w * 4) };
 }
 
 const toImage = (rows) => {
@@ -1684,6 +1687,7 @@ function preview() {
   sheetOf('kursk-assets-preview-3.png', [
     [e['para-germany-stream'], e['para-germany'], e['para-germany-landed'], e['drop-container'], e['para-ussr-stream'], e['para-ussr'], e['para-ussr-landed'], game('opel-blitz')],
     [e['flat-wagon'], k.wagon, e.tender, e.locomotive],
+    [game('panzer4h'), game('tiger'), game('t34-76'), game('su-152')],
   ], [e['flat-wagon'], k.wagon, e.tender, e.locomotive]);
 }
 
