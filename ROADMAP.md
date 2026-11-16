@@ -406,7 +406,37 @@ later.
     fights to happen at different heights, so each height band (low, mid, high; decision "Main fighters tuned per
     band") gets its own fights in play: e.g. flak pushing planes up or down, bombers and transports flying at set
     heights that fighters must climb or dive to. This takes over stage 4 of that decision ("Make the bands happen in
-    play").
+    play"). **Settled in discussion 2026-11-16 (not built):**
+    - **Heights first, on today's map,** before the target chain (build order steps 2 and 3 below): playable
+      without a new map, shows whether flak and bombers really pull fights apart before the directors are built
+      on the idea, and gives the low band its retest.
+    - **One job per band:** **low** (about 300) ground attack: dive bombers pulling out, strafers on columns and
+      convoys (B-239, La-5FN); **mid** (about 600) transports on their way to the drop, which drop from mid so the
+      parachutes hang longer (Spitfire, Zero); **high** (about 1000) AI bomber raids (Bf 109, P-47). Event planes
+      fly straight and level at their height.
+    - **Two kinds of flak (owner).** **Light** (2 cm Flak 38, Soviet 37 mm 61-K): fast tracer streams, direct hits,
+      from the ground to the top of the low band (about 350), deadly to anything low over enemy ground, fighters
+      too; a few guns at every target. It pushes fighters up; low over your own ground is safe. **Heavy** (8.8 cm
+      Flak 36, Soviet 85 mm 52-K): slow timed bursts, from about 400 up past the high band, at the big targets
+      (depot, airfield). It mainly punishes planes that fly straight and level: its bursts creep closer the longer
+      a plane flies straight (gradual, never sudden) and it barely hurts a turning fighter, so it is the bombers'
+      and transports' problem. Job it creates: knock out the heavy guns before your raid arrives ("safe sky where
+      the enemy flak was"). Today's `flak` in `data/ground.json` (reach 700, burst every 2.6 s) becomes the heavy
+      gun with new numbers; the light gun is new. All numbers here are starting points.
+    - **Flak placement shapes the map (owner):** where the guns stand makes different fights over different
+      areas. Positions are part of the map, placed by the owner in LDtk; each target gets its own mix (a village
+      with only light guns pushes the fight to mid; a depot ringed by heavy guns cannot be crossed by bombers until
+      the guns are bombed). On today's map: one area of each kind, to try it.
+  - **Rules decided again (2026-11-16; handed here by "Ground rules reset"):** **no points:** the front is the
+    score (targets held, the airfield falling); the HUD keeps `KILLS n  LOST n` and the after-action report says
+    what decided the battle (it can feed progression later). **The runway stays untouchable.** `hangarHealth`
+    stays as it is and is decided with the win rule in the final battle step.
+  - **How the directors launch (2026-11-16):** **a clock sets the pace** (an event about every 90 s per director,
+    the gap shrinking over the match: the escalation), **the front picks the event** (only what makes sense now: a
+    paradrop on the next target, a raid on the depot while it stands, ground attackers when a column is on the
+    road). No help for the losing side: both directors follow the same mirrored rules. Heights are fixed per
+    event type (above). Events are announced about 20 s ahead (radio call, radar marker) so there is time to
+    climb. In the heights step the director is only a seed: one bomber raid per side every few minutes.
   - **The player is air support.** Dogfighting and bombing stay the core. The AI ground war is the story, and the
     player's job is to help the troops reach their goals. Without air support the ground war roughly stalls; the planes
     (players, bot wingmen, enemy bots) tip it. The aim: a loop where the player is always active in the air and what
@@ -450,10 +480,17 @@ later.
     redesigned for this in LDtk (never regenerated with `tools/make-map.mjs`). Fronts for later maps: Sicily 1943
     (paratroopers, an asymmetric invasion), Tunisia 1943, Karelia 1943, New Guinea.
   - **Build order:** (1) **pace of the ground forces first:** tanks sped up, infantry travel in trucks (built 2026-11-08,
-    see Done "Milestone 8 step 1"); (2) the
-    target chain and its effects on the redesigned map; (3) the battle directors with paratroopers as the first
-    event, the front strip and radio calls; (4) the other events; (5) the final battle and win/lose; (6) bots
-    playing it. Each step its own session.
+    see Done "Milestone 8 step 1"); (2) **light and heavy flak on today's map** (the heavy gun from today's
+    `flak`, the new light gun with its outline shown to the owner before data work, one area of each kind placed,
+    bots respect both); (3) **AI bomber raids and the height count on today's map** (one raid per side every few
+    minutes, high, on the depot or radar, whose effects are built; the Blenheim and Pe-3 stand in; radio call and
+    radar marker ahead; kills and deaths by height; then rerun the band check and retry "don't follow down" for
+    the high planes); (4) the target chain and its effects on the redesigned map, each target with its own flak
+    mix; (5) the battle directors with paratroopers as the first full event, the front strip and radio calls
+    (needs the Ju 52 and Li-2 as new planes: a Planes session, the owner supplies the 3-views); (6) the other
+    events; (7) the final battle and win/lose, `hangarHealth` decided there; (8) bots playing it, then the low
+    band retuned. Each step its own session. (Order changed 2026-11-16: steps 2 and 3 are new, the rest moved
+    down.)
   - **Kept as ideas, not planned:** a smoke marker to tell your next wave to hold or push, spotting for artillery,
     bought call-ins. The ground-rules reset entry below handed the hangar's health and the meaning of destroying
     things to this discussion: destroying things now matters through the target effects; `hangarHealth` stays as
@@ -1117,7 +1154,8 @@ later.
    ground war along a chain of five targets with real effects, battle directors launching events
    (paratrooper drops first), the final battle at the enemy airfield, mirrored and online. First map: the
    **Kursk salient**, redesigned. Step 1, the pace of the ground forces (faster tanks, infantry in trucks), is **done**
-   (see Done); next is step 2, the target chain on the redesigned map.
+   (see Done); next is step 2, light and heavy flak on today's map, then step 3, AI bomber raids high (heights
+   first, decided 2026-11-16); the target chain on the redesigned map is step 4.
    Takes in the old backlog items "Objective map features", "Bots raid the enemy base", "Trucks and infantry
    logic" and "Infantry travel to the front in trucks".
 9. **Hangar:** plane choice in the hangar screen, parking in with H and the roll-out are **done** (see Done).
