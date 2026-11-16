@@ -1,0 +1,19 @@
+[02:00:22] Sim speed check on the owner's machine: 300 mid-band arena matches (six main fighters, seeds 101-110), 8 threads.
+[02:00:22] old (5c0473b): running...
+[02:02:45] old (5c0473b): 142.6 s, 2.10 matches/s, results hash 0be5c9a330fd
+[02:02:45] new (6c4398f): running...
+[02:04:32] new (6c4398f): 106.4 s, 2.82 matches/s, results hash 0be5c9a330fd
+[02:04:32] new, V8 default nursery (FF_YOUNG_MB=0): running...
+[02:06:13] new, V8 default nursery (FF_YOUNG_MB=0): 100.8 s, 2.98 matches/s, results hash 0be5c9a330fd
+[02:06:13] old again: running...
+[02:08:36] old again: 143.4 s, 2.09 matches/s, results hash 0be5c9a330fd
+[02:08:36] new again: running...
+[02:10:23] new again: 106.7 s, 2.81 matches/s, results hash 0be5c9a330fd
+[02:10:23] Speed check done.
+
+Findings (Claude, 2026-11-16): Jonatan's two speed commits (5ba4d09, 6c4398f) on the owner's 8-thread Windows
+machine: 2.10 → 2.82 matches a second (34% faster, the same both rounds), and every result identical to the
+byte (same hash for all 300 matches, old and new). The 6 MB worker nursery, tuned for 16+ threads on a big Linux
+machine, was about 5% slower here than V8's default (2.98 matches/s with FF_YOUNG_MB=0; one run). Code read
+through: the shortcuts only skip work that can't change a result (no random draws skipped, caches keyed on
+everything they read, ground objects only leave the list in the army step).
