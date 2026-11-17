@@ -41,6 +41,7 @@ export function makeGroundObject(world, type, team, x, { squad, width, mobile = 
     obj.soldiers = Array.from({ length: n }, (_, i) => ({ dx: (i - (n - 1) / 2) * def.spacing, hp: def.hp }));
     obj.hp = obj.maxHp = n * def.hp;
   } else obj.hp = obj.maxHp = def.hp;
+  if (def.crew) obj.gunners = Array(def.crew).fill(def.crewHp); // a gun's crew: each man's hit points
   armGround(world, obj);
   return obj;
 }
@@ -266,6 +267,21 @@ export function hurtPassenger(world, obj, i, amount, byId, how = {}) {
   });
 }
 
+// Damage to a man of a gun's crew (obj.gunners: each man's hit points). With the last man down the gun is
+// lost: it stands abandoned as a wreck.
+export function hurtGunner(world, obj, i, amount, byId, how = {}) {
+  if (!obj.alive || !(obj.gunners[i] > 0)) return;
+  obj.gunners[i] -= amount;
+  if (obj.gunners[i] > 0) return;
+  obj.gunners.splice(i, 1);
+  const x = obj.x - (obj.x < world.map.width / 2 ? 1 : -1) * (3 + i * 3); // they kneel behind the shield
+  world.events.push({
+    type: 'soldierKilled', id: obj.id, x, y: surfaceAt(world, x), by: byId ?? null,
+    cause: how.cause ?? 'other', dir: how.dir ?? 0, force: amount / obj.def.crewHp,
+  });
+  if (!obj.gunners.length) destroy(world, obj, byId);
+}
+
 export function damageGround(world, obj, amount, byId) {
   if (!obj.alive || amount <= 0) return;
   obj.hp -= amount;
@@ -325,6 +341,9 @@ export function bulletHitsGround(world, b, ox, oy, pass = null) {
     } else if (obj.open && obj.passengers?.length && world.rng.next() < obj.def.openHit * obj.passengers.length / obj.def.seats) {
       // An open truck: the round finds a man on the benches instead of the truck.
       hurtPassenger(world, obj, Math.floor(world.rng.next() * obj.passengers.length), b.damage * world.rng.range(0.5, 1.5), b.owner, { cause: 'bullet', dir: Math.sign(b.vx) });
+    } else if (obj.gunners?.length && world.rng.next() < obj.def.crewHit * obj.gunners.length / obj.def.crew) {
+      // A gun's crew: the round finds a man behind the shield instead of the steel.
+      hurtGunner(world, obj, Math.floor(world.rng.next() * obj.gunners.length), b.damage * world.rng.range(0.5, 1.5), b.owner, { cause: 'bullet', dir: Math.sign(b.vx) });
     } else damageGround(world, obj, dmg, b.owner);
     world.events.push({ type: 'groundHit', id: obj.id, kind: obj.type, x: hx, y: hy, damage: dmg, dir: Math.sign(b.vx) });
     return true;
@@ -365,6 +384,10 @@ export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = fa
     if (obj.passengers) {
       const share = obj.open ? 1 : obj.def.tarpShield ?? 0.5;
       for (let i = obj.passengers.length - 1; i >= 0; i--) hurtPassenger(world, obj, i, dmg * share, ownerId, { cause: 'blast', dir: Math.sign(obj.x - x) });
+    }
+    // A gun's crew in their pit: the bank and the shield take some of it (crewShield: the share that reaches them).
+    if (obj.gunners) {
+      for (let i = obj.gunners.length - 1; i >= 0; i--) hurtGunner(world, obj, i, dmg * obj.def.crewShield * world.rng.range(0.5, 1.5), ownerId, { cause: 'blast', dir: Math.sign(obj.x - x) });
     }
     damageGround(world, obj, dmg, ownerId);
   }

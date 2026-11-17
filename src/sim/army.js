@@ -96,7 +96,9 @@ function holdUp(world, u) {
     if (o.type === 'tank' && !o.alive && world.tick - o.wreckedAt < o.def.wreckBlock * 60 && clear < 1) return 'wreck';
     // Stop to fight only with something to shoot at from here; otherwise push on to a better spot
     // (over the crest, onto the bridge) until nose to nose.
-    if (o.alive && o.team != null && o.team !== u.team && clear < u.def.engageRange && (u.hasShot || clear < TOUCHING)) return 'fight';
+    // A tank stops for an anti-tank gun as soon as its own gun reaches it, rather than drive on under fire.
+    const engage = o.type === 'atGun' && u.type === 'tank' ? Math.max(u.def.engageRange, u.def.gunRange - halfLength(o) - half) : u.def.engageRange;
+    if (o.alive && o.team != null && o.team !== u.team && clear < engage && (u.hasShot || clear < TOUCHING)) return 'fight';
   }
   for (const river of world.map.rivers ?? []) {
     const bank = dir > 0 ? river.x : river.x + river.width;
@@ -139,7 +141,7 @@ function enemyAhead(world, u) {
 // Enemy ground targets in reach of a tank's main gun, best first: other tanks, then defences and
 // soldiers, then the rest; nearer first within each.
 function gunTargets(world, u) {
-  const rank = (o) => (o.type === 'tank' ? 0 : o.type === 'flak' || o.type === 'lightFlak' || o.type === 'mgNest' || o.soldiers ? 1 : 2);
+  const rank = (o) => (o.type === 'tank' || o.type === 'atGun' ? 0 : o.type === 'flak' || o.type === 'lightFlak' || o.type === 'mgNest' || o.soldiers ? 1 : 2);
   const found = [];
   for (const o of world.ground) {
     if (!o.alive || o.team == null || o.team === u.team) continue;

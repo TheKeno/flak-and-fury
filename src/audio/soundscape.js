@@ -453,7 +453,7 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         case 'groundHit':
           if (impactBudget >= 1) {
             impactBudget--;
-            sfx.play(mixer, e.kind === 'flak' || e.kind === 'lightFlak' || e.kind === 'mgNest' || e.kind === 'radar' || e.kind === 'tank' ? voices.hitGroundObject : voices.thud, where, { gain: 0.5, reverb: 0.2 });
+            sfx.play(mixer, e.kind === 'flak' || e.kind === 'lightFlak' || e.kind === 'mgNest' || e.kind === 'atGun' || e.kind === 'radar' || e.kind === 'tank' ? voices.hitGroundObject : voices.thud, where, { gain: 0.5, reverb: 0.2 });
           }
           break;
         case 'flakFire':

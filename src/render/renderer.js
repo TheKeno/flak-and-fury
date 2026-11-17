@@ -115,8 +115,8 @@ function buildCloud(rng) {
   return c;
 }
 
-const METAL = new Set(['flak', 'lightFlak', 'mgNest', 'radar']); // these spark when hit; the rest throw up dust
-const BLAST_SIZE = { flak: 0.8, lightFlak: 0.6, mgNest: 0.5, tent: 0.5, tower: 0.7, building: 1.1, radar: 1.1 };
+const METAL = new Set(['flak', 'lightFlak', 'mgNest', 'radar', 'atGun']); // these spark when hit; the rest throw up dust
+const BLAST_SIZE = { flak: 0.8, lightFlak: 0.6, mgNest: 0.5, atGun: 0.6, tent: 0.5, tower: 0.7, building: 1.1, radar: 1.1 };
 
 const hash = (n) => (Math.imul(n | 0, 2654435761) >>> 0) % 997;
 
@@ -923,7 +923,7 @@ export function createRenderer(canvas, world, assets) {
       const sy = Math.round(toScreenY(surfaceAt(world, obj.x))) + 2;
       const left = sx - Math.round(img.width / 2);
       const dir = facingOf(obj);
-      const turns = obj.type === 'flak' || obj.type === 'lightFlak' || obj.type === 'mgNest' || obj.type === 'tank' || obj.type === 'searchlight';
+      const turns = obj.type === 'flak' || obj.type === 'lightFlak' || obj.type === 'mgNest' || obj.type === 'tank' || obj.type === 'searchlight' || obj.type === 'atGun';
       const gun = turns && obj.type !== 'tank';
       // Each nation's own tank (obj.model, set by the sim), drawn from its Outline Lab layers.
       const veh = obj.type === 'tank' && assets.vehicles?.[obj.model ?? obj.def.sprite];

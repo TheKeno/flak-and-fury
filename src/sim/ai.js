@@ -576,10 +576,12 @@ function pickGroundTarget(world, p, b) {
   let best = null;
   let bestScore = -Infinity;
   for (const o of world.ground) {
-    if (!o.alive || !o.mobile || o.team == null || o.team === p.team) continue;
-    const tank = o.type === 'tank';
+    // An enemy anti-tank gun is worth a pass too: bombs on it, or the guns on its crew.
+    const atGun = o.type === 'atGun';
+    if (!o.alive || !(o.mobile || atGun) || o.team == null || o.team === p.team) continue;
+    const tank = o.type === 'tank' || (atGun && bombs > 0);
     const loaded = o.type === 'truck' && o.passengers?.length > 0;
-    if (tank ? bombs === 0 : !guns || !(o.soldiers || loaded)) continue;
+    if (tank ? bombs === 0 : !guns || !(o.soldiers || loaded || atGun)) continue;
     const fromHome = Math.abs(o.x - homeX);
     if (fromHome > range) continue;
     if (o.x > af.x - 40 && o.x < af.x + af.width + 40) continue;
@@ -587,6 +589,8 @@ function pickGroundTarget(world, p, b) {
     if (!(bomber && tank) && flakDepth(world, p.team, o.x, surfaceAt(world, o.x) + cfg.bombHeight) > 0) continue;
     let score = (tank ? 3 : loaded ? 2 : 1) + (1 - fromHome / range) * 3;
     if (engineers.some((e) => Math.abs(e.x - o.x) < 250)) score += 2;
+    // A gun holding up our column comes first.
+    if (atGun && world.ground.some((u) => u.type === 'tank' && u.alive && u.team === p.team && Math.abs(u.x - o.x) < o.def.range + 60)) score += 2;
     if (o.type === 'engineers' && bridge && Math.abs(o.x - bridge.x) < 200) score += 2;
     if (o.id === b.target) score += 1; // finish what we started
     score -= Math.abs(o.x - p.x) / 2000;

@@ -875,6 +875,24 @@ later.
 
 ## Done
 
+- **Anti-tank guns (Gameplay, 2026-11-17; Decisions, "Direction: the front"):** `atGun` in `data/ground.json`, LDtk piece
+  `AtGun` (with a team), tuning panel, TUNING.md, `tests/atgun.test.mjs`. The 7.5 cm Pak 40 (Germany; also the stand-in for
+  the other nations) and the 76 mm ZiS-3 (USSR), dug in: a mount, a barrel that turns and a wreck each, drawn from the
+  drafts in `tools/kursk-sprites.mjs` and editable in the Pixel Lab (`notes/atgun-preview.png`). Facing the enemy, they
+  shell the nearest enemy tank or truck ahead in reach and in sight (lead, the tanks' own shells), never planes. A crew of
+  four: bullets striking the gun can find a man, blasts reach them in the pit, each man lost slows the loading, and with
+  the last one down the gun is lost. Tanks stop to fight one as soon as their gun reaches it and shoot it first; rifles
+  and MGs shoot its crew; bot planes go for it (bombs, or guns on the crew), first when it holds their tanks, but not
+  under enemy flak. Numbers: reach 260 (a tank's 170), reload 5 s, shell 60 (two hits on a tank), gun hp 70. Alone, a gun
+  beats a 2-tank wave (losing men) and falls to 3 tanks. **Placed** one a side on today's map (1825, 2855: the gap between
+  the forward MG nest and tent; the landing fields and pads leave no room for a second). **Balance look**
+  (`tools/atgun-check.mjs`, 24 matches with and 24 without, `notes/atgun-check-2026-11-17.txt`): the front still moves
+  (furthest from the middle 891 against 1022, swing 1170 against 1264); per match the guns knock out 3.2 tanks and are
+  lost 0.8 times of 2, after about 13 minutes, 17 of 18 times to tanks, once to a plane. No existing unit changed. Seen in
+  the game: both looks, a gun knocking out a tank, a gun lost to its wreck. Not yet: trucks stop to unload about 300 short
+  of an enemy, out of the gun's reach, so it rarely shells them; a gun line (several guns) waits for the Kursk map; the
+  crew are drawn on the sprite (two men) whatever their number.
+
 - **Rain and searchlights (Gameplay, 2026-11-17):** **rain**, looks only: a match has it with `clouds.rainChance` (0.35),
   as heavy as a roll from its seed; thin grey streaks fall from the layer's banks to the ground with a faint veil under
   them (`?rain` forces it). **Searchlights** for night fighting to come: `searchlight` in `data/ground.json` and a piece in
@@ -913,8 +931,8 @@ later.
   `data/ground.json`) for the heavy flak (8.8 cm Flak 36 for Germany, 85 mm 52-K for the USSR), the radar (Freya,
   RUS-2) and the depot. Nothing is placed on a map yet: the owner places them in LDtk when the Kursk map is
   drawn. To look at them: `http://localhost:8080/?mute&showcase=1420` stands them in a row (free look starts there
-  once the plane is out). **Still drafts, not in the game** (need more than a sprite): Pak 40 and ZiS-3 and their
-  nests, bunkers, DZOT, pillbox, dug-in T-34, trenches (new behaviour); paratroopers, locomotive, tender and wagons
+  once the plane is out). **Still drafts, not in the game** (need more than a sprite): the Pak and ZiS nests (the guns themselves are in: Done, "Anti-tank guns"),
+  bunkers, DZOT, pillbox, dug-in T-34, trenches (new behaviour); paratroopers, locomotive, tender and wagons
   (the director's events and a track); burning wheat, dust and smoke frames (effects); the per-nation hangars (14
   door frames each); the **Ju 52, Li-2, He 111 H-16 and Pe-8** (outline files `data/outlines/ju52.json`, `li2.json`, `he111.json`,
   `pe8.json`, built by the general model `multi` in `tools/plane-models.mjs`: no markings, windows or panel lines yet; the two
@@ -1290,6 +1308,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Anti-tank guns and trucks (Gameplay):** trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck. Decide: trucks ignore guns for dismounting until fired on, a longer gun reach, or leave it (guns are for tanks). Found 2026-11-17 (Done, "Anti-tank guns").
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
 - **Keyboard control of the menus (UI):** move through and pick every menu entry (title, setup, options, pause) with the arrow keys, Enter and Esc, no mouse needed.

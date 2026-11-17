@@ -84,7 +84,7 @@ export function launch(p, { x, y, angle, speed, throttle = 1 }) {
 
 // The bot trainer's air-only arena: the same map and airfields, but no ground war (no tank waves, no
 // troops) and no flak or MG nests, so only the planes decide a fight and a match runs much faster.
-const ARMED_GROUND = new Set(['flak', 'lightFlak', 'mgNest']);
+const ARMED_GROUND = new Set(['flak', 'lightFlak', 'mgNest', 'atGun']);
 export function clearForArena(world) {
   world.army = null;
   world.director = null; // and no bomber raids
