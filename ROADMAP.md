@@ -906,7 +906,7 @@ later.
 
 - **Kursk map, first pass (Gameplay, 2026-11-17; Decisions, "Direction: the front", "Kursk map, first pass"):** a
   blockout to fly before the rest of step 4 is discussed. **`?map=<name>`** picks a map from `maps/` (default
-  countryside; a guest must open the same one as its host). **Balka zone** (`src/sim/terrain.js` `cutBalkas`): a dry
+  kursk since 2026-11-18, the owner's call; `?map=countryside` for the old map, which the tests and the Balance Lab still use; a guest must open the same one as its host). **Balka zone** (`src/sim/terrain.js` `cutBalkas`): a dry
   ravine, rims levelled, floor cut `balkaDepth` 22 below them with sides sloping over `balkaSide` 40; cut before the
   structure pads, so a gun in it stands on the floor (settings `zones`, tuning panel Landscape zones, TUNING.md, test in
   `tests/zones.test.mjs`). **`maps/kursk.ldtk`** (guide `maps/kursk-guide.png`), 6000 wide, style `steppe` (a new level
