@@ -6,6 +6,7 @@
 import { clamp } from './math.js';
 import { armGround } from './defences.js';
 import { addDecor } from './decor.js';
+import { clipStructure } from './crashes.js';
 
 const PLANE_CRASH_DAMAGE = 60; // what a plane flying into a structure does to it
 const GEAR_REACH = 4; // the wheels hang this far below a plane's centre
@@ -430,6 +431,11 @@ export function planesHitStructures(world, crash) {
         world.events.push({ type: 'bump', plane: p.id, kind: obj.type, x: p.x, y: p.y });
         if (p.hp <= 0) crash(p, world, 'structure', obj.def.name);
         break;
+      }
+      // Only catching the top of it (a tree's crown, a roof): a part torn off, not a crash (src/sim/crashes.js).
+      if (clipStructure(world, p, obj, t, margin)) {
+        if (p.state === 'dead') break;
+        continue;
       }
       // Diving into a tank takes it with you, and the plane gets the points.
       const tank = obj.type === 'tank';

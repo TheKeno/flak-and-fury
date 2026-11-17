@@ -130,6 +130,8 @@ export function serviceFully(p) {
   p.hp = p.def.hp;
   p.engineDamage = p.tailDamage = p.wingPull = p.engineLeak = 0;
   p.propBent = false;
+  p.wingTip = 0;
+  p.tailTorn = p.gearTorn = false;
   p.fuel = 1;
   p.lowFuelWarned = false;
   p.engineRunning = true;
@@ -243,7 +245,7 @@ export const ownAirfieldAt = (world, p) =>
   world.map.airfields.find((a) => a.team === p.team && p.x >= a.x && p.x <= a.x + a.width);
 
 function needs(p, serviced) {
-  if (p.hp < p.def.hp || p.engineDamage > 0 || p.burning || p.belly || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent) return 'repair';
+  if (p.hp < p.def.hp || p.engineDamage > 0 || p.burning || p.belly || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent || p.wingTip || p.tailTorn || p.gearTorn) return 'repair';
   // A stopped engine is started at the end of refuelling, even when the tank is already full.
   if (p.fuel < (serviced ? TOP_UP_BELOW : FULL_TANK) || !p.engineRunning) return 'refuel';
   if (allGuns(p).some((g) => g.ammo < g.full) || bombsLeft(p) < bombsFull(p)) return 'rearm';
@@ -336,9 +338,12 @@ export function updateServicing(p, world, dt) {
     if (p.engineDamage <= 0) p.propBent = false; // new propeller fitted with the engine work
     const wingFix = (cfg.repairPerSec / p.def.hp) * dt;
     p.wingPull = Math.abs(p.wingPull) <= wingFix ? 0 : p.wingPull - Math.sign(p.wingPull) * wingFix;
+    // Torn parts are replaced once the work they caused is done (src/sim/crashes.js).
+    if (p.wingPull === 0) p.wingTip = 0;
+    if (p.tailDamage <= 0) p.tailTorn = false;
     // Last job after a belly landing: jack the plane up, new propeller, gear down and locked.
-    if (p.belly && p.hp >= p.def.hp && p.engineDamage <= 0) {
-      p.belly = false;
+    if ((p.belly || p.gearTorn) && p.hp >= p.def.hp && p.engineDamage <= 0) {
+      p.belly = p.gearTorn = false;
       p.gear = 1;
       p.gearDown = true;
       world.events.push({ type: 'gearLocked', plane: p.id, down: true, x: p.x, y: p.y });

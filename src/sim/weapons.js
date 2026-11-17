@@ -6,6 +6,7 @@ import { hiddenFrom } from './clouds.js';
 import { ignite, fireHit, stepFire } from './fire.js';
 import { digCrater } from './runway.js';
 import { stallAt, slowBonusAt } from './air.js';
+import { pickDeathStyle, wingTipStall, wingTipTurn } from './crashes.js';
 
 const MAX_VOLLEYS_PER_SEC = 14; // a battery of guns is simulated as at most this many projectiles per second
 const BOMB_INTERVAL = 0.35;
@@ -234,25 +235,27 @@ export function flyingDef(p, world) {
   // on the ground the plane is its plain def (the hangar and the take-off run read it).
   const air = p.state === 'air';
   const h = air ? stallAt(world, p.y) : 1;
-  if (f === 0 && drag === 0 && h === 1) return p.def;
+  // A torn wingtip: more speed needed to stay up, slower turns (src/sim/crashes.js).
+  const tip = p.wingTip ? 1 : 0;
+  if (f === 0 && drag === 0 && h === 1 && !tip) return p.def;
   const d = p.def;
   const sb = air ? slowBonusAt(world, d, p.y) : 1;
   // The same view again while nothing it is made from has changed (speed: the bot and the flight model
   // ask several times a tick). The tick is in the key so a tuning-panel edit shows from the next tick.
   let c = flyingViews.get(p);
-  if (c && c.d === d && c.w === w && c.tick === world.tick && c.f === f && c.drag === drag && c.h === h && c.sb === sb) return c.view;
+  if (c && c.d === d && c.w === w && c.tick === world.tick && c.f === f && c.drag === drag && c.h === h && c.sb === sb && c.tip === tip) return c.view;
   // Plain stores in a fixed order, not Object.assign (which left the view a slow dictionary object, about
   // 1 KB of garbage a plane a tick).
   const view = Object.create(d);
   view.thrust = d.thrust * (1 - w.thrust * f);
-  view.stallSpeed = d.stallSpeed * (1 + w.stall * f) * h;
+  view.stallSpeed = d.stallSpeed * (1 + w.stall * f) * h * (tip ? wingTipStall(world) : 1);
   view.slowTurnSpeed = d.slowTurnSpeed * h;
   view.slowTurnBonus = d.slowTurnBonus * sb;
   view.takeoffSpeed = d.takeoffSpeed * (1 + w.takeoff * f);
-  view.turnRate = d.turnRate * (1 - w.turn * f);
+  view.turnRate = d.turnRate * (1 - w.turn * f) * (tip ? wingTipTurn(world) : 1);
   view.dragCoef = d.dragCoef * (1 + drag);
   if (!c) flyingViews.set(p, (c = {}));
-  c.d = d; c.w = w; c.tick = world.tick; c.f = f; c.drag = drag; c.h = h; c.sb = sb; c.view = view;
+  c.d = d; c.w = w; c.tick = world.tick; c.f = f; c.drag = drag; c.h = h; c.sb = sb; c.tip = tip; c.view = view;
   return view;
 }
 // plane -> its last flyingDef view and what it was made from (outside the world: no snapshot state).
@@ -432,7 +435,8 @@ export function shootDown(world, p, byId, cause = 'guns') {
   p.hp = Math.min(p.hp, 0);
   p.burning = true;
   if (p.state === 'ground') p.state = 'air';
-  world.events.push({ type: 'shotDown', plane: p.id, by: byId ?? null, x: p.x, y: p.y });
+  pickDeathStyle(world, p, cause); // how it falls (src/sim/crashes.js)
+  world.events.push({ type: 'shotDown', plane: p.id, by: byId ?? null, x: p.x, y: p.y, style: p.deathStyle });
   const killer = world.planes.find((k) => k.id === byId);
   if (killer && killer.team !== p.team && !p.wreck) killer.kills++;
 }

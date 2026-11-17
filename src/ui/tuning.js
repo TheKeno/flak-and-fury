@@ -159,6 +159,32 @@ const COLLISION_FIELDS = [
   ['wingPull', 'Damaged wing pull', 0, 2, 0.05, 'How hard a damaged wing drags the nose round (rad/s).'],
   ['pushApart', 'Push apart', 0, 4, 0.1, 'How hard colliding planes are shoved away from each other.'],
   ['grace', 'Re-collide delay', 0, 3, 0.1, 'Seconds before the same two planes can collide again.'],
+  // Glancing blows and torn parts (src/sim/crashes.js).
+  ['scrapeAngle', 'Scrape: shallower than', 0, 1, 0.01, 'Hitting the ground on a path shallower than this (rad), too fast or crooked to land, is a scrape: a part torn off and a bounce, not a crash.'],
+  ['scrapeMinSpeed', 'Scrape: faster than', 0, 150, 1, 'Below this speed, touching the ground is a landing matter (hard landing or crash), never a scrape.'],
+  ['scrapeParts', 'Scrape: fatal after parts lost', 0, 4, 1, 'With this many parts already gone (wingtip, tail, gear, propeller), the next scrape is a crash.'],
+  ['scrapeDamage', 'Scrape damage', 0, 60, 1, 'Hit points a scrape costs at its steepest (half at the shallowest).'],
+  ['scrapeSpeedLoss', 'Scrape speed loss', 0, 0.8, 0.01, 'Share of speed lost in a scrape.'],
+  ['scrapeKick', 'Scrape bounce', 0, 60, 1, 'How hard a scrape throws the plane back up (units/s).'],
+  ['clipDepth', 'Roof clip depth', 0, 15, 0.5, 'Catching no more than this of a building top (world units) tears a part off instead of crashing.'],
+  ['treeClipDepth', 'Tree clip depth', 0, 25, 0.5, 'The same for a tree crown; the tree loses it.'],
+  ['clipDamage', 'Clip damage', 0, 60, 1, 'Hit points a clip costs (more with no part left to tear).'],
+  ['clipSpeedLoss', 'Clip speed loss', 0, 0.8, 0.01, 'Share of speed lost clipping a tree or roof.'],
+  ['grazePartChance', 'Graze: part torn', 0, 1, 0.05, 'Chance a mid-air graze on the wing or tail tears that part off.'],
+  ['hardPartChance', 'Hard hit: part torn', 0, 1, 0.05, 'The same for a hard mid-air hit.'],
+  ['wingOffSpeed', 'Whole wing off from', 50, 300, 5, 'Closing speed from which a hard wing hit can take the whole wing (the plane tumbles down).'],
+  ['wingTipPull', 'Torn wingtip pull', 0, 1.5, 0.05, 'How hard a torn wingtip drags the nose round (rad/s). Hold the other turn key against it.'],
+  ['wingTipStall', 'Torn wingtip: stall up', 0, 0.6, 0.01, 'Share the stall speed rises by with a wingtip gone.'],
+  ['wingTipTurn', 'Torn wingtip: turn down', 0, 0.6, 0.01, 'Share the turn rate drops by with a wingtip gone.'],
+  ['wingTipLean', 'Torn wingtip: drawn lean', 0, 3, 0.5, 'Roll-frame steps the plane is drawn hanging towards the torn side.'],
+  ['tailTornDamage', 'Torn tail: steering lost', 0, 1, 0.05, 'Tail authority lost with the tail torn.'],
+  ['tailWobble', 'Torn tail: porpoising', 0, 0.6, 0.01, 'How much a torn tail makes the nose nod (rad/s at full speed).'],
+  ['propHarm', 'Bent prop: engine harm', 0, 1, 0.05, 'Engine damage from a propeller bent in a scrape.'],
+  ['deathDive', 'Shot down: dive', 0, 100, 1, 'Relative chance a shot-down plane noses over and spirals in.'],
+  ['deathGlide', 'Shot down: long arc', 0, 100, 1, 'Relative chance of a long burning arc down.'],
+  ['deathFlatSpin', 'Shot down: flat spin', 0, 100, 1, 'Relative chance of a flat spin, dropping almost level.'],
+  ['deathNearRecovery', 'Shot down: near-recovery', 0, 100, 1, 'Relative chance the nose comes back up near the ground... and drops again.'],
+  ['deathTumble', 'Shot down: tumble', 0, 100, 1, 'Relative chance of tumbling end over end (more likely after a collision).'],
 ];
 const FIRE_FIELDS = [
   ['burnTime', 'Time to live on fire', 3, 90, 1, 'Seconds a fire takes to finish a plane, whatever its hit points. Land and stop before then.'],
@@ -870,6 +896,10 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     player.lowFuelWarned = false;
     player.tailDamage = player.wingPull = player.tumble = 0;
     player.propBent = false;
+    player.wingTip = 0;
+    player.tailTorn = false;
+    if (player.gearTorn && player.state === 'air') player.gearDown = true;
+    player.gearTorn = false;
     rearmFully(player);
     say('Plane repaired and rearmed');
   }

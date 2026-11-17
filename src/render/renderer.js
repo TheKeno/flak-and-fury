@@ -1086,7 +1086,9 @@ export function createRenderer(canvas, world, assets) {
       if (w.tilt.t >= 1) w.tilt = null;
       else tilt = ((amount * Math.PI) / 180) * w.tilt.dir * w.tilt.size * Math.sin(Math.PI * w.tilt.t);
     }
-    w.angle = lean + flutter + tilt;
+    // A torn wingtip: the plane hangs towards that side (src/sim/crashes.js), drawn with the roll frames.
+    const torn = p.wingTip && p.state === 'air' ? p.wingTip * (p.inverted ? 1 : -1) * (world.collisions.wingTipLean ?? 1) * STEP : 0;
+    w.angle = lean + flutter + tilt + torn;
   }
 
   // Propeller disc of a ground frame, seen at an angle: a dotted ellipse round the hub.
@@ -1726,6 +1728,27 @@ export function createRenderer(canvas, world, assets) {
     hud.globalAlpha = base;
   }
 
+  // Torn-off parts (src/sim/crashes.js): a slab sized like the part tumbles away, with a puff of smoke.
+  const PART_SIZE = { wingTip: [6, 1.2], tail: [4.5, 3], gear: [2.5, 1.2], prop: [4, 0.7], wing: [10, 1.6] };
+  function partLost(e) {
+    const [len, wid] = PART_SIZE[e.part] ?? [3, 1];
+    particles.piece(e.x, e.y, e.vx * 0.6 + (Math.random() - 0.5) * 30, e.vy * 0.6 + 10 + Math.random() * 20, len, wid);
+    for (let i = 0; i < 3; i++) particles.piece(e.x, e.y, e.vx * 0.5 + (Math.random() - 0.5) * 50, e.vy * 0.5 + Math.random() * 30, 1 + Math.random(), 0.8);
+    for (let i = 0; i < 6; i++) particles.spawn('smoke', e.x, e.y, e.vx * 0.2 + (Math.random() - 0.5) * 12, e.vy * 0.2 + (Math.random() - 0.5) * 12, 0.8 + Math.random(), 1.5);
+    particles.sparks(e.x, e.y, 10);
+  }
+  // A plane going in fast and flat doesn't stop where it hits: burning wreckage cartwheels on along
+  // the ground (drawing only; the sim's wreck is where the crash was).
+  function crashWreck(e) {
+    const speed = Math.hypot(e.vx ?? 0, e.vy ?? 0);
+    const flat = speed > 0 && Math.abs(e.vy) < Math.abs(e.vx) * 0.8;
+    if (!flat || speed < 50) return;
+    const k = Math.min(1, (speed - 50) / 100);
+    particles.piece(e.x, e.y + 2, e.vx * (0.35 + 0.2 * k), Math.abs(e.vy) * 0.2 + 25 + 20 * k, 8, 2.5, true);
+    particles.piece(e.x, e.y + 2, e.vx * (0.25 + 0.2 * Math.random()), 30 + Math.random() * 25, 5, 1.5, true);
+    for (let i = 0; i < 4; i++) particles.piece(e.x, e.y + 2, e.vx * (0.2 + 0.4 * Math.random()), 20 + Math.random() * 50, 1.5 + Math.random() * 2, 1);
+  }
+
   function emitEffects(p, dt) {
     if (p.state === 'dead') return;
     const c = Math.cos(p.angle);
@@ -1760,6 +1783,11 @@ export function createRenderer(canvas, world, assets) {
     if (p.state === 'ground' && p.belly && p.speed > 3) {
       for (let i = 0; i < 3; i++) particles.spawn('spark', p.x - c * (2 + Math.random() * 8), p.y - 2.5, -c * p.speed * (0.2 + Math.random() * 0.4), 10 + Math.random() * 30, 0.15 + Math.random() * 0.25, 0.5);
       if (Math.random() < 0.7) particles.spawn('dust', p.x - c * 8, p.y - 2, -c * p.speed * 0.2, 5 + Math.random() * 10, 0.8 + Math.random(), 1.2);
+    }
+    // Torn wingtip or tail: scraps and a thin smoke shred off now and then.
+    if (p.state === 'air' && (p.wingTip || p.tailTorn) && Math.random() < 2.5 * dt) {
+      const back = p.tailTorn ? 7 : 2;
+      particles.spawn(Math.random() < 0.5 ? 'debris' : 'smoke', p.x - c * back, p.y - s * back, p.vx * 0.5, p.vy * 0.5, 0.5 + Math.random() * 0.6, 0.7);
     }
     if (p.state === 'ground' && p.speed > 12 && Math.random() < p.speed / 120) {
       particles.spawn('dust', p.x - c * 6, p.y - 3, -c * p.speed * 0.15, 6 + Math.random() * 8, 0.6 + Math.random() * 0.6, 0.8);
@@ -1811,7 +1839,19 @@ export function createRenderer(canvas, world, assets) {
     },
     onEvent(e) {
       gore.onEvent(e);
-      if (e.type === 'crash') particles.explosion(e.x, e.y, 1);
+      if (e.type === 'crash') {
+        particles.explosion(e.x, e.y, 1);
+        crashWreck(e);
+      }
+      if (e.type === 'partLost') partLost(e);
+      if (e.type === 'scrape') {
+        particles.sparks(e.x, e.y, 12 + Math.round(10 * e.severity));
+        particles.dirtSpray(e.x, e.y, 0.3 + 0.3 * e.severity);
+      }
+      if (e.type === 'clip') {
+        if (e.tree) for (let i = 0; i < 24; i++) particles.spawn('leaves', e.x + (Math.random() - 0.5) * 10, e.y, (Math.random() - 0.5) * 50, Math.random() * 30, 1 + Math.random() * 1.5, 0.8 + Math.random());
+        else particles.sparks(e.x, e.y, 10);
+      }
       if (e.type === 'shot') flashes.set(e.plane, 2);
       if (e.type === 'hit') particles.sparks(e.x, e.y, 3 + Math.min(6, e.damage));
       if (e.type === 'impact' && Math.random() < 0.5) particles.spawn('dust', e.x, e.y + 1, (Math.random() - 0.5) * 20, 15 + Math.random() * 20, 0.4, 0.6);

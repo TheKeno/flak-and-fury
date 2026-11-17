@@ -136,7 +136,7 @@ function newMemory(world, p) {
 
 // Does this plane want the ground crew? (Like the crew's own list in airfield.js.)
 function needsService(p) {
-  if (p.hp < p.def.hp || p.engineDamage > 0 || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent || p.belly) return true;
+  if (p.hp < p.def.hp || p.engineDamage > 0 || p.tailDamage > 0 || p.wingPull !== 0 || p.propBent || p.belly || p.wingTip || p.tailTorn || p.gearTorn) return true;
   if (p.fuel < 0.9 || !p.engineRunning) return true;
   return allGuns(p).some((g) => g.ammo < g.full) || bombsLeft(p) < bombsFull(p);
 }

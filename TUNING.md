@@ -248,6 +248,30 @@ soldiers (either side) within `crashBlastRadius` of the wreck take `crashBlastFo
 points at the wreck, falling off linearly to nothing at the radius. All of these are also in the
 tuning panel's Collisions section.
 
+Glancing blows (`src/sim/crashes.js`, also under `collisions` and in the same panel section) tear a part
+off instead of killing: a wingtip, the tail, the gear or the propeller. The plane flies on, lopsided.
+- **Ground scrape:** hitting the ground too fast or too crooked to land, but on a path shallower than
+  `scrapeAngle` (rad) and faster than `scrapeMinSpeed`, is a scrape. The nose down takes the propeller,
+  nose up the tail, else the gear, else a wingtip. The plane loses `scrapeSpeedLoss` of its speed and
+  up to `scrapeDamage` hit points, and is bounced up at `scrapeKick`. With `scrapeParts` parts already
+  gone, the next scrape is a crash. Upside down it is always a crash.
+- **Clipping a tree or roof:** catching no more than the top `treeClipDepth` of a tree's crown, or
+  `clipDepth` of a building, without diving into it, is a clip. A tree loses its crown (it falls); a
+  roof takes a little damage. The plane loses `clipSpeedLoss` of its speed, `clipDamage` hit points
+  (2.5× with no part left to tear) and a part.
+- **Mid-air:** a graze or hard hit on the wing or tail tears that part with `grazePartChance` /
+  `hardPartChance` (times the plane's share of the hit). A propeller into a tail always takes the tail.
+  A hard wing hit above `wingOffSpeed` closing speed can take the whole wing: the plane tumbles down.
+- **What each part does:** a torn wingtip drags the nose towards that side at `wingTipPull` rad/s, raises
+  the stall speed by `wingTipStall` and lowers the turn rate by `wingTipTurn`. The plane is drawn
+  `wingTipLean` roll steps over. A torn tail costs `tailTornDamage` of the tail authority and makes the
+  nose nod (`tailWobble` rad/s at full speed). Torn gear can't be lowered: belly landing only. A bent
+  propeller adds `propHarm` engine damage. The ground crew replace everything during the repair.
+- **How shot-down planes fall:** relative chances `deathDive` (nose over, spiral in), `deathGlide` (a long
+  burning arc), `deathFlatSpin`, `deathNearRecovery` (the nose comes up near the ground, then drops
+  again) and `deathTumble` (end over end). Fatal collisions tumble more often. The pick uses the world's
+  random numbers, so no two fall alike.
+
 ## Engine hits and wing guns: `data/settings.json` → `damage`
 
 Tuning panel: Engine hits and wing guns. Read in `src/sim/weapons.js` (`damagePlane`, `updateDamage`, `stepBullets`).

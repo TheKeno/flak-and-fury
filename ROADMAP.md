@@ -875,6 +875,20 @@ later.
 
 ## Done
 
+- **Dramatic crashes (Gameplay, 2026-11-17):** the owner agreed on four parts that can come off, plus varied deaths.
+  A glancing blow tears a part off and the plane flies on, lopsided; flying straight into things still kills.
+  **Parts:** wingtip (pulls to that side, drawn banked, stalls sooner, turns worse), tail (soft, nodding pitch),
+  gear (belly landing only), propeller (less power). A whole wing is the only fatal part. **Glancing blows:** a shallow
+  scrape along the ground too fast or crooked to land (nose down takes the propeller, nose up the tail, else the gear,
+  else a wingtip; after two parts gone, the next scrape is a crash), the top of a tree (it loses its crown) or a roof,
+  and mid-air grazes and hard hits on the wing or tail. **Deaths** vary: dive, long burning arc, flat spin, tumble,
+  near-recovery that fails. The pick uses the world's random numbers. A fast, flat crash sends burning wreckage
+  cartwheeling on (drawing only). Torn parts fall as spinning dark slabs, with sparks, dust, leaves, a HUD message and
+  damage line, and reused metal-tear and scrape sounds. Values under `collisions` (`src/sim/crashes.js`, tuning panel →
+  Collisions, TUNING.md). `tests/crashes.test.mjs`. Seen in the game: a tree clip and a scrape that tore the gear off.
+  Bot check (fighters, 72 matches of 10 min each, main against the branch): own-fault deaths
+  unchanged, 244 against 244 (crashes 108 → 123, collisions 136 → 121, within the noise of so few matches).
+
 - **Rain and searchlights (Gameplay, 2026-11-17):** **rain**, looks only: a match has it with `clouds.rainChance` (0.35),
   as heavy as a roll from its seed; thin grey streaks fall from the layer's banks to the ground with a faint veil under
   them (`?rain` forces it). **Searchlights** for night fighting to come: `searchlight` in `data/ground.json` and a piece in
@@ -1338,12 +1352,6 @@ Then: more themes, co-op missions, matchmaking.
   railway station, Pak and ZiS-3 positions, trenches; later Karelian log houses and saunas, Sicilian stone
   villages, Tunisian farms, Pacific huts), and military buildings (hangars, depots, radar, bunkers) styled
   after the nation that owns them.
-- **Dramatic crashes:** only a head-on hit kills at once. A glancing hit (a wing clipping a tree, a
-  building, a hill, another plane) starts a short, dramatic death instead: the plane keeps flying for a
-  few seconds, spinning or tumbling in an arc, maybe shedding a wing or trailing fire, then hits the
-  ground. It must not feel the same every time: vary the outcome by what was hit, where on the plane,
-  speed and angle (flat spin, tumbling, cartwheel along the ground, a long burning arc, a near-recovery
-  that fails), and use the world's random numbers so no two look alike.
 - **Tank wrecks and ways to die** (best built with the milestone 6 tanks, as 3D models): the wreck is
   the same model, damaged: scorched paint and soot, thrown track, lost road wheels, open hatches, a
   drooping or bent gun, mixed at random so no two wrecks look alike. Ways to die, by weapon and chance:

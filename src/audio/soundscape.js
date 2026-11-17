@@ -508,6 +508,18 @@ export function createSoundscape(mixer, world, cfg = {}, sound, planeDefs) {
         case 'shotDown':
           sfx.play(mixer, voices.shotDown, where, { gain: mine ? 0.8 : 0.6, rate: 0.6, bus: mine ? 'body' : 'sfx' });
           break;
+        // Glancing blows (src/sim/crashes.js): a part tearing off screeches like a graze; a scrape
+        // along the ground thumps and crunches; a clip off a roof or tree crunches lighter.
+        case 'partLost':
+          sfx.midair(mixer, where, e.part === 'wing' ? 'hard' : 'graze', false);
+          break;
+        case 'scrape':
+          sfx.touchdown(mixer, where, 140 + 60 * e.severity);
+          sfx.bellyCrunch(mixer, where, 30 + 30 * e.severity);
+          break;
+        case 'clip':
+          sfx.bellyCrunch(mixer, where, e.tree ? 15 : 30);
+          break;
         case 'collision': {
           const involved = e.a === focusId || e.b === focusId;
           const at = involved ? ME : whereAt(e.x, e.y, range);

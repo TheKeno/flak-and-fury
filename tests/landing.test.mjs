@@ -11,7 +11,7 @@ const settings = load('data/settings.json');
 
 // A Bf 109 just above the middle of its runway, gear down, flying right at speed (share of its max
 // landing speed) with the nose noseUp rad above level (a gentle descent by default).
-function approachAt(share, noseUp = -0.1, { stalled = false } = {}) {
+function approachAt(share, noseUp = -0.1, { stalled = false, worn = false } = {}) {
   const world = createWorld({
     map: importLdtk(load('maps/countryside.ldtk')),
     planeDefs: load('data/planes.json'),
@@ -30,6 +30,7 @@ function approachAt(share, noseUp = -0.1, { stalled = false } = {}) {
   p.speed = p.def.maxLandingSpeed * share;
   p.throttle = 0;
   p.stalled = stalled;
+  if (worn) [p.tailTorn, p.wingTip] = [true, 1]; // two parts gone already: no more scrapes (src/sim/crashes.js)
   const events = [];
   for (let i = 0; i < 90 && p.state === 'air'; i++) {
     stepWorld(world, {});
@@ -61,8 +62,14 @@ test('nose a little down: hard landing, the propeller strikes', () => {
   assert.ok(p.propBent, 'propeller bent');
 });
 
+test('far too fast but shallow: a scrape that tears the gear off, not a crash', () => {
+  const { find } = approachAt(1.3);
+  assert.equal(find('scrape')?.part, 'gear');
+  assert.ok(!find('crash'));
+});
+
 test('far too fast or too steep: a crash that says which limit and by how much', () => {
-  const fast = approachAt(1.3).find('crash');
+  const fast = approachAt(1.3, -0.1, { worn: true }).find('crash');
   assert.equal(fast?.cause, 'tooFast');
   assert.ok(fast.what.speed > fast.what.limit);
   const steep = approachAt(0.8, -0.8).find('crash');

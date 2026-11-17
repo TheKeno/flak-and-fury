@@ -12,6 +12,7 @@
 import { clamp } from './math.js';
 import { ignite } from './fire.js';
 import { damagePlane, shootDown } from './weapons.js';
+import { DEFAULT_CRASHES, collisionParts } from './crashes.js';
 
 export const DEFAULT_COLLISIONS = {
   headOnSpeed: 110, // closing speed at which noses meeting is always fatal
@@ -34,6 +35,7 @@ export const DEFAULT_COLLISIONS = {
   runDownDamage: 1, // hit points a plane loses per soldier it runs down
   crashBlastRadius: 30, // a crashing plane's shockwave hurts soldiers this far from the wreck (world units)
   crashBlastForce: 1.5, // its damage at the wreck, in soldier hit points (falls off to 0 at the radius)
+  ...DEFAULT_CRASHES, // glancing blows and torn parts (src/sim/crashes.js)
 };
 
 const NOSE = 0.6; // cos of the angle within which the other plane counts as "in front"
@@ -129,8 +131,11 @@ function resolve(world, a, b, cfg, dist) {
       const bend = severity === 'hard' ? 0.5 : 0.2;
       p.wingPull = clamp(p.wingPull + side * cfg.wingPull * bend * share * 2, -cfg.wingPull * 2, cfg.wingPull * 2);
     }
+    // A wing or tail may be torn off, the whole wing only by a fast hard hit (src/sim/crashes.js).
+    if (!p.dying) collisionParts(world, p, other, zone, severity, share, closing, Math.sign(cross(heading(p), dirToOther)) || 1, rammed);
     if (severity === 'hard' && !p.burning && world.rng.next() < cfg.hardFireChance * share * 2) ignite(world, p);
     if (!p.dying) damagePlane(world, p, dmg, other.id, x, y, 'collision');
+    if (p.dying && p.deathStyle === 'dive' && severity === 'hard') p.deathStyle = 'tumble'; // knocked to pieces
   };
   apply(a, b, shareA, zoneA, n, taranA, taranB);
   apply(b, a, shareB, zoneB, nb, taranB, taranA);

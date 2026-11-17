@@ -270,14 +270,17 @@ export function damageLines(plane) {
   const blink = Math.floor(performance.now() / 250) % 2 === 0;
   if (plane.burning) lines.push(['ON FIRE!', blink ? RED : '#ffc0a0']);
   if (plane.hp / plane.def.hp < 0.3) lines.push(['AIRFRAME CRITICAL', RED]);
-  if (plane.tailDamage >= 0.5) lines.push(['TAIL SHREDDED - STEERING WEAK', RED]);
+  if (plane.tailTorn) lines.push(['TAIL TORN - PITCH SOFT', RED]);
+  else if (plane.tailDamage >= 0.5) lines.push(['TAIL SHREDDED - STEERING WEAK', RED]);
   else if (plane.tailDamage > 0.05) lines.push(['TAIL DAMAGED', AMBER]);
   if (Math.abs(plane.wingPull) > 0.02) {
     // Positive pull drags the nose counter-clockwise, so hold clockwise against it.
     const counter = `HOLD ${keyOf(plane.wingPull > 0 ? 'turnCw' : 'turnCcw')}`;
     const torn = Math.abs(plane.wingPull) > 0.3;
-    lines.push([`${torn ? 'WING TORN' : 'WING DAMAGED'} - PULLS, ${counter}`, torn ? RED : AMBER]);
+    const what = plane.wingTip ? 'WINGTIP GONE' : torn ? 'WING TORN' : 'WING DAMAGED';
+    lines.push([`${what} - PULLS, ${counter}`, torn || plane.wingTip ? RED : AMBER]);
   }
+  if (plane.gearTorn) lines.push(['GEAR TORN OFF - BELLY LANDING ONLY', AMBER]);
   if (plane.propBent) lines.push(['PROPELLER BENT', AMBER]);
   if (plane.heatStopped && !plane.engineRunning) lines.push(['ENGINE SEIZED - RESTARTS WHEN COOL', RED]);
   else if (!plane.engineRunning && !plane.belly) lines.push([plane.fuel <= 0 ? 'OUT OF FUEL' : 'ENGINE DEAD', RED]);

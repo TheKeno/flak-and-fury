@@ -2,6 +2,7 @@ import { angleDiff, clamp, wrapAngle } from './math.js';
 import { armPlane, updateWeapons, updateDamage, allGuns, flyingDef } from './weapons.js';
 import { updateServicing, ownAirfieldAt, sendPushCrew, sendParkCrew, serviceFully, servicingValue } from './airfield.js';
 import { crashShockwave } from './ground.js';
+import { scrapeGround, dyingFlight, tailWobble } from './crashes.js';
 import { updateEmergency } from './emergency.js';
 import { powerAt, dragAt, turnAt, updateNegG, propAt, bandAt } from './air.js';
 
@@ -229,6 +230,16 @@ export function createPlane(id, def, { team, nation, seats }) {
     tailDamage: 0, // 0..1: lost rudder/elevator authority
     wingPull: 0, // rad/s of drift from a damaged wing (sign = direction)
     propBent: false,
+    // Torn-off parts and how a shot-down plane falls (src/sim/crashes.js).
+    wingTip: 0, // -1/1: outer wing gone on that side
+    tailTorn: false,
+    gearTorn: false,
+    deathStyle: null, // dive | glide | flatSpin | nearRecovery | tumble
+    deathT: 0,
+    deathAim: 0,
+    deathPhase: null,
+    lastClip: null, // id of the last ground object clipped, and when (each is met once per pass)
+    lastClipTick: 0,
   };
 }
 
@@ -271,6 +282,10 @@ export function spawnAtAirfield(p, world, fromHangar = false) {
   p.strandedTimer = 0;
   p.tumble = p.tumbleSpin = p.tailDamage = p.wingPull = 0;
   p.propBent = false;
+  p.wingTip = 0;
+  p.tailTorn = p.gearTorn = false;
+  p.deathStyle = p.deathPhase = p.lastClip = null;
+  p.deathT = 0;
   p.rolling = false;
   p.rollAngle = p.inverted ? Math.PI : 0;
   p.groundTurn = p.groundLoop = p.edgeTurn = p.edgeLevel = null;
@@ -401,7 +416,7 @@ function stepParkIn(p, world, dt) {
 // what: the thing it flew into, for cause 'structure'.
 export function crash(p, world, cause, what = null) {
   const why = p.dying ? p.downCause ?? 'guns' : cause;
-  world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, by: p.dying ? p.lastHitBy : null, cause: why, what });
+  world.events.push({ type: 'crash', plane: p.id, x: p.x, y: p.y, speed: p.speed, vx: p.vx, vy: p.vy, by: p.dying ? p.lastHitBy : null, cause: why, what });
   crashShockwave(world, p.x, p.y);
   p.state = 'dead';
   p.park = null;
@@ -459,6 +474,13 @@ function updateGear(p, cmd, world, dt) {
   const pressed = cmd.gear && !p.prevGear;
   p.prevGear = cmd.gear;
   if (p.belly) {
+    p.gearWarning = false;
+    return;
+  }
+  // Gear torn off: nothing to lower, the only way down is on the belly (src/sim/crashes.js).
+  if (p.gearTorn) {
+    p.gear = 0;
+    p.gearDown = false;
     p.gearWarning = false;
     return;
   }
@@ -873,7 +895,7 @@ function stepAir(p, cmd, world, dt) {
   const authority = turnAuthority(d, p.speed);
   // A damaged tail answers the controls only weakly; a damaged wing drags the nose round.
   // Thin air up high gives the wings less grip, and above the rated height less power to turn (src/sim/air.js).
-  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * turnAt(world, d, p.y) * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull;
+  let turn = p.blackout ? 0 : cmd.turn * d.turnRate * turnAt(world, d, p.y) * authority * ramp * (1 - p.tailDamage * 0.75) + p.wingPull + tailWobble(p, world);
   // Just after lift-off the nose keeps turning at the ground rotation rate and eases up to the full
   // flying rate over blendTime, so the climb-out has no kink where the two models meet.
   if (p.liftBlend > 0) {
@@ -900,10 +922,12 @@ function stepAir(p, cmd, world, dt) {
     turn = p.tumbleSpin * (0.4 + 0.6 * (p.tumble / p.tumbleMax)) + p.wingPull;
     p.tumble = Math.max(0, p.tumble - dt);
   }
-  // A shot-down plane noses over and goes in, spinning.
+  // A shot-down plane goes in, each in its own way: a spiral, a long arc, a flat spin, a tumble, or a
+  // near-recovery that fails (src/sim/crashes.js).
+  let death = null;
   if (p.dying) {
-    const toDown = angleDiff(-Math.PI / 2, p.angle);
-    turn = Math.sign(toDown) * Math.min(Math.abs(toDown), 1) * 1.6 + p.spinDir * 0.6;
+    death = dyingFlight(p, world, dt);
+    turn = death.turn;
   }
   // A hard push (nose towards the pilot's feet) starves a carburettor engine. Only the pilot's own
   // steering counts: not a stall, a spin, a tumble or the autopilot at a map edge.
@@ -930,12 +954,14 @@ function stepAir(p, cmd, world, dt) {
     // Hard turns bleed speed, more for a heavily loaded wing (turnBleed per plane).
     const induced = Math.abs(turn) * p.speed * (d.turnBleed ?? DEFAULT_TURN_BLEED);
     p.speed += (thrust - drag - induced - GRAVITY * Math.sin(p.angle)) * dt;
+    if (death?.drag) p.speed -= p.speed * death.drag * dt; // spinning, tumbling: the speed goes
     p.speed = Math.max(0, p.speed);
   }
 
   // Stalled planes mush downwards; a blacked-out pilot spirals down out of the thin air.
   let targetSink = p.stalled ? (0.3 + clamp(1 - p.speed / d.stallSpeed, 0, 1)) * 60 : 0;
   if (p.blackout) targetSink = Math.max(targetSink, BLACKOUT_SINK);
+  if (death) targetSink = Math.max(targetSink, death.sink);
   p.sink += (targetSink - p.sink) * Math.min(1, dt * 3);
 
   p.vx = Math.cos(p.angle) * p.speed;
@@ -1089,6 +1115,10 @@ function touchDown(p, world, ground, gearReady) {
     return;
   }
 
+  // Too fast or too crooked to land, but only skimming the ground: a scrape tears a part off and the
+  // plane bounces back up (src/sim/crashes.js).
+  if (scrapeGround(world, p, ground, groundHeading, noseUp, isUpright(p))) return;
+
   let cause = 'ground';
   let what = null;
   if (p.blackout) cause = 'blackout';
@@ -1126,6 +1156,7 @@ function recover(p, world) {
   world.events.push({ type: 'recovered', plane: p.id, x: p.x, y: p.y });
   const kept = {
     hp: p.hp, engineDamage: p.engineDamage, tailDamage: p.tailDamage, wingPull: p.wingPull, propBent: p.propBent,
+    wingTip: p.wingTip, tailTorn: p.tailTorn, gearTorn: p.gearTorn,
     belly: p.belly, gear: p.gear, gearDown: p.gearDown, fuel: p.fuel, engineRunning: p.engineRunning,
   };
   const ammo = allGuns(p).map((g) => g.ammo);

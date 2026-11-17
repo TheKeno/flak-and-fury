@@ -128,6 +128,14 @@ if (options.name) player.callsign = options.name;
 // Free look (V), our debug view for the ground war: the arrows move the camera anywhere, the wheel
 // zooms, 1/2/3 jump to the front, the bridge and your plane, W/S step the fast forward. Meanwhile an
 // autopilot flies your plane level, and nothing saves it if it's shot down.
+// What the player is told when a glancing blow tears a part off (src/sim/crashes.js).
+const PART_LOST = {
+  wingTip: 'WINGTIP TORN OFF!',
+  tail: 'TAIL TORN!',
+  gear: 'GEAR TORN OFF - BELLY LAND',
+  prop: 'PROPELLER BENT!',
+  wing: 'WING GONE!',
+};
 const SPEEDS = [1, 2, 4, 8];
 const freeCfg = content.settings.freeLook;
 const free = { on: false, x: 0, y: 0, tx: 0, ty: 0, zoom: 1, speed: 0, autopilot: {} };
@@ -447,6 +455,8 @@ function handleEvents() {
       if (e.type === 'serviceDone') renderer.message('GROUND CREW: ALL DONE', '#a8e090');
       if (e.type === 'crewKilled') renderer.message(e.team === player.team ? 'YOU RAN DOWN YOUR OWN MECHANIC' : 'ENEMY MECHANIC RUN DOWN', '#ff8070');
       if (e.type === 'hedgeHit') renderer.message('THROUGH THE HEDGE!', '#ffd070');
+      if (e.type === 'partLost') renderer.message(PART_LOST[e.part] ?? 'SOMETHING TORE OFF!', '#ff9070');
+      if (e.type === 'partLost' || e.type === 'scrape' || e.type === 'clip') renderer.shake(e.type === 'scrape' ? 3 + 3 * e.severity : 3);
       if (e.type === 'wallHit') {
         renderer.shake(5);
         renderer.message('STONE WALL - GEAR TORN OFF!', '#ff9070');

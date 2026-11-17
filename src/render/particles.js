@@ -7,6 +7,7 @@ const KINDS = {
   dust: { gravity: 6, drag: 2.0, colours: ['#b9a27c', '#9c8562', '#7d6a4e'], grow: 1.8 },
   debris: { gravity: 90, drag: 0.2, colours: ['#2a2622', '#3c3630', '#56504a'], grow: 0 },
   flakpuff: { gravity: -1.5, drag: 1.6, colours: ['#2e2c2a', '#3a3734', '#46433f', '#55524e'], grow: 1.6 },
+  leaves: { gravity: 14, drag: 2.4, colours: ['#2c3324', '#262b1f', '#1e2219', '#3a3a2a'], grow: 0 },
   mist: { gravity: 8, drag: 2.2, colours: ['#5a1814', '#44110f', '#2e0b0a'], grow: 0.7 },
   spark: { gravity: 40, drag: 0.5, colours: ['#fff8d0', '#ffd060', '#ff9030'], grow: 0 },
 };
@@ -18,10 +19,19 @@ export function createParticles() {
     list.push({ kind: KINDS[kind], x, y, vx, vy, life, max: life, size });
   };
   const rand = (a, b) => a + Math.random() * (b - a);
+  // Torn-off parts and wreckage: dark slabs that spin as they fall, bounce along the ground and lie
+  // there a while. burn: trails fire and smoke while it moves (a wreck cartwheeling on).
+  const pieces = [];
+  const piece = (x, y, vx, vy, len, wid, burn = false) => {
+    if (pieces.length > 80) pieces.shift();
+    pieces.push({ x, y, vx, vy, len, wid, burn, a: rand(0, Math.PI), spin: rand(-12, 12), life: rand(6, 9), bounces: 0, colour: ['#24221f', '#2e2b27', '#38342e'][Math.floor(Math.random() * 3)] });
+  };
 
   return {
     list,
     spawn,
+    piece,
+    pieces,
     explosion(x, y, power = 1) {
       for (let i = 0; i < 40 * power; i++) {
         const a = Math.random() * Math.PI * 2;
@@ -52,6 +62,39 @@ export function createParticles() {
       for (let i = 0; i < n; i++) spawn('spark', x, y, rand(-50, 50), rand(-20, 50), rand(0.1, 0.3), 1);
     },
     update(dt, terrain) {
+      for (let i = pieces.length - 1; i >= 0; i--) {
+        const q = pieces[i];
+        q.life -= dt;
+        if (q.life <= 0) {
+          pieces.splice(i, 1);
+          continue;
+        }
+        const g = terrain.heightAt(q.x) + q.wid / 2;
+        const resting = q.y <= g + 0.01 && Math.abs(q.vy) < 1 && Math.abs(q.vx) < 1;
+        if (resting) continue;
+        q.vy -= 90 * dt;
+        q.vx -= q.vx * 0.15 * dt;
+        q.x += q.vx * dt;
+        q.y += q.vy * dt;
+        q.a += q.spin * dt;
+        const moving = Math.abs(q.vx) + Math.abs(q.vy);
+        if (q.burn && moving > 8) {
+          if (Math.random() < dt * 30) spawn('fire', q.x, q.y, q.vx * 0.1, 12, rand(0.2, 0.5), rand(1, 2.2));
+          if (Math.random() < dt * 14) spawn('blacksmoke', q.x, q.y, q.vx * 0.05, 8, rand(1.5, 3), rand(1.5, 2.5));
+        }
+        if (q.y < g) {
+          // Hits the ground: digs in, throws dirt, bounces lower each time, the spin flips.
+          q.y = g;
+          if (moving > 20) for (let k = 0; k < 4; k++) spawn('dust', q.x, g, q.vx * 0.2 + rand(-15, 15), rand(8, 25), rand(0.5, 1.2), rand(1, 2));
+          if (moving > 30 && q.burn) spawn('fire', q.x, g, 0, 20, 0.4, 2.5);
+          q.vy = Math.abs(q.vy) * (q.bounces < 3 ? 0.4 : 0);
+          q.vx *= 0.6;
+          q.spin = -q.spin * 0.6;
+          q.bounces++;
+          if (Math.abs(q.vy) < 3) q.vy = 0;
+          if (Math.abs(q.vx) < 2) q.vx = q.spin = 0;
+        }
+      }
       for (let i = list.length - 1; i >= 0; i--) {
         const p = list[i];
         p.life -= dt;
@@ -75,6 +118,17 @@ export function createParticles() {
     },
     // scale: buffer pixels per world unit (particle sizes are in world units).
     draw(ctx, toScreenX, toScreenY, scale = 1) {
+      for (const q of pieces) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, q.life / 1.5);
+        ctx.translate(Math.round(toScreenX(q.x)), Math.round(toScreenY(q.y)));
+        ctx.rotate(-q.a);
+        ctx.fillStyle = q.colour;
+        const l = Math.max(1, Math.round(q.len * scale));
+        const w = Math.max(1, Math.round(q.wid * scale));
+        ctx.fillRect(-l / 2, -w / 2, l, w);
+        ctx.restore();
+      }
       for (const p of list) {
         const t = 1 - p.life / p.max;
         const cols = p.kind.colours;
