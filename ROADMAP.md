@@ -1307,6 +1307,13 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
+- **Owner test flight of milestone 8 step 3 and the weather (Gameplay):** raids, heavy flak against them, the cloud layer,
+  rain (`?rain`) and searchlights (`?night`) are built and pushed but not yet flown by the owner; the step 3 Done entry
+  waits for that flight (handover: `notes/milestone8-step3.md`).
+- **Merge dramatic crashes (Gameplay):** built in its own session on branch `claude/dramatic-crashes-bfc292`; merge into
+  `main` when the owner says it is finished (perf and anti-tank guns were merged 2026-11-17).
+- **A6M5 Zero (Planes):** outline measured off the 3-view (`data/outlines/a6m5.json`), waiting for the owner's approval;
+  its own session does the model, sprites and data after that.
 - **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 14).
 
 
