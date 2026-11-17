@@ -875,6 +875,10 @@ later.
 
 ## Done
 
+- **Outline Lab "Build sprites" error text (Planes, 2026-11-17):** the failure ("Command failed: make-sprites.mjs blenheim") did not reproduce on a fresh server, so it was most likely a stale `tools/serve.mjs` (restart it). The server (`buildSprites`) now sends the generator's own output and the failure (`error`: exit code, timeout) apart, buffer 64 MB, and the lab shows the last four output lines.
+- **Easy bots no longer crash on their own after flak damage (Gameplay, 2026-11-17):** re-measured, not rebuilt: 0 own-fault
+  crashes in 70 easy-bot runs (40 German, 30 British, 180 s each, bots still hit by flak), so the guns, damage and flak passes
+  since 2026-11-11 fixed it. `tests/bots.test.mjs` now checks own-fault deaths at every level, easy included.
 - **Returning vehicles keep a gap (Gameplay, 2026-11-17):** trucks (and engineers) driving home used to skip the
   column queue and could drive through each other. `holdUp` in `src/sim/army.js` now gives a returning unit a
   queue check against others of its side heading the same way (it follows the one ahead at its pace, gap from the
@@ -1330,9 +1334,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 14).
 
 
-- **Easy bots crash on their own after flak damage (Gameplay)** (session "Gameplay — easy bots crash after flak damage"): an easy bot flies through enemy flak and, shot up, crashes by itself on about half of all seeds (seen 2026-11-11: a field take-off with a damaged engine that stalls at 46, structures near x 1750, a hard landing). `tests/bots.test.mjs` checks own-fault deaths for normal and ace only since then.
-
-- **Outline Lab "Build sprites" error text (Planes):** built 2026-11-17: the server (`buildSprites` in `tools/serve.mjs`) now sends the generator's own output and the failure (`error`: exit code, timeout) separately, buffer raised to 64 MB; the lab shows the last output lines. The original failure did not reproduce on a fresh server (blenheim builds fine), so it was most likely a stale `serve.mjs`: restart it. Left in progress until the owner sees it work.
 
 ## Backlog
 - **Anti-tank guns and trucks (Gameplay):** trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck. Decide: trucks ignore guns for dismounting until fired on, a longer gun reach, or leave it (guns are for tanks). Found 2026-11-17 (Done, "Anti-tank guns").
