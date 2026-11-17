@@ -1,0 +1,308 @@
+{
+ "plane": "ju52",
+ "sprite": {
+  "size": [
+   205,
+   83
+  ],
+  "pivot": [
+   102,
+   43
+  ]
+ },
+ "_notes": "Metres. d = back from the reference nose point, h = up from the reference line (here the middle of the fuselage), z = out from the centre line. Stations are [d, top h, bottom h, half width]; edge tables are [along, d] (tailplane and wing: along = metres out from the root, fin: along = h). scale = model units per metre; frame = where d = 0, h = 0 sits in the model. Built by the general multi-engine model (multi in tools/plane-models.mjs), which reads only the outline: no markings or panel lines yet. STARTER, to be fitted in the Outline Lab: Junkers Ju 52/3m. Side view measured by eye off the owner's 3-view (fuselage, fin, cockpit, wing root, wing engine, undercarriage); the plan view (wing and tailplane edges, widths, how far out the wing engines sit) is from published figures and must be checked. The nose engine is bump (dark), fixed undercarriage (gear.fixed).",
+ "length": 18.9,
+ "span": 29.25,
+ "scale": 5,
+ "frame": {
+  "x": 47.25,
+  "y": 0
+ },
+ "fuselage": {
+  "n": 5,
+  "stations": [
+   [
+    0.55,
+    0.45,
+    -0.75,
+    0.35
+   ],
+   [
+    0.6,
+    0.6,
+    -0.9,
+    0.45
+   ],
+   [
+    1.5,
+    0.95,
+    -1.0,
+    0.7
+   ],
+   [
+    2.2,
+    1.3,
+    -1.05,
+    0.8
+   ],
+   [
+    3.1,
+    1.4,
+    -1.2,
+    0.83
+   ],
+   [
+    3.7,
+    1.4,
+    -1.4,
+    0.83
+   ],
+   [
+    8.5,
+    1.4,
+    -1.4,
+    0.83
+   ],
+   [
+    11.0,
+    1.4,
+    -0.88,
+    0.75
+   ],
+   [
+    14.0,
+    1.4,
+    -0.25,
+    0.55
+   ],
+   [
+    16.5,
+    1.4,
+    0.27,
+    0.3
+   ],
+   [
+    17.7,
+    1.4,
+    0.5,
+    0.12
+   ]
+  ]
+ },
+ "canopy": {
+  "n": 4,
+  "stations": [
+   [
+    2.0,
+    1.28,
+    0.5,
+    0.6
+   ],
+   [
+    2.3,
+    1.42,
+    0.5,
+    0.76
+   ],
+   [
+    3.1,
+    1.43,
+    0.5,
+    0.82
+   ]
+  ]
+ },
+ "bump": {
+  "n": 2,
+  "kind": "dark",
+  "stations": [
+   [
+    0.0,
+    0.1,
+    -0.25,
+    0.15
+   ],
+   [
+    0.1,
+    0.62,
+    -0.92,
+    0.62
+   ],
+   [
+    0.55,
+    0.62,
+    -0.92,
+    0.62
+   ],
+   [
+    0.6,
+    0.5,
+    -0.8,
+    0.5
+   ]
+  ]
+ },
+ "nacelle": {
+  "n": 2.3,
+  "z": 2.9,
+  "stations": [
+   [
+    2.2,
+    -0.15,
+    -1.35,
+    0.6
+   ],
+   [
+    2.3,
+    0.0,
+    -1.5,
+    0.72
+   ],
+   [
+    3.2,
+    0.0,
+    -1.5,
+    0.72
+   ],
+   [
+    3.3,
+    -0.2,
+    -1.45,
+    0.6
+   ],
+   [
+    4.6,
+    -0.95,
+    -1.4,
+    0.3
+   ]
+  ]
+ },
+ "spinner": {
+  "n": 2,
+  "z": 2.9,
+  "stations": [
+   [
+    1.95,
+    -0.65,
+    -0.85,
+    0.1
+   ],
+   [
+    2.2,
+    -0.5,
+    -1.0,
+    0.3
+   ]
+  ]
+ },
+ "wing": {
+  "root": [
+   3.7,
+   8.6
+  ],
+  "tip": [
+   5.15,
+   6.82
+  ],
+  "span": 14.6,
+  "at": -1.2,
+  "rise": 0.1,
+  "thick": 0.4,
+  "round": 0.08
+ },
+ "tailplane": {
+  "root": [
+   15.6,
+   17.9
+  ],
+  "tip": [
+   16.2,
+   17.6
+  ],
+  "span": 5.0,
+  "at": 1.3,
+  "thick": 0.08,
+  "round": 0.1
+ },
+ "fin": {
+  "root": [
+   15.7,
+   18.85
+  ],
+  "span": 3.1,
+  "at": 0.6,
+  "thick": 0.09,
+  "round": 0,
+  "le": [
+   [
+    0.6,
+    16.2
+   ],
+   [
+    1.4,
+    15.7
+   ],
+   [
+    3.5,
+    16.85
+   ],
+   [
+    3.7,
+    17.0
+   ]
+  ],
+  "te": [
+   [
+    0.6,
+    17.75
+   ],
+   [
+    0.7,
+    18.85
+   ],
+   [
+    3.3,
+    18.85
+   ],
+   [
+    3.7,
+    18.4
+   ]
+  ]
+ },
+ "points": [
+  {
+   "type": "pilot",
+   "d": 2.6,
+   "h": 1.0
+  }
+ ],
+ "gear": {
+  "fixed": true,
+  "main": {
+   "d": 4.5,
+   "h": -2.7,
+   "half": 2.9,
+   "r": 0.65
+  },
+  "tail": {
+   "d": 17.5,
+   "h": 0.1,
+   "r": 0.25
+  }
+ },
+ "props": [
+  {
+   "d": -0.05,
+   "h": -0.15,
+   "z": 0
+  },
+  {
+   "d": 1.95,
+   "h": -0.75,
+   "z": 2.9
+  }
+ ],
+ "propRadius": 1.45
+}

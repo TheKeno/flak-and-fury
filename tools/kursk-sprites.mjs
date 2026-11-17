@@ -1856,9 +1856,23 @@ function preview() {
     }
     return im;
   };
+  // The same paint on a sprite the game built (a plane from its outline file).
+  const paintGame = (name, paint) => {
+    const im = game(name);
+    for (let i = 0; i < im.px.length; i += 4) {
+      const key = Object.keys(paint).find((c) => PALETTE[c].every((v, n) => v === im.px[i + n]));
+      if (key) im.px.set(paint[key], i);
+    }
+    return im;
+  };
+  const german = { B: [70, 78, 60, 255], S: [54, 60, 48, 255], W: [46, 52, 42, 255], U: [116, 134, 142, 255], 1: [92, 108, 116, 255] };
+  const soviet = { B: [66, 80, 52, 255], S: [50, 62, 42, 255], W: [44, 54, 36, 255], U: [124, 144, 158, 255], 1: [98, 116, 130, 255] };
+  // Sheet 4: the transports and bombers as the game builds them from their outline files (data/outlines/), with
+  // the hand-drawn first looks of the two transports under them.
   sheetOf('kursk-assets-preview-4.png', [
-    [painted(KURSK_PLANES.ju52, { B: [70, 78, 60, 255], S: [54, 60, 48, 255], W: [46, 52, 42, 255], U: [116, 134, 142, 255], 1: [92, 108, 116, 255] })],
-    [painted(KURSK_PLANES.li2, { B: [66, 80, 52, 255], S: [50, 62, 42, 255], W: [44, 54, 36, 255], U: [124, 144, 158, 255], 1: [98, 116, 130, 255] })],
+    [paintGame('ju52', german), paintGame('he111', german)],
+    [paintGame('li2', soviet), paintGame('pe8', soviet)],
+    [painted(KURSK_PLANES.ju52, german), painted(KURSK_PLANES.li2, soviet)],
     [game('blenheim'), game('bf109g6')],
   ]);
   const e = img(KURSK_EXTRA);

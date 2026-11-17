@@ -2071,7 +2071,59 @@ const withBumps = (build) => (o, opts = {}) => {
   }
   return model;
 };
-export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim }).map(([k, f]) => [k, withBumps(f)]));
+// A multi-engined plane straight from its outline, with nothing of its own in the code: the transports and
+// bombers (Ju 52, Li-2, He 111, Pe-8) until each gets a model function with its markings and panel lines.
+// Reads: fuselage, canopy (glass), wing, tailplane, fin or fins; nacelle and spinner (a pair at their z), and
+// nacelle2 and spinner2 for an outer pair of engines; gear (gear.fixed: the undercarriage does not retract, so it
+// is in every picture); props: [{ d, h, z }] the propeller hubs (z 0 a nose engine, otherwise one each side) and
+// propRadius (metres). Anything else is drawn by the extra parts (bump..: turrets, a nose engine, a gondola).
+function multi(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
+  const byFacing = (p, n) => ({ kind: n[1] < -0.3 ? 'under' : 'paint' });
+  const plain = (kind) => () => ({ kind });
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const fin = o.fins ? surfaceOf(o.fins, true) : surfaceOf(o.fin, true);
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
+  const retracts = !o.gear.fixed;
+  const legTop = [main[0] + 0.3 * M, Y(o.wing.at), main[2]];
+  const parts = [
+    { ...bodyOf(o.fuselage), material: byFacing },
+    { ...surfaceOf(o.wing), material: byFacing },
+    { ...surfaceOf(o.tailplane), material: byFacing },
+    { ...fin, material: plain('paint') },
+    ...(o.nacelle ? [{ ...bodyOf(o.nacelle), material: byFacing }] : []),
+    ...(o.nacelle2 ? [{ ...bodyOf(o.nacelle2), material: byFacing }] : []),
+    ...(o.spinner ? [{ ...bodyOf(o.spinner), material: plain('dark') }] : []),
+    ...(o.spinner2 ? [{ ...bodyOf(o.spinner2), material: plain('dark') }] : []),
+    ...(o.canopy ? [{ ...bodyOf(o.canopy), glass: true, material: plain('glass') }] : []),
+    { ...strut(legTop, main, 0.09 * M), material: metal, gear: retracts },
+    { ...strut([-legTop[0] + 2 * main[0] - 1.2 * M, legTop[1], main[2]], main, 0.05 * M), material: metal, gear: retracts },
+    { ...wheel(main, wheelR, 0.14 * M), material: tyre(main, wheelR), gear: retracts },
+    { ...strut([tailW[0] + 0.3 * M, tailW[1] + 2.5 * tailR, 0], tailW, 0.04 * M), material: metal, gear: retracts },
+    { ...wheel(tailW, tailR, 0.06 * M), material: tyre(tailW, tailR), gear: retracts },
+  ];
+  const hubs = (o.props ?? []).flatMap((h) => (h.z ? [[X(h.d), Y(h.h), h.z * M], [X(h.d), Y(h.h), -h.z * M]] : [[X(h.d), Y(h.h), 0]]));
+  const mid = (o.wing.root[0] + o.wing.root[1]) / 2;
+  const tipH = o.wing.at + o.wing.span * (o.wing.rise ?? 0);
+  return {
+    parts,
+    attach: {
+      exhaust: hubs[0] ? [hubs[0][0] - 1.0 * M, hubs[0][1], Math.abs(hubs[0][2]) + 0.4 * M] : [X(2), Y(0), 0],
+      wingRootL: [X(mid), Y(o.wing.at), 0.6 * M],
+      wingRootR: [X(mid), Y(o.wing.at), -0.6 * M],
+      wingTipL: [X(mid), Y(tipH), o.wing.span * M],
+      wingTipR: [X(mid), Y(tipH), -o.wing.span * M],
+      propHub: hubs[0] ?? [X(0), Y(0), 0],
+      propHubs: hubs.length ? hubs : [[X(0), Y(0), 0]],
+      propRadius: (o.propRadius ?? 1.5) * M,
+      mainContact: [main[0], main[1] - wheelR, 0],
+      track: main[2],
+    },
+  };
+}
+
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim, ju52: multi, li2: multi, he111: multi, pe8: multi }).map(([k, f]) => [k, withBumps(f)]));
 // Ground vehicles: an outline with `vehicle: 'tank'` is built by the tank model (VEHICLE_BUILDERS).
 export const VEHICLE_BUILDERS = { tank: withBumps(tank), truck: withBumps(truck) };
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's
