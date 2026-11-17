@@ -7,6 +7,8 @@
 // Tanks' coaxial MGs: only at planes flying very low or on the ground. Their roof MG (anti-aircraft)
 // sprays short, wild bursts at planes passing low over the column: more show than threat.
 // MG nests, infantry and tank MGs also shoot enemy soldiers when there's no plane to shoot at.
+// Anti-tank guns (Pak 40, ZiS-3): dug in, facing the enemy; they shell enemy tanks and trucks coming at them and
+// never planes. Their crew can be shot or blasted (ground.js hurtGunner); with no crew left the gun is lost.
 // All aim with lead: they shoot where the target will be when the round gets there.
 import { GRAVITY } from './plane.js';
 import { damagePlane } from './weapons.js';
@@ -15,9 +17,11 @@ import { ignite } from './fire.js';
 import { surfaceAt, mountPoint, radarHealth } from './ground.js';
 import { fixThrough, showsItself } from './clouds.js';
 
+const SHELL_DROP = 0.25; // as army.js's tank shells, which the anti-tank guns fire
+
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
-const MUZZLE = { flak: [5, 10], lightFlak: [4, 6], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5], searchlight: [6.5, 4.5] };
+const MUZZLE = { flak: [5, 10], lightFlak: [4, 6], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5], searchlight: [6.5, 4.5], atGun: [4, 14] };
 const TANK_AA = [10.5, 3, -2]; // roof MG: pivot height, barrel length, offset along the hull
 const TRACER_EVERY = 4;
 const MAX_TURN = 0.06; // fire only when the barrel is this close to the aim point (rad)
@@ -32,6 +36,7 @@ export function armGround(world, obj) {
   obj.rest = 0;
   obj.target = null;
   if (obj.type === 'flak') Object.assign(obj, { fix: 0, fixId: null, fixVx: 0, fixVy: 0 });
+  if (obj.type === 'atGun') obj.aim = facing > 0 ? 0.03 : Math.PI - 0.03; // laid level on the road
   for (const s of obj.soldiers ?? []) s.cooldown = world.rng.range(0, obj.def.interval);
 }
 
@@ -65,6 +70,15 @@ function pickTarget(world, obj, x, y, def = obj.def, reach = def.range) {
   }
   if (best || obj.type === 'flak' || def.planesOnly) return best;
   for (const o of world.ground) {
+    if (o.gunners?.length && o.alive && o.team !== obj.team) {
+      // An anti-tank gun's crew behind their shield: a target for rifles and MGs.
+      const d = Math.abs(o.x - x) < bestD ? Math.hypot(o.x - x, surfaceAt(world, o.x) + 3 - y) : Infinity;
+      if (d < bestD) {
+        best = { id: -o.id, x: o.x, y: surfaceAt(world, o.x) + 3, vx: 0, vy: 0 };
+        bestD = d;
+      }
+      continue;
+    }
     if (!o.alive || !o.soldiers || o.team == null || o.team === obj.team) continue;
     const vx = o.moving ? o.dir * o.def.speed : 0;
     for (const s of o.soldiers) {
@@ -267,6 +281,51 @@ function stepInfantry(world, obj, dt) {
   }
 }
 
+// Anti-tank guns: the nearest enemy tank or truck ahead within range, with the line to it clear of the ground
+// (in a dip or behind a crest it is safe), is laid on with lead and shelled. The shells are the tanks' own
+// (army.js: world.tankShells, burst by def.shellRadius and shellDamage). Each man lost slows the loading.
+function atGunTarget(world, obj, x, y, facing) {
+  const def = obj.def;
+  let best = null;
+  let bestD = def.range;
+  for (const o of world.ground) {
+    if (!o.alive || !o.mobile || o.team == null || o.team === obj.team || (o.type !== 'tank' && o.type !== 'truck')) continue;
+    const ahead = (o.x - x) * facing;
+    if (ahead <= 0 || ahead >= bestD) continue;
+    const ty = (o.baseY ?? surfaceAt(world, o.x)) + (o.height ?? o.def.height) * 0.4;
+    const d = Math.hypot(o.x - x, ty - y);
+    if (d >= bestD || !lineClear(world, x, y, o.x, ty + 2)) continue;
+    best = { o, ty };
+    bestD = d;
+  }
+  return best;
+}
+function stepAtGun(world, obj, dt) {
+  const def = obj.def;
+  const [h, len] = MUZZLE.atGun;
+  const facing = obj.x < world.map.width / 2 ? 1 : -1;
+  const x = obj.x;
+  const y = surfaceAt(world, obj.x) + h;
+  obj.cooldown = Math.max(0, obj.cooldown - dt);
+  const found = atGunTarget(world, obj, x, y, facing);
+  obj.target = found?.o.id ?? null;
+  if (!found) {
+    swing(obj, facing > 0 ? 0.03 : Math.PI - 0.03, dt);
+    return;
+  }
+  const { o, ty } = found;
+  const vx = o.moving ? o.dir * (o.step ?? 0) / dt : 0;
+  const { angle } = lead(x, y, { x: o.x, y: ty, vx, vy: 0 }, def.gunVelocity, SHELL_DROP);
+  if (!swing(obj, angle, dt) || obj.cooldown > 0 || !world.tankShells) return;
+  const crew = obj.gunners?.length ?? def.crew;
+  obj.cooldown = def.interval * (def.crew / Math.max(1, crew)) * world.rng.range(0.9, 1.1);
+  const a = angle + world.rng.range(-def.spread, def.spread);
+  const mx = x + Math.cos(obj.aim) * len;
+  const my = y + Math.sin(obj.aim) * len;
+  world.tankShells.push({ id: world.nextId++, owner: obj.id, team: obj.team, def, x: mx, y: my, vx: Math.cos(a) * def.gunVelocity, vy: Math.sin(a) * def.gunVelocity, life: 2.5 });
+  world.events.push({ type: 'tankFire', id: obj.id, kind: 'atGun', x: mx, y: my, angle: a });
+}
+
 // Searchlights (for night fighting to come): they only burn at night (world.rules.night). With nothing caught the
 // beam sweeps the sky over the gun; a plane that crosses it is caught and held while the light can follow it.
 // A caught plane is marked (p.litBy = the light's id, cleared every tick), for the guns and the drawing. Cloud hides
@@ -323,6 +382,7 @@ export function stepDefences(world, dt) {
     if (obj.type === 'flak') stepFlak(world, obj, dt);
     else if (obj.type === 'mgNest' || obj.type === 'lightFlak' || obj.type === 'tank') stepMg(world, obj, dt);
     if (obj.type === 'searchlight') stepSearchlight(world, obj, dt);
+    else if (obj.type === 'atGun') stepAtGun(world, obj, dt);
     if (obj.type === 'tank') stepTankAa(world, obj, dt);
     else if (obj.type === 'infantry') stepInfantry(world, obj, dt);
   }

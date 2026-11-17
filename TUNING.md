@@ -427,7 +427,7 @@ A propeller strike always tears the man apart and sends his helmet spinning high
 
 ## Ground targets: `data/ground.json`
 
-One entry per kind of ground object (`flak` (the heavy gun), `lightFlak`, `mgNest`, `infantry`, `tent`, `tower`, `building`, `radar`,
+One entry per kind of ground object (`flak` (the heavy gun), `lightFlak`, `mgNest`, `atGun` (anti-tank gun), `infantry`, `tent`, `tower`, `building`, `radar`,
 `tank`, `engineers`, `depot`, `bridge`, `hangar`, and the decor: `hedge`, `wall`, `tree`, `pine`, `barn`, and the Kursk
 scenery from `izba` to `stores`, placed in LDtk without a team). A piece of scenery may name a `wreck` (the sprite shown
 once it is destroyed); `flak`, `radar` and `depot` have `looks`: a nation's own sprite (and wreck, and for the gun where
@@ -475,6 +475,28 @@ Between 350 and 400 neither kind reaches.
 | `tracerEvery` | Light flak: every nth round is a tracer (1: all of them). | 1 – 4 |
 
 MG nests and infantry also shoot enemy soldiers when there's no plane in reach.
+
+**Anti-tank guns** (`atGun`; LDtk piece `AtGun` with a team; the 7.5 cm Pak 40 for Germany, the 76 mm ZiS-3 for the
+USSR, a Pak 40 for the other nations until they get their own; mount, barrel and wreck editable in the Pixel Lab).
+Dug in, facing the enemy's side of the map. They never fire at planes: they shell the nearest enemy tank or truck
+ahead within `range` that they can see (a crest hides it), with lead, using the tanks' own shells (`shellRadius`,
+`shellDamage`, `gunVelocity`, falling as a tank's do). A tank stops and fights one as soon as its own `gunRange`
+reaches it, and puts it first among its targets. The gun has a **crew** of `crew` men with `crewHp` each: a bullet
+striking the gun finds a man with `crewHit` × the share of the crew left (the rest hit the steel at `bulletFactor`),
+and every man in the pit takes `crewShield` of any blast on it (bombs, tank shells). Each man lost makes the loading
+slower (`interval` × crew / men left); with the last one down the gun is lost and stands as its wreck. Bombs on it do
+full damage (`bombFactor` 1). Bot planes go for an enemy gun (bombs, or guns on the crew), first when it holds up
+their own tanks.
+
+| Field | What it does | Try |
+|---|---|---|
+| `range` | Reach along the ground. Longer than a tank's `gunRange` (170) gives free shots at an oncoming column. Trucks stop and unload about 300 short of it (`truck.dismountRange`), out of reach. | 220 – 320 |
+| `interval` | Seconds between shots with the whole crew. | 4 – 7 |
+| `shellDamage`, `shellRadius` | Each shell's burst: a tank (hp 120) takes it in full, so 60 is two hits. | 45 – 80, 4 – 8 |
+| `gunVelocity`, `spread`, `turnRate` | Muzzle speed, aim error (rad), laying speed (rad/s). | 300 – 450, 0.004 – 0.015, 0.3 – 1 |
+| `crew`, `crewHp` | Men serving the gun and each man's hit points (new guns only). | 3 – 5, 2 – 4 |
+| `crewHit` | How often a bullet striking the gun hits a man. | 0.2 – 0.6 |
+| `crewShield` | Share of a blast that reaches each man in the pit. A tank shell bursting on the gun (30) takes 2.4 at most. | 0.05 – 0.2 |
 
 **Hangar roll-out.** At the start of a game and after every respawn a plane stands inside its team's `hangar`,
 engine idling. The doors open, the ground crew push the plane out towards the camera (it is drawn small at first and

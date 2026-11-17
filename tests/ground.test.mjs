@@ -46,8 +46,8 @@ test('the LDtk map imports with airfields and both sides\' ground objects', () =
     { x: 4040, width: 420, team: 1, nation: 'uk' },
   ]);
   const count = (team) => map.ground.filter((o) => o.team === team).length;
-  assert.equal(count(0), 18);
-  assert.equal(count(1), 18);
+  assert.equal(count(0), 19);
+  assert.equal(count(1), 19);
   assert.ok(map.ground.every((o) => !map.airfields.some((a) => o.x > a.x && o.x < a.x + a.width)), 'nothing placed on a runway');
 });
 

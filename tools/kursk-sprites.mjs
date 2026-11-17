@@ -731,41 +731,96 @@ function flak85(barrel = true) {
 
 // 7.5 cm Pak 40: very low, the double shield raked back, solid-tyred wheels, the long barrel with its
 // double-baffle muzzle brake, the split trail spread. Two men kneeling behind the shield. 60x18; barrel pivot (30, 10).
-function pak40() {
+function pak40({ barrel = true, crew = true, wrecked = false } = {}) {
   const g = grid(60, 18);
   g.line(26, 12, 3, 16, 'V'); // the near trail leg
   g.line(26, 13, 3, 17, 'V');
   g.box(1, 15, 4, 17, 'I'); // spade
   g.line(26, 11, 8, 13, 'v'); // the far leg, behind
-  gunBarrel(g, 30, 10, 0.04, [[-6, 0, 1.5, 'I'], [0, 9, 1.5, 'v'], [9, 24, 1, 'V'], [24, 27, 1.5, 'I']]);
-  g.box(31, 11, 38, 12, 'V'); // recoil cylinder under the barrel
-  for (let y = 5; y <= 14; y++) g.span(y, 27 + Math.round((y - 5) * 0.45), 29 + Math.round((y - 5) * 0.45), y < 7 ? 'v' : 'V'); // shield
+  if (barrel) {
+    gunBarrel(g, 30, 10, wrecked ? -0.22 : 0.04, [[-6, 0, 1.5, 'I'], [0, 9, 1.5, 'v'], [9, 24, 1, 'V'], [24, 27, 1.5, 'I']]);
+    if (!wrecked) g.box(31, 11, 38, 12, 'V'); // recoil cylinder under the barrel
+  }
+  for (let y = wrecked ? 8 : 5; y <= 14; y++) g.span(y, 27 + Math.round((y - 5) * 0.45), 29 + Math.round((y - 5) * 0.45), y < 7 ? 'v' : 'V'); // shield
   g.disc(29, 13.5, 3.5, 'e'); // wheel
   g.disc(29, 13.5, 1.5, 'V');
-  man(g, 19, 17, 'V', 'q', true);
-  man(g, 13, 17, 'V', 'q', true);
+  if (crew) {
+    man(g, 19, 17, 'V', 'q', true);
+    man(g, 13, 17, 'V', 'q', true);
+  }
   g.outline();
   return g.rowsOut();
 }
 
 // 76 mm ZiS-3: taller than the Pak, a square shield with a raised middle, big pneumatic truck wheels, the
 // recuperator over the barrel, a single-baffle muzzle brake, tubular split trail. Two men behind the shield. 60x20; barrel pivot (30, 10).
-function zis3() {
+function zis3({ barrel = true, crew = true, wrecked = false } = {}) {
   const g = grid(60, 20);
   g.line(26, 13, 3, 18, 'v');
   g.line(26, 14, 3, 19, 'V');
   g.box(1, 16, 4, 19, 'I');
   g.line(26, 12, 9, 15, 'V');
-  gunBarrel(g, 30, 10, 0.05, [[-5, 0, 1.5, 'I'], [0, 8, 1, 'V'], [8, 23, 1, 'V'], [23, 26, 2, 'I']]);
-  g.box(30, 7, 40, 8, 'v'); // recuperator above the barrel
-  g.box(31, 12, 37, 12, 'V'); // cradle below
-  g.box(27, 4, 29, 15, 'V'); // shield
-  g.box(27, 3, 29, 3, 'v');
-  g.box(28, 1, 29, 3, 'V'); // its raised centre
+  if (barrel) {
+    gunBarrel(g, 30, 10, wrecked ? -0.2 : 0.05, [[-5, 0, 1.5, 'I'], [0, 8, 1, 'V'], [8, 23, 1, 'V'], [23, 26, 2, 'I']]);
+    if (!wrecked) {
+      g.box(30, 7, 40, 8, 'v'); // recuperator above the barrel
+      g.box(31, 12, 37, 12, 'V'); // cradle below
+    }
+  }
+  g.box(27, wrecked ? 8 : 4, 29, 15, 'V'); // shield
+  if (!wrecked) {
+    g.box(27, 3, 29, 3, 'v');
+    g.box(28, 1, 29, 3, 'V'); // its raised centre
+  }
   g.disc(29, 15, 4, 'e'); // wheel
   g.disc(29, 15, 1.8, 'v');
-  man(g, 20, 19, 'v', 'K', true);
-  man(g, 13, 19, 'v', 'K');
+  if (crew) {
+    man(g, 20, 19, 'v', 'K', true);
+    man(g, 13, 19, 'v', 'K');
+  }
+  g.outline();
+  return g.rowsOut();
+}
+
+// --- Anti-tank guns as the game draws them -----------------------------------------------------------------
+// The mount is the gun without its barrel, dug in: the wheels and trail down in a shallow pit, a bank of turned
+// earth and sandbags in front of the shield. The barrel is its own sprite the game turns (data/ground.json looks).
+// Mount 66x22; the barrel's pivot lands where the drafts' (30, 10) does: (33, 14) for the Pak, (33, 12) for the
+// ZiS. The wreck: the same pit, the gun abandoned with its shield torn and the barrel down, no crew, scorched.
+function atGunPit(g) {
+  for (let x = 0; x <= 65; x++) {
+    // A low bank behind (the spoil thrown back), the dip of the pit, the higher bank in front of the shield.
+    const front = x >= 34 ? Math.round(14 + Math.max(0, (x - 52) * 0.5) - Math.min(3, (x - 34) * 0.6)) + 3 : 99;
+    const back = x <= 8 ? 19 - Math.round(Math.min(2, x * 0.4)) : 99;
+    const top = Math.min(front, back, 21);
+    for (let y = top; y <= 21; y++) g.set(x, y, front <= 21 && y < top + 2 && x > 36 && x < 56 ? ((x + (y % 2) * 3) % 6 === 0 ? 'z' : 's') : noise(x * 7 + y * 5, 1) < 0.35 ? '^' : '~');
+  }
+}
+function atGunMount(gun, wrecked = false) {
+  const g = grid(66, 22);
+  blit(g, gun, 3, 22 - gun.length);
+  atGunPit(g);
+  if (wrecked) {
+    for (let y = 0; y < 22; y++)
+      for (let x = 0; x < 66; x++) if ('vVq'.includes(g.get(x, y)) && noise(x * 13 + y * 29, 1) < 0.35) g.set(x, y, noise(x + y * 3, 1) < 0.5 ? 'I' : 'e'); // scorched
+  }
+  g.outline();
+  return g.rowsOut();
+}
+// Pak 40: the long tube, the double-baffle muzzle brake, the recoil cylinder under it. 36x6, pivot (7, 2).
+function pakBarrel() {
+  const g = grid(36, 6);
+  gunBarrel(g, 7, 2, 0, [[-6, 0, 1.5, 'I'], [0, 9, 1.5, 'v'], [9, 24, 1, 'V'], [24, 27, 1.5, 'I']]);
+  g.box(8, 3, 15, 4, 'V');
+  g.outline();
+  return g.rowsOut();
+}
+// ZiS-3: the recuperator over the tube, the cradle under it, the single-baffle brake. 34x7, pivot (6, 3).
+function zisBarrel() {
+  const g = grid(34, 7);
+  gunBarrel(g, 6, 3, 0, [[-5, 0, 1.5, 'I'], [0, 8, 1, 'V'], [8, 23, 1, 'V'], [23, 26, 2, 'I']]);
+  g.box(6, 0, 16, 1, 'v');
+  g.box(7, 5, 13, 5, 'V');
   g.outline();
   return g.rowsOut();
 }
@@ -1769,7 +1824,9 @@ function flatWagon() {
 
 // The two hangars with their door steps, the guns the game turns (mounts and barrels), the steppe's trees.
 export const KURSK_HANGARS = { ...hangarSet('hangar-germany', hangarGermany), ...hangarSet('hangar-ussr', hangarUssr) };
-export const KURSK_GUNS = { ...BARRELS, 'searchlight-germany': searchlightGermany(), 'searchlight-ussr': searchlightUssr(), 'searchlight-germany-drum': searchlightDrum(false), 'searchlight-ussr-drum': searchlightDrum(true), 'flak-38': flak38(), 'flak-61k': flak61k(), 'mgnest-germany': mgNest(false), 'mgnest-ussr': mgNest(true) };
+export const KURSK_GUNS = { ...BARRELS, 'searchlight-germany': searchlightGermany(), 'searchlight-ussr': searchlightUssr(), 'searchlight-germany-drum': searchlightDrum(false), 'searchlight-ussr-drum': searchlightDrum(true), 'flak-38': flak38(), 'flak-61k': flak61k(), 'mgnest-germany': mgNest(false), 'mgnest-ussr': mgNest(true),
+  'pak-40-dug-in': atGunMount(pak40({ barrel: false })), 'zis-3-dug-in': atGunMount(zis3({ barrel: false })), 'pak-40-barrel': pakBarrel(), 'zis-3-barrel': zisBarrel(),
+  'pak-40-ruin': atGunMount(pak40({ crew: false, wrecked: true }), true), 'zis-3-ruin': atGunMount(zis3({ crew: false, wrecked: true }), true) };
 export const KURSK_TREES = { 'tree-belt': treeBelt(), oak: oak(), poplar: poplar() };
 export const KURSK_EXTRA = {
   'para-germany-stream': paraStream('K', 'q', 'V', 'q'),

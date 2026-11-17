@@ -173,6 +173,7 @@ test('a lead tank creeps forward while it fights, stopping short of the enemy', 
   for (const o of world.ground) if (o.team != null) o.alive = false;
   const tank = makeGroundObject(world, 'tank', 0, 2300, { mobile: true });
   tank.dir = 1;
+  tank.gunCooldown = 0; // loaded: it opens fire at once (a random first reload made this hang on the seed)
   const target = makeGroundObject(world, 'building', 1, 2420);
   target.hp = target.maxHp = 1e9; // stands there to be shot at
   world.ground.push(tank, target);

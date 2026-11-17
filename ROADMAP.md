@@ -875,6 +875,24 @@ later.
 
 ## Done
 
+- **Anti-tank guns (Gameplay, 2026-11-17; Decisions, "Direction: the front"):** `atGun` in `data/ground.json`, LDtk piece
+  `AtGun` (with a team), tuning panel, TUNING.md, `tests/atgun.test.mjs`. The 7.5 cm Pak 40 (Germany; also the stand-in for
+  the other nations) and the 76 mm ZiS-3 (USSR), dug in: a mount, a barrel that turns and a wreck each, drawn from the
+  drafts in `tools/kursk-sprites.mjs` and editable in the Pixel Lab (`notes/atgun-preview.png`). Facing the enemy, they
+  shell the nearest enemy tank or truck ahead in reach and in sight (lead, the tanks' own shells), never planes. A crew of
+  four: bullets striking the gun can find a man, blasts reach them in the pit, each man lost slows the loading, and with
+  the last one down the gun is lost. Tanks stop to fight one as soon as their gun reaches it and shoot it first; rifles
+  and MGs shoot its crew; bot planes go for it (bombs, or guns on the crew), first when it holds their tanks, but not
+  under enemy flak. Numbers: reach 260 (a tank's 170), reload 5 s, shell 60 (two hits on a tank), gun hp 70. Alone, a gun
+  beats a 2-tank wave (losing men) and falls to 3 tanks. **Placed** one a side on today's map (1825, 2855: the gap between
+  the forward MG nest and tent; the landing fields and pads leave no room for a second). **Balance look**
+  (`tools/atgun-check.mjs`, 24 matches with and 24 without, `notes/atgun-check-2026-11-17.txt`): the front still moves
+  (furthest from the middle 891 against 1022, swing 1170 against 1264); per match the guns knock out 3.2 tanks and are
+  lost 0.8 times of 2, after about 13 minutes, 17 of 18 times to tanks, once to a plane. No existing unit changed. Seen in
+  the game: both looks, a gun knocking out a tank, a gun lost to its wreck. Not yet: trucks stop to unload about 300 short
+  of an enemy, out of the gun's reach, so it rarely shells them; a gun line (several guns) waits for the Kursk map; the
+  crew are drawn on the sprite (two men) whatever their number.
+
 - **Rain and searchlights (Gameplay, 2026-11-17):** **rain**, looks only: a match has it with `clouds.rainChance` (0.35),
   as heavy as a roll from its seed; thin grey streaks fall from the layer's banks to the ground with a faint veil under
   them (`?rain` forces it). **Searchlights** for night fighting to come: `searchlight` in `data/ground.json` and a piece in
