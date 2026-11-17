@@ -357,15 +357,42 @@ export function createRenderer(canvas, world, assets) {
     }
 
     const ridge = (heights, parallax, colour) => {
-      ctx.fillStyle = colour;
       const ox = Math.floor(cam.x * parallax * SCALE);
-      for (let x = 0; x < bw; x++) {
-        const top = Math.round(bh - (heights[ox + x] - cam.y * parallax) * SCALE);
-        if (top < bh) ctx.fillRect(x, top, 1, bh - top);
+      if (skip.has('ridgecache')) {
+        ctx.fillStyle = colour;
+        for (let x = 0; x < bw; x++) {
+          const top = Math.round(bh - (heights[ox + x] - cam.y * parallax) * SCALE);
+          if (top < bh) ctx.fillRect(x, top, 1, bh - top);
+        }
+        return;
       }
+      // One copy from the ridge's strip instead of a rectangle per column (perf: ~1900 draw calls a frame).
+      const strip = ridgeStrip(heights, colour);
+      const dy = bh - strip.height + Math.round(cam.y * parallax * SCALE);
+      if (dy < bh) ctx.drawImage(strip, ox, 0, bw, strip.height, 0, dy, bw, strip.height);
     };
     ridge(farRidge, 0.2, steppe ? '#565c50' : '#5f6a70');
     ridge(nearRidge, 0.45, steppe ? '#4a4c38' : '#3f4a3c');
+  }
+  // A ridge painted once into a canvas as long as the ridge, its bottom row at height 0 (the screen's bottom
+  // is never below that), so a frame copies it in one go. A column's top can land a pixel off the per-column
+  // drawing (rounded in two steps); ?skip=ridgecache draws it the old way for comparison.
+  const ridgeStrips = new Map();
+  function ridgeStrip(heights, colour) {
+    let c = ridgeStrips.get(heights);
+    if (!c) {
+      let high = 0;
+      for (const h of heights) high = Math.max(high, h);
+      c = makeCanvas(heights.length, Math.ceil(high * SCALE) + 1);
+      const g = c.getContext('2d');
+      g.fillStyle = colour;
+      for (let x = 0; x < heights.length; x++) {
+        const top = c.height - Math.round(heights[x] * SCALE);
+        g.fillRect(x, top, 1, c.height - top);
+      }
+      ridgeStrips.set(heights, c);
+    }
+    return c;
   }
 
   // One buffer-pixel column of ground into g at x, its top row at `top`: grass (or runway, or scorched
@@ -1118,8 +1145,16 @@ export function createRenderer(canvas, world, assets) {
   const planeY = (wy) => Math.round(toScreenY(wy) * DETAIL);
   function drawPlane(p, focus) {
     if (p.state === 'dead' || p.exitPhase === 'wait') return; // still inside the hangar, waiting for doors or its turn
+    const fade = cloudFadeOf(p, focus); // eased every frame, on screen or not, so nothing pops in
+    // Off the screen (with room for the biggest bomber and its name): nothing to draw.
+    const margin = 60;
+    if (p.x < cam.x - margin || p.x > cam.x + vw + margin || p.y < cam.y - margin || p.y > cam.y + vh + margin) {
+      const f = flashes.get(p.id); // its muzzle flash burns out off screen too
+      if (f) flashes.set(p.id, f - 1);
+      return;
+    }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    cloudFade = cloudFadeOf(p, focus);
+    cloudFade = fade;
     drawPlaneDetail(p, radarOutline(p, focus));
     if (cloudFade > 0.5) drawPlaneName(p, focus);
     cloudFade = 1;
@@ -1276,41 +1311,98 @@ export function createRenderer(canvas, world, assets) {
 
   // The cloud layer (src/sim/clouds.js), column by column from the same function that decides who is hidden.
   // Drawn twice: its body behind the planes, then a thinner veil over them, so a plane in it is in it.
+  // One column of the layer into g, `step` pixels wide at x; y0, y1 its top and bottom rows (y1 > y0).
+  const CLOUD_BANDS = [['#8a9094', 0.16], ['#787e82', 0.34], ['#6a7074', 0.3], ['#585e62', 0.2]];
+  function paintCloudColumn(g, front, x, step, y0, y1, solid) {
+    const h = y1 - y0;
+    if (front) {
+      // The veil over the planes: thin, so one inside is dimmed, not painted out (its own fade hides it).
+      g.globalAlpha = 0.3 * solid;
+      g.fillStyle = '#7c8286';
+      g.fillRect(x, y0, step, h);
+      return;
+    }
+    // Four tones, lit crown to dark belly.
+    g.globalAlpha = 0.92 * solid;
+    let y = y0;
+    for (const [tone, share] of CLOUD_BANDS) {
+      const part = Math.max(1, Math.round(h * share));
+      g.fillStyle = tone;
+      g.fillRect(x, y, step, Math.min(part, y1 - y));
+      y += part;
+      if (y >= y1) break;
+    }
+  }
+  // The layer's shape at a place `at` along the drifted layer (x - offset): how solid, and its top and bottom
+  // with the heaped tops (rounded lumps of two sizes) over a flatter, wispy belly.
+  function cloudColumn(at) {
+    const l = layerAt(world, at + world.cloud.offset);
+    const heap = Math.abs(Math.sin(at * 0.085)) * 7 + Math.abs(Math.sin(at * 0.029 + 1.1)) * 6;
+    const wisp = Math.sin(at * 0.11) * 1.5 + Math.sin(at * 0.041 + 2) * 2.5;
+    return { solid: l.solid, top: l.top + heap * l.solid, bottom: l.bottom - wisp };
+  }
+  // The layer only drifts, so it is painted once into chunks laid along the drifted layer (world pixels, row 0
+  // = rows above height 0 at `topPx`) and copied each frame, like the terrain: ~950 rectangles a frame become
+  // a few copies. Its columns now sit on the drifting layer instead of the screen: the same look.
+  // ?skip=cloudcache paints it column by column every frame, as before.
+  const CLOUD_CHUNK = 510; // a multiple of the 3-pixel column
+  const cloudChunks = new Map(); // index -> { back, front, used }
+  let cloudKey = '';
+  function cloudChunk(i, topPx, rows) {
+    let c = cloudChunks.get(i);
+    if (c) return c;
+    c = { back: makeCanvas(CLOUD_CHUNK, rows), front: makeCanvas(CLOUD_CHUNK, rows), used: frame };
+    const gb = c.back.getContext('2d');
+    const gf = c.front.getContext('2d');
+    const step = 3;
+    for (let x = 0; x < CLOUD_CHUNK; x += step) {
+      const k = cloudColumn((i * CLOUD_CHUNK + x + step / 2) / SCALE);
+      if (k.solid <= 0.03) continue;
+      const y0 = topPx - Math.round(k.top * SCALE);
+      const y1 = topPx - Math.round(k.bottom * SCALE);
+      if (y1 <= y0) continue;
+      paintCloudColumn(gb, false, x, step, y0, y1, k.solid);
+      paintCloudColumn(gf, true, x, step, y0, y1, k.solid);
+    }
+    cloudChunks.set(i, c);
+    return c;
+  }
   function drawCloudLayer(front) {
     if (!world.cloud) return;
     const step = 3;
-    for (let sx = 0; sx < bw; sx += step) {
-      const wx = cam.x + (sx + step / 2) / SCALE;
-      const l = layerAt(world, wx);
-      if (l.solid <= 0.03) continue;
-      // Heaped tops (rounded lumps of two sizes) over a flatter, wispy belly.
-      const at = wx - world.cloud.offset;
-      const heap = Math.abs(Math.sin(at * 0.085)) * 7 + Math.abs(Math.sin(at * 0.029 + 1.1)) * 6;
-      const wisp = Math.sin(at * 0.11) * 1.5 + Math.sin(at * 0.041 + 2) * 2.5;
-      const y0 = Math.round(toScreenY(l.top + heap * l.solid));
-      const y1 = Math.round(toScreenY(l.bottom - wisp));
-      if (y1 < 0 || y0 > bh || y1 <= y0) continue;
-      const h = y1 - y0;
-      if (front) {
-        // The veil over the planes: thin, so one inside is dimmed, not painted out (its own fade hides it).
-        ctx.globalAlpha = 0.3 * l.solid;
-        ctx.fillStyle = '#7c8286';
-        ctx.fillRect(sx, y0, step, h);
-        continue;
+    if (skip.has('cloudcache')) {
+      for (let sx = 0; sx < bw; sx += step) {
+        const k = cloudColumn(cam.x + (sx + step / 2) / SCALE - world.cloud.offset);
+        if (k.solid <= 0.03) continue;
+        const y0 = Math.round(toScreenY(k.top));
+        const y1 = Math.round(toScreenY(k.bottom));
+        if (y1 < 0 || y0 > bh || y1 <= y0) continue;
+        paintCloudColumn(ctx, front, sx, step, y0, y1, k.solid);
       }
-      // Four tones, lit crown to dark belly.
-      ctx.globalAlpha = 0.92 * l.solid;
-      const bands = [['#8a9094', 0.16], ['#787e82', 0.34], ['#6a7074', 0.3], ['#585e62', 0.2]];
-      let y = y0;
-      for (const [tone, share] of bands) {
-        const part = Math.max(1, Math.round(h * share));
-        ctx.fillStyle = tone;
-        ctx.fillRect(sx, y, step, Math.min(part, y1 - y));
-        y += part;
-        if (y >= y1) break;
-      }
+      ctx.globalAlpha = 1;
+      return;
     }
-    ctx.globalAlpha = 1;
+    // The band the layer can reach (layerAt: half its thickness swells to 0.625 of it; heaps 13, wisps 4).
+    const cfg = world.clouds;
+    const mid = (cfg.base + cfg.top) / 2;
+    const reach = (cfg.top - cfg.base) * 0.625;
+    const topPx = Math.ceil((mid + reach + 15) * SCALE);
+    const rows = topPx - Math.floor((mid - reach - 6) * SCALE);
+    // Anything that changes the layer's shape starts the chunks again (a new match, the tuning panel).
+    const key = `${world.seed}|${world.cloud.cover}|${cfg.base}|${cfg.top}|${cfg.cell}`;
+    if (key !== cloudKey) {
+      cloudChunks.clear();
+      cloudKey = key;
+    }
+    const dy = bh + Math.round(cam.y * SCALE) - topPx;
+    if (dy >= bh || dy + rows <= 0) return;
+    const px0 = (cam.x - world.cloud.offset) * SCALE; // the screen's left edge along the drifted layer
+    for (let i = Math.floor(px0 / CLOUD_CHUNK); i * CLOUD_CHUNK < px0 + bw; i++) {
+      const c = cloudChunk(i, topPx, rows);
+      c.used = frame;
+      ctx.drawImage(front ? c.front : c.back, Math.round(i * CLOUD_CHUNK - px0), dy);
+    }
+    if (cloudChunks.size > 12) for (const [i, c] of cloudChunks) if (frame - c.used > 300) cloudChunks.delete(i);
   }
   // Rain (world.cloud.rain, rolled per match): grey streaks falling from the layer's banks to the ground, slanting
   // with the drift, and a faint veil under the heaviest of it. Kept subtle; drawn over the planes.
@@ -1550,18 +1642,30 @@ export function createRenderer(canvas, world, assets) {
       ctx.fillStyle = '#3a3a36';
       for (let t = 0; t <= 1; t += 0.1) ctx.fillRect(Math.round(ax + (bx - ax) * t), Math.round(ay + (by - ay) * t), 1, 1);
       // Round pixel tyre with a lighter hub.
-      const cx = Math.round(bx);
-      const cy = Math.round(by);
       const r = g.r * PLANE_SCALE + 0.5;
-      for (let dy = -Math.ceil(r); dy <= Math.ceil(r); dy++) {
-        for (let dx = -Math.ceil(r); dx <= Math.ceil(r); dx++) {
+      const n = Math.ceil(r);
+      ctx.drawImage(tyre(r), Math.round(bx) - n, Math.round(by) - n);
+    }
+  }
+  // A tyre of radius r (plane pixels) painted once, pixel by pixel, instead of every frame.
+  const tyres = new Map();
+  function tyre(r) {
+    let c = tyres.get(r);
+    if (!c) {
+      const n = Math.ceil(r);
+      c = makeCanvas(2 * n + 1, 2 * n + 1);
+      const g = c.getContext('2d');
+      for (let dy = -n; dy <= n; dy++) {
+        for (let dx = -n; dx <= n; dx++) {
           const d2 = dx * dx + dy * dy;
           if (d2 > r * r) continue;
-          ctx.fillStyle = d2 <= (r * 0.45) ** 2 ? '#8a8a82' : d2 <= (r * 0.6) ** 2 ? '#4a4844' : '#1e1c1a';
-          ctx.fillRect(cx + dx, cy + dy, 1, 1);
+          g.fillStyle = d2 <= (r * 0.45) ** 2 ? '#8a8a82' : d2 <= (r * 0.6) ** 2 ? '#4a4844' : '#1e1c1a';
+          g.fillRect(n + dx, n + dy, 1, 1);
         }
       }
+      tyres.set(r, c);
     }
+    return c;
   }
 
   // Ground crew (world.crew, src/sim/airfield.js): mechanics on foot between the hangar and the
@@ -1769,6 +1873,7 @@ export function createRenderer(canvas, world, assets) {
   return {
     cam,
     particles,
+    skip, // the ?skip= switches, live (tools/perf-bench.js turns caches off to compare)
     get radar() {
       return radar;
     },
@@ -1911,16 +2016,20 @@ export function createRenderer(canvas, world, assets) {
       prof.mark('ground');
       gore.draw(ctx, toScreenX, toScreenY, SCALE, (x) => surfaceAt(world, x), bw);
       prof.mark('gore');
-      particles.draw(ctx, toScreenX, toScreenY, SCALE);
+      particles.draw(ctx, toScreenX, toScreenY, SCALE, bw, bh);
       prof.mark('particles');
       drawProjectiles();
       prof.mark('shots');
       drawCloudLayer(false);
+      prof.mark('clouds');
       if (!skip.has('planes')) for (const p of world.planes) drawPlane(p, focus);
-      drawCloudLayer(true);
-      drawRain();
-      drawNight();
       prof.mark('planes');
+      drawCloudLayer(true);
+      prof.mark('clouds');
+      drawRain();
+      prof.mark('rain');
+      drawNight();
+      prof.mark('night');
       for (const c of world.crew ?? []) drawCrew(c);
       for (const c of world.parachutes ?? []) drawParachute(c, focus);
       drawFallenCanopies(dt);

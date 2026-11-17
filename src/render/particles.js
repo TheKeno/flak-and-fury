@@ -73,14 +73,18 @@ export function createParticles() {
         }
       }
     },
-    // scale: buffer pixels per world unit (particle sizes are in world units).
-    draw(ctx, toScreenX, toScreenY, scale = 1) {
+    // scale: buffer pixels per world unit (particle sizes are in world units). w, h: the screen's size in
+    // buffer pixels; particles off it are not drawn.
+    draw(ctx, toScreenX, toScreenY, scale = 1, w = Infinity, h = Infinity) {
       for (const p of list) {
+        const s = Math.max(1, Math.round(p.size * scale));
+        const x = Math.round(toScreenX(p.x) - s / 2);
+        const y = Math.round(toScreenY(p.y) - s / 2);
+        if (x >= w || y >= h || x + s <= 0 || y + s <= 0) continue;
         const t = 1 - p.life / p.max;
         const cols = p.kind.colours;
         ctx.fillStyle = cols[Math.min(cols.length - 1, Math.floor(t * cols.length))];
-        const s = Math.max(1, Math.round(p.size * scale));
-        ctx.fillRect(Math.round(toScreenX(p.x) - s / 2), Math.round(toScreenY(p.y) - s / 2), s, s);
+        ctx.fillRect(x, y, s, s);
       }
     },
   };
