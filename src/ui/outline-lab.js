@@ -2480,7 +2480,8 @@ $('build').onclick = async () => {
   try {
     const res = await fetch(`/build-sprites?plane=${encodeURIComponent(S.name)}`, { method: 'POST' });
     const out = await res.json();
-    status(out.ok ? `built sprites for ${S.name}` : `build failed: ${out.output.slice(-200)}`, !out.ok);
+    status(out.ok ? `built sprites for ${S.name}` : `build failed (${out.error || 'unknown'}): ${(out.output || '').trim().split('
+').slice(-4).join(' | ').slice(-400)}`, !out.ok);
   } catch (e) {
     status(`build failed: ${e.message}`, true);
   }

@@ -116,10 +116,12 @@ async function save(req, res, path) {
 // The Outline Lab's Build sprites button: runs the sprite generator for one plane (or all).
 function buildSprites(res, plane) {
   if (plane && !/^[a-z0-9_-]+$/.test(plane)) throw new Error('bad plane name');
-  execFile(process.execPath, ['tools/make-sprites.mjs', ...(plane ? [plane] : [])], { cwd: root, timeout: 300_000 }, (err, stdout, stderr) => {
+  execFile(process.execPath, ['tools/make-sprites.mjs', ...(plane ? [plane] : [])], { cwd: root, timeout: 300_000, maxBuffer: 64 * 1024 * 1024 }, (err, stdout, stderr) => {
+    // The output stays the generator's own text; the failure (exit code, signal, timeout) goes in `error`,
+    // so the lab can show what the generator said instead of node's "Command failed" line.
+    const error = err ? (err.killed ? `timed out or stopped (${err.signal ?? 'killed'})` : err.code != null ? `exit code ${err.code}` : err.message) : '';
     res.writeHead(err ? 500 : 200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: !err, output: String(stdout) + String(stderr) + (err ? `
-${err.message}` : '') }));
+    res.end(JSON.stringify({ ok: !err, error, output: String(stdout) + String(stderr) }));
   });
 }
 
