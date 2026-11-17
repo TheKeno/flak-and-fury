@@ -7,6 +7,10 @@ later.
 
 ## Decisions
 
+- **Dramatic crashes (decided 2026-11-17 with the owner; built the same day, see Done "Dramatic crashes"):** a glancing
+  blow tears a part off instead of killing; the parts are wingtip, tail, gear and propeller, and only a whole wing is
+  fatal. Shot-down planes get varied deaths (dive, long arc, flat spin, tumble, near-recovery that fails). Defaults
+  chosen without asking: a HUD line says what was torn off; the ground crew fix everything at the normal repair time.
 - **Clouds: one layer you can hide in (decided 2026-11-17, discussion; built the same day, see Done "Cloud layer"):** clouds affect play, not only the look.
   - **Where:** one broken layer across the whole map between the mid and high bands (about 750 to 850), with gaps that
     drift slowly sideways. No lone clouds at other heights for now (they can come later if the layer feels good).
