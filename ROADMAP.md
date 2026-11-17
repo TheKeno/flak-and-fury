@@ -854,7 +854,8 @@ later.
   once the plane is out). **Still drafts, not in the game** (need more than a sprite): Pak 40 and ZiS-3 and their
   nests, bunkers, DZOT, pillbox, dug-in T-34, trenches (new behaviour); paratroopers, locomotive, tender and wagons
   (the director's events and a track); burning wheat, dust and smoke frames (effects); the per-nation hangars (14
-  door frames each); **Tiger and SU-152** (`data/outlines/tiger.json`, `su-152.json`: starters from published
+  door frames each); the **Ju 52 and Li-2** (side views only, on `notes/kursk-assets-preview-4.png`: a first look from published
+  dimensions; a game plane is a 3D model traced over the owner's 3-view, with its data); **Tiger and SU-152** (`data/outlines/tiger.json`, `su-152.json`: starters from published
   dimensions, to be fitted over the owner's 3-views in the Outline Lab, then the tank roster). The guns' and the
   timber wrecks' looks are a first pass.
 

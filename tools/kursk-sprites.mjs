@@ -1567,6 +1567,115 @@ export const GAME_SPRITES = {
   'flak-85': flak85(false),
 };
 
+// --- The transports of the paratroop drops ------------------------------------------------------------------
+// Side views at the planes' scale (4 pixels a world unit: 10 pixels a metre), nose to the right, in the paint
+// key colours (B base, S its shade, W the wing, U the underside), so a nation's paint goes on like any plane's.
+// Drawn from the types' published dimensions as a first look; the game's planes are 3D models traced over a
+// 3-view in the Outline Lab, and these two get that treatment before they fly.
+
+// A fuselage between two curves: top(d) and bottom(d) give the rows at d pixels back from the nose (x = nose - d).
+// rib: every second row in the shade (the Ju 52's corrugated skin); belly: rows from the bottom in the underside colour.
+function hullOf(g, nose, d0, d1, top, bottom, { rib = false, belly = 3 } = {}) {
+  for (let d = d0; d <= d1; d++) {
+    const t = Math.round(top(d));
+    const b = Math.round(bottom(d));
+    for (let y = t; y <= b; y++) g.set(nose - d, y, y > b - belly ? 'U' : rib && y % 2 === 0 ? 'S' : y < t + 2 ? 'B' : y > (t + b) / 2 ? 'S' : 'B');
+  }
+}
+const lerp = (a, b, k) => a + (b - a) * Math.min(1, Math.max(0, k));
+
+// Junkers Ju 52/3m: 18.9 m long, the corrugated box fuselage, three radials (one in the nose, one on each
+// wing, the wing engines toed out), the raised cockpit, seven square cabin windows, the thick low wing with
+// the Junkers flap hung behind it, a broad square fin, fixed spatless undercarriage. 200x66; nose at x 194.
+function ju52() {
+  const g = grid(200, 66);
+  const nose = 194;
+  const cy = 26;
+  const top = (d) => (d < 10 ? cy - 7 : d < 14 ? cy - 8 : d < 28 ? lerp(cy - 8, cy - 14, (d - 14) / 12) : d < 50 ? cy - 14 : d < 54 ? cy - 12 : lerp(cy - 12, cy - 6, (d - 54) / 126));
+  const bottom = (d) => (d < 10 ? cy + 6 : d < 14 ? cy + 8 : d < 96 ? cy + 9 : lerp(cy + 9, cy, (d - 96) / 86));
+  // Fin and rudder: square-cut, the rudder with its horn; the tailplane edge on, braced.
+  for (let d = 158; d <= 190; d++) {
+    const t = d < 168 ? lerp(cy - 7, cy - 32, (d - 158) / 10) : d < 184 ? cy - 33 : lerp(cy - 33, cy - 24, (d - 184) / 6);
+    const b = d < 182 ? top(Math.min(d, 180)) : lerp(cy - 6, cy + 3, (d - 182) / 8);
+    for (let y = Math.round(t); y <= Math.round(b); y++) g.set(nose - d, y, d > 177 ? 'S' : y % 2 === 0 ? 'S' : 'B');
+  }
+  hullOf(g, nose, 10, 182, top, bottom, { rib: true });
+  g.box(nose - 188, cy - 9, nose - 163, cy - 8, 'W'); // tailplane
+  g.line(nose - 170, cy - 7, nose - 166, cy - 1, 'e'); // its strut
+  // Nose engine: cowl ring and the cylinders showing behind it.
+  g.box(nose - 9, cy - 7, nose - 2, cy + 6, 'e');
+  g.box(nose - 7, cy - 8, nose - 3, cy + 7, 'I');
+  g.box(nose - 1, cy - 2, nose, cy + 1, 'I'); // hub
+  // Cockpit glazing and the cabin windows.
+  for (let d = 15; d <= 27; d++) g.box(nose - d, Math.round(top(d)) + 1, nose - d, cy - 8, d % 5 === 0 ? 'e' : d < 20 ? 'c' : 'C');
+  for (let i = 0; i < 7; i++) g.box(nose - (58 + i * 11) - 5, cy - 9, nose - (58 + i * 11), cy - 5, 'C');
+  g.box(nose - 141, cy - 9, nose - 133, cy + 5, 'S'); // the door
+  g.box(nose - 141, cy - 9, nose - 141, cy + 5, 'e');
+  g.box(nose - 133, cy - 9, nose - 133, cy + 5, 'e');
+  // The wing root (thick, low) and the flap behind and below it.
+  for (let d = 38; d <= 94; d++) g.box(nose - d, cy + 8 - Math.round(2 * Math.sin(((d - 38) / 56) * Math.PI) ** 0.6), nose - d, cy + 12 - Math.round(((d - 38) / 56) * 3), 'W');
+  g.box(nose - 104, cy + 11, nose - 88, cy + 12, 'W');
+  // The near wing engine: cowl ring ahead of the wing, its nacelle fairing back into it.
+  for (let d = 30; d <= 62; d++) g.box(nose - d, Math.round(lerp(cy - 1, cy + 7, (d - 30) / 32)), nose - d, Math.round(lerp(cy + 13, cy + 11, (d - 30) / 32)), d < 40 ? 'B' : 'W');
+  g.box(nose - 31, cy - 1, nose - 28, cy + 13, 'e'); // the ring cowl, open at the front
+  g.box(nose - 30, cy - 2, nose - 29, cy + 14, 'I');
+  g.box(nose - 34, cy + 1, nose - 33, cy + 11, 'S');
+  g.box(nose - 27, cy + 4, nose - 25, cy + 7, 'I');
+  // Fixed undercarriage: the leg and its bracing down to the wheel; tail wheel.
+  g.line(nose - 46, cy + 12, nose - 48, cy + 27, 'I');
+  g.line(nose - 62, cy + 12, nose - 50, cy + 28, 'e');
+  g.disc(nose - 48, cy + 31, 6, 'e');
+  g.disc(nose - 48, cy + 31, 2, 'I');
+  g.line(nose - 172, cy + 3, nose - 174, cy + 8, 'I');
+  g.disc(nose - 174, cy + 10, 2, 'e');
+  g.outline('Cc');
+  return g.rowsOut();
+}
+
+// Lisunov Li-2 (the licence-built DC-3, with the dorsal turret of the wartime ones): 19.65 m long, the round
+// stressed-skin fuselage, the tall curved fin with its fillet, two radials well ahead of the low wing, the
+// main wheels half out of the nacelles when up, seven cabin windows and the wide freight door. 206x70; nose at x 200.
+function li2() {
+  const g = grid(206, 70);
+  const nose = 200;
+  const cy = 36;
+  const r = (d) => 12.5 * Math.sqrt(Math.min(1, d / 30));
+  const top = (d) => (d < 112 ? cy - 1 - r(d) : lerp(cy - 13.5, cy - 7, (d - 112) / 80));
+  const bottom = (d) => (d < 100 ? cy + 1 + r(d) * 0.9 : lerp(cy + 12, cy - 2, (d - 100) / 94));
+  // Fin, fillet and rudder.
+  for (let d = 140; d <= 198; d++) {
+    const t = d < 166 ? lerp(top(d), cy - 22, ((d - 140) / 26) ** 2) : d < 182 ? lerp(cy - 22, cy - 44, Math.sin(((d - 166) / 16) * Math.PI * 0.5)) : d < 190 ? cy - 44 + ((d - 182) / 8) ** 2 * 3 : lerp(cy - 41, cy - 20, ((d - 190) / 8) ** 0.6);
+    const b = d < 194 ? top(Math.min(d, 192)) : lerp(cy - 7, cy - 3, (d - 194) / 4);
+    for (let y = Math.round(t); y <= Math.round(b); y++) g.set(nose - d, y, d > 184 ? 'S' : 'B');
+  }
+  hullOf(g, nose, 0, 194, top, bottom);
+  g.box(nose - 196, cy - 10, nose - 168, cy - 9, 'W'); // tailplane
+  // Cockpit windows, cabin windows, the freight door.
+  g.box(nose - 22, cy - 10, nose - 18, cy - 6, 'C');
+  g.box(nose - 16, cy - 9, nose - 13, cy - 6, 'c');
+  for (let i = 0; i < 7; i++) g.box(nose - (48 + i * 11) - 4, cy - 7, nose - (48 + i * 11), cy - 4, 'C');
+  g.box(nose - 138, cy - 9, nose - 124, cy + 6, 'S');
+  for (const d of [124, 131, 138]) g.box(nose - d, cy - 9, nose - d, cy + 6, 'e');
+  // The dorsal turret.
+  g.disc(nose - 78, cy - 14, 3.5, 'C');
+  g.line(nose - 81, cy - 16, nose - 88, cy - 18, 'e');
+  // Wing root, then the near engine and its nacelle over it, the wheel showing under.
+  for (let d = 58; d <= 112; d++) g.box(nose - d, cy + 8 - Math.round(2 * Math.sin(((d - 58) / 54) * Math.PI) ** 0.6), nose - d, cy + 13 - Math.round(((d - 58) / 54) * 4), 'W');
+  for (let d = 38; d <= 96; d++) {
+    const round = d < 42 ? 42 - d : 0; // the cowl's rounded lip
+    g.box(nose - d, Math.round(d < 52 ? cy + 1 : lerp(cy + 1, cy + 9, (d - 52) / 44)) + round, nose - d, Math.round(d < 70 ? cy + 16 : lerp(cy + 16, cy + 11, (d - 70) / 26)) - round, d < 40 ? 'e' : d < 50 ? 'B' : d < 52 ? 'e' : 'W');
+  }
+  g.box(nose - 37, cy + 6, nose - 34, cy + 10, 'I'); // hub
+  g.disc(nose - 64, cy + 17, 5, 'e');
+  g.disc(nose - 64, cy + 17, 2, 'I');
+  g.box(nose - 70, cy + 11, nose - 58, cy + 15, 'S'); // the nacelle covers its top half
+  g.disc(nose - 186, cy - 1, 2, 'e'); // tail wheel
+  g.outline('Cc');
+  return g.rowsOut();
+}
+
+export const KURSK_PLANES = { ju52: ju52(), li2: li2() };
+
 // --- The preview sheet -----------------------------------------------------------------------------------
 
 // Reads one of the game's sprite PNGs (8-bit RGBA, as tools/make-sprites.mjs writes them) for the size comparison.
@@ -1676,6 +1785,21 @@ function preview() {
     [m['bunker-germany'], m['pak-nest'], m['trench-germany'], m.wire, m['mine-sign'], m.pillbox],
     [m.dzot, m['tank-dug-in'], m['zis-nest'], m['trench-ussr']],
   ], [r['wagon-burnt']]);
+  // The transports in their own colours (the paint keys swapped as the game would): German dark green over pale
+  // blue, Soviet green over light blue.
+  const painted = (rows, paint) => {
+    const im = toImage(rows);
+    for (let i = 0; i < im.px.length; i += 4) {
+      const key = Object.keys(paint).find((c) => PALETTE[c].every((v, n) => v === im.px[i + n]));
+      if (key) im.px.set(paint[key], i);
+    }
+    return im;
+  };
+  sheetOf('kursk-assets-preview-4.png', [
+    [painted(KURSK_PLANES.ju52, { B: [70, 78, 60, 255], S: [54, 60, 48, 255], W: [46, 52, 42, 255], U: [116, 134, 142, 255] })],
+    [painted(KURSK_PLANES.li2, { B: [66, 80, 52, 255], S: [50, 62, 42, 255], W: [44, 54, 36, 255], U: [124, 144, 158, 255] })],
+    [game('blenheim'), game('bf109g6')],
+  ]);
   const e = img(KURSK_EXTRA);
   sheetOf('kursk-assets-preview-3.png', [
     [e['para-germany-stream'], e['para-germany'], e['para-germany-landed'], e['drop-container'], e['para-ussr-stream'], e['para-ussr'], e['para-ussr-landed'], game('opel-blitz')],
