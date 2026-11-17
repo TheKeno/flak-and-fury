@@ -533,6 +533,26 @@ later.
     events; (7) the final battle and win/lose, `hangarHealth` decided there; (8) bots playing it, then the low
     band retuned. Each step its own session. (Order changed 2026-11-16: steps 2 and 3 are new, the rest moved
     down.)
+  - **Kursk map, first pass: build it and fly it (owner, 2026-11-17; discussion "Design — Kursk map and the target
+    chain", topic 1 of 6; not built):** the layout is judged by flying, so a playable blockout comes before the rest of
+    step 4 is discussed. **Layout:** new file `maps/kursk.ldtk` (countryside stays for tests and the Balance Lab),
+    about 6000 wide, ceiling 1200, Germany on the left. Left to right: German airfield (0-800, radar at the map edge),
+    German depot (about 1200, in a tree belt), German forward position (1600-2200: izba village, orchard with the Pak
+    line), wheat, the middle (2600-3400: station and grain elevator, Hill 252.2 as a Ridge in the exact centre,
+    collective farm; railway along the ground, scenery only), sunflowers, Soviet forward position (3800-4400:
+    trenches as scenery for now, anti-tank ditch, ZiS-3 battery in a balka), Soviet depot (about 4800), Soviet
+    airfield (5200-6000, radar at the edge). Distances mirror around the hill; each side keeps its own look. Two more
+    balkas in the open steppe (about 1000 and 5000). No river, no bridge. Sketch: sent in that session (side view).
+    **The blockout build:** (a) `?map=<name>` picks the map (default countryside); (b) a new **Balka** zone: a dry
+    ravine sunk below the ground with steep sides (like the river channel without water), numbers in `settings.zones`,
+    tuning panel, TUNING.md, a test; (c) `maps/kursk.ldtk` made **once** by a script from this layout, with today's
+    entities only: airfields (germany, ussr), radar, depot, heavy flak at each depot and airfield, light flak and
+    anti-tank guns and MG nests at each forward position, infantry, the Kursk scenery; the middle starts empty of
+    guns. After that the file is the owner's, edited in LDtk, never regenerated. (d) **No sim changes:** today's
+    rules (waves from the depot, the front where the tanks meet). (e) Tests pass; flown muted in the browser pane
+    with a screenshot. **Then** the owner flies it and the discussion goes on with topics 2-6: who draws what, the
+    target chain and its effects in the sim, flak per target, what must exist before it is playable (trenches,
+    bunkers, train, burning wheat), the first directors and paradrops.
   - **Kept as ideas, not planned:** a smoke marker to tell your next wave to hold or push, spotting for artillery,
     bought call-ins. The ground-rules reset entry below handed the hangar's health and the meaning of destroying
     things to this discussion: destroying things now matters through the target effects; `hangarHealth` stays as
@@ -1339,6 +1359,9 @@ later.
 Then: more themes, co-op missions, matchmaking.
 
 ## In progress
+
+- **Design — Kursk map and the target chain (discussion):** topic 1 (layout) goes to a blockout build first (Decisions,
+  "Direction: the front", "Kursk map, first pass"); topics 2-6 are discussed after the owner has flown it.
 
 - **Owner test flight of milestone 8 step 3 and the weather (Gameplay):** raids, heavy flak against them, the cloud layer,
   rain (`?rain`) and searchlights (`?night`) are built and pushed but not yet flown by the owner; the step 3 Done entry
