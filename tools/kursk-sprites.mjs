@@ -1595,92 +1595,119 @@ function wingBand(g, nose, [le0, te0, y0], [le1, te1, y1]) {
   }
 }
 
-// Junkers Ju 52/3m: 18.9 m long, the corrugated box fuselage, three radials (one in the nose, one on each
-// wing, the wing engines toed out), the raised cockpit, seven square cabin windows, the thick low wing with
-// the Junkers flap hung behind it, a broad square fin, fixed spatless undercarriage. 200x66; nose at x 194.
+// Junkers Ju 52/3m, measured off the owner's 3-view (side view, 52.8 drawing pixels a metre; here 10 a metre):
+// 18.9 m from the nose engine to the rudder. The fuselage top is one straight line from the cockpit to the
+// fin; the belly is deepest over the wing and climbs to the tail. Short nose stepping down from the raised
+// cockpit to the uncowled engine with its exhaust ring; seven cabin windows, the door and a porthole behind
+// them; a tall square fin and rudder; the wing seen from the side as its underside rising to the tip, the
+// separate Junkers flap behind it; the wing engine in its ring cowl low at the leading edge; a single long
+// leg and a brace to each big wheel; a loop aerial and mast over the cockpit. 200x76; nose at x 194, the top
+// line of the fuselage at row 25.
 function ju52() {
-  const g = grid(200, 66);
+  const g = grid(200, 76);
   const nose = 194;
-  const cy = 26;
-  const top = (d) => (d < 10 ? cy - 7 : d < 14 ? cy - 8 : d < 28 ? lerp(cy - 8, cy - 14, (d - 14) / 12) : d < 50 ? cy - 14 : d < 54 ? cy - 12 : lerp(cy - 12, cy - 6, (d - 54) / 126));
-  const bottom = (d) => (d < 10 ? cy + 6 : d < 14 ? cy + 8 : d < 96 ? cy + 9 : lerp(cy + 9, cy, (d - 96) / 86));
-  // Fin and rudder: square-cut, the rudder with its horn; the tailplane edge on, braced.
-  for (let d = 158; d <= 190; d++) {
-    const t = d < 168 ? lerp(cy - 7, cy - 32, (d - 158) / 10) : d < 184 ? cy - 33 : lerp(cy - 33, cy - 24, (d - 184) / 6);
-    const b = d < 182 ? top(Math.min(d, 180)) : lerp(cy - 6, cy + 3, (d - 182) / 8);
-    for (let y = Math.round(t); y <= Math.round(b); y++) g.set(nose - d, y, d > 177 ? 'S' : y % 2 === 0 ? 'S' : 'B');
+  const T = 25;
+  // Top: the nose slopes up to the cockpit roof, then the straight top line. Bottom: nose, wing root, the long climb.
+  const top = (d) => (d < 6 ? T + 8 : d < 22 ? lerp(T + 8, T + 1, (d - 6) / 16) : d < 31 ? lerp(T + 1, T, (d - 22) / 9) : T);
+  const bottom = (d) => (d < 6 ? T + 23 : d < 15 ? lerp(T + 23, T + 24, (d - 6) / 9) : d < 37 ? lerp(T + 24, T + 28, (d - 15) / 22) : d < 85 ? T + 28 : lerp(T + 27, T + 9, (d - 85) / 90));
+  // Fin and rudder: the fin's raked leading edge, the flat top, the rudder's square corner and straight trailing edge.
+  for (let d = 157; d <= 188; d++) {
+    const t = d < 169 ? lerp(T, T - 23, (d - 157) / 12) : d < 185 ? T - 23 : T - 23 + (d - 185) ** 2 * 0.5;
+    const b = d < 177 ? T : lerp(T + 8, T + 6, (d - 177) / 11);
+    for (let y = Math.round(t); y <= Math.round(b); y++) g.set(nose - d, y, d > 176 ? 'S' : y % 2 === 0 ? 'S' : 'B');
   }
-  hullOf(g, nose, 10, 182, top, bottom, { rib: true });
-  g.box(nose - 188, cy - 9, nose - 163, cy - 8, 'W'); // tailplane
-  g.line(nose - 170, cy - 7, nose - 166, cy - 1, 'e'); // its strut
-  // Nose engine: cowl ring and the cylinders showing behind it.
-  g.box(nose - 9, cy - 7, nose - 2, cy + 6, 'e');
-  g.box(nose - 7, cy - 8, nose - 3, cy + 7, 'I');
-  g.box(nose - 1, cy - 2, nose, cy + 1, 'I'); // hub
-  // Cockpit glazing and the cabin windows.
-  for (let d = 15; d <= 27; d++) g.box(nose - d, Math.round(top(d)) + 1, nose - d, cy - 8, d % 5 === 0 ? 'e' : d < 20 ? 'c' : 'C');
-  for (let i = 0; i < 7; i++) g.box(nose - (58 + i * 11) - 5, cy - 9, nose - (58 + i * 11), cy - 5, 'C');
-  g.box(nose - 141, cy - 9, nose - 133, cy + 5, 'S'); // the door
-  g.box(nose - 141, cy - 9, nose - 141, cy + 5, 'e');
-  g.box(nose - 133, cy - 9, nose - 133, cy + 5, 'e');
-  // The wing root (thick, low) and the flap behind and below it.
-  wingBand(g, nose, [38, 92, cy + 12], [60, 88, cy - 3]);
-  for (let y = cy - 1; y <= cy + 13; y++) g.box(nose - Math.round(lerp(100, 91, (cy + 13 - y) / 14)), y, nose - Math.round(lerp(96, 88, (cy + 13 - y) / 14)), y, '1'); // the flap, clear of the wing
-  // The near wing engine: cowl ring ahead of the wing, its nacelle fairing back into it.
-  for (let d = 30; d <= 50; d++) g.box(nose - d, Math.round(lerp(cy - 1, cy + 6, (d - 30) / 20)), nose - d, Math.round(lerp(cy + 13, cy + 12, (d - 30) / 20)), d < 40 ? 'B' : 'W');
-  g.box(nose - 31, cy - 1, nose - 28, cy + 13, 'e'); // the ring cowl, open at the front
-  g.box(nose - 30, cy - 2, nose - 29, cy + 14, 'I');
-  g.box(nose - 34, cy + 1, nose - 33, cy + 11, 'S');
-  g.box(nose - 27, cy + 4, nose - 25, cy + 7, 'I');
-  // Fixed undercarriage: the leg and its bracing down to the wheel; tail wheel.
-  g.line(nose - 46, cy + 12, nose - 48, cy + 27, 'I');
-  g.line(nose - 62, cy + 12, nose - 50, cy + 28, 'e');
-  g.disc(nose - 48, cy + 31, 6, 'e');
-  g.disc(nose - 48, cy + 31, 2, 'I');
-  g.line(nose - 172, cy + 3, nose - 174, cy + 8, 'I');
-  g.disc(nose - 174, cy + 10, 2, 'e');
+  for (let y = T - 22; y <= T + 7; y++) g.set(nose - 176, y, 'e'); // the rudder hinge line
+  hullOf(g, nose, 6, 177, top, bottom, { rib: true });
+  g.box(nose - 178, T + 1, nose - 155, T + 2, 'W'); // tailplane, edge on
+  g.line(nose - 159, T + 3, nose - 159, T + 9, 'e'); // its strut
+  // Nose engine: the bare radial behind its exhaust collector ring, the hub.
+  g.box(nose - 5, T + 8, nose - 1, T + 23, 'e');
+  g.box(nose - 6, T + 7, nose - 5, T + 24, 'I');
+  g.box(nose - 2, T + 9, nose - 2, T + 22, 'I');
+  g.box(nose, T + 14, nose, T + 17, 'I');
+  // Cockpit glazing: the raked windscreen and the side panes.
+  for (let d = 20; d <= 31; d++) g.box(nose - d, Math.round(top(d)) + 1, nose - d, T + 9 - (d < 23 ? 23 - d : 0) * 2, d === 24 || d === 28 ? 'e' : d < 24 ? 'c' : 'C');
+  // Seven cabin windows, the door, the porthole.
+  for (let i = 0; i < 7; i++) g.box(nose - Math.round(35 + i * 7.6) - 5, T + 7, nose - Math.round(35 + i * 7.6), T + 11, 'C');
+  g.box(nose - 98, T + 6, nose - 88, T + 19, 'S');
+  for (const d of [88, 98]) g.box(nose - d, T + 6, nose - d, T + 19, 'e');
+  g.box(nose - 96, T + 7, nose - 91, T + 11, 'C'); // the door's own window
+  g.box(nose - 103, T + 8, nose - 102, T + 9, 'C');
+  // The near wing: root chord under the fuselage, rising to the tip; the flap a separate strip behind it.
+  wingBand(g, nose, [37, 86, T + 28], [49, 65, T + 12]);
+  for (let y = T + 14; y <= T + 28; y++) {
+    const d = Math.round(lerp(69, 91, (y - T - 14) / 14));
+    g.box(nose - d - 2, y, nose - d, y, '1');
+  }
+  // The near wing engine: the ring cowl low at the leading edge, its nacelle fairing back under the wing.
+  for (let d = 22; d <= 44; d++) g.box(nose - d, Math.round(d < 32 ? T + 14 : lerp(T + 16, T + 24, (d - 32) / 12)), nose - d, Math.round(d < 32 ? T + 29 : lerp(T + 29, T + 28, (d - 32) / 12)), d < 32 ? 'B' : 'W');
+  g.box(nose - 23, T + 14, nose - 22, T + 29, 'e');
+  g.box(nose - 32, T + 13, nose - 31, T + 30, 'I');
+  g.box(nose - 21, T + 20, nose - 19, T + 23, 'I'); // hub
+  // Undercarriage: one long leg to the wheel, the brace back to the wing; tail wheel on its fork.
+  g.line(nose - 43, T + 29, nose - 45, T + 40, 'I');
+  g.line(nose - 44, T + 29, nose - 46, T + 40, 'e');
+  g.line(nose - 56, T + 29, nose - 47, T + 39, 'e');
+  g.disc(nose - 45, T + 41, 7, 'e');
+  g.disc(nose - 45, T + 41, 3, 'I');
+  g.disc(nose - 45, T + 41, 1, 'e');
+  g.line(nose - 172, T + 9, nose - 174, T + 12, 'I');
+  g.disc(nose - 175, T + 13, 2.5, 'e');
+  // The loop aerial and the mast over the cockpit.
+  g.box(nose - 34, T - 9, nose - 34, T - 1, 'I');
+  for (let a = 0; a < 6.3; a += 0.3) g.set(nose - 37 + Math.cos(a) * 3, T - 5 + Math.sin(a) * 3, 'I');
   g.outline('Cc');
   return g.rowsOut();
 }
 
-// Lisunov Li-2 (the licence-built DC-3, with the dorsal turret of the wartime ones): 19.65 m long, the round
-// stressed-skin fuselage, the tall curved fin with its fillet, two radials well ahead of the low wing, the
-// main wheels half out of the nacelles when up, seven cabin windows and the wide freight door. 206x70; nose at x 200.
+// Lisunov Li-2 (the licence-built DC-3), measured off the owner's 3-view (side view, 17.5 drawing pixels a
+// metre; here 10 a metre): 19.65 m from nose to rudder. A round fuselage 2.6 m deep, the blunt nose with the
+// cockpit glazing low on it, a straight top line to the fin's long fillet, the belly climbing to the tail from
+// behind the wing; six small cabin windows, the freight door, one window aft of it; the tall fin and rudder
+// with the rounded top; the wing seen from the side as its underside, rising and sweeping back to the tip;
+// the radial in its cowl ahead of the leading edge, the wheel half out of the nacelle when up; a teardrop
+// loop housing on the roof. (The 3-view has no dorsal turret, so this has none.) 206x66; nose at x 200, the
+// top line of the fuselage at row 27.
 function li2() {
-  const g = grid(206, 70);
+  const g = grid(206, 66);
   const nose = 200;
-  const cy = 36;
-  const r = (d) => 12.5 * Math.sqrt(Math.min(1, d / 30));
-  const top = (d) => (d < 112 ? cy - 1 - r(d) : lerp(cy - 13.5, cy - 7, (d - 112) / 80));
-  const bottom = (d) => (d < 100 ? cy + 1 + r(d) * 0.9 : lerp(cy + 12, cy - 2, (d - 100) / 94));
-  // Fin, fillet and rudder.
-  for (let d = 140; d <= 198; d++) {
-    const t = d < 166 ? lerp(top(d), cy - 22, ((d - 140) / 26) ** 2) : d < 182 ? lerp(cy - 22, cy - 44, Math.sin(((d - 166) / 16) * Math.PI * 0.5)) : d < 190 ? cy - 44 + ((d - 182) / 8) ** 2 * 3 : lerp(cy - 41, cy - 20, ((d - 190) / 8) ** 0.6);
-    const b = d < 194 ? top(Math.min(d, 192)) : lerp(cy - 7, cy - 3, (d - 194) / 4);
-    for (let y = Math.round(t); y <= Math.round(b); y++) g.set(nose - d, y, d > 184 ? 'S' : 'B');
+  const T = 27;
+  const round = (d) => Math.sqrt(Math.min(1, d / 30));
+  const top = (d) => (d < 30 ? T + 15 - 15 * round(d) : d < 138 ? T : d < 167 ? lerp(T, T + 3, (d - 138) / 29) : lerp(T + 3, T + 7, (d - 167) / 25));
+  const bottom = (d) => (d < 30 ? T + 15 + 11 * round(d) : d < 92 ? T + 26 : lerp(T + 26, T + 10, (d - 92) / 100));
+  // Fin, its fillet, and the rudder.
+  for (let d = 140; d <= 193; d++) {
+    const t = d < 154 ? top(d) - ((d - 140) / 14) ** 2 * 4 : d < 167 ? lerp(T - 2, T - 23, Math.sin(((d - 154) / 13) * Math.PI * 0.5)) : d < 187 ? T - 24 + (d > 183 ? (d - 183) ** 2 * 0.25 : 0) : lerp(T - 20, T - 8, ((d - 187) / 6) ** 0.7);
+    const b = d < 188 ? top(Math.min(d, 190)) : lerp(T + 6, T + 9, (d - 188) / 5);
+    for (let y = Math.round(t); y <= Math.round(b); y++) g.set(nose - d, y, d > 180 ? 'S' : 'B');
   }
-  hullOf(g, nose, 0, 194, top, bottom);
-  g.box(nose - 196, cy - 10, nose - 168, cy - 9, 'W'); // tailplane
-  // Cockpit windows, cabin windows, the freight door.
-  g.box(nose - 22, cy - 10, nose - 18, cy - 6, 'C');
-  g.box(nose - 16, cy - 9, nose - 13, cy - 6, 'c');
-  for (let i = 0; i < 7; i++) g.box(nose - (48 + i * 11) - 4, cy - 7, nose - (48 + i * 11), cy - 4, 'C');
-  g.box(nose - 138, cy - 9, nose - 124, cy + 6, 'S');
-  for (const d of [124, 131, 138]) g.box(nose - d, cy - 9, nose - d, cy + 6, 'e');
-  // The dorsal turret.
-  g.disc(nose - 78, cy - 14, 3.5, 'C');
-  g.line(nose - 81, cy - 16, nose - 88, cy - 18, 'e');
-  // Wing root, then the near engine and its nacelle over it, the wheel showing under.
-  wingBand(g, nose, [56, 112, cy + 13], [86, 110, cy]);
-  for (let d = 38; d <= 78; d++) {
-    const round = d < 42 ? 42 - d : 0; // the cowl's rounded lip
-    g.box(nose - d, Math.round(d < 52 ? cy + 1 : lerp(cy + 1, cy + 10, (d - 52) / 26)) + round, nose - d, Math.round(d < 70 ? cy + 16 : lerp(cy + 16, cy + 13, (d - 70) / 8)) - round, d < 40 ? 'e' : d < 50 ? 'B' : d < 52 ? 'e' : 'W');
+  for (let y = T - 22; y <= T + 5; y++) g.set(nose - 180, y, 'e'); // rudder hinge line
+  hullOf(g, nose, 0, 192, top, bottom);
+  g.box(nose - 195, T + 7, nose - 152, T + 8, 'W'); // tailplane, edge on
+  // Cockpit glazing, the six cabin windows, the freight door, the window aft of it.
+  g.box(nose - 14, T + 5, nose - 10, T + 9, 'c');
+  g.box(nose - 22, T + 5, nose - 16, T + 10, 'C');
+  g.box(nose - 15, T + 5, nose - 15, T + 10, 'e');
+  for (const d of [50, 59, 69, 78, 87, 96]) g.box(nose - d - 4, T + 9, nose - d, T + 12, 'C');
+  g.box(nose - 114, T + 6, nose - 102, T + 23, 'S');
+  for (const d of [102, 108, 114]) g.box(nose - d, T + 6, nose - d, T + 23, 'e');
+  g.box(nose - 140, T + 9, nose - 137, T + 11, 'C');
+  // The loop housing on the roof.
+  g.box(nose - 38, T - 3, nose - 32, T - 1, 'I');
+  g.box(nose - 36, T - 4, nose - 33, T - 4, 'I');
+  // The near wing: root chord under the fuselage, rising and sweeping back to the tip.
+  wingBand(g, nose, [30, 86, T + 28], [76, 90, T + 16]);
+  // The near engine: cowl ahead of the leading edge, the nacelle back over the wing, the wheel under it.
+  g.disc(nose - 52, T + 31, 5, 'e');
+  g.disc(nose - 52, T + 31, 2, 'I');
+  for (let d = 27; d <= 72; d++) {
+    const lip = d < 30 ? 30 - d : 0; // the cowl's rounded lip
+    g.box(nose - d, Math.round(d < 40 ? T + 17 : lerp(T + 17, T + 25, (d - 40) / 32)) + lip, nose - d, Math.round(d < 58 ? T + 31 : lerp(T + 31, T + 28, (d - 58) / 14)) - lip, d < 29 ? 'e' : d < 38 ? 'B' : d < 40 ? 'e' : 'W');
   }
-  g.box(nose - 37, cy + 6, nose - 34, cy + 10, 'I'); // hub
-  g.disc(nose - 64, cy + 17, 5, 'e');
-  g.disc(nose - 64, cy + 17, 2, 'I');
-  g.box(nose - 70, cy + 11, nose - 58, cy + 15, 'S'); // the nacelle covers its top half
-  g.disc(nose - 186, cy - 1, 2, 'e'); // tail wheel
+  g.box(nose - 26, T + 22, nose - 24, T + 26, 'I'); // hub
+  // Tail wheel on its strut.
+  g.line(nose - 162, T + 14, nose - 165, T + 19, 'I');
+  g.disc(nose - 166, T + 20, 2, 'e');
   g.outline('Cc');
   return g.rowsOut();
 }
