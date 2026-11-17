@@ -7,6 +7,32 @@ later.
 
 ## Decisions
 
+- **Clouds: one layer you can hide in (decided 2026-11-17, discussion; not built):** clouds affect play, not only the look.
+  - **Where:** one broken layer across the whole map between the mid and high bands (about 750 to 850), with gaps that
+    drift slowly sideways. No lone clouds at other heights for now (they can come later if the layer feels good).
+  - **Hiding is one-way (owner):** a plane inside the cloud is hidden from eyes, bots' and players' alike, fading out as
+    it enters; from inside it sees out as normal. A perch for the high planes to wait in and dive from, and an
+    interesting mechanic. Your own plane and instruments stay fully visible.
+  - **What reveals a plane in cloud:** firing (tracers show anywhere, and the plane shows for a moment, then fades back);
+    radar (it shows as the radar outline once per sweep while the enemy's radar stands; with that radar destroyed it is
+    truly gone); burning or smoking; crossing a gap; and **being very close: the other plane fades in fast and fully, a
+    surprise** (owner; the distance is a tunable value). No engine-sound detection, no time limit in cloud.
+  - **Flak:** light flak (to 350) never reaches the layer. **Heavy flak never stops firing because of cloud (owner):** it
+    fires at whatever it could fire at without cloud. Cloud only slows how fast its fix builds (about half speed; full
+    speed over a gap), and a working radar on the gun's side cancels that. So bombing the enemy's radar makes their guns
+    worse through cloud.
+  - **How much cloud:** varies per match, from broken (about 40% cover) to heavy (about 80%), never clear and never a solid
+    lid; the same sky for both sides, decided by the host online. Not changing during a match (later, with weather).
+  - **Bots:** all obey the same sight rules (a target that enters cloud is lost unless revealed; they search where it was
+    last seen). **First only the high planes (Bf 109, P-47) use it on purpose:** with no target they climb to the layer,
+    wait in it and dive on what passes below, leaving after a while to hunt if nothing comes. Every bot escaping into
+    cloud when hurt or chased comes later, once the layer is seen not to make fights fall apart.
+  - **How we will know:** the height count (`tools/height-count.mjs`): today fighters fall 72% low, 26% mid, 3% high.
+  - **Left out:** icing, turbulence, lightning (sudden odd events). **Watch:** it must be cheap to draw (low frame rates).
+  - Sim rules as always: deterministic, plain data for the snapshots; new values in the data file, the tuning panel and
+    TUNING.md. This takes over the backlog line "Clouds" and the "cloud layers to hide in" part of "Weather" in Ideas
+    agreed for later.
+
 - **Main fighters tuned per band, with per-band stats (decided 2026-11-15, discussion; follows "Balance by height
   band" below and replaces its band list):** only the six **main fighters** (one per nation) are tuned until the
   owner says otherwise; the Ki-43 (replaced by the Zero) and the P-38J (heavy fighter) stay in the game but out
@@ -1240,8 +1266,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
-- **Clouds (Design):** add clouds to the sky beyond today's few drifting ones; to discuss first whether they are looks only
-  or layers to fly into and hide in (the second is already under "Weather" in Ideas agreed for later).
+- **Clouds: build the hiding layer (Gameplay):** settled 2026-11-17, see the Decisions entry "Clouds: one layer you can hide in".
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
 - **Keyboard control of the menus (UI):** move through and pick every menu entry (title, setup, options, pause) with the arrow keys, Enter and Esc, no mouse needed.
