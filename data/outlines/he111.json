@@ -3,14 +3,14 @@
  "sprite": {
   "size": [
    180,
-   79
+   75
   ],
   "pivot": [
    90,
-   43
+   37
   ]
  },
- "_notes": "Metres. d = back from the reference nose point, h = up from the reference line (here the middle of the fuselage), z = out from the centre line. Stations are [d, top h, bottom h, half width]; edge tables are [along, d] (tailplane and wing: along = metres out from the root, fin: along = h). scale = model units per metre; frame = where d = 0, h = 0 sits in the model. Built by the general multi-engine model (multi in tools/plane-models.mjs), which reads only the outline: no markings or panel lines yet. STARTER, to be fitted in the Outline Lab: Heinkel He 111 H-16, the Luftwaffe's bomber at Kursk. From published dimensions and memory, NOT from a 3-view: every part needs fitting. The glazed nose is the canopy, the ventral gondola is gunTray, the dorsal gun position bump.",
+ "_notes": "Metres. d = back from the reference nose point, h = up from the reference line (here the middle of the fuselage), z = out from the centre line. Stations are [d, top h, bottom h, half width]; edge tables are [along, d] (tailplane and wing: along = metres out from the root, fin: along = h). scale = model units per metre; frame = where d = 0, h = 0 sits in the model. Built by the general multi-engine model (multi in tools/plane-models.mjs), which reads only the outline: no markings or panel lines yet. STARTER, to be fitted in the Outline Lab: Heinkel He 111 H-16, the Luftwaffe's bomber at Kursk. Measured by eye off the owner's 3-view (side view about 53 drawing pixels a metre, plan view 54): fuselage, glazed nose, dorsal position (bump), ventral gondola (gunTray), fin, the wing and tailplane edges from the plan view, engines 2.6 m out. Not laid over the drawing: check every part.",
  "length": 16.4,
  "span": 22.6,
  "scale": 5,
@@ -23,51 +23,45 @@
   "stations": [
    [
     0,
-    0.25,
-    -0.35,
-    0.25
+    0.05,
+    -0.15,
+    0.1
    ],
    [
+    0.95,
     0.6,
-    0.7,
-    -0.75,
-    0.65
+    -0.8,
+    0.6
    ],
    [
-    1.6,
-    0.92,
-    -0.92,
-    0.85
+    2.8,
+    0.83,
+    -1.1,
+    0.83
    ],
    [
-    3.0,
-    0.95,
-    -0.95,
-    0.88
+    7.6,
+    0.89,
+    -1.0,
+    0.83
    ],
    [
-    8.0,
-    0.95,
-    -0.9,
-    0.85
+    10.4,
+    0.8,
+    -0.8,
+    0.7
    ],
    [
-    12.0,
-    0.75,
-    -0.35,
-    0.55
+    13.4,
+    0.55,
+    -0.5,
+    0.4
    ],
    [
-    15.0,
-    0.5,
-    0.0,
-    0.22
-   ],
-   [
-    16.3,
-    0.35,
-    0.15,
-    0.06
+    16.4,
+    -0.1,
+    -0.2,
+    0.05
    ]
   ]
  },
@@ -75,57 +69,28 @@
   "n": 2.2,
   "stations": [
    [
-    0.0,
-    0.26,
-    -0.36,
-    0.26
+    0,
+    0.06,
+    -0.16,
+    0.11
    ],
    [
-    0.6,
-    0.71,
-    -0.6,
-    0.66
+    0.95,
+    0.61,
+    -0.5,
+    0.61
    ],
    [
-    1.6,
-    0.93,
-    -0.3,
-    0.85
+    2.0,
+    0.8,
+    -0.2,
+    0.8
    ],
    [
-    3.3,
-    0.97,
+    2.9,
+    0.85,
     0.3,
     0.8
-   ]
-  ]
- },
- "gunTray": {
-  "n": 2.5,
-  "stations": [
-   [
-    5.6,
-    -0.9,
-    -1.0,
-    0.3
-   ],
-   [
-    6.2,
-    -0.9,
-    -1.5,
-    0.45
-   ],
-   [
-    8.2,
-    -0.9,
-    -1.5,
-    0.4
-   ],
-   [
-    9.0,
-    -0.9,
-    -1.0,
-    0.2
    ]
   ]
  },
@@ -134,22 +99,57 @@
   "kind": "glass",
   "stations": [
    [
-    6.6,
-    0.95,
+    4.7,
     0.9,
+    0.85,
     0.3
    ],
    [
-    6.9,
+    4.9,
     1.3,
-    0.9,
+    0.85,
     0.35
    ],
    [
-    7.8,
-    1.25,
-    0.9,
+    5.7,
+    1.28,
+    0.85,
+    0.33
+   ],
+   [
+    5.95,
+    0.95,
+    0.85,
+    0.25
+   ]
+  ]
+ },
+ "gunTray": {
+  "n": 2.5,
+  "stations": [
+   [
+    5.95,
+    -1.0,
+    -1.05,
     0.3
+   ],
+   [
+    6.3,
+    -1.0,
+    -1.55,
+    0.42
+   ],
+   [
+    7.8,
+    -1.0,
+    -1.55,
+    0.4
+   ],
+   [
+    8.1,
+    -1.0,
+    -1.1,
+    0.25
    ]
   ]
  },
@@ -158,34 +158,34 @@
   "z": 2.6,
   "stations": [
    [
-    1.9,
-    -0.35,
-    -1.0,
-    0.3
+    1.05,
+    -0.05,
+    -0.75,
+    0.35
    ],
    [
-    2.2,
-    -0.15,
-    -1.35,
-    0.48
+    1.4,
+    0.15,
+    -1.2,
+    0.5
    ],
    [
-    4.2,
-    -0.1,
-    -1.45,
+    2.8,
+    0.2,
+    -1.4,
     0.52
    ],
    [
-    6.5,
-    -0.45,
+    4.2,
+    0.0,
     -1.3,
-    0.4
+    0.45
    ],
    [
-    8.0,
-    -0.7,
-    -1.0,
-    0.15
+    5.6,
+    -0.3,
+    -0.9,
+    0.2
    ]
   ]
  },
@@ -194,118 +194,224 @@
   "z": 2.6,
   "stations": [
    [
-    1.3,
-    -0.65,
-    -0.75,
+    0.5,
+    -0.35,
+    -0.45,
     0.05
    ],
    [
-    1.9,
-    -0.4,
-    -1.0,
+    1.05,
+    -0.1,
+    -0.7,
     0.3
    ]
   ]
  },
  "wing": {
   "root": [
-   3.3,
-   8.3
-  ],
-  "tip": [
-   6.2,
+   2.3,
    7.6
   ],
   "span": 11.3,
-  "at": -0.6,
-  "rise": 0.07,
+  "at": -0.43,
+  "rise": 0.082,
   "thick": 0.33,
-  "round": 0.3
- },
- "tailplane": {
-  "root": [
-   13.4,
-   15.6
-  ],
-  "tip": [
-   14.2,
-   15.3
-  ],
-  "span": 3.9,
-  "at": 0.5,
-  "thick": 0.08,
-  "round": 0.3
- },
- "fin": {
-  "root": [
-   13.2,
-   16.4
-  ],
-  "span": 3.0,
-  "at": 0.5,
-  "thick": 0.09,
-  "round": 0,
   "le": [
    [
-    0.5,
-    13.2
+    0,
+    2.3
    ],
    [
-    1.5,
-    13.9
+    0.85,
+    2.5
    ],
    [
-    3.0,
-    14.8
+    2.6,
+    2.55
    ],
    [
-    3.5,
-    15.3
+    6.0,
+    3.3
+   ],
+   [
+    9.5,
+    4.1
+   ],
+   [
+    10.8,
+    4.6
+   ],
+   [
+    11.3,
+    5.6
    ]
   ],
   "te": [
    [
-    0.5,
+    0,
+    7.6
+   ],
+   [
+    0.85,
+    7.4
+   ],
+   [
+    1.6,
+    7.5
+   ],
+   [
+    3.0,
+    7.45
+   ],
+   [
+    6.0,
+    7.25
+   ],
+   [
+    9.5,
+    6.95
+   ],
+   [
+    10.8,
+    6.6
+   ],
+   [
+    11.3,
+    5.6
+   ]
+  ]
+ },
+ "tailplane": {
+  "root": [
+   13.55,
+   16.25
+  ],
+  "span": 4.0,
+  "at": 0.0,
+  "thick": 0.08,
+  "le": [
+   [
+    0,
+    13.55
+   ],
+   [
+    1.5,
+    13.7
+   ],
+   [
+    3.0,
+    14.2
+   ],
+   [
+    3.7,
+    14.7
+   ],
+   [
+    4.0,
+    15.2
+   ]
+  ],
+  "te": [
+   [
+    0,
+    16.25
+   ],
+   [
+    1.5,
+    16.2
+   ],
+   [
+    3.0,
     15.9
    ],
    [
-    1.2,
-    16.4
+    3.7,
+    15.6
    ],
    [
-    2.8,
+    4.0,
+    15.2
+   ]
+  ]
+ },
+ "fin": {
+  "root": [
+   13.2,
+   16.3
+  ],
+  "span": 2.88,
+  "at": -0.1,
+  "thick": 0.09,
+  "round": 0,
+  "le": [
+   [
+    -0.1,
+    13.2
+   ],
+   [
+    0.5,
+    13.5
+   ],
+   [
+    1.6,
+    13.9
+   ],
+   [
+    2.68,
+    14.27
+   ],
+   [
+    2.78,
+    14.7
+   ]
+  ],
+  "te": [
+   [
+    -0.1,
     16.3
    ],
    [
-    3.5,
+    0.5,
+    16.16
+   ],
+   [
+    1.93,
+    16.07
+   ],
+   [
+    2.5,
     15.7
+   ],
+   [
+    2.78,
+    14.7
    ]
   ]
  },
  "points": [
   {
    "type": "pilot",
-   "d": 1.9,
-   "h": 0.5
+   "d": 2.0,
+   "h": 0.4
   }
  ],
  "gear": {
   "main": {
-   "d": 4.6,
-   "h": -2.3,
+   "d": 3.2,
+   "h": -2.5,
    "half": 2.6,
-   "r": 0.55
+   "r": 0.57
   },
   "tail": {
-   "d": 15.0,
-   "h": -0.5,
-   "r": 0.2
+   "d": 14.6,
+   "h": -0.9,
+   "r": 0.22
   }
  },
  "props": [
   {
-   "d": 1.3,
-   "h": -0.7,
+   "d": 0.5,
+   "h": -0.4,
    "z": 2.6
   }
  ],
