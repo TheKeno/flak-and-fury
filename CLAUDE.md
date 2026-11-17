@@ -12,6 +12,9 @@ done and what's next; [TUNING.md](TUNING.md) for every data value.
   results to a file in `notes/`, every line starting with the clock time (`[HH:MM:SS]`) (as `tools/band-check.mjs` does). At most 8 threads. Claude watches that file
   for the end line, and for the window going away (closed or crashed), with a background `until` loop. Short
   runs (`node --test`, quick checks) stay hidden.
+- **The game server runs only in the app's preview:** start it with `preview_start` (`game` in
+  `.claude/launch.json`), never in a cmd window or from Bash/PowerShell. If it is down, start the preview again.
+  (The visible-window rule above is for long tool runs, not the server.)
 - **Test muted:** open the game as `http://localhost:8080/?mute` in the browser pane, never the plain
   URL — the owner hears test audio through their speakers.
 - **GitHub:** the repo is `TheKeno/flak-and-fury` (private). Use the **TheKeno** account, never the
@@ -47,8 +50,8 @@ node tools/serve.mjs 8080
 
 Then open <http://localhost:8080>. The server also accepts PUT for existing `data/*.json` files (the
 tuning panel's "Save to files"). The browser pane's preview tool may still point at an old temporary
-copy of the project; if `curl http://127.0.0.1:8080/README.md` fails, start the server from this folder
-yourself instead.
+copy of the project; if `curl http://127.0.0.1:8080/README.md` fails, start the `game` preview again (never a
+cmd window).
 
 ## Code layout and conventions
 
