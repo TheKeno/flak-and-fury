@@ -47,6 +47,9 @@ export const GROUND_ENTITIES = {
   MineSign: 'mineSign',
   Windsock: 'windsock',
   Stores: 'stores',
+  TreeBelt: 'treeBelt',
+  Oak: 'oak',
+  Poplar: 'poplar',
 };
 
 // LDtk zone entity -> zone type.
@@ -70,6 +73,8 @@ export function importLdtk(project, levelName) {
     rivers: [],
     ground: [],
     zones: [],
+    // The look of the country ('steppe': low horizon, steppe trees and villages; none: the hills and hedges). A level field.
+    style: f.style ?? null,
   };
   for (const layer of level.layerInstances ?? []) {
     if (layer.__type !== 'Entities') continue;

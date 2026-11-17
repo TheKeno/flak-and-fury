@@ -770,6 +770,139 @@ function zis3() {
   return g.rowsOut();
 }
 
+// A gun's barrel as the game turns it: drawn level, pointing right, in a small sprite of its own. pivot: the
+// pixel in it that sits on the mount's pivot (data/ground.json looks: barrel { sprite, pivot }). parts as gunBarrel's.
+function barrelSprite(w, h, pivot, parts) {
+  const g = grid(w, h);
+  gunBarrel(g, pivot[0], pivot[1], 0, parts);
+  g.outline();
+  return g.rowsOut();
+}
+const BARRELS = {
+  // 8.8 cm Flak 36: breech, the thick sleeve over the recuperator, the two-piece tube.
+  'flak-88-barrel': barrelSprite(48, 7, [8, 3], [[-7, -1, 2.5, 'I'], [-1, 13, 2.5, 'v'], [13, 16, 2, 'V'], [16, 28, 1.5, 'V'], [28, 38, 1, 'v']]),
+  // 85 mm 52-K: the bell muzzle brake.
+  'flak-85-barrel': barrelSprite(45, 7, [7, 3], [[-6, -1, 2.5, 'I'], [-1, 12, 2.5, 'v'], [12, 30, 1.5, 'V'], [30, 34, 2.5, 'I'], [34, 35, 1.5, 'V']]),
+  // 2 cm Flak 38: a thin tube with its flash hider cone, the magazine well.
+  'flak-38-barrel': barrelSprite(22, 5, [4, 2], [[-3, 2, 1.5, 'I'], [2, 14, 0.5, 'e'], [14, 16, 1, 'I']]),
+  // 37 mm 61-K: a longer, stouter tube, the spring recuperator over the breech end, a flash hider.
+  'flak-61k-barrel': barrelSprite(28, 5, [5, 2], [[-4, 4, 1.5, 'v'], [4, 19, 0.5, 'V'], [19, 22, 1, 'I']]),
+  // MG 34 on its lafette: the perforated jacket.
+  'mg34-barrel': barrelSprite(14, 3, [2, 1], [[-2, 1, 1, 'I'], [1, 10, 0.5, 'e']]),
+  // Maxim 1910: the fat water jacket and its little shield.
+  'maxim-barrel': barrelSprite(14, 5, [3, 2], [[-2, 0, 2, 'v'], [0, 8, 1, 'V'], [8, 9, 0.5, 'I']]),
+};
+
+// 2 cm Flak 38 on its three-footed mount, the layer on his seat behind the shield, without the barrel. About
+// 1.4 times its real size, like the old light flak, whose size (26x13) and pivot (13, 5) it keeps.
+function flak38() {
+  const g = grid(26, 13);
+  g.box(6, 10, 19, 10, 'i');
+  g.box(3, 11, 22, 11, 'I');
+  g.box(1, 12, 24, 12, 'I');
+  g.box(10, 7, 15, 9, 'V');
+  g.disc(13, 5, 2.6, 'v');
+  g.box(9, 3, 10, 6, 'e'); // magazine
+  for (let y = 1; y <= 8; y++) g.span(y, 17 + (y < 3 ? 1 : 0), 19, 'V'); // shield, its top corner cut
+  g.box(5, 1, 8, 2, 'V'); // the layer: Stahlhelm with its flared rim
+  g.box(4, 3, 8, 3, 'V');
+  g.box(5, 4, 8, 7, 'q');
+  g.box(4, 8, 9, 8, 'I');
+  g.box(6, 9, 8, 9, 'I');
+  g.outline();
+  return g.rowsOut();
+}
+
+// 37 mm 61-K: no shield, the gun high on a four-wheeled carriage jacked level, two layers on their seats
+// either side, a clip of shells standing in the feed. Same size and pivot as the old light flak.
+function flak61k() {
+  const g = grid(26, 13);
+  g.box(3, 10, 22, 10, 'v');
+  g.box(2, 11, 23, 11, 'I');
+  for (const cx of [4, 21]) g.disc(cx, 11, 1.5, 'e'); // wheels
+  for (const x of [9, 16]) g.box(x, 11, x, 12, 'I'); // jacks
+  g.box(10, 7, 15, 9, 'V');
+  g.disc(13, 5, 2.6, 'v');
+  g.box(12, 1, 13, 3, '5'); // the clip of shells, brass
+  g.box(5, 2, 7, 3, 'v'); // layers: the round Soviet helmet
+  g.box(5, 4, 7, 7, 'K');
+  g.box(18, 2, 20, 3, 'v');
+  g.box(18, 4, 20, 7, 'K');
+  g.box(4, 8, 8, 8, 'I');
+  g.box(17, 8, 21, 8, 'I');
+  g.outline();
+  return g.rowsOut();
+}
+
+// Machine-gun nests, the old nest's size (24x10) and pivot (13, 3): a ring of sandbags with the firing slit;
+// the German one a Stahlhelm behind an MG 34, the Soviet one logs on top and a Maxim's shield in the slit.
+function mgNest(soviet) {
+  const g = grid(24, 10);
+  const rows = { 2: [6, 17], 3: [4, 19], 4: [2, 21], 5: [1, 22], 6: [1, 22], 7: [0, 23], 8: [0, 23], 9: [0, 23] };
+  for (const [y, [a, b]] of Object.entries(rows)) g.span(Number(y), a, b, (x, yy) => ((x + (yy % 2) * 3) % 6 === 0 || yy === 4 || yy === 7 ? 'z' : 's'));
+  g.span(3, 9, 14, 'd');
+  if (soviet) {
+    g.span(2, 5, 18, (x) => (x % 4 === 0 ? 'T' : 't')); // a log lintel
+    g.box(12, 2, 13, 4, 'v'); // the Maxim's shield
+    g.box(9, 1, 11, 1, 'v'); // helmet, round
+    g.box(9, 2, 11, 2, 'v');
+  } else {
+    g.box(10, 0, 13, 1, 'V'); // Stahlhelm
+    g.box(9, 2, 14, 2, 'V');
+  }
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// --- Trees of the steppe -------------------------------------------------------------------------------------
+
+// A planted tree belt (lesopolosa) along a field's edge: a row of poplars and acacias grown together. It
+// takes the hedge's place on the steppe. 96x44.
+function treeBelt() {
+  const g = grid(96, 44);
+  for (let i = 0; i < 9; i++) {
+    const cx = 6 + i * 10.5 + noise(i * 7, 3);
+    const tall = 30 + noise(i * 13, 10);
+    g.box(Math.round(cx), 44 - Math.round(tall * 0.5), Math.round(cx) + 1, 43, i % 2 ? 'a' : 'A');
+    for (let y = 43 - Math.round(tall); y <= 34; y++) {
+      const k = (y - (43 - tall)) / (tall - 9);
+      const half = 2.5 + 4.5 * Math.sin(Math.min(1, k) * Math.PI) ** 0.7;
+      for (let x = Math.round(cx - half); x <= Math.round(cx + half); x++) g.set(x, y, noise(x * 13 + y * 7 + i, 1) < 0.22 ? 'H' : x > cx + 1 ? 'H' : noise(x * 5 + y * 3, 1) < 0.12 ? 'L' : 'G');
+    }
+  }
+  for (let x = 1; x <= 94; x++) for (let y = 36 + Math.round(noise(x * 3, 3)); y <= 43; y++) g.set(x, y, noise(x * 7 + y * 13, 1) < 0.35 ? 'Z' : 'X'); // undergrowth
+  g.outline();
+  return g.rowsOut();
+}
+
+// Oak of the balkas and groves: a short thick trunk, a broad heavy crown. 44x44.
+function oak() {
+  const g = grid(44, 44);
+  g.box(20, 26, 23, 43, (x, y) => (y % 4 ? 'a' : 'A'));
+  g.line(20, 28, 13, 22, 'a');
+  g.line(23, 28, 31, 22, 'A');
+  g.box(19, 43, 24, 43, 'A');
+  for (const [cx, cy, r] of [[22, 13, 11], [11, 18, 8], [33, 18, 8], [22, 23, 9], [15, 9, 7], [29, 9, 7], [6, 22, 4], [38, 22, 4]]) g.disc(cx, cy, r, 'G');
+  for (const [cx, cy, r] of [[29, 22, 7], [35, 17, 4], [18, 27, 4]]) g.disc(cx, cy, r, 'H');
+  for (const [cx, cy, r] of [[14, 8, 3], [9, 16, 2.5], [22, 5, 2.5]]) g.disc(cx, cy, r, 'L');
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 44; x++) if (g.get(x, y) !== '.' && noise(x * 13 + y * 7, 1) < 0.12) g.set(x, y, 'H');
+  g.outline();
+  return g.rowsOut();
+}
+
+// Poplar: a tall narrow column of leaves, the mark of a village street or a farm yard. 18x64.
+function poplar() {
+  const g = grid(18, 64);
+  g.box(8, 50, 9, 63, (x, y) => (y % 3 ? 'a' : 'A'));
+  for (let y = 1; y <= 54; y++) {
+    const k = (y - 1) / 53;
+    const half = 1 + 6 * Math.sin(Math.min(1, k * 1.25) * Math.PI * 0.5) * (k > 0.8 ? 1 - (k - 0.8) * 2.5 : 1);
+    for (let x = Math.round(8.5 - half); x <= Math.round(8.5 + half); x++) g.set(x, y, x > 10 ? 'H' : noise(x * 11 + y * 5, 1) < 0.2 ? 'H' : noise(x * 3 + y * 7, 1) < 0.1 ? 'L' : 'G');
+  }
+  g.outline();
+  return g.rowsOut();
+}
+
 // A gun pit: a low ring of turned earth and sandbags round an emplaced gun, seen as its near wall. 72x10.
 function gunPit() {
   const g = grid(72, 10);
@@ -1124,39 +1257,70 @@ function radarUssr() {
   return g.rowsOut();
 }
 
-// German field hangar: an arched frame under tarpaulin panels, splinter camouflage painted over it, the tall
-// doors shut. 96x40 (the doors' own frames come when it goes into the game).
-function hangarGermany() {
-  const g = grid(96, 40);
-  for (let x = 2; x <= 93; x++) {
-    const t = (x - 47.5) / 46;
-    const top = Math.round(38 - 34 * Math.sqrt(Math.max(0, 1 - t * t)) ** 0.8);
-    for (let y = top; y <= 39; y++) {
-      const blot = Math.sin(x * 0.21 + y * 0.13) + Math.sin(x * 0.07 - y * 0.29) > 0.6;
-      g.set(x, y, x % 12 === 0 ? 'q' : blot ? 'V' : y < top + 2 ? 'K' : 'q');
+// The hangars are the old hangar's size (88x36) and have its door opening exactly: columns 22..65, the bottom
+// 20 rows, so a plane comes out of the same hole. open 1 = doors fully open (the dark inside shows), 0 = shut:
+// two leaves slide in from the sides and meet in the middle, as on the old one. leaf(i, y): the colour of a
+// leaf's column i (0 at its outer edge) in row y.
+const HANGAR = { w: 88, h: 36, x0: 22, x1: 65, top: 16 };
+function hangarDoors(g, open, leaf) {
+  const { x0, x1, top, h } = HANGAR;
+  for (let y = top; y <= h - 1; y++) g.span(y, x0, x1, 'd');
+  const cover = Math.round(((x1 - x0 + 1) / 2) * (1 - open));
+  for (let y = top; y <= h - 1; y++) {
+    for (let i = 0; i < cover; i++) {
+      const c = i === cover - 1 ? 'o' : leaf(i, y);
+      g.set(x0 + i, y, c);
+      g.set(x1 - i, y, c);
     }
   }
-  g.box(24, 12, 71, 39, (x) => (x % 6 === 0 ? 'h' : 'g')); // the doors
-  g.box(47, 12, 48, 39, 'd');
-  g.box(24, 12, 71, 13, 'h');
-  for (const x of [30, 38, 56, 64]) g.box(x, 18, x + 3, 21, 'w');
+}
+
+// German field hangar: an arched frame under tarpaulin panels with splinter camouflage painted over it, a
+// timber door frame, plank leaves with a small window each.
+function hangarGermany(open = 1) {
+  const { w, h, x0, x1, top } = HANGAR;
+  const g = grid(w, h);
+  const cx = (w - 1) / 2;
+  for (let x = 2; x <= w - 3; x++) {
+    const t = (x - cx) / (cx - 2);
+    const y0 = Math.round(h - 1 - 31 * Math.sqrt(Math.max(0, 1 - t * t)));
+    for (let y = y0; y <= h - 1; y++) {
+      const blot = Math.sin(x * 0.23 + y * 0.15) + Math.sin(x * 0.08 - y * 0.31) > 0.6;
+      g.set(x, y, x % 11 === 0 ? 'q' : blot ? 'V' : y < y0 + 2 ? 'K' : 'q');
+    }
+  }
+  g.box(x0 - 2, top - 2, x1 + 2, h - 1, 'T'); // door frame
+  for (let y = top; y <= h - 1; y++) {
+    g.span(y, x0 - 6, x0 - 3, 'h'); // where the leaves stand when slid back
+    g.span(y, x1 + 3, x1 + 6, 'h');
+  }
+  hangarDoors(g, open, (i, y) => (i % 5 === 4 ? 'h' : y > top + 3 && y < top + 7 && i % 10 > 2 && i % 10 < 7 ? 'w' : 'g'));
   g.outline('d');
   return g.rowsOut();
 }
 
-// Soviet field hangar: a plank shed with a low gable, hidden under a net stuck with branches. 96x38.
-function hangarUssr() {
-  const g = grid(96, 38);
-  for (let y = 4; y <= 11; y++) g.span(y, Math.round(47 - (y - 3) * 5.6), Math.round(48 + (y - 3) * 5.6), (x, yy) => (yy % 3 === 0 ? 'D' : 'Q'));
-  g.box(4, 12, 91, 37, (x, y) => (x % 3 === 0 ? 'D' : noise(x * 7 + y * 3, 1) < 0.07 ? 'D' : 'E'));
-  g.box(24, 14, 71, 37, (x) => (x % 8 === 0 ? 'T' : 'D')); // doors
-  g.box(47, 14, 48, 37, 'd');
-  g.box(24, 14, 71, 15, 'T');
-  camoNet(g, 0, 95, 2, 5, 9);
-  for (let x = 6; x <= 90; x += 9) g.line(x, 6 + Math.round(noise(x, 4)), x + 2, 1 + Math.round(noise(x * 3, 3)), 'G'); // branches stuck in
-  for (const x of [1, 94]) g.line(x, 8, x + (x < 40 ? -1 : 1), 37, 'A'); // net poles
+// Soviet field hangar: a plank shed with a low gable under a net stuck with branches, heavy plank leaves on
+// a timber frame.
+function hangarUssr(open = 1) {
+  const { w, h, x0, x1, top } = HANGAR;
+  const g = grid(w, h);
+  for (let y = 5; y <= 11; y++) g.span(y, Math.round(43 - (y - 4) * 5.6), Math.round(44 + (y - 4) * 5.6), (x, yy) => (yy % 3 === 0 ? 'D' : 'Q'));
+  g.box(3, 12, 84, h - 1, (x, y) => (x % 3 === 0 ? 'D' : noise(x * 7 + y * 3, 1) < 0.07 ? 'D' : 'E'));
+  g.box(x0 - 2, top - 2, x1 + 2, h - 1, 'T');
+  hangarDoors(g, open, (i, y) => (i % 6 === 5 ? 'T' : (i + y) % 9 === 0 ? 'T' : 'D'));
+  camoNet(g, 0, w - 1, 3, 4, 7);
+  for (let x = 6; x <= 82; x += 9) g.line(x, 6 + Math.round(noise(x, 3)), x + 2, 2 + Math.round(noise(x * 3, 2)), 'G'); // branches stuck in
   g.outline('d');
   return g.rowsOut();
+}
+
+// One sprite per door step, named as the old hangar's: <name> (open), <name>-d1 (almost shut) .. -d14 (almost
+// open), <name>-shut. (The game picks them by how far the doors are, src/render/renderer.js hangarDoorSuffix.)
+const DOOR_STEPS = 15;
+function hangarSet(name, draw) {
+  const out = { [name]: draw(1), [`${name}-shut`]: draw(0) };
+  for (let i = 1; i < DOOR_STEPS; i++) out[`${name}-d${i}`] = draw(1 - i / DOOR_STEPS);
+  return out;
 }
 
 // Airfield windsock on its pole. 18x40.
@@ -1355,8 +1519,6 @@ export const KURSK_MILITARY = {
   'depot-ussr': depotUssr(),
   'radar-germany': radarGermany(),
   'radar-ussr': radarUssr(),
-  'hangar-germany': hangarGermany(),
-  'hangar-ussr': hangarUssr(),
   windsock: windsock(),
   stores: stores(),
   dzot: dzot(),
@@ -1541,6 +1703,10 @@ function flatWagon() {
   return g.rowsOut();
 }
 
+// The two hangars with their door steps, the guns the game turns (mounts and barrels), the steppe's trees.
+export const KURSK_HANGARS = { ...hangarSet('hangar-germany', hangarGermany), ...hangarSet('hangar-ussr', hangarUssr) };
+export const KURSK_GUNS = { ...BARRELS, 'flak-38': flak38(), 'flak-61k': flak61k(), 'mgnest-germany': mgNest(false), 'mgnest-ussr': mgNest(true) };
+export const KURSK_TREES = { 'tree-belt': treeBelt(), oak: oak(), poplar: poplar() };
 export const KURSK_EXTRA = {
   'para-germany-stream': paraStream('K', 'q', 'V', 'q'),
   'para-germany': paraOpen(true, 'K', 'q', 'V', 'q'),
@@ -1558,10 +1724,10 @@ export const KURSK_EXTRA = {
 // data/pixels/<name>.json { rows }: from then on those rows are the sprite, here and in the game, and the
 // drawing code above is only what "Revert to drawn" goes back to. (A wreck worked out from a building is
 // worked out from the drawn building, not from an edited one: edit the wreck itself.)
-export const PIXEL_GROUPS = { 'Scenery': KURSK, 'Wrecks': KURSK_RUINS, 'Fields, fire and dust': KURSK_FIELD, 'Military': KURSK_MILITARY, 'Paratroopers and the train': KURSK_EXTRA };
+const SETS = [KURSK, KURSK_RUINS, KURSK_FIELD, KURSK_MILITARY, KURSK_HANGARS, KURSK_GUNS, KURSK_TREES, KURSK_EXTRA];
 export const DRAWN = {}; // name -> the rows as the code draws them
 export const EDITED = new Set(); // names that have a hand-edited version
-for (const set of Object.values(PIXEL_GROUPS)) {
+for (const set of SETS) {
   for (const name of Object.keys(set)) {
     DRAWN[name] = set[name];
     const file = new URL(`../data/pixels/${name}.json`, import.meta.url);
@@ -1569,6 +1735,44 @@ for (const set of Object.values(PIXEL_GROUPS)) {
     set[name] = JSON.parse(readFileSync(file, 'utf8')).rows;
     EDITED.add(name);
   }
+}
+// The Lab's list, by what a thing is (as the Outline Lab lists planes by role): each category's names in order.
+// A name matches the first category whose test fits.
+const CATEGORIES = [
+  ['Hangar doors: Germany', (n) => n.startsWith('hangar-germany')],
+  ['Hangar doors: USSR', (n) => n.startsWith('hangar-ussr')],
+  ['Wrecks', (n) => n.endsWith('-ruin') || n.endsWith('-burnt') || n === 'town-ruin'],
+  ['Guns: barrels', (n) => n.endsWith('-barrel')],
+  ['Guns: mounts', (n) => /^(flak-|mgnest-|pak-|zis-)/.test(n) && !n.endsWith('-nest')],
+  ['Bunkers and positions', (n) => /^(dzot|bunker-|tank-dug-in|pillbox|trench-|wire|mine-sign|dugout|hedgehog|gun-pit)/.test(n) || n.endsWith('-nest')],
+  ['Airfield and supply', (n) => /^(depot-|radar-|windsock|stores)/.test(n)],
+  ['Village', (n) => /^(izba|shed|well|haystack|wattle)/.test(n)],
+  ['Farm and church', (n) => /^(cowshed|church|windmill|stooks|sunflowers)/.test(n)],
+  ['Town', (n) => /^(town-house|trade-row|soviet|elevator)/.test(n)],
+  ['Railway', (n) => /^(station|water-tower|telegraph-pole|track|wagon|flat-wagon|locomotive|tender)/.test(n)],
+  ['Trees', (n) => /^(apple-tree|birch|oak|poplar|tree-belt)/.test(n)],
+  ['Fire, dust and fields', (n) => /^(wheat|stubble|dust-|smoke-)/.test(n)],
+  ['Paratroopers', (n) => /^(para-|drop-container)/.test(n)],
+  ['Other', () => true],
+];
+const doorOrder = (n) => (n.endsWith('-shut') ? 16 : /-d(\d+)$/.test(n) ? 16 - Number(/-d(\d+)$/.exec(n)[1]) : 0); // open, then closing step by step, then shut
+export const PIXEL_GROUPS = {};
+for (const set of SETS) {
+  for (const name of Object.keys(set)) {
+    const [cat] = CATEGORIES.find(([, test]) => test(name));
+    (PIXEL_GROUPS[cat] ??= {})[name] = set[name];
+  }
+}
+for (const cat of Object.keys(PIXEL_GROUPS)) {
+  const names = Object.keys(PIXEL_GROUPS[cat]).sort((a, b) => (cat.startsWith('Hangar') ? doorOrder(a) - doorOrder(b) : a.localeCompare(b)));
+  PIXEL_GROUPS[cat] = Object.fromEntries(names.map((n) => [n, PIXEL_GROUPS[cat][n]]));
+}
+// In the order of CATEGORIES.
+for (const [cat] of CATEGORIES) {
+  if (!PIXEL_GROUPS[cat]) continue;
+  const set = PIXEL_GROUPS[cat];
+  delete PIXEL_GROUPS[cat];
+  PIXEL_GROUPS[cat] = set;
 }
 
 // What is in the game (tools/make-sprites.mjs writes these to assets/sprites/; data/ground.json names them):
@@ -1582,6 +1786,9 @@ export const GAME_SPRITES = {
   ...pick(KURSK_RUINS, ['izba-ruin', 'izba-white-ruin', 'shed-ruin', 'cowshed-ruin', 'church-ruin', 'windmill-ruin', 'station-ruin',
     'water-tower-ruin', 'trade-row-ruin', 'soviet-ruin', 'elevator-ruin', 'depot-germany-ruin', 'depot-ussr-ruin']),
   ...pick(KURSK_MILITARY, ['flak-88', 'flak-85', 'depot-germany', 'depot-ussr', 'radar-germany', 'radar-ussr', 'windsock', 'stores', 'wire', 'mine-sign']),
+  ...KURSK_HANGARS,
+  ...KURSK_GUNS,
+  ...KURSK_TREES,
 };
 
 // --- The transports of the paratroop drops ------------------------------------------------------------------
@@ -1858,8 +2065,8 @@ function preview() {
     [r['izba-ruin'], r['izba-white-ruin'], r['shed-ruin'], r['cowshed-ruin'], r['church-ruin'], r['windmill-ruin']],
     [r['station-ruin'], r['water-tower-ruin'], r['wagon-burnt'], r['trade-row-ruin'], r['soviet-ruin'], r['elevator-ruin']],
     [f.wheat, f['wheat-burning-1'], f['wheat-burning-2'], f['wheat-burning-3'], f.stubble, f['dust-1'], f['dust-2'], f['dust-3'], f['smoke-column']],
-    [m['depot-germany'], r['depot-germany-ruin'], m['radar-germany'], m['hangar-germany'], m.windsock, m.stores],
-    [m['depot-ussr'], r['depot-ussr-ruin'], m['radar-ussr'], m['hangar-ussr'], game('depot'), game('radar'), game('hangar')],
+    [m['depot-germany'], r['depot-germany-ruin'], m['radar-germany'], toImage(KURSK_HANGARS['hangar-germany']), toImage(KURSK_HANGARS['hangar-germany-d8']), toImage(KURSK_HANGARS['hangar-germany-shut']), m.windsock, m.stores],
+    [m['depot-ussr'], r['depot-ussr-ruin'], m['radar-ussr'], toImage(KURSK_HANGARS['hangar-ussr']), toImage(KURSK_HANGARS['hangar-ussr-d8']), toImage(KURSK_HANGARS['hangar-ussr-shut']), game('depot'), game('radar'), game('hangar')],
     [m['bunker-germany'], m['pak-nest'], m['trench-germany'], m.wire, m['mine-sign'], m.pillbox],
     [m.dzot, m['tank-dug-in'], m['zis-nest'], m['trench-ussr']],
   ], [r['wagon-burnt']]);

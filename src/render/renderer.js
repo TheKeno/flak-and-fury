@@ -155,8 +155,10 @@ export function createRenderer(canvas, world, assets) {
 
   const map = world.map;
   const sky = buildSky(ctx, map);
-  const farRidge = buildRidge(map.seed + 7, Math.ceil((map.width * 0.2 + W * MAX_ZOOM) * SCALE), 70, 190, 90 * SCALE);
-  const nearRidge = buildRidge(map.seed + 13, Math.ceil((map.width * 0.45 + W * MAX_ZOOM) * SCALE), 40, 120, 55 * SCALE);
+  // The horizon: two ranges of hills, or on the steppe (map.style) two low swells of open country.
+  const steppe = map.style === 'steppe';
+  const farRidge = buildRidge(map.seed + 7, Math.ceil((map.width * 0.2 + W * MAX_ZOOM) * SCALE), ...(steppe ? [62, 88, 170 * SCALE] : [70, 190, 90 * SCALE]));
+  const nearRidge = buildRidge(map.seed + 13, Math.ceil((map.width * 0.45 + W * MAX_ZOOM) * SCALE), ...(steppe ? [44, 66, 120 * SCALE] : [40, 120, 55 * SCALE]));
   const cloudRng = createRng(map.seed + 21);
   const clouds = Array.from({ length: Math.round((22 * map.ceiling) / 720) }, () => ({ // 22 under the old 720 ceiling, as dense now
     img: buildCloud(cloudRng),
@@ -361,8 +363,8 @@ export function createRenderer(canvas, world, assets) {
         if (top < bh) ctx.fillRect(x, top, 1, bh - top);
       }
     };
-    ridge(farRidge, 0.2, '#5f6a70');
-    ridge(nearRidge, 0.45, '#3f4a3c');
+    ridge(farRidge, 0.2, steppe ? '#565c50' : '#5f6a70');
+    ridge(nearRidge, 0.45, steppe ? '#4a4c38' : '#3f4a3c');
   }
 
   // One buffer-pixel column of ground into g at x, its top row at `top`: grass (or runway, or scorched
@@ -513,11 +515,11 @@ export function createRenderer(canvas, world, assets) {
   };
   function spriteOf(obj) {
     const look = lookOf(obj);
-    if (look) return [look.sprite, assets.images[look.sprite]];
+    const base = look?.sprite ?? obj.def.sprite;
     // Hangar doors: shut, half or open by the object's door (0..1).
     const door = obj.type === 'hangar' && obj.alive && obj.door != null ? hangarDoorSuffix(obj.door) : '';
-    const img = assets.images[obj.def.sprite + door];
-    if (door) return [obj.def.sprite + door, img];
+    const img = assets.images[base + door];
+    if (door || look) return [base + door, img];
     if (!img || obj.type !== 'tank') return [obj.def.sprite, img];
     const key = `tank|${obj.team}`;
     if (!spriteCache.has(key)) spriteCache.set(key, paintSprite(img, assets.nations[nationOf(obj.team)]?.paint ?? assets.nations.germany.paint));
@@ -930,16 +932,27 @@ export function createRenderer(canvas, world, assets) {
       const pivot = (px) => (dir > 0 ? left + px : left + img.width - 1 - px);
       const aim = obj.aim ?? (dir > 0 ? 0.8 : Math.PI - 0.8); // resting elevation until it has a target
       // The heavy gun's barrel: where and how long, by the nation's gun (def.looks) or the plain one.
+      // A gun's barrel: a nation's own gun (def.looks) brings its barrel as a sprite, drawn level pointing right,
+      // which is turned about its pivot to the aim; the plain guns have a drawn line.
       const look = lookOf(obj);
-      const [fpx, fpy] = look?.pivot ?? [14, 6];
-      const [flen, fthick] = look?.barrel ?? [20, 3];
-      if (obj.type === 'flak') drawBarrel(pivot(fpx), top + fpy, aim, flen, fthick, '#3e4630');
-      if (obj.type === 'lightFlak') drawBarrel(pivot(13), top + 5, aim, 12, 1, '#24261f');
-      if (obj.type === 'mgNest') drawBarrel(pivot(13), top + 2, aim, 9, 1, '#24261f');
+      const plainGun = { flak: [14, 6, 20, 3, '#3e4630'], lightFlak: [13, 5, 12, 1, '#24261f'], mgNest: [13, 2, 9, 1, '#24261f'] }[obj.type];
+      const [fpx, fpy] = look?.pivot ?? plainGun ?? [0, 0];
+      const barrelImg = look?.barrel?.sprite ? assets.images[look.barrel.sprite] : null;
+      let flen = plainGun?.[2] ?? 0;
+      if (gun && barrelImg) {
+        const [bx, by] = look.barrel.pivot;
+        flen = barrelImg.width - bx - 1;
+        ctx.save();
+        ctx.translate(pivot(fpx) + 0.5, top + fpy + 0.5);
+        ctx.rotate(-aim);
+        if (Math.cos(aim) < 0) ctx.scale(1, -1); // pointing left: keep it the right way up
+        ctx.drawImage(barrelImg, -bx - 0.5, -by - 0.5);
+        ctx.restore();
+      } else if (gun && plainGun) drawBarrel(pivot(fpx), top + fpy, aim, plainGun[2], plainGun[3], plainGun[4]);
       const flash = groundFlashes.get(obj.id);
       if (gun && flash > 0) {
         groundFlashes.set(obj.id, flash - 1);
-        const [px, py, len, r] = obj.type === 'flak' ? [pivot(fpx), top + fpy, flen + 2, 3] : obj.type === 'lightFlak' ? [pivot(13), top + 5, 14, 2] : [pivot(13), top + 2, 11, 2];
+        const [px, py, len, r] = [pivot(fpx), top + fpy, flen + 2, obj.type === 'flak' ? 3 : 2];
         const fx = Math.round(px + Math.cos(aim) * len);
         const fy = Math.round(py - Math.sin(aim) * len);
         ctx.fillStyle = '#ffc850';

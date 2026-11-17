@@ -30,6 +30,9 @@ const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
 
 const content = await loadContent('countryside');
+// ?style=steppe dresses today's map as the steppe (low horizon, steppe trees, izba villages), to look at
+// before the Kursk map exists. Single player only: a guest's map must be the host's.
+if (new URLSearchParams(location.search).has('style')) content.map.style = new URLSearchParams(location.search).get('style');
 const world = createWorld({
   hangarStart: true,
   seed: (Math.random() * 0x100000000) >>> 0, // new match, new random bot planes

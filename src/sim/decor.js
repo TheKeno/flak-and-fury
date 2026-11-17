@@ -40,6 +40,37 @@ export function addDecor(world) {
   };
   const tree = () => (rng.next() < 0.6 ? 'tree' : 'pine');
 
+  // The steppe (map.style): tree belts and wattle fences at the fields' ends, oaks and birches in the woods and
+  // on the ridges, and villages of izbas with their sheds, wells, fences and orchards.
+  if (map.style === 'steppe') {
+    const pick = (list) => list[Math.floor(rng.next() * list.length)];
+    for (const z of zones) {
+      const end = z.x + z.width;
+      if (z.type === 'field') {
+        for (const [x, out] of [[z.x - 26, -1], [end + 26, 1]]) {
+          if (rng.next() < 0.6) put('treeBelt', x);
+          else if (put('wattle', x + out * -8) && rng.next() < 0.5) put('poplar', x + out * 16);
+        }
+      } else if (z.type === 'wood') {
+        for (let x = z.x + 6; x < end - 6; x += cfg.woodSpacing * (0.9 + rng.next() * 0.8)) put(pick(['oak', 'birch', 'birch', 'tree']), x);
+      } else if (z.type === 'ridge') {
+        for (let x = z.x + 20; x < end - 20; x += 50) if (rng.next() < 0.3) put(pick(['oak', 'birch']), x + (rng.next() - 0.5) * 20);
+      } else if (z.type === 'village') {
+        // Houses along the street with what stands between them; an orchard at one end.
+        for (let x = z.x + 16; x < end - 16; x += 30 + rng.next() * 16) {
+          if (!put(pick(['izba', 'izba', 'izbaWhite']), x)) continue;
+          put(pick(['shed', 'well', 'haystack', 'wattle', 'poplar']), x + 20 + rng.next() * 4);
+        }
+        for (let k = 0; k < 3; k++) put('appleTree', z.x + rng.next() * z.width);
+      }
+    }
+    const inZone = (x) => zones.some((z) => x > z.x - 10 && x < z.x + z.width + 10);
+    for (let x = 60; x < map.width - 60; x += 90) {
+      const tx = x + (rng.next() - 0.5) * 60;
+      if (!inZone(tx) && rng.next() < cfg.loneTrees * 0.6) put(pick(['oak', 'birch', 'haystack']), tx);
+    }
+    return;
+  }
   for (const z of zones) {
     const end = z.x + z.width;
     if (z.type === 'field') {

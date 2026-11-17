@@ -843,6 +843,17 @@ later.
 
 ## Done
 
+- **Pixel Lab, per-nation hangars and guns, steppe style (Planes, 2026-11-17):** `pixel-lab.html` (linked from the Outline
+  Lab): a pixel editor for the scenery drawn in `tools/kursk-sprites.mjs`, listed by category; a saved sprite lives in
+  `data/pixels/` and replaces the drawn one. **German and Soviet hangars** with all 15 door steps, the old hangar's size
+  (88x36) and door opening exactly (`hangar` looks). **Gun barrels are sprites now** for a nation's own gun (`barrel
+  { sprite, pivot }` in a look): the mount and the barrel are two sprites, both editable; the game turns the barrel about
+  its pivot. Heavy flak (Flak 36, 52-K), **light flak** (Flak 38, 61-K) and **MG nests** (MG 34, Maxim) per nation. **Steppe
+  style** (`map.style === 'steppe'`, a level field `style` once the Kursk map exists; `?style=steppe` to try it on today's
+  map): a low horizon instead of the hills, and decor of tree belts, wattle fences, oaks, birches, poplars and izba
+  villages instead of hedges, walls, pines and the barn. New trees: tree belt, oak, poplar. Seen in the game: the German
+  hangar with a plane rolling out, the Freya, the bare horizon; not yet seen: the barrels turning, the steppe villages.
+
 - **Kursk map assets (Planes, 2026-11-17):** drawn in `tools/kursk-sprites.mjs` (previews: `notes/kursk-assets-preview*.png`).
   **In the game** (sprites, `data/ground.json`, a piece in LDtk, own wrecks; `tests/scenery.test.mjs`): 28 kinds of
   neutral scenery (izbas, shed, cowshed, church, windmill, well, haystack, wattle fence, station, water tower,

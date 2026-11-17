@@ -47,7 +47,9 @@ export async function loadContent(mapName) {
     ...new Set([
       ...Object.values(planeDefs).map((d) => d.sprite),
       // Ground objects: the plain sprite, its wreck, and each nation's own look with its wreck (data/ground.json).
-      ...Object.values(groundDefs).flatMap((d) => [d.sprite, d.wreck, ...Object.values(d.looks ?? {}).flatMap((l) => [l.sprite, l.wreck])]).filter(Boolean),
+      ...Object.values(groundDefs).flatMap((d) => [d.sprite, d.wreck, ...Object.values(d.looks ?? {}).flatMap((l) => [l.sprite, l.wreck, l.barrel?.sprite])]).filter(Boolean),
+      // A nation's own hangar has its own door steps.
+      ...Object.values(groundDefs.hangar?.looks ?? {}).flatMap((l) => [`${l.sprite}-shut`, ...Array.from({ length: 14 }, (_, i) => `${l.sprite}-d${i + 1}`)]),
     ]),
     'hangar',
     'hangar-shut',

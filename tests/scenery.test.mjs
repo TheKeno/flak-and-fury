@@ -22,7 +22,18 @@ test('every sprite a ground object names is there: its own, its wreck, each nati
     for (const [nation, look] of Object.entries(def.looks ?? {})) {
       assert.ok(sprite(look.sprite), `${type} ${nation}: ${look.sprite}.png`);
       if (look.wreck) assert.ok(sprite(look.wreck), `${type} ${nation}: wreck ${look.wreck}.png`);
-      if (type === 'flak') assert.ok(look.pivot?.length === 2 && look.barrel?.length === 2, `${nation}'s gun says where its barrel goes`);
+      if (['flak', 'lightFlak', 'mgNest'].includes(type)) {
+        assert.ok(look.pivot?.length === 2 && look.barrel?.pivot?.length === 2, `${type} ${nation} says where its barrel turns`);
+        assert.ok(sprite(look.barrel.sprite), `${type} ${nation}: barrel ${look.barrel.sprite}.png`);
+      }
+      // A hangar keeps the plain hangar's size and has every door step.
+      if (type === 'hangar') {
+        for (const step of ['-shut', ...Array.from({ length: 14 }, (_, i) => `-d${i + 1}`)]) assert.ok(sprite(look.sprite + step), `${look.sprite}${step}.png`);
+        const rows = GAME_SPRITES[look.sprite];
+        assert.deepEqual([rows[0].length, rows.length], [88, 36], `${look.sprite} is the old hangar's size`);
+        for (let y = 16; y < 36; y++) assert.equal(rows[y].slice(22, 66), 'd'.repeat(44), `${look.sprite}: the open door is the old hangar's opening`);
+        for (let y = 16; y < 36; y++) assert.ok(!GAME_SPRITES[`${look.sprite}-shut`][y].slice(22, 66).includes('d'), `${look.sprite}: shut means shut`);
+      }
     }
   }
 });
