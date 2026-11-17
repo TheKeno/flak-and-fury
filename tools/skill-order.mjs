@@ -10,7 +10,7 @@ import { pool } from './duels.mjs';
 const args = process.argv.slice(2);
 const opt = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const seeds = Number(opt('--seeds', 8));
-const planes = opt('--planes', 'spitfire,bf109g6,ki43,p47d').split(',');
+const planes = opt('--planes', 'spitfire,bf109g6,a6m5,p47d').split(',');
 const content = loadContent();
 const starts = { slow: { stall: 1.5 }, fast: { speed: 0.8 } };
 const PAIRS = [['ace', 'normal'], ['normal', 'easy'], ['ace', 'easy']];

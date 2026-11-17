@@ -15,8 +15,9 @@ export const hasBombs = (def) => (def.hardpoints?.length ?? 0) > 0;
 const bombs = (weapons) => Object.entries(weapons).filter(([, w]) => w.type === 'bomb' && w.weight > 0);
 
 // Planes the hangar lists: named ones, optionally of one nation. Returns ids in file order.
+// Retired planes (`retired: true`, e.g. the Ki-43 the Zero replaced) stay in the data but are not offered.
 export const planeIds = (planeDefs, nation = '') =>
-  Object.keys(planeDefs).filter((id) => planeDefs[id]?.name && (!nation || planeDefs[id].nation === nation));
+  Object.keys(planeDefs).filter((id) => planeDefs[id]?.name && !planeDefs[id].retired && (!nation || planeDefs[id].nation === nation));
 
 // What a hardpoint takes: bombs it can carry (and the plane can lift), lightest first, and most bombs.
 export function hardpointChoices(def, hp, weapons) {

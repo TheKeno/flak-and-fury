@@ -822,7 +822,8 @@ $('host').addEventListener('click', async () => {
       onJoin(g, hello) {
         const team = freeSide(world, TEAMS);
         if (team === null) return null;
-        const defId = content.planeDefs[hello.plane]?.name ? hello.plane : choice.plane;
+        const offered = (id) => content.planeDefs[id]?.name && !content.planeDefs[id].retired; // what the hangar offers
+        const defId = offered(hello.plane) ? hello.plane : choice.plane;
         const p = addPlane(world, { defId, team, nation: nationOf(defId), controller: g.controller });
         if (cleanName(hello.name)) p.callsign = cleanName(hello.name);
         if (hello.loadout) setLoadout(p, hello.loadout, world.weapons); // checked there; a bad list keeps the default
@@ -856,7 +857,7 @@ $('host').addEventListener('click', async () => {
         if (m?.t !== 'seat') return;
         const p = world.planes.find((o) => o.id === g.planeId);
         if (!p) return;
-        const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name ? m.defId : null, loadout: m.loadout ?? null, guns: m.guns ?? null }, DT);
+        const reason = changeSeat(world, p, { team: TEAMS.includes(m.team) ? m.team : p.team, defId: content.planeDefs[m.defId]?.name && !content.planeDefs[m.defId].retired ? m.defId : null, loadout: m.loadout ?? null, guns: m.guns ?? null }, DT);
         resetPoses();
         g.conn.send({ t: 'seat', reason });
         sidesChanged();

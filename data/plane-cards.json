@@ -49,18 +49,6 @@
       "tightBelow": 108,
       "stiffAbove": 170
     },
-    "ki43": {
-      "speedLow": 139,
-      "speedHigh": 117,
-      "climb": 49,
-      "turn": 3.7,
-      "dive": 210,
-      "firepower": 14.4,
-      "toughness": 70,
-      "stall": 50,
-      "tightBelow": 100,
-      "stiffAbove": 140
-    },
     "a6m5": {
       "speedLow": 124,
       "speedHigh": 112,

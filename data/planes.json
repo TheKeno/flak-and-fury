@@ -704,6 +704,7 @@
     "name": "Ki-43-II Hayabusa",
     "nation": "japan",
     "role": "fighter",
+    "retired": true,
     "sprite": "ki43",
     "pivot": [
       47,

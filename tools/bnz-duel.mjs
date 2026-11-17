@@ -5,7 +5,7 @@
 // opponent flying its own trained tactics: where does the style win and where does it lose?
 //
 //   node tools/bnz-duel.mjs [planes a,b,..] [--seeds N] [--minutes N] [--over H] [--style S] [--tac '{"breakOff":1.5}']
-//   node tools/bnz-duel.mjs p47d,bf109g6 --style 0.5 --over 0 --vs bf109g6,spitfire,p47d,la5fn,ki43,b239
+//   node tools/bnz-duel.mjs p47d,bf109g6 --style 0.5 --over 0 --vs bf109g6,spitfire,p47d,la5fn,a6m5,b239
 import { availableParallelism } from 'node:os';
 import { loadContent, runPool } from './balance.mjs';
 import { tacticsIn } from '../src/sim/tactics.js';

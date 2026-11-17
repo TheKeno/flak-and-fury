@@ -17,6 +17,15 @@ test('nation filter lists only that nation', () => {
   for (const id of planeIds(planes, 'uk')) assert.equal(planes[id].nation, 'uk');
 });
 
+test('a retired plane (the Ki-43, replaced by the Zero) is not offered in the hangar or flown by bots', async () => {
+  assert.ok(planes.ki43.retired && planes.ki43.name);
+  assert.ok(!ids.includes('ki43') && ids.includes('a6m5'));
+  const { randomPlane } = await import('../src/sim/world.js');
+  const rng = { s: 1, next() { this.s = (this.s * 16807) % 2147483647; return this.s / 2147483647; } };
+  const world = { planeDefs: planes, rng, bots: { mixFighter: 1 } };
+  for (let i = 0; i < 300; i++) assert.notEqual(randomPlane(world), 'ki43');
+});
+
 test('every preset is valid and matches itself', () => {
   for (const id of ids) {
     const def = planes[id];

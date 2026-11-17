@@ -168,7 +168,7 @@ export function addPlane(world, { defId, team, nation, controller }) {
 // A bot's plane: a role by the mix weights (bots.mix*), then any plane of that role.
 const MIX_ROLES = [['fighter', 'mixFighter'], ['heavy fighter', 'mixHeavy'], ['dive bomber', 'mixDiveBomber']];
 export function randomPlane(world) {
-  const named = Object.keys(world.planeDefs).filter((id) => world.planeDefs[id]?.name);
+  const named = Object.keys(world.planeDefs).filter((id) => world.planeDefs[id]?.name && !world.planeDefs[id].retired);
   const roles = MIX_ROLES.map(([role, key]) => [named.filter((id) => world.planeDefs[id].role === role), world.bots[key] ?? 0]).filter(([ids, w]) => ids.length && w > 0);
   if (!roles.length) return named[Math.floor(world.rng.next() * named.length)];
   let at = world.rng.next() * roles.reduce((n, [, w]) => n + w, 0);

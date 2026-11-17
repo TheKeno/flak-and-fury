@@ -882,6 +882,10 @@ later.
   Navy hinomaru with a thin white surround (`hinomaru(..., inner)`), yellow inner leading-edge strips. Colours
   are Japan's paint in `data/nations.json`. `data/planes.json` `a6m5`: sprite, nose, exhaust and wheels
   refitted from the model.
+- **Ki-43 retired (Planes, 2026-11-17):** `retired: true` in `data/planes.json`: the hangar doesn't offer it
+  (offline or as an online guest), bots don't pick it, it has no hangar card, and the tools' default plane lists
+  name the Zero instead. It stays in the data (outline, model, sound, `?plane=ki43`) as the template for other
+  Japanese planes. Not part of balancing.
 - **Keyboard control of the menus (UI, 2026-11-17):** the arrow keys move through the title, setup, options and
   pause screens by where the controls sit (`src/ui/menu-keys.js`); the first press only shows where you are (the
   screen's main button, outlined in gold), Enter presses, Esc goes back (now also from the setup and join screens
