@@ -372,6 +372,8 @@ const ZONE_FIELDS = [
   ['village', 'Village: hills kept', 0, 1, 0.01, 'Share of the hills kept in a Village zone. Applies on reload.'],
   ['wood', 'Wood: hills kept', 0, 1.5, 0.05, 'Share of the hills kept in a Wood zone. Applies on reload.'],
   ['ridge', 'Ridge: hills kept', 0, 1.5, 0.05, 'Share of the hills kept in a Ridge zone. Above 1 = steeper than the noise. Applies on reload.'],
+  ['balkaDepth', 'Balka: depth', 0, 60, 1, 'How far a Balka zone (a dry ravine) is cut below its rims. Applies on reload.'],
+  ['balkaSide', 'Balka: side slope', 5, 120, 1, 'Distance over which a balka’s sides slope down to its floor (smaller = steeper). Applies on reload.'],
   ['blend', 'Zone blend', 10, 300, 5, 'Distance over which one kind of ground eases into the next. Applies on reload.'],
 ];
 const RAID_FIELDS = [

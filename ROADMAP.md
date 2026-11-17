@@ -534,7 +534,7 @@ later.
     band retuned. Each step its own session. (Order changed 2026-11-16: steps 2 and 3 are new, the rest moved
     down.)
   - **Kursk map, first pass: build it and fly it (owner, 2026-11-17; discussion "Design — Kursk map and the target
-    chain", topic 1 of 6; not built):** the layout is judged by flying, so a playable blockout comes before the rest of
+    chain", topic 1 of 6; **built 2026-11-17**, see Done "Kursk map, first pass"):** the layout is judged by flying, so a playable blockout comes before the rest of
     step 4 is discussed. **Layout:** new file `maps/kursk.ldtk` (countryside stays for tests and the Balance Lab),
     about 6000 wide, ceiling 1200, Germany on the left. Left to right: German airfield (0-800, radar at the map edge),
     German depot (about 1200, in a tree belt), German forward position (1600-2200: izba village, orchard with the Pak
@@ -904,6 +904,24 @@ later.
 
 ## Done
 
+- **Kursk map, first pass (Gameplay, 2026-11-17; Decisions, "Direction: the front", "Kursk map, first pass"):** a
+  blockout to fly before the rest of step 4 is discussed. **`?map=<name>`** picks a map from `maps/` (default
+  countryside; a guest must open the same one as its host). **Balka zone** (`src/sim/terrain.js` `cutBalkas`): a dry
+  ravine, rims levelled, floor cut `balkaDepth` 22 below them with sides sloping over `balkaSide` 40; cut before the
+  structure pads, so a gun in it stands on the floor (settings `zones`, tuning panel Landscape zones, TUNING.md, test in
+  `tests/zones.test.mjs`). **`maps/kursk.ldtk`** (guide `maps/kursk-guide.png`), 6000 wide, style `steppe` (a new level
+  field), dusty summer sky, made once by `tools/scratch/make-kursk.mjs` (refuses to run over the file; the map is the
+  owner's now, edited in LDtk; countryside untouched): seed 2093, picked so the middle is a hill about 30 above the
+  station and the farm. Germany left (airfield 140-560, radar at the edge, 2 heavy and 1 light flak there; depot 1200
+  in a tree belt with 2 heavy flak; forward position: izba village 1590-1820 with a windmill, the orchard east of it
+  with 2 anti-tank guns, 3 light flak, 2 MG nests, 2 squads, dugout, wire, hedgehog), wheat field 2240-2640, the
+  middle without guns (station hamlet, water tower, elevator, trade row, a shelled house, Hill 252.2 as a Ridge
+  2880-3120, the collective farm's cowsheds, telegraph poles), sunflower field 3360-3760, and the USSR mirrored (a
+  church instead of the windmill; the ZiS-3 battery, a light gun and a squad down in a balka 3910-4130 where the
+  Germans have their orchard; mine sign, more wire). Two open-steppe balkas (930, 4940). The fields are kept clear
+  to land on. No sim changes: waves from the depots, the front where the tanks meet (they met on the hill in the first
+  look). `tests/kursk.test.mjs`: the map loads, both sides armed, the hill, waves roll. **Not yet:** the anti-tank
+  ditch and trenches (no pieces), the railway itself (poles only), the five targets as targets.
 - **Trucks drive into anti-tank guns' reach (Gameplay, 2026-11-17):** trucks unloaded about 300 short of any enemy,
   out of a gun's reach (260), so the guns almost never shelled a truck. `shouldUnload` in `src/sim/army.js` now
   leaves anti-tank guns out of the dismount-range check (`enemyAhead(world, u, 'atGun')`); a truck still unloads for
@@ -1360,8 +1378,9 @@ Then: more themes, co-op missions, matchmaking.
 
 ## In progress
 
-- **Design — Kursk map and the target chain (discussion):** topic 1 (layout) goes to a blockout build first (Decisions,
-  "Direction: the front", "Kursk map, first pass"); topics 2-6 are discussed after the owner has flown it.
+- **Design — Kursk map and the target chain (discussion):** the blockout is built (Done, "Kursk map, first pass"); the
+  owner flies it (`http://localhost:8080/?mute&map=kursk`), then topics 2-6 are discussed in a fresh session (Decisions,
+  "Direction: the front", "Kursk map, first pass").
 
 - **Owner test flight of milestone 8 step 3 and the weather (Gameplay):** raids, heavy flak against them, the cloud layer,
   rain (`?rain`) and searchlights (`?night`) are built and pushed but not yet flown by the owner; the step 3 Done entry

@@ -198,7 +198,9 @@
     "ridge": 0.85,
     "fieldTilt": 0.025,
     "fieldSwell": 3,
-    "blend": 120
+    "blend": 120,
+    "balkaDepth": 22,
+    "balkaSide": 40
   },
   "decor": {
     "hedgeDamage": 6,

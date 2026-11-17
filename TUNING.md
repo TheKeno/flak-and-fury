@@ -657,17 +657,21 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   the high-rated planes; it sits above the level's 800-high box in the editor, which is fine: the game only
   uses x positions), `terrainBase`/`terrainAmplitude` (hill height) and the three sky colours. The
   level's width is the world's width.
+  The Kursk map (`maps/kursk.ldtk`, `?map=kursk`) also has `style` (`steppe`: low horizon, steppe trees,
+  izba villages from the Village zones). Its guide picture: `node tools/map-guide.mjs kursk`.
 - **Objects layer:** `Airfield` (stretch it for a longer runway; `team` and `nation`), `Flak` (the heavy
   gun), `LightFlak`, `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`, `Depot`
   (sends out that side's tank waves). Each has a `team` (Team_0 is the west airfield's side). Only the x
   position matters: the game stands every object on the ground. Every airfield gets a hangar by itself.
-- **Zones layer:** `Field`, `Village`, `Wood`, `Ridge`: stretch each over the ground it covers. A field
+- **Zones layer:** `Field`, `Village`, `Wood`, `Ridge`, `Balka`: stretch each over the ground it covers. A field
   is long, nearly flat farmland (make it at least runway length, 420, to land on), a village is level
   ground for a few farms, a wood is gentle, a ridge keeps the hills. Ground in no zone is rolling
   country. How strongly each shapes the ground is in `settings.json` → `zones` (tuning panel:
   Landscape zones; applies on reload): `open`, `field`, `village`, `wood`, `ridge` are the share of the
   hills kept, `fieldTilt` and `fieldSwell` give each field its own gentle tilt and long low roll, and
-  `blend` is how far one kind of ground eases into the next (neighbouring zones crossfade). Redraw the
+  `blend` is how far one kind of ground eases into the next (neighbouring zones crossfade). A `Balka` is a
+  dry steppe ravine: its rims are levelled and its floor cut `balkaDepth` (22) below them, the sides sloping
+  down over `balkaSide` (40) units; a gun placed in it stands on the floor. Redraw the
   guide picture after moving zones.
 - **`Bridge`** puts a river under itself with a bridge across: stretch it to set the river's width. It
   belongs to neither side. Redraw the guide picture after moving it.

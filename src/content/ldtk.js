@@ -55,7 +55,7 @@ export const GROUND_ENTITIES = {
 };
 
 // LDtk zone entity -> zone type.
-export const ZONE_ENTITIES = { Field: 'field', Village: 'village', Wood: 'wood', Ridge: 'ridge' };
+export const ZONE_ENTITIES = { Field: 'field', Village: 'village', Wood: 'wood', Ridge: 'ridge', Balka: 'balka' };
 
 const fieldsOf = (instances) => Object.fromEntries((instances ?? []).map((f) => [f.__identifier, f.__value]));
 const teamOf = (v) => (v == null ? null : Number(String(v).replace(/\D/g, '')));

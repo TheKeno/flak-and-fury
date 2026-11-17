@@ -13,8 +13,9 @@ export const DEFAULT_PADS = { margin: 4, blend: 40 };
 // How the map's zones shape the ground. open, field, village, wood, ridge: share of the hills' ups and
 // downs kept (around the zone's own average height; open is ground in no zone). fieldTilt: steepest
 // gentle slope across a field (rise per unit); fieldSwell: height of a field's long, low roll.
-// blend: distance over which one kind of ground eases into the next.
-export const DEFAULT_ZONES = { open: 0.75, field: 0.05, village: 0.05, wood: 0.5, ridge: 0.85, fieldTilt: 0.025, fieldSwell: 3, blend: 120 };
+// blend: distance over which one kind of ground eases into the next. balkaDepth, balkaSide: a balka (a dry
+// steppe ravine) is cut this far below its rims, its sides sloping down over balkaSide units on each edge.
+export const DEFAULT_ZONES = { open: 0.75, field: 0.05, village: 0.05, wood: 0.5, ridge: 0.85, fieldTilt: 0.025, fieldSwell: 3, blend: 120, balkaDepth: 22, balkaSide: 40 };
 
 // Level ground for each structure placed on the map (guns, tents, buildings...: anything drawn with a
 // sprite), so none stands tilted on a hillside. Squads and the bridge stand on the ground as it is.
@@ -41,6 +42,7 @@ function shapeZones(map, heights, cfg) {
   const weight = new Float32Array(width + 1);
   const sum = new Float32Array(width + 1);
   for (const z of map.zones ?? []) {
+    if (z.type === 'balka') continue; // cut into the ground afterwards (cutBalkas)
     const a = z.x;
     const b = z.x + z.width;
     let total = 0;
@@ -59,6 +61,30 @@ function shapeZones(map, heights, cfg) {
     }
   }
   for (let x = 0; x <= width; x++) if (weight[x] > 0) heights[x] = lerp(heights[x], sum[x] / weight[x], Math.min(1, weight[x]));
+}
+
+// Balkas: dry ravines cut into the steppe. The rims are levelled to one height (eased into the country
+// around, like a river's banks), then the floor is dug balkaDepth below them with sloping sides. Done before
+// the structure pads, so a gun placed in a balka stands on its floor.
+function cutBalkas(map, heights, cfg) {
+  const { width } = map;
+  const depth = cfg.balkaDepth ?? DEFAULT_ZONES.balkaDepth;
+  const side = Math.max(1, cfg.balkaSide ?? DEFAULT_ZONES.balkaSide);
+  const blend = Math.max(1, cfg.blend ?? DEFAULT_ZONES.blend) / 2;
+  for (const z of map.zones ?? []) {
+    if (z.type !== 'balka') continue;
+    const left = z.x;
+    const right = z.x + z.width;
+    const rim = (heights[Math.max(0, left)] + heights[Math.min(width, right)]) / 2;
+    for (let x = Math.max(0, Math.floor(left - blend)); x <= Math.min(width, Math.ceil(right + blend)); x++) {
+      let t = 1;
+      if (x < left) t = smooth((x - (left - blend)) / blend);
+      else if (x > right) t = smooth((right + blend - x) / blend);
+      heights[x] = lerp(heights[x], rim, t);
+      const inside = Math.min(x - left, right - x); // distance in from the nearer rim
+      if (inside > 0) heights[x] = rim - depth * smooth(Math.min(1, inside / Math.min(side, z.width / 2)));
+    }
+  }
 }
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -85,6 +111,7 @@ export function buildTerrain(map, pads = [], zones = DEFAULT_ZONES) {
     heights[x] = base + amplitude * (0.8 * big(x) + 0.2 * detail(x));
   }
   shapeZones(map, heights, zones);
+  cutBalkas(map, heights, zones);
 
   // Flatten airfields, blending smoothly into the surrounding hills.
   for (const af of map.airfields) {

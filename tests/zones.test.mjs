@@ -112,3 +112,31 @@ test('rolling into a stone wall tears the gear off: down on the belly', () => {
   assert.equal(p.gear, 0);
   assert.notEqual(p.state, 'dead');
 });
+
+test('a balka is a ravine cut below level rims, and a gun in it stands on the floor', () => {
+  const groundDefs = load('data/ground.json');
+  delete groundDefs._notes;
+  const map = importLdtk(load('maps/countryside.ldtk'));
+  // A balka in open country between the west field and the ridge's far side, with a gun in the middle of it.
+  const balka = { type: 'balka', x: 1500, width: 160 };
+  map.zones = map.zones.filter((z) => z.x + z.width < 1400 || z.x > 1760).concat(balka).sort((a, b) => a.x - b.x);
+  map.ground = map.ground.filter((o) => o.x < 1400 || o.x > 1760).concat({ type: 'atGun', x: 1580, team: 0 });
+  const world = createWorld({
+    map,
+    planeDefs: load('data/planes.json'),
+    weapons: load('data/weapons.json'),
+    groundDefs,
+    pads: { ...settings.pads },
+    zones: { ...settings.zones },
+    decor: { ...settings.decor },
+    waves: { first: 1e6 },
+    rules: { bots: 'off' },
+  });
+  const h = world.terrain.heightAt;
+  const rim = (h(balka.x) + h(balka.x + balka.width)) / 2;
+  assert.ok(Math.abs(h(balka.x) - h(balka.x + balka.width)) < 1, 'both rims at one height');
+  assert.ok(rim - h(1580) > settings.zones.balkaDepth - 2, `floor ${(rim - h(1580)).toFixed(1)} below the rims`);
+  const gun = world.ground.find((o) => o.type === 'atGun' && o.x === 1580);
+  assert.ok(gun, 'gun placed');
+  assert.ok(rim - h(gun.x) > settings.zones.balkaDepth - 2, 'the gun stands down on the floor');
+});

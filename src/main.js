@@ -30,7 +30,8 @@ import { shotDownMessage } from './ui/shotdown-text.js';
 const canvas = document.getElementById('screen');
 const overlay = document.getElementById('start');
 
-const content = await loadContent('countryside');
+// ?map=kursk picks a map from maps/ (default: countryside). A guest must open the same ?map as its host.
+const content = await loadContent(new URLSearchParams(location.search).get('map')?.replace(/[^\w-]/g, '') || 'countryside');
 // ?style=steppe dresses today's map as the steppe (low horizon, steppe trees, izba villages), to look at
 // before the Kursk map exists. Single player only: a guest's map must be the host's.
 if (new URLSearchParams(location.search).has('style')) content.map.style = new URLSearchParams(location.search).get('style');
