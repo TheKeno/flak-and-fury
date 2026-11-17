@@ -1335,8 +1335,9 @@ Then: more themes, co-op missions, matchmaking.
 
 
 
+- **Anti-tank guns and trucks (Gameplay)** (session "Gameplay — anti-tank guns vs trucks"): trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck; settle the fix with the owner, then build.
+
 ## Backlog
-- **Anti-tank guns and trucks (Gameplay):** trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck. Decide: trucks ignore guns for dismounting until fired on, a longer gun reach, or leave it (guns are for tanks). Found 2026-11-17 (Done, "Anti-tank guns").
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
 - **Fly the Stuka fix (Gameplay):** part 3e made dive bombers reach `bots.bomberRange` and bomb tanks under flak (headless: 0.8 → 8.8 bombs a run, no patrol sawtooth); the owner hasn't flown it yet. Check: `?plane=spitfire&enemy=ju87`, do the Stukas go for tanks and bomb?
