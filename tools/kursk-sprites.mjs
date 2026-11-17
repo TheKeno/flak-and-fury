@@ -1595,6 +1595,33 @@ function wingBand(g, nose, [le0, te0, y0], [le1, te1, y1]) {
   }
 }
 
+// A radial engine in its cowl, seen from the side, facing right: a drum from column xr (rear) to xf (front),
+// rows yt..yb, its front lip rounded, lit along the top and shaded below, the dark opening and the hub in front,
+// the cooling gills as a line at the back, and one propeller blade standing (the game draws the turning disc).
+function cowl(g, xr, xf, yt, yb, blade = 13) {
+  const cy = (yt + yb) / 2;
+  for (let x = xr; x <= xf; x++) {
+    const lip = x === xf ? 2 : x === xf - 1 ? 1 : 0;
+    for (let y = yt + lip; y <= yb - lip; y++) g.set(x, y, x === xr ? 'e' : y < yt + (yb - yt) * 0.3 ? 'B' : y > yb - 2 ? 'U' : 'S');
+  }
+  g.box(xf, Math.round(cy) - 3, xf, Math.round(cy) + 3, 'e'); // the opening
+  g.box(xf + 1, Math.round(cy) - 1, xf + 2, Math.round(cy) + 1, 'I'); // hub
+  g.box(xf + 2, Math.round(cy) - blade, xf + 2, Math.round(cy) + blade, 'i');
+}
+// A bare radial (no cowl): the ring of finned cylinders, the exhaust collector ring behind it, the crankcase
+// nose, one propeller blade.
+function bareRadial(g, xr, xf, yt, yb, blade = 13) {
+  const cy = (yt + yb) / 2;
+  for (let x = xr; x <= xf; x++) {
+    const lip = x === xf || x === xr ? 1 : 0;
+    for (let y = yt + lip; y <= yb - lip; y++) g.set(x, y, Math.abs(y - cy) < 2.5 ? 'i' : y % 2 === 0 ? 'I' : 'e');
+  }
+  g.box(xr - 2, yt - 1, xr - 1, yb + 1, 'i'); // collector ring
+  g.box(xf + 1, Math.round(cy) - 2, xf + 2, Math.round(cy) + 2, 'i');
+  g.box(xf + 3, Math.round(cy) - 1, xf + 3, Math.round(cy) + 1, 'I');
+  g.box(xf + 3, Math.round(cy) - blade, xf + 3, Math.round(cy) + blade, 'i');
+}
+
 // Junkers Ju 52/3m, measured off the owner's 3-view (side view, 52.8 drawing pixels a metre; here 10 a metre):
 // 18.9 m from the nose engine to the rudder. The fuselage top is one straight line from the cockpit to the
 // fin; the belly is deepest over the wing and climbs to the tail. Short nose stepping down from the raised
@@ -1621,10 +1648,7 @@ function ju52() {
   g.box(nose - 178, T + 1, nose - 155, T + 2, 'W'); // tailplane, edge on
   g.line(nose - 159, T + 3, nose - 159, T + 9, 'e'); // its strut
   // Nose engine: the bare radial behind its exhaust collector ring, the hub.
-  g.box(nose - 5, T + 8, nose - 1, T + 23, 'e');
-  g.box(nose - 6, T + 7, nose - 5, T + 24, 'I');
-  g.box(nose - 2, T + 9, nose - 2, T + 22, 'I');
-  g.box(nose, T + 14, nose, T + 17, 'I');
+  bareRadial(g, nose - 5, nose - 1, T + 8, T + 23);
   // Cockpit glazing: the raked windscreen and the side panes.
   for (let d = 20; d <= 31; d++) g.box(nose - d, Math.round(top(d)) + 1, nose - d, T + 9 - (d < 23 ? 23 - d : 0) * 2, d === 24 || d === 28 ? 'e' : d < 24 ? 'c' : 'C');
   // Seven cabin windows, the door, the porthole.
@@ -1640,10 +1664,8 @@ function ju52() {
     g.box(nose - d - 2, y, nose - d, y, '1');
   }
   // The near wing engine: the ring cowl low at the leading edge, its nacelle fairing back under the wing.
-  for (let d = 22; d <= 44; d++) g.box(nose - d, Math.round(d < 32 ? T + 14 : lerp(T + 16, T + 24, (d - 32) / 12)), nose - d, Math.round(d < 32 ? T + 29 : lerp(T + 29, T + 28, (d - 32) / 12)), d < 32 ? 'B' : 'W');
-  g.box(nose - 23, T + 14, nose - 22, T + 29, 'e');
-  g.box(nose - 32, T + 13, nose - 31, T + 30, 'I');
-  g.box(nose - 21, T + 20, nose - 19, T + 23, 'I'); // hub
+  for (let d = 33; d <= 46; d++) g.box(nose - d, Math.round(lerp(T + 16, T + 25, (d - 33) / 13)), nose - d, Math.round(lerp(T + 29, T + 28, (d - 33) / 13)), d > 44 ? 'W' : 'S');
+  cowl(g, nose - 32, nose - 22, T + 14, T + 29);
   // Undercarriage: one long leg to the wheel, the brace back to the wing; tail wheel on its fork.
   g.line(nose - 43, T + 29, nose - 45, T + 40, 'I');
   g.line(nose - 44, T + 29, nose - 46, T + 40, 'e');
@@ -1700,11 +1722,12 @@ function li2() {
   // The near engine: cowl ahead of the leading edge, the nacelle back over the wing, the wheel under it.
   g.disc(nose - 52, T + 31, 5, 'e');
   g.disc(nose - 52, T + 31, 2, 'I');
-  for (let d = 27; d <= 72; d++) {
-    const lip = d < 30 ? 30 - d : 0; // the cowl's rounded lip
-    g.box(nose - d, Math.round(d < 40 ? T + 17 : lerp(T + 17, T + 25, (d - 40) / 32)) + lip, nose - d, Math.round(d < 58 ? T + 31 : lerp(T + 31, T + 28, (d - 58) / 14)) - lip, d < 29 ? 'e' : d < 38 ? 'B' : d < 40 ? 'e' : 'W');
+  for (let d = 40; d <= 74; d++) {
+    const t = Math.round(lerp(T + 18, T + 26, (d - 40) / 34));
+    const b = Math.round(d < 58 ? T + 31 : lerp(T + 31, T + 28, (d - 58) / 16));
+    for (let y = t; y <= b; y++) g.set(nose - d, y, y === b ? 'U' : y < t + 2 ? 'B' : 'S');
   }
-  g.box(nose - 26, T + 22, nose - 24, T + 26, 'I'); // hub
+  cowl(g, nose - 39, nose - 27, T + 17, T + 31);
   // Tail wheel on its strut.
   g.line(nose - 162, T + 14, nose - 165, T + 19, 'I');
   g.disc(nose - 166, T + 20, 2, 'e');
