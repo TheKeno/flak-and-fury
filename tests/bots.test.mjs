@@ -79,9 +79,9 @@ test('a bot takes off, patrols behind the front and stays out of the ground and 
         return false;
       },
     });
-    // An easy pilot flies through flak and, shot up, sometimes crashes on its own (about half of all seeds,
-    // before the guns and damage pass too; see the ROADMAP backlog): only the better levels must not.
-    if (skill !== 'easy') assert.deepEqual(ownFault(events, p), [], `${skill}: ${describe(ownFault(events, p))}`);
+    // An easy pilot flies through flak and is hit, but must not crash on its own afterwards (it did on about half
+    // of all seeds until 2026-11-17; 0 of 70 now).
+    assert.deepEqual(ownFault(events, p), [], `${skill}: ${describe(ownFault(events, p))}`);
     // An easy pilot flies through flak, so it may be hit and sent home: then it must have been serviced and flown again.
     const mine = (type) => events.filter((e) => e.type === type && e.plane === p.id);
     const back = mine('touchdown')[0];
