@@ -2123,7 +2123,7 @@ function multi(o) {
   };
 }
 
-export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim, ju52: multi, li2: multi, he111: multi, pe8: multi }).map(([k, f]) => [k, withBumps(f)]));
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim, ju52: multi, li2: multi, he111: multi, pe8: multi, b17f: multi, lancaster: multi, he177: multi, g4m1: multi }).map(([k, f]) => [k, withBumps(f)]));
 // Ground vehicles: an outline with `vehicle: 'tank'` is built by the tank model (VEHICLE_BUILDERS).
 export const VEHICLE_BUILDERS = { tank: withBumps(tank), truck: withBumps(truck) };
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's

@@ -857,7 +857,10 @@ later.
   door frames each); the **Ju 52, Li-2, He 111 H-16 and Pe-8** (outline files `data/outlines/ju52.json`, `li2.json`, `he111.json`,
   `pe8.json`, built by the general model `multi` in `tools/plane-models.mjs`: no markings, windows or panel lines yet; the two
   transports' side views measured by eye off the owner's 3-views, the two bombers from published dimensions; all four to be
-  fitted in the Outline Lab, then `data/planes.json`; sheet `notes/kursk-assets-preview-4.png`); **Tiger and SU-152** (`data/outlines/tiger.json`, `su-152.json`: starters from published
+  fitted in the Outline Lab, then `data/planes.json`; sheet `notes/kursk-assets-preview-4.png`; the He 111 and Pe-8 since
+  remeasured off the owner's 3-views); the other nations' heavy bombers **B-17F, Lancaster, He 177 A-3, G4M1** the same way
+  (`b17f.json`, `lancaster.json`, `he177.json`, `g4m1.json`: published dimensions only, the owner supplies 3-views later;
+  sheet 5); **Tiger and SU-152** (`data/outlines/tiger.json`, `su-152.json`: starters from published
   dimensions, to be fitted over the owner's 3-views in the Outline Lab, then the tank roster). The guns' and the
   timber wrecks' looks are a first pass.
 

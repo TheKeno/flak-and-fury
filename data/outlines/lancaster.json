@@ -1,0 +1,400 @@
+{
+ "plane": "lancaster",
+ "sprite": {
+  "size": [
+   228,
+   90
+  ],
+  "pivot": [
+   114,
+   42
+  ]
+ },
+ "_notes": "Metres. d = back from the reference nose point, h = up from the reference line (here the middle of the fuselage), z = out from the centre line. Stations are [d, top h, bottom h, half width]; edge tables are [along, d] (tailplane and wing: along = metres out from the root, fin: along = h). scale = model units per metre; frame = where d = 0, h = 0 sits in the model. Built by the general multi-engine model (multi in tools/plane-models.mjs), which reads only the outline: no markings or panel lines yet. STARTER from published dimensions and memory, NOT from a 3-view: every part needs fitting in the Outline Lab once the owner has a drawing. Avro Lancaster B.I/III (UK). Deep slab-sided fuselage, long greenhouse canopy, a mid wing with four underslung Merlins, twin oval fins at the tailplane's tips (fins, with z). Nose turret is bump, mid-upper turret bump2, tail turret bump3; outer engines nacelle2 and spinner2.",
+ "length": 21.18,
+ "span": 31.09,
+ "scale": 5,
+ "frame": {
+  "x": 52.95,
+  "y": 0
+ },
+ "fuselage": {
+  "n": 4,
+  "stations": [
+   [
+    0,
+    0.3,
+    -0.9,
+    0.3
+   ],
+   [
+    0.8,
+    0.8,
+    -1.2,
+    0.7
+   ],
+   [
+    2.2,
+    1.1,
+    -1.4,
+    0.9
+   ],
+   [
+    4.0,
+    1.2,
+    -1.45,
+    0.9
+   ],
+   [
+    12.0,
+    1.2,
+    -1.4,
+    0.9
+   ],
+   [
+    17.0,
+    1.05,
+    -0.7,
+    0.7
+   ],
+   [
+    20.4,
+    0.9,
+    -0.2,
+    0.45
+   ],
+   [
+    21.18,
+    0.75,
+    -0.1,
+    0.4
+   ]
+  ]
+ },
+ "canopy": {
+  "n": 3,
+  "stations": [
+   [
+    2.6,
+    1.15,
+    1.0,
+    0.5
+   ],
+   [
+    3.0,
+    1.75,
+    1.0,
+    0.6
+   ],
+   [
+    5.4,
+    1.75,
+    1.0,
+    0.6
+   ],
+   [
+    6.2,
+    1.3,
+    1.0,
+    0.45
+   ]
+  ]
+ },
+ "bump": {
+  "n": 2.3,
+  "kind": "glass",
+  "stations": [
+   [
+    0.0,
+    0.5,
+    -0.2,
+    0.3
+   ],
+   [
+    0.4,
+    0.95,
+    -0.4,
+    0.5
+   ],
+   [
+    1.1,
+    1.05,
+    -0.3,
+    0.55
+   ]
+  ]
+ },
+ "bump2": {
+  "n": 2.5,
+  "kind": "glass",
+  "stations": [
+   [
+    11.6,
+    1.2,
+    1.1,
+    0.3
+   ],
+   [
+    11.9,
+    1.7,
+    1.1,
+    0.45
+   ],
+   [
+    12.6,
+    1.7,
+    1.1,
+    0.45
+   ],
+   [
+    12.9,
+    1.2,
+    1.1,
+    0.3
+   ]
+  ]
+ },
+ "bump3": {
+  "n": 2.3,
+  "kind": "glass",
+  "stations": [
+   [
+    20.4,
+    0.9,
+    -0.2,
+    0.45
+   ],
+   [
+    21.0,
+    0.85,
+    -0.15,
+    0.45
+   ],
+   [
+    21.18,
+    0.6,
+    0.0,
+    0.3
+   ]
+  ]
+ },
+ "nacelle": {
+  "n": 2.3,
+  "z": 3.6,
+  "stations": [
+   [
+    2.7,
+    0.0,
+    -0.9,
+    0.3
+   ],
+   [
+    3.2,
+    0.2,
+    -1.3,
+    0.48
+   ],
+   [
+    5.0,
+    0.2,
+    -1.6,
+    0.55
+   ],
+   [
+    8.0,
+    0.0,
+    -1.5,
+    0.5
+   ],
+   [
+    9.6,
+    -0.3,
+    -0.9,
+    0.2
+   ]
+  ]
+ },
+ "spinner": {
+  "n": 2,
+  "z": 3.6,
+  "stations": [
+   [
+    2.0,
+    -0.35,
+    -0.45,
+    0.05
+   ],
+   [
+    2.7,
+    -0.1,
+    -0.75,
+    0.3
+   ]
+  ]
+ },
+ "nacelle2": {
+  "n": 2.3,
+  "z": 7.7,
+  "stations": [
+   [
+    3.4,
+    0.25,
+    -0.65,
+    0.3
+   ],
+   [
+    3.9,
+    0.45,
+    -1.05,
+    0.48
+   ],
+   [
+    5.7,
+    0.45,
+    -1.1,
+    0.5
+   ],
+   [
+    7.6,
+    0.25,
+    -0.7,
+    0.2
+   ]
+  ]
+ },
+ "spinner2": {
+  "n": 2,
+  "z": 7.7,
+  "stations": [
+   [
+    2.7,
+    -0.1,
+    -0.2,
+    0.05
+   ],
+   [
+    3.4,
+    0.15,
+    -0.5,
+    0.3
+   ]
+  ]
+ },
+ "wing": {
+  "root": [
+   4.4,
+   9.9
+  ],
+  "tip": [
+   6.6,
+   8.6
+  ],
+  "span": 15.5,
+  "at": 0.1,
+  "rise": 0.07,
+  "thick": 0.55,
+  "round": 0.2
+ },
+ "tailplane": {
+  "root": [
+   18.6,
+   20.9
+  ],
+  "tip": [
+   18.9,
+   20.7
+  ],
+  "span": 5.0,
+  "at": 0.75,
+  "thick": 0.1,
+  "round": 0.1
+ },
+ "fins": {
+  "root": [
+   18.75,
+   20.95
+  ],
+  "span": 3.7,
+  "at": -1.1,
+  "thick": 0.09,
+  "round": 0,
+  "z": 5.0,
+  "le": [
+   [
+    -1.1,
+    19.6
+   ],
+   [
+    -0.4,
+    18.9
+   ],
+   [
+    0.8,
+    18.75
+   ],
+   [
+    2.0,
+    19.1
+   ],
+   [
+    2.6,
+    19.9
+   ]
+  ],
+  "te": [
+   [
+    -1.1,
+    19.9
+   ],
+   [
+    -0.4,
+    20.7
+   ],
+   [
+    0.8,
+    20.95
+   ],
+   [
+    2.0,
+    20.7
+   ],
+   [
+    2.6,
+    19.9
+   ]
+  ]
+ },
+ "points": [
+  {
+   "type": "pilot",
+   "d": 3.6,
+   "h": 1.4
+  }
+ ],
+ "gear": {
+  "main": {
+   "d": 5.6,
+   "h": -3.3,
+   "half": 3.6,
+   "r": 0.8
+  },
+  "tail": {
+   "d": 19.6,
+   "h": -1.0,
+   "r": 0.33
+  }
+ },
+ "props": [
+  {
+   "d": 2.0,
+   "h": -0.4,
+   "z": 3.6
+  },
+  {
+   "d": 2.7,
+   "h": -0.15,
+   "z": 7.7
+  }
+ ],
+ "propRadius": 1.98
+}

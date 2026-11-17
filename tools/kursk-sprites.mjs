@@ -1872,7 +1872,15 @@ function preview() {
   sheetOf('kursk-assets-preview-4.png', [
     [paintGame('ju52', german), paintGame('he111', german)],
     [paintGame('li2', soviet), paintGame('pe8', soviet)],
-    [painted(KURSK_PLANES.ju52, german), painted(KURSK_PLANES.li2, soviet)],
+    [game('blenheim'), game('bf109g6')],
+  ]);
+  // Sheet 5: the other nations' heavy bombers, from published dimensions (no 3-view yet).
+  const usa = { B: [86, 90, 62, 255], S: [68, 72, 50, 255], W: [58, 62, 44, 255], U: [128, 132, 130, 255], 1: [102, 106, 104, 255] };
+  const uk = { B: [74, 70, 54, 255], S: [56, 62, 46, 255], W: [46, 50, 38, 255], U: [34, 34, 36, 255], 1: [26, 26, 28, 255] };
+  const japan = { B: [58, 74, 56, 255], S: [46, 60, 46, 255], W: [38, 50, 40, 255], U: [142, 146, 140, 255], 1: [114, 118, 112, 255] };
+  sheetOf('kursk-assets-preview-5.png', [
+    [paintGame('b17f', usa), paintGame('lancaster', uk)],
+    [paintGame('he177', german), paintGame('g4m1', japan)],
     [game('blenheim'), game('bf109g6')],
   ]);
   const e = img(KURSK_EXTRA);
