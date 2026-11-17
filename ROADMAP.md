@@ -7,6 +7,15 @@ later.
 
 ## Decisions
 
+- **Pull fights up: flak and high bombers closed (decided 2026-11-17, discussion; nothing to build):** the backlog item
+  "Pull fights up" is mostly built: heavy flak (`flak`, from 400 up, fix builds on a plane flying straight), light flak
+  (`lightFlak`, `maxAltitude`), AI bomber raids and the cloud layer (Done, milestone 8 step 3 and "Cloud layer").
+  Measured with all of them: fighters still fall 72% low, 26% mid, 3% high (`notes/height-count-2026-11-17.txt`); a
+  "don't follow down" bot rule was tried and dropped. So: (1) **no flak retune** until the owner has test-flown step 3;
+  flak numbers are a feel call; (2) **the next lever is the events:** transports mid and ground attackers low, in the
+  directors of milestone 8 (see "Direction: the front"); (3) **flak placement** is the owner's edit in LDtk, one area
+  of each kind on today's map to try; (4) **arena flak for the tuner** only if the next tuner run needs it.
+
 - **Clouds: one layer you can hide in (decided 2026-11-17, discussion; built the same day, see Done "Cloud layer"):** clouds affect play, not only the look.
   - **Where:** one broken layer across the whole map between the mid and high bands (about 750 to 850), with gaps that
     drift slowly sideways. No lone clouds at other heights for now (they can come later if the layer feels good).
@@ -1337,7 +1346,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Merge dramatic crashes (Gameplay):** built in its own session on branch `claude/dramatic-crashes-bfc292`; merge into
   `main` when the owner says it is finished (perf and anti-tank guns were merged 2026-11-17).
 - **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 14).
-- **Pull fights up: light and heavy flak, high bombers (Gameplay)** (discussion, session "Gameplay — flak and high bombers (discussion)"): for plane-roles step 5, make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it. Discussion only; the outcome goes in Decisions.
 
 ## Backlog
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
