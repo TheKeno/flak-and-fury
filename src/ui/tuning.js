@@ -366,6 +366,20 @@ const RAID_FIELDS = [
   ['aimError', 'Bomb aimer error', 0, 200, 5, 'How far off the middle of the target a stick may be laid, either way.'],
   ['abortHp', 'Turns back below', 0, 1, 0.05, 'A bomber with less than this share of its hit points left, or on fire, gives up the run and turns for home with its bombs.'],
 ];
+const CLOUD_FIELDS = [
+  ['base', 'Layer bottom', 300, 1100, 10, 'Height of the cloud layer\'s underside. It sits between the mid and high bands. Applies at once.'],
+  ['top', 'Layer top', 350, 1150, 10, 'Height of the cloud layer\'s top.'],
+  ['soft', 'Edge softness', 5, 60, 1, 'How far into the layer a plane must be before it is fully hidden: the fade at its top and underside.'],
+  ['coverMin', 'Least cloud', 0, 1, 0.05, 'The least share of the sky under cloud a match can roll (a broken day). Applies to the next match.'],
+  ['coverMax', 'Most cloud', 0, 1, 0.05, 'The most a match can roll (a heavy day). Applies to the next match.'],
+  ['cell', 'Size of banks and holes', 80, 800, 10, 'How long the banks of cloud and the gaps between them are.'],
+  ['drift', 'Drift', 0, 30, 0.5, 'How fast the layer slides along the map, so no hole stays over one place.'],
+  ['closeRange', 'Shows when this close', 0, 200, 5, 'An enemy hidden in cloud fades in fully when it is nearer than this: the surprise.'],
+  ['closeFade', 'Surprise fade-in', 0.05, 1, 0.05, 'Seconds that fade-in takes. Short is a fright.'],
+  ['fireReveal', 'Shows after firing', 0, 5, 0.1, 'Seconds a plane in cloud stays visible after it has fired its guns.'],
+  ['smokeHp', 'Smokes below', 0, 1, 0.05, 'A plane with less than this share of its hit points trails smoke and cannot hide. A burning plane never can.'],
+  ['fixFactor', 'Flak fix through cloud', 0, 1, 0.05, 'How fast heavy flak\'s fix builds through solid cloud, as a share of clear air. The gun never stops firing; a working radar on its side makes it 1.'],
+];
 const WAVE_FIELDS = [
   ['first', 'First wave after', 0, 300, 5, 'Seconds from the start before the first tank columns roll out.'],
   ['interval', 'Time between waves', 10, 400, 5, 'Seconds between waves from an undamaged depot. A damaged depot takes up to 2.5 times as long.'],
@@ -665,6 +679,9 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
+  const cloudBox = el('input', { type: 'checkbox', onchange: () => (settings.clouds.on = cloudBox.checked) });
+  cloudBox.checked = !!settings.clouds.on;
+  const cloudSection = section('Clouds', false, el('label', { class: 'row check', title: 'One layer of cloud between the mid and high bands that planes can hide in. Applies to the next match.' }, el('span', {}, 'Cloud layer'), cloudBox), ...CLOUD_FIELDS.map((f) => add(slider(settings.clouds, f))));
   const raidSection = section('Bomber raids', false, ...RAID_FIELDS.map((f) => add(slider(settings.raids, f))));
   const fireSection = section('Fire', false, ...FIRE_FIELDS.map((f) => add(slider(settings.fire, f))));
   const negGBox = el('input', { type: 'checkbox', onchange: () => (settings.flight.negG = negGBox.checked) });
@@ -809,6 +826,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.damage, saved.settings.damage);
     Object.assign(settings.waves, saved.settings.waves);
     Object.assign(settings.raids, saved.settings.raids);
+    Object.assign(settings.clouds, saved.settings.clouds);
     Object.assign(settings.pads, saved.settings.pads);
     Object.assign(settings.zones, saved.settings.zones);
     Object.assign(settings.decor, saved.settings.decor);
@@ -889,6 +907,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     groundSection,
     waveSection,
     raidSection,
+    cloudSection,
     zoneSection,
     decorSection,
     padSection,

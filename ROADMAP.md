@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Clouds: one layer you can hide in (decided 2026-11-17, discussion; not built):** clouds affect play, not only the look.
+- **Clouds: one layer you can hide in (decided 2026-11-17, discussion; built the same day, see Done "Cloud layer"):** clouds affect play, not only the look.
   - **Where:** one broken layer across the whole map between the mid and high bands (about 750 to 850), with gaps that
     drift slowly sideways. No lone clouds at other heights for now (they can come later if the layer feels good).
   - **Hiding is one-way (owner):** a plane inside the cloud is hidden from eyes, bots' and players' alike, fading out as
@@ -875,6 +875,16 @@ later.
 
 ## Done
 
+- **Cloud layer (Gameplay, 2026-11-17):** as decided (Decisions, "Clouds"): `src/sim/clouds.js`, settings `clouds`, tuning
+  panel **Clouds**, `tests/clouds.test.mjs`. One broken layer at 750-850 drifting along the map; each match rolls its cover
+  (0.4-0.8) from its seed. A plane inside is hidden from bots' and gunners' eyes and fades out on the other players'
+  screens; it sees out as usual. Shown again by firing (1.5 s), burning, smoking below 40% hit points, a gap, and nearer
+  than 45 units (fades in fully in 0.2 s). Radar plots it as before. Heavy flak fires as always; its fix builds at half
+  speed through solid cloud unless its side's radar works. The Bf 109 and P-47 bots patrol in the layer. Online: the
+  same sky on every screen. **Measured** (`notes/height-count-2026-11-17.txt`, third run): fights still fall 72% low,
+  25% mid, 3% high; Bf 109 45 -> 48%, P-47 32 -> 33% exchange share. The layer alone does not pull fights up; the
+  events (transports mid) and flak placement still have that work to do. Not yet: the owner's test flight.
+
 - **Pixel Lab, per-nation hangars and guns, steppe style (Planes, 2026-11-17):** `pixel-lab.html` (linked from the Outline
   Lab): a pixel editor for the scenery drawn in `tools/kursk-sprites.mjs`, listed by category; a saved sprite lives in
   `data/pixels/` and replaces the drawn one. **German and Soviet hangars** with all 15 door steps, the old hangar's size
@@ -1266,7 +1276,6 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
-- **Clouds: build the hiding layer (Gameplay):** settled 2026-11-17, see the Decisions entry "Clouds: one layer you can hide in".
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
 - **Keyboard control of the menus (UI):** move through and pick every menu entry (title, setup, options, pause) with the arrow keys, Enter and Esc, no mouse needed.

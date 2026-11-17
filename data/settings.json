@@ -168,6 +168,21 @@
       "pe3"
     ]
   },
+  "clouds": {
+    "on": true,
+    "base": 750,
+    "top": 850,
+    "soft": 22,
+    "coverMin": 0.4,
+    "coverMax": 0.8,
+    "cell": 260,
+    "drift": 5,
+    "closeRange": 45,
+    "closeFade": 0.2,
+    "fireReveal": 1.5,
+    "smokeHp": 0.4,
+    "fixFactor": 0.5
+  },
   "pads": {
     "margin": 4,
     "blend": 40

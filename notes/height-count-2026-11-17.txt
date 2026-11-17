@@ -34,3 +34,21 @@
 [07:37:11] ground war: the front ends 455 units from the middle on average; 60 depots destroyed in 288 matches.
 
 [07:37:11] Height count done.
+
+[08:36:04] Height count 2026-11-17T07:36 (with the cloud layer): 288 matches of 10 min, seeds 201-208, 8 threads.
+
+[08:43:09] == where fighters were shot down (425 s)
+[08:43:09]            kills by band     lost by band      kills  lost   (kills: by its fighters; lost: to anything of the enemy's)
+[08:43:09]              low  mid high     low  mid high
+[08:43:09] b239         85%  13%   1%     78%  16%   6%     478   800
+[08:43:09] la5fn        73%  25%   2%     66%  27%   7%     604   694
+[08:43:09] spitfire     70%  29%   2%     61%  31%   8%     819   821
+[08:43:09] a6m5         73%  26%   1%     73%  24%   2%     612   686
+[08:43:09] bf109g6      70%  25%   5%     74%  21%   4%     604   898
+[08:43:09] p47d         65%  29%   6%     81%  16%   3%     537  1374
+[08:43:09] all          72%  25%   3%     73%  22%   5%    3654  5273
+[08:43:09] exchange share against the other types: b239 48%, la5fn 55%, spitfire 59%, a6m5 61%, bf109g6 48%, p47d 33%
+[08:43:09] raids: 1728 flown, 3456 bombers: 2839 bombed, 900 turned back hit, 915 shot down by fighters, 413 by flak, 117 lost otherwise, 1623 came home.
+[08:43:09] ground war: the front ends 425 units from the middle on average; 60 depots destroyed in 288 matches.
+
+[08:43:09] Height count done.

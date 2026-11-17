@@ -12,7 +12,8 @@ import { GRAVITY } from './plane.js';
 import { damagePlane } from './weapons.js';
 import { angleDiff } from './math.js';
 import { ignite } from './fire.js';
-import { surfaceAt, mountPoint } from './ground.js';
+import { surfaceAt, mountPoint, radarHealth } from './ground.js';
+import { fixThrough } from './clouds.js';
 
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
@@ -151,7 +152,10 @@ function stepFlak(world, obj, dt) {
     obj.fix = 0;
   } else if (def.fixTime) {
     const accel = Math.hypot(target.vx - obj.fixVx, target.vy - obj.fixVy) / dt;
-    obj.fix = Math.min(1, Math.max(0, obj.fix + dt / def.fixTime - Math.max(0, accel - def.fixSteady) * def.fixLoss * dt));
+    // Cloud between the gun and the plane slows the fix (it never stops the gun firing); with the side's
+    // radar working the predictor has its range and the cloud makes no difference.
+    const rate = radarHealth(world, obj.team) > 0 ? 1 : fixThrough(world, px, py, target);
+    obj.fix = Math.min(1, Math.max(0, obj.fix + (dt / def.fixTime) * rate - Math.max(0, accel - def.fixSteady) * def.fixLoss * dt));
   }
   obj.fixVx = target.vx;
   obj.fixVy = target.vy;

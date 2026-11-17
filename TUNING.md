@@ -553,6 +553,18 @@ takes about a third of its target's hit points; with the enemy's heavy flak stan
 are turned back or shot down first, and the target takes about half as much. The enemy's raid is called by
 your radar: with your station destroyed there is no warning. No raids in the air-only arena.
 
+`clouds` (in `data/settings.json`, the tuning panel's **Clouds**; `src/sim/clouds.js`): one broken layer of cloud across
+the map between the mid and high bands. `on`; `base` and `top` (its height band, 750 and 850) and `soft` (the fade at its
+upper and lower edges, 15 – 30); `coverMin` and `coverMax` (each match rolls its share of sky under cloud between
+these, from its seed: 0.4 and 0.8; never 0 or 1, so there is always cloud and always a gap); `cell` (the length of the
+banks and holes, 200 – 400) and `drift` (how fast it slides, 3 – 10). A plane inside it is hidden from eyes, bots'
+and players', and sees out as usual. It shows again: after firing, for `fireReveal` seconds (1 – 2); when burning, or
+smoking below `smokeHp` of its hit points (0.3 – 0.5); over a gap; and nearer than `closeRange` (30 – 60), where it
+fades in fully in `closeFade` seconds (0.1 – 0.3). Radar plots it as always, so with your radar standing it shows as
+its radar outline. Heavy flak never stops firing for cloud: its fix only builds `fixFactor` as fast through solid cloud
+(0.4 – 0.7), and at full speed when its side's radar works. The Bf 109 and P-47 bots patrol in the layer. No cloud in
+the air-only arena.
+
 `pads` (in `data/settings.json`, the tuning panel's **Structure pads**): every structure placed on the
 map (anything with a `sprite`: guns, tents, towers, buildings, radar, depots) stands on a level pad, so
 none tilts on a hillside. The pad is level at the average ground height under the object; on a steep

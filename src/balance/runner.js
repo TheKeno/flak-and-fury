@@ -36,6 +36,7 @@ export function buildWorld(content, { map = 'countryside', seed = 1, tactics = c
     damage: { ...s.damage },
     waves: { ...s.waves },
     raids: { ...s.raids },
+    clouds: { ...s.clouds },
     pads: s.pads,
     zones: s.zones,
     landing: { ...s.landing },
@@ -87,6 +88,7 @@ const ARMED_GROUND = new Set(['flak', 'lightFlak', 'mgNest']);
 export function clearForArena(world) {
   world.army = null;
   world.director = null; // and no bomber raids
+  world.cloud = null; // nor cloud: only the planes decide a fight
   world.ground = world.ground.filter((o) => !o.mobile && !ARMED_GROUND.has(o.type));
 }
 

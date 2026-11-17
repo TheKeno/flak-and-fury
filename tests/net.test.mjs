@@ -24,6 +24,7 @@ function makeWorld() {
     groundDefs,
     waves: { ...settings.waves, first: 5 },
     raids: { ...settings.raids, first: 40 },
+    clouds: { ...settings.clouds },
     servicing: { ...settings.servicing },
     collisions: { ...settings.collisions },
     fire: { ...settings.fire },
@@ -113,6 +114,7 @@ test('a busy world arrives whole on a guest, snapshot after snapshot', () => {
   assert.ok(sawBullets && sawTanks, 'the test world should have seen guns and tanks');
   assert.ok(sawTrucks && sawForming, 'and trucks with men aboard, and men getting out');
   assert.ok(sawRaidCall && sawBombers, 'and a bomber raid, called and flying, on the guest');
+  assert.ok(guest.cloud.offset > 0 && guest.cloud.cover === host.cloud.cover, 'and the same drifting sky');
   assert.equal(guest.planes.length, host.planes.length);
   // Shared data stays the guest's own (a reference, not a copy).
   assert.equal(guest.planes[0].def, guest.planeDefs[guest.planes[0].def.id ?? 'bf109g6'] ?? guest.planes[0].def);

@@ -16,6 +16,7 @@ import { DEFAULT_FLIGHT } from './air.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
 import { DEFAULT_DECOR } from './decor.js';
 import { changeSeat } from './seats.js';
+import { createClouds, stepClouds, DEFAULT_CLOUDS } from './clouds.js';
 import { createDirector, stepDirector, raidCommand, DEFAULT_RAIDS } from './director.js';
 import { DEFAULT_BAILOUT, bailOut, stepBailedPilot, stepGroundWreck, stepParachutes } from './bailout.js';
 
@@ -40,6 +41,7 @@ export const DEFAULT_RULES = {
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 // waves: how often and how big the tank columns are (src/sim/army.js).
 // raids: the directors' bomber raids (src/sim/director.js).
+// clouds: the cloud layer planes can hide in (src/sim/clouds.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
 // emergency: war emergency power, its boost, wear and heat (src/sim/emergency.js).
 // flight: thin air up high and the negative-g cutout (src/sim/air.js).
@@ -64,6 +66,7 @@ export function createWorld({
   damage = { ...DEFAULT_DAMAGE },
   waves = { ...DEFAULT_WAVES },
   raids = { ...DEFAULT_RAIDS },
+  clouds = { ...DEFAULT_CLOUDS },
   pads = { ...DEFAULT_PADS },
   zones = { ...DEFAULT_ZONES },
   landing = { ...DEFAULT_LANDING },
@@ -92,6 +95,7 @@ export function createWorld({
     damage,
     waves,
     raids,
+    clouds,
     landing,
     takeoff,
     weight,
@@ -117,6 +121,7 @@ export function createWorld({
   createGround(world);
   createArmy(world);
   createDirector(world);
+  createClouds(world);
   return world;
 }
 
@@ -247,4 +252,5 @@ export function stepWorld(world, commands) {
   stepParachutes(world, DT);
   collide(world);
   planesHitStructures(world, crash);
+  stepClouds(world, DT); // last: it reads this tick's shots
 }

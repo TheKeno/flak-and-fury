@@ -48,6 +48,7 @@ const world = createWorld({
   damage: content.settings.damage,
   waves: content.settings.waves,
   raids: content.settings.raids,
+  clouds: content.settings.clouds,
   pads: content.settings.pads,
   zones: content.settings.zones,
   landing: content.settings.landing,
@@ -410,13 +411,14 @@ if (params.has('showcase')) {
     x += def.width / 2;
   }
   // ?showcase=<x> also starts in free look there (the row runs from about 1300 to 2250).
-  const at = Number(params.get('showcase'));
-  // (Once the plane stands on the runway with its engine running: free look before that would keep it in the hangar.)
+  // (?showcase=<x>,<y> looks at that height instead of the ground there, e.g. 1500,800 for the cloud layer.)
+  const [at, atY] = (params.get('showcase') ?? '').split(',').map(Number);
+  // (Once the engine is started in the hangar panel: free look before that would keep the plane in the hangar.)
   const look = () => {
-    if (player.hold || player.exitPhase || !player.engineRunning) return setTimeout(look, 500);
+    if (player.hold || !player.engineRunning) return setTimeout(look, 500);
     setFreeLook(true);
     free.x = free.tx = at;
-    free.y = free.ty = surfaceAt(world, at) + 60;
+    free.y = free.ty = atY > 0 ? atY : surfaceAt(world, at) + 60;
   };
   if (at > 0) setTimeout(look, 500);
 }

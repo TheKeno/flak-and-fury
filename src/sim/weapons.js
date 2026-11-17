@@ -2,6 +2,7 @@
 import { clamp } from './math.js';
 import { GRAVITY, attitude, isUpright } from './plane.js';
 import { bulletHitsGround, bombStrikesGround, blastGround, groundPass } from './ground.js';
+import { hiddenFrom } from './clouds.js';
 import { ignite, fireHit, stepFire } from './fire.js';
 import { digCrater } from './runway.js';
 import { stallAt, slowBonusAt } from './air.js';
@@ -369,6 +370,7 @@ function updateTurrets(p, world, dt, canFight) {
     if (canFight && world.rules.bots === 'on' && t.ammo > 0) {
       for (const e of world.planes) {
         if (e.team === p.team || (e.state !== 'air' && e.state !== 'ground')) continue;
+        if (hiddenFrom(world, p, e)) continue; // a gunner can't shoot at what the cloud hides
         const dist = Math.hypot(e.x - x, e.y - y);
         if (dist >= best) continue;
         const time = dist / w.velocity;

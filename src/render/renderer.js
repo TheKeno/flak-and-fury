@@ -14,6 +14,7 @@ import { createParticles } from './particles.js';
 import { createGore } from './gore.js';
 import { drawText, textWidth, lineHeight, setTextSize } from './font.js';
 import { createRadar, SCOPE, PHOSPHOR } from './radar.js';
+import { layerAt, shownShare } from '../sim/clouds.js';
 import { frameFight } from './fight-cam.js';
 import { playerZoom, wheelRange } from './player-zoom.js';
 import { prof } from '../ui/perfstats.js';
@@ -1114,8 +1115,10 @@ export function createRenderer(canvas, world, assets) {
   function drawPlane(p, focus) {
     if (p.state === 'dead' || p.exitPhase === 'wait') return; // still inside the hangar, waiting for doors or its turn
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    cloudFade = cloudFadeOf(p, focus);
     drawPlaneDetail(p, radarOutline(p, focus));
-    drawPlaneName(p, focus);
+    if (cloudFade > 0.5) drawPlaneName(p, focus);
+    cloudFade = 1;
     ctx.setTransform(DETAIL, 0, 0, DETAIL, 0, 0);
   }
 
@@ -1267,6 +1270,64 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
+  // The cloud layer (src/sim/clouds.js), column by column from the same function that decides who is hidden.
+  // Drawn twice: its body behind the planes, then a thinner veil over them, so a plane in it is in it.
+  function drawCloudLayer(front) {
+    if (!world.cloud) return;
+    const step = 3;
+    for (let sx = 0; sx < bw; sx += step) {
+      const wx = cam.x + (sx + step / 2) / SCALE;
+      const l = layerAt(world, wx);
+      if (l.solid <= 0.03) continue;
+      // Heaped tops (rounded lumps of two sizes) over a flatter, wispy belly.
+      const at = wx - world.cloud.offset;
+      const heap = Math.abs(Math.sin(at * 0.085)) * 7 + Math.abs(Math.sin(at * 0.029 + 1.1)) * 6;
+      const wisp = Math.sin(at * 0.11) * 1.5 + Math.sin(at * 0.041 + 2) * 2.5;
+      const y0 = Math.round(toScreenY(l.top + heap * l.solid));
+      const y1 = Math.round(toScreenY(l.bottom - wisp));
+      if (y1 < 0 || y0 > bh || y1 <= y0) continue;
+      const h = y1 - y0;
+      if (front) {
+        // The veil over the planes: thin, so one inside is dimmed, not painted out (its own fade hides it).
+        ctx.globalAlpha = 0.3 * l.solid;
+        ctx.fillStyle = '#7c8286';
+        ctx.fillRect(sx, y0, step, h);
+        continue;
+      }
+      // Four tones, lit crown to dark belly.
+      ctx.globalAlpha = 0.92 * l.solid;
+      const bands = [['#8a9094', 0.16], ['#787e82', 0.34], ['#6a7074', 0.3], ['#585e62', 0.2]];
+      let y = y0;
+      for (const [tone, share] of bands) {
+        const part = Math.max(1, Math.round(h * share));
+        ctx.fillStyle = tone;
+        ctx.fillRect(sx, y, step, Math.min(part, y1 - y));
+        y += part;
+        if (y >= y1) break;
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  // How much of a plane shows to the player: an enemy in cloud fades out (shownShare), and one that comes very
+  // close fades in fast and fully (clouds.closeRange, closeFade): the surprise. Friends, the player's own plane
+  // and everything in free look always show. Eased per plane so nothing pops.
+  const cloudShown = new Map(); // plane id -> { a, at }
+  let cloudFade = 1;
+  function cloudFadeOf(p, focus) {
+    if (!world.cloud || !focus || p === focus || p.team === focus.team) return 1;
+    const cfg = world.clouds;
+    const close = Math.hypot(p.x - focus.x, p.y - focus.y) < cfg.closeRange;
+    const target = close ? 1 : shownShare(world, p);
+    const now = performance.now();
+    const s = cloudShown.get(p.id) ?? { a: target, at: now };
+    const dt = Math.min(0.1, (now - s.at) / 1000);
+    const rate = close ? 1 / Math.max(0.05, cfg.closeFade ?? 0.2) : 6;
+    s.a += clamp(target - s.a, -rate * dt, rate * dt);
+    s.at = now;
+    cloudShown.set(p.id, s);
+    return s.a;
+  }
+
   // Enemy planes your radar has plotted get a phosphor-green outline: it flares as the beam sweeps
   // them and fades with the echo, and dims with distance. Low flyers and a dead station give none.
   const radarCfg = assets.settings.radar; // live: the tuning panel edits this object
@@ -1304,7 +1365,7 @@ export function createRenderer(canvas, world, assets) {
       ctx.globalAlpha = alpha * planeAlpha;
       for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]]) ctx.drawImage(s, x + dx, y + dy);
     }
-    ctx.globalAlpha = planeAlpha; // the outline branch above is skipped without a radar outline
+    ctx.globalAlpha = planeAlpha * cloudFade; // the outline branch above is skipped without a radar outline; the radar outline shows through cloud
     ctx.drawImage(img, x, y);
     ctx.globalAlpha = 1;
   }
@@ -1774,7 +1835,9 @@ export function createRenderer(canvas, world, assets) {
       prof.mark('particles');
       drawProjectiles();
       prof.mark('shots');
+      drawCloudLayer(false);
       if (!skip.has('planes')) for (const p of world.planes) drawPlane(p, focus);
+      drawCloudLayer(true);
       prof.mark('planes');
       for (const c of world.crew ?? []) drawCrew(c);
       for (const c of world.parachutes ?? []) drawParachute(c, focus);

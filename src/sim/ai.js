@@ -13,6 +13,7 @@ import { angleDiff, clamp } from './math.js';
 import { isUpright, GRAVITY, stiffness, turnAuthority } from './plane.js';
 import { ownAirfieldAt, crewAhead } from './airfield.js';
 import { hangarHealth, radarHealth, surfaceAt } from './ground.js';
+import { hiddenFrom } from './clouds.js';
 import { allGuns, flyingDef, loadFraction, bombsLeft, bombsFull, nextStation } from './weapons.js';
 import { tacticsFor } from './tactics.js';
 import { reachAt } from './defences.js';
@@ -287,7 +288,8 @@ function knownEnemies(world, p, skill) {
   for (const o of world.planes) {
     if (o.team === p.team || o.state !== 'air' || o.dying) continue;
     const d = Math.hypot(o.x - p.x, o.y - p.y);
-    if (d < skill.lookout) out.push({ plane: o, seen: true, x: o.x, y: o.y, d });
+    // In sight, unless cloud hides it (src/sim/clouds.js): then only the radar knows where it is.
+    if (d < skill.lookout && !hiddenFrom(world, p, o)) out.push({ plane: o, seen: true, x: o.x, y: o.y, d });
     else {
       const plot = plots.get(o.id);
       if (plot) out.push({ plane: o, seen: false, x: plot.x, y: plot.y, d: Math.hypot(plot.x - p.x, plot.y - p.y) });
@@ -751,7 +753,10 @@ function patrolWant(world, p, b) {
   }
   // A loaded plane cruises slower on the same throttle, and too near the stall it can't turn round (the
   // bot flies on to build speed first): it opens the throttle with the load.
-  const want = cruiseTo(world, p, x, cfg.cruiseHeight + b.index * 45, 0.8 + 0.2 * loadFraction(p));
+  // The high planes patrol in the cloud layer, when there is one: hidden, with their height in hand, they
+  // dive on what the radar or their eyes find below (Decisions, "Clouds": the perch).
+  const perch = world.cloud && p.def.band === 'high' ? (world.clouds.base + world.clouds.top) / 2 - world.terrain.heightAt(p.x) + b.index * 8 : null;
+  const want = cruiseTo(world, p, x, perch ?? cfg.cruiseHeight + b.index * 45, 0.8 + 0.2 * loadFraction(p));
   // Turning round at the end of the beat: a half loop bleeds so much speed (about 60 over the top, more in
   // thin air) that the bots crept up in a long climb to the ceiling. With height to spare it turns the
   // nose down through the reversal instead (a split-S), which gives the speed back (part 3d).
