@@ -931,8 +931,8 @@ later.
   `data/ground.json`) for the heavy flak (8.8 cm Flak 36 for Germany, 85 mm 52-K for the USSR), the radar (Freya,
   RUS-2) and the depot. Nothing is placed on a map yet: the owner places them in LDtk when the Kursk map is
   drawn. To look at them: `http://localhost:8080/?mute&showcase=1420` stands them in a row (free look starts there
-  once the plane is out). **Still drafts, not in the game** (need more than a sprite): Pak 40 and ZiS-3 and their
-  nests, bunkers, DZOT, pillbox, dug-in T-34, trenches (new behaviour); paratroopers, locomotive, tender and wagons
+  once the plane is out). **Still drafts, not in the game** (need more than a sprite): the Pak and ZiS nests (the guns themselves are in: Done, "Anti-tank guns"),
+  bunkers, DZOT, pillbox, dug-in T-34, trenches (new behaviour); paratroopers, locomotive, tender and wagons
   (the director's events and a track); burning wheat, dust and smoke frames (effects); the per-nation hangars (14
   door frames each); the **Ju 52, Li-2, He 111 H-16 and Pe-8** (outline files `data/outlines/ju52.json`, `li2.json`, `he111.json`,
   `pe8.json`, built by the general model `multi` in `tools/plane-models.mjs`: no markings, windows or panel lines yet; the two
@@ -1303,6 +1303,7 @@ Then: more themes, co-op missions, matchmaking.
 
 
 ## Backlog
+- **Anti-tank guns and trucks (Gameplay):** trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck. Decide: trucks ignore guns for dismounting until fired on, a longer gun reach, or leave it (guns are for tanks). Found 2026-11-17 (Done, "Anti-tank guns").
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
 - **Keyboard control of the menus (UI):** move through and pick every menu entry (title, setup, options, pause) with the arrow keys, Enter and Esc, no mouse needed.
