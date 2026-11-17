@@ -875,6 +875,11 @@ later.
 
 ## Done
 
+- **Keyboard control of the menus (UI, 2026-11-17):** the arrow keys move through the title, setup, options and
+  pause screens by where the controls sit (`src/ui/menu-keys.js`); the first press only shows where you are (the
+  screen's main button, outlined in gold), Enter presses, Esc goes back (now also from the setup and join screens
+  before a match). Left and right step a list's pick (bot skill, planes per side) and a slider; in a text box they
+  move the caret. Off while a key is being rebound. The hangar keeps its own keys.
 - **Anti-tank guns (Gameplay, 2026-11-17; Decisions, "Direction: the front"):** `atGun` in `data/ground.json`, LDtk piece
   `AtGun` (with a team), tuning panel, TUNING.md, `tests/atgun.test.mjs`. The 7.5 cm Pak 40 (Germany; also the stand-in for
   the other nations) and the 76 mm ZiS-3 (USSR), dug in: a mount, a barrel that turns and a wreck each, drawn from the
@@ -1311,7 +1316,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Anti-tank guns and trucks (Gameplay):** trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck. Decide: trucks ignore guns for dismounting until fired on, a longer gun reach, or leave it (guns are for tanks). Found 2026-11-17 (Done, "Anti-tank guns").
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
-- **Keyboard control of the menus (UI):** move through and pick every menu entry (title, setup, options, pause) with the arrow keys, Enter and Esc, no mouse needed.
 - **Zero sprites: the Ki-43's are a placeholder (Planes):** the A6M Zero replaces the Ki-43 in the fighter roster (Decisions, step 4, "Changed 2026-11-12 evening") and flies with the Ki-43's sprites until it gets its own: owner finds a 3-view, outline in the Outline Lab, owner approves the shape, then sprites and frames (`tools/make-sprites.mjs`). History rules the looks: the placeholder must go before release.
 - **Fly the Stuka fix (Gameplay):** part 3e made dive bombers reach `bots.bomberRange` and bomb tanks under flak (headless: 0.8 → 8.8 bombs a run, no patrol sawtooth); the owner hasn't flown it yet. Check: `?plane=spitfire&enemy=ju87`, do the Stukas go for tanks and bomb?
 - **Bots too easy against the player (Gameplay):** after part 3e (bots now fight the player instead of running) the owner found them maybe too easy to play against (2026-11-12). Player-only knobs keep the balance tools clean: `bots.playerPull`, or a level's aim/evade numbers against humans. After part 4.

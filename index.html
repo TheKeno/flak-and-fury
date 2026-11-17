@@ -87,6 +87,17 @@
         border-color: #8a7a48;
         color: #f2ead2;
       }
+      /* Where the arrow keys are (src/ui/menu-keys.js); a mouse click shows nothing. */
+      .screen button:focus-visible,
+      .screen select:focus-visible,
+      .screen input:focus-visible {
+        outline: 2px solid #e8c860;
+        outline-offset: 2px;
+      }
+      .screen button:focus-visible:not(:disabled) {
+        background: #2a2e22;
+        color: #f2ead2;
+      }
       .screen button:disabled {
         opacity: 0.4;
         cursor: default;

@@ -9,6 +9,7 @@ import { createSoundscape } from './audio/soundscape.js';
 import { createRecordings } from './audio/recordings.js';
 import { createTuningPanel } from './ui/tuning.js';
 import { createSetup } from './ui/setup.js';
+import { attachMenuKeys } from './ui/menu-keys.js';
 import { createHangarPanel } from './ui/hangar-panel.js';
 import { hangarRefusal, callingMessage } from './ui/hangar-messages.js';
 import { createOptions, cleanName, toggleFullscreen, restoreFullscreen } from './ui/options.js';
@@ -276,6 +277,9 @@ addEventListener('keydown', (e) => {
   applyMute();
 }, true);
 
+// Arrows and Enter through the menu screens; not while a key is being rebound in the options.
+attachMenuKeys({ skip: () => Boolean(document.querySelector('.screen button.key.on')) });
+
 // The in-game menu (Esc). Single player pauses; online the world goes on for the others, so the V
 // autopilot flies your plane until you're back. The browser itself takes Esc to free the mouse (and
 // to leave fullscreen) without always passing the key on, so losing the mouse opens the menu too.
@@ -322,7 +326,10 @@ function backToFullscreen() {
 }
 function menuKey() {
   if (!started) {
+    // Before the game: Esc is the screen's BACK (the setup's, the join menu's).
     if (options.isOpen) options.back();
+    else if (setup.isOpen) document.querySelector('#setup button.back').click();
+    else if (!$('join-menu').classList.contains('hidden')) $('join-menu').querySelector('.back').click();
     return;
   }
   if (setup.isOpen && menuOpen) {
