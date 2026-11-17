@@ -1186,6 +1186,11 @@ later.
   1000 columns of rectangles a frame, worst when flying low): the ground is now drawn once into cached
   chunks and blitted. Owner measured 120 fps, 8.3 ms gap in a low-flying fight. The canvas-size cap was
   tested and dropped.
+- **Performance pass 2: clouds, rain, night** (`ff54f2b`, 2026-11-17, branch `claude/perf-90c597`; numbers in `notes/perf-findings.md`):
+  hill ridges and the cloud layer painted once and copied (sky ~1900 -> 5 draw calls, cloud ~950 -> 4), off-screen
+  planes and particles skipped, tyres prebuilt; frame CPU ~1.5-2.5 ms -> ~0.6 ms, same look. Sim unchanged (~0.3 ms a
+  tick). `tools/perf-bench.js` (console) and `tools/sim-bench.mjs` (sim speed, outcome digest). A hidden browser pane
+  is throttled to 15 fps: judge fps with F3 on a visible screen. Owner to check F3 with `?rain&night` in a fight.
 - **Shooting through the propeller revisited** (`src/sim/weapons.js`): checked against what's known of WWII
   armament. Which guns are synced matches the real types (cowl MGs and cannon on the 109, La-5, Ki-43,
   B-239 nose; wing guns on the Spitfire and P-47; Bf 110 nose guns clear of the props; the 109's hub
