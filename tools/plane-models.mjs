@@ -266,10 +266,11 @@ export function starBar(du, dv, r) {
   if (a <= 2.05 && b <= 0.33) return a <= 1.95 && b <= 0.25 ? 'white' : 'marking';
   return k <= 1.08 ? 'marking' : null;
 }
-// Japanese hinomaru of radius r with the white surround the Army used in 1943.
-export function hinomaru(du, dv, r) {
+// Japanese hinomaru of radius r with a white surround: the Army's wide one by default, the Navy's thin one
+// with inner = 0.88.
+export function hinomaru(du, dv, r, inner = 0.75) {
   const k = Math.hypot(du, dv) / r;
-  return k > 1 ? null : k > 0.75 ? 'white' : 'marking';
+  return k > 1 ? null : k > inner ? 'white' : 'marking';
 }
 // RAF type C roundel (red, thin white, blue) under the wings, radius r.
 export function roundelC(du, dv, r) {
@@ -816,6 +817,95 @@ function ki43(o) {
       wingTipR: [X(2.4), Y(-0.52) + 5.3 * M * 0.105, -5.3 * M],
       propHub: [X(0.4), Y(0), 0],
       propRadius: 1.45 * M,
+      mainContact: [main[0], -10, 0],
+      track: main[2],
+    },
+  };
+}
+
+// Mitsubishi A6M5 Model 52 Zero, measured off the owner's 3-view (9.15 m long, 11.0 m span; 5 model
+// units to the metre, d back from the spinner tip, h up from the propeller axis). Small spinner, tight
+// black cowling for the Sakae 21 with the Model 52's row of individual exhaust stacks behind it; long
+// greenhouse canopy with many frames; slim fuselage, the Zero's break joint behind the cockpit; fin
+// with a straight leading edge and a rounded rudder; wing with a straight leading edge, the Model 52's
+// clipped round tips, Type 99 cannon barrels outboard of the gear. Navy look of 1943: dark green top,
+// grey-green underside, hinomaru with a thin white surround, yellow strips on the inner leading edges.
+function a6m5(o) {
+  const { M, X, Y, bodyOf, surfaceOf, gearOf } = kit(o);
+  const split = Y(-0.28);
+  const tone = (p) => (p[1] < split ? 'under' : 'paint');
+  const fuselage = bodyOf(o.fuselage);
+  const line = (d, w = 0.05) => (p) => Math.abs(p[0] - X(d)) < w * M;
+  const fuselageDecals = [
+    // The cowling painted black, up to its rear edge.
+    (p) => (p[0] > X(1.5) ? { kind: 'nose' } : null),
+    // Hinomaru on the rear fuselage, ahead of the tailplane.
+    (p, n) => {
+      const k = side(n) && hinomaru(p[0] - X(6.0), p[1] - Y(0.08), 0.38 * M, 0.88);
+      return k ? { kind: k } : null;
+    },
+    // Panel lines: firewall, the break joint behind the cockpit.
+    (p, n) => (side(n) && [line(2.05), line(4.6)].some((f) => f(p)) ? { kind: tone(p), dark: 1 } : null),
+  ];
+  const wing = surfaceOf(o.wing);
+  const wingMat = (p, n, vn) => {
+    const s = wing.shape(p);
+    const under = n[1] < -0.3;
+    const k = Math.abs(n[1]) > 0.6 && vn[2] > 0.3 && hinomaru(p[0] - (s.le + s.te) / 2, Math.abs(p[2]) - 3.9 * M, 0.46 * M, 0.88);
+    if (k) return { kind: k };
+    // Yellow identification strip along the inner leading edges (Navy fighters from late 1942).
+    if (s.u < 0.07 && s.k > 0.12 && s.k < 0.5) return { kind: 'yellow' };
+    const hinge = s.k > 0.15 && Math.abs(s.u - 0.77) < 0.03; // flap and aileron line
+    return { kind: under ? 'under' : 'paint', dark: hinge ? 1 : 0 };
+  };
+  const tailplane = surfaceOf(o.tailplane);
+  // Fin and rudder as drawn, [h, d] along each edge: a straight raked leading edge to a rounded top, the
+  // rudder rounded behind the hinge and reaching down to the tailcone.
+  const fin = surfaceOf(o.fin, true);
+  const canopy = bodyOf(o.canopy);
+  // The greenhouse: windscreen frame, the sliding hood's frames and the fixed rear glazing's.
+  const canopyMat = (p) => ({ kind: [2.46, 2.87, 3.24, 3.61, 4.02, 4.43].some((d) => Math.abs(p[0] - X(d)) < 0.04 * M) ? 'frame' : 'glass' });
+  const spinner = bodyOf(o.spinner);
+  const plain = (kind) => () => ({ kind });
+  // Individual exhaust stacks of the Model 52 in a row round the cowling's rear edge, pointing back.
+  const stacks = [0.3, 0.08, -0.14, -0.34].map((h, i) => ({
+    ...box([X(1.62 + i * 0.03), Y(h), 0.6 * M], [0.1 * M, 0.04 * M, 0.04 * M], { mirror: true }),
+    material: plain('dark'),
+  }));
+  // Type 99 Mk 2 cannon barrels poking out of the leading edges just outboard of the gear.
+  const wingH = (z) => Y(o.wing.at) + z * M * o.wing.rise;
+  const cannon = { ...strut([X(1.95), wingH(2.0), 2.0 * M], [X(1.35), wingH(2.0), 2.0 * M], 0.035 * M), material: plain('dark') }; // both sides
+  // Gear (world units in data/planes.json a6m5.wheels): legs from the wing, 3.56 m track, retracting
+  // inwards; small tail wheel, sitting the plane tail-down.
+  const { wheelR, main, tailR, tailW } = gearOf(o.gear);
+  const metal = () => ({ kind: 'metal' });
+  const tyre = (c, r) => (p) => ({ kind: Math.hypot(p[0] - c[0], p[1] - c[1]) < r * 0.4 ? 'metal' : 'tyre' });
+  const parts = [
+    { ...fuselage, material: (p, n) => fuselageDecals.map((f) => f(p, n)).find(Boolean) ?? { kind: tone(p) } },
+    { ...spinner, material: plain('metal') },
+    { ...box([X(0.62), Y(-0.02), 0], [0.03 * M, 0.4 * M, 0.42 * M]), material: plain('dark') }, // the cowl's open front
+    { ...box([X(0.95), Y(-0.5), 0], [0.18 * M, 0.06 * M, 0.14 * M]), material: (p) => ({ kind: p[0] > X(0.85) ? 'dark' : 'nose' }) }, // oil cooler intake under the cowl
+    ...stacks,
+    { ...wing, material: wingMat },
+    cannon,
+    { ...tailplane, material: (p, n, vn) => ({ kind: n[1] < -0.6 && Math.abs(vn[2]) > 0.25 ? 'under' : 'paint' }) },
+    { ...fin, material: (p) => ({ kind: 'paint', dark: Math.abs(p[0] - X(8.3)) < 0.04 * M && p[1] > Y(0.2) ? 1 : 0 }) }, // rudder hinge
+    { ...canopy, glass: true, material: canopyMat },
+    { ...strut([X(2.1), wingH(1.78), 1.78 * M], main, 0.05 * M), material: metal, gear: true },
+    { ...wheel(main, wheelR, 0.08 * M), material: tyre(main, wheelR), gear: true },
+    { ...strut([X(7.7), Y(-0.3), 0], tailW, 0.04 * M), material: metal, gear: true },
+    { ...wheel(tailW, tailR, 0.04 * M), material: tyre(tailW, tailR), gear: true },
+  ];
+  return {
+    parts,
+    attach: {
+      exhaust: [X(1.7), Y(-0.03), 0.65 * M],
+      wingRootL: [X(3.1), wingH(0.6), 0.6 * M],
+      wingRootR: [X(3.1), wingH(0.6), -0.6 * M],
+      wingTipL: [X(2.6), wingH(5.4), 5.4 * M],
+      wingTipR: [X(2.6), wingH(5.4), -5.4 * M],
+      propHub: [X(0.35), Y(0), 0],
+      propRadius: 1.52 * M,
       mainContact: [main[0], -10, 0],
       track: main[2],
     },
@@ -2123,7 +2213,7 @@ function multi(o) {
   };
 }
 
-export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim, ju52: multi, li2: multi, he111: multi, pe8: multi, b17f: multi, lancaster: multi, he177: multi, g4m1: multi }).map(([k, f]) => [k, withBumps(f)]));
+export const BUILDERS = Object.fromEntries(Object.entries({ bf109g6, spitfire, p47d, la5fn, ki43, a6m5, b239, bf110, mosquito, ju87, p38j, pe3, ki45, blenheim, ju52: multi, li2: multi, he111: multi, pe8: multi, b17f: multi, lancaster: multi, he177: multi, g4m1: multi }).map(([k, f]) => [k, withBumps(f)]));
 // Ground vehicles: an outline with `vehicle: 'tank'` is built by the tank model (VEHICLE_BUILDERS).
 export const VEHICLE_BUILDERS = { tank: withBumps(tank), truck: withBumps(truck) };
 // A plane without a model of its own yet (a new outline in the Outline Lab) borrows a finished plane's

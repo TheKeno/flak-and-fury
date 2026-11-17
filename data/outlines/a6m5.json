@@ -1,7 +1,6 @@
 {
   "plane": "a6m5",
-  "template": "ki43",
-  "_notes": "Metres. d = back from the reference nose point, h = up from the reference line, z = out from the centre line. Stations are [d, top h, bottom h, half width]; edge tables are [along, d] (tailplane and wing: along = metres out from the centre line, fin: along = h). scale = model units per metre; frame = where d = 0, h = 0 sits in the model. Mitsubishi A6M5 Model 52, measured off the owner's 3-view (blueprint library: 'A6M5 zero.jpg', 68.3 px a metre from its scale bar and the 11.0 m span; d = 0 at the spinner tip, h = 0 on the propeller axis). Built with the Ki-43's model code (template) until it has its own: Navy markings, cowl, exhausts. Hidden on the sheet, so guessed: the belly under the wing (behind the drop tank) and the canopy's width.",
+  "_notes": "Metres. d = back from the reference nose point, h = up from the reference line, z = out from the centre line. Stations are [d, top h, bottom h, half width]; edge tables are [along, d] (tailplane and wing: along = metres out from the centre line, fin: along = h). scale = model units per metre; frame = where d = 0, h = 0 sits in the model. Mitsubishi A6M5 Model 52, measured off the owner's 3-view (blueprint library: 'A6M5 zero.jpg', 68.3 px a metre from its scale bar and the 11.0 m span; d = 0 at the spinner tip, h = 0 on the propeller axis). Hidden on the sheet, so guessed: the belly under the wing (behind the drop tank) and the canopy's width.",
   "length": 9.15,
   "span": 11,
   "scale": 5,

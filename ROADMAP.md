@@ -875,6 +875,13 @@ later.
 
 ## Done
 
+- **A6M5 Zero sprites (Planes, 2026-11-17):** the Zero flies as a plane of its own, no longer with the Ki-43's
+  sprites. Outline measured off the owner's 3-view and approved (`data/outlines/a6m5.json`; guessed: the belly
+  under the wing and the canopy width); model `a6m5` in `tools/plane-models.mjs`: black cowl, the Model 52's
+  individual exhaust stacks, the many-framed greenhouse, the break joint behind the cockpit, wing cannon barrels,
+  Navy hinomaru with a thin white surround (`hinomaru(..., inner)`), yellow inner leading-edge strips. Colours
+  are Japan's paint in `data/nations.json`. `data/planes.json` `a6m5`: sprite, nose, exhaust and wheels
+  refitted from the model.
 - **Keyboard control of the menus (UI, 2026-11-17):** the arrow keys move through the title, setup, options and
   pause screens by where the controls sit (`src/ui/menu-keys.js`); the first press only shows where you are (the
   screen's main button, outlined in gold), Enter presses, Esc goes back (now also from the setup and join screens
@@ -1312,8 +1319,6 @@ Then: more themes, co-op missions, matchmaking.
   waits for that flight (handover: `notes/milestone8-step3.md`).
 - **Merge dramatic crashes (Gameplay):** built in its own session on branch `claude/dramatic-crashes-bfc292`; merge into
   `main` when the owner says it is finished (perf and anti-tank guns were merged 2026-11-17).
-- **A6M5 Zero (Planes):** outline measured off the 3-view (`data/outlines/a6m5.json`), waiting for the owner's approval;
-  its own session does the model, sprites and data after that.
 - **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 14).
 
 
@@ -1323,7 +1328,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Anti-tank guns and trucks (Gameplay):** trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck. Decide: trucks ignore guns for dismounting until fired on, a longer gun reach, or leave it (guns are for tanks). Found 2026-11-17 (Done, "Anti-tank guns").
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Pull fights up: light and heavy flak, high bombers (Gameplay):** for plane-roles step 5 (the ground war pass), make height matter over enemy lines: light flak (20/37 mm, fast, deadly below about 300, blind high) and heavy flak (88 mm, slow, reaches the high band, less accurate); today one flak type reaches about 700 and is blind below 60 (`data/ground.json` `flak`, `src/sim/defences.js`). And bombers and transports fly high, so escort and intercept happen in the bands (the battle directors under "The front"). Why (2026-11-15): height bands alone keep the fights low and hurt the P-47 (`notes/boom-and-zoom-diagnosis.md`, "Height bands for every fighter"); something must pull the fights up. The arena would need flak too for the tuner to see it.
-- **Zero sprites: the Ki-43's are a placeholder (Planes):** the A6M Zero replaces the Ki-43 in the fighter roster (Decisions, step 4, "Changed 2026-11-12 evening") and flies with the Ki-43's sprites until it gets its own: owner finds a 3-view, outline in the Outline Lab, owner approves the shape, then sprites and frames (`tools/make-sprites.mjs`). History rules the looks: the placeholder must go before release.
 - **Fly the Stuka fix (Gameplay):** part 3e made dive bombers reach `bots.bomberRange` and bomb tanks under flak (headless: 0.8 → 8.8 bombs a run, no patrol sawtooth); the owner hasn't flown it yet. Check: `?plane=spitfire&enemy=ju87`, do the Stukas go for tanks and bomb?
 - **Bots too easy against the player (Gameplay):** after part 3e (bots now fight the player instead of running) the owner found them maybe too easy to play against (2026-11-12). Player-only knobs keep the balance tools clean: `bots.playerPull`, or a level's aim/evade numbers against humans. After part 4.
 - **Easy bots crash on their own after flak damage (Gameplay):** an easy bot flies through enemy flak and, shot up, crashes by itself on about half of all seeds (seen 2026-11-11 before and after the guns pass: a field take-off with a damaged engine that stalls at 46, structures near x 1750, a hard landing). `tests/bots.test.mjs` checks own-fault deaths for normal and ace only since then. For the step 3 bot pass.
