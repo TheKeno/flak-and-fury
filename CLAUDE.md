@@ -88,6 +88,11 @@ yourself instead.
   running it). A new piece needs: its drawing (and a `-ruin`), an entry in `data/ground.json` (`decor: true`, width and
   height = sprite pixels / 2), a line in `GROUND_ENTITIES` (`src/content/ldtk.js`) and an entity in the LDtk project
   (no team field). `tests/scenery.test.mjs` checks all four. `?showcase=<x>` stands every piece in a row to look at.
+- `pixel-lab.html` + `src/ui/pixel-lab.js` — the Pixel Lab (linked from the Outline Lab): a simple pixel editor for the
+  scenery drawn in `tools/kursk-sprites.mjs` (buildings, wrecks, guns, the train, paratroopers). Saving writes
+  `data/pixels/<name>.json` (rows of palette keys); from then on those rows are the sprite, the drawing code is only what
+  "Revert to drawn" returns to, and a sprite the game uses is rebuilt at once. So before changing a drawing in the code,
+  check `data/pixels/` for the owner's version and leave it. Sizes are fixed. The dev server serves it (`/api/pixels`).
 - New tunable values: add to the data file, the tuning panel and TUNING.md.
 - Match the surrounding style: short comments explaining *why*, 2-space indent, single quotes.
 - Headless sim tests: `node --test tests/`. They import `src/sim/world.js`, build a world from the data

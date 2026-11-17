@@ -1,0 +1,36 @@
+
+[07:23:42] Height count 2026-11-17T06:23 (as it is): 288 matches of 10 min, seeds 201-208, 8 threads.
+
+[07:30:21] == where fighters were shot down (398 s)
+[07:30:21]            kills by band     lost by band      kills  lost   (kills: by its fighters; lost: to anything of the enemy's)
+[07:30:21]              low  mid high     low  mid high
+[07:30:21] b239         85%  14%   1%     79%  16%   5%     460   806
+[07:30:21] la5fn        71%  27%   3%     63%  30%   7%     658   729
+[07:30:21] spitfire     67%  31%   2%     60%  30%  10%     848   815
+[07:30:21] a6m5         75%  24%   1%     76%  21%   3%     609   649
+[07:30:21] bf109g6      69%  27%   4%     72%  23%   5%     599   951
+[07:30:21] p47d         70%  24%   6%     84%  13%   3%     508  1340
+[07:30:21] all          72%  26%   3%     74%  21%   5%    3682  5290
+[07:30:21] exchange share against the other types: b239 47%, la5fn 56%, spitfire 60%, a6m5 60%, bf109g6 45%, p47d 32%
+[07:30:21] raids: 1728 flown, 3456 bombers: 2767 bombed, 979 turned back hit, 904 shot down by fighters, 411 by flak, 117 lost otherwise, 1634 came home.
+[07:30:21] ground war: the front ends 439 units from the middle on average; 70 depots destroyed in 288 matches.
+
+[07:30:21] Height count done.
+
+[07:30:21] Height count 2026-11-17T06:30 (followDown 300 for the Bf 109 and P-47): 288 matches of 10 min, seeds 201-208, 8 threads. FF_TACTICS={"bf109g6":{"followDown":300},"p47d":{"followDown":300}}
+
+[07:37:11] == where fighters were shot down (410 s)
+[07:37:11]            kills by band     lost by band      kills  lost   (kills: by its fighters; lost: to anything of the enemy's)
+[07:37:11]              low  mid high     low  mid high
+[07:37:11] b239         82%  17%   1%     78%  16%   6%     438   737
+[07:37:11] la5fn        65%  32%   3%     60%  32%   8%     621   658
+[07:37:11] spitfire     67%  31%   2%     58%  31%  10%     893   793
+[07:37:11] a6m5         73%  25%   2%     75%  22%   3%     595   623
+[07:37:11] bf109g6      53%  38%   9%     64%  28%   8%     449   821
+[07:37:11] p47d         62%  28%  10%     78%  18%   4%     305  1137
+[07:37:11] all          67%  29%   4%     70%  24%   7%    3301  4769
+[07:37:11] exchange share against the other types: b239 51%, la5fn 59%, spitfire 64%, a6m5 62%, bf109g6 40%, p47d 23%
+[07:37:11] raids: 1728 flown, 3456 bombers: 2805 bombed, 959 turned back hit, 916 shot down by fighters, 398 by flak, 114 lost otherwise, 1655 came home.
+[07:37:11] ground war: the front ends 455 units from the middle on average; 60 depots destroyed in 288 matches.
+
+[07:37:11] Height count done.

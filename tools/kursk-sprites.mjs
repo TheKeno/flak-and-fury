@@ -3,7 +3,7 @@
 // (5 pixels a metre). Run: node tools/kursk-sprites.mjs  -> notes/kursk-assets-preview.png, a sheet of all of
 // them on a ground line, four times enlarged, with today's farmhouse and a T-34 for size.
 // When the owner has approved the looks they move into make-sprites.mjs (SPRITES), data/ground.json and LDtk.
-import { writeFileSync, readFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { PALETTE } from './plane-palette.mjs';
@@ -803,8 +803,8 @@ export const KURSK = {
   track: track(),
   shed: shed(),
   church: church(),
-  'flak-88': flak88(),
-  'flak-85': flak85(),
+  'flak-88-whole': flak88(),
+  'flak-85-whole': flak85(),
   'pak-40': pak40(),
   'zis-3': zis3(),
   'gun-pit': gunPit(),
@@ -1349,6 +1349,8 @@ export const KURSK_FIELD = {
   'smoke-column': smokeColumn(),
 };
 export const KURSK_MILITARY = {
+  'flak-88': flak88(false), // the mounts as the game draws them: the barrel is its own piece that swings
+  'flak-85': flak85(false),
   'depot-germany': depotGermany(),
   'depot-ussr': depotUssr(),
   'radar-germany': radarGermany(),
@@ -1552,6 +1554,23 @@ export const KURSK_EXTRA = {
   'flat-wagon': flatWagon(),
 };
 
+// Hand-edited versions. The Pixel Lab (pixel-lab.html) saves a sprite the owner has redrawn as
+// data/pixels/<name>.json { rows }: from then on those rows are the sprite, here and in the game, and the
+// drawing code above is only what "Revert to drawn" goes back to. (A wreck worked out from a building is
+// worked out from the drawn building, not from an edited one: edit the wreck itself.)
+export const PIXEL_GROUPS = { 'Scenery': KURSK, 'Wrecks': KURSK_RUINS, 'Fields, fire and dust': KURSK_FIELD, 'Military': KURSK_MILITARY, 'Paratroopers and the train': KURSK_EXTRA };
+export const DRAWN = {}; // name -> the rows as the code draws them
+export const EDITED = new Set(); // names that have a hand-edited version
+for (const set of Object.values(PIXEL_GROUPS)) {
+  for (const name of Object.keys(set)) {
+    DRAWN[name] = set[name];
+    const file = new URL(`../data/pixels/${name}.json`, import.meta.url);
+    if (!existsSync(file)) continue;
+    set[name] = JSON.parse(readFileSync(file, 'utf8')).rows;
+    EDITED.add(name);
+  }
+}
+
 // What is in the game (tools/make-sprites.mjs writes these to assets/sprites/; data/ground.json names them):
 // the scenery, each building's wreck as <name>-ruin, the heavy flak mounts without their barrels, and each
 // nation's depot and radar. The rest of this file is still drafts.
@@ -1562,9 +1581,7 @@ export const GAME_SPRITES = {
     'soviet', 'elevator', 'town-ruin']),
   ...pick(KURSK_RUINS, ['izba-ruin', 'izba-white-ruin', 'shed-ruin', 'cowshed-ruin', 'church-ruin', 'windmill-ruin', 'station-ruin',
     'water-tower-ruin', 'trade-row-ruin', 'soviet-ruin', 'elevator-ruin', 'depot-germany-ruin', 'depot-ussr-ruin']),
-  ...pick(KURSK_MILITARY, ['depot-germany', 'depot-ussr', 'radar-germany', 'radar-ussr', 'windsock', 'stores', 'wire', 'mine-sign']),
-  'flak-88': flak88(false),
-  'flak-85': flak85(false),
+  ...pick(KURSK_MILITARY, ['flak-88', 'flak-85', 'depot-germany', 'depot-ussr', 'radar-germany', 'radar-ussr', 'windsock', 'stores', 'wire', 'mine-sign']),
 };
 
 // --- The transports of the paratroop drops ------------------------------------------------------------------
@@ -1835,7 +1852,7 @@ function preview() {
     [k.cowshed, k.church, k.windmill, k['apple-tree'], k.birch, k.sunflowers, k.stooks],
     [k.station, k['water-tower'], k['telegraph-pole'], k.wagon, k.dugout, k.hedgehog],
     [k['town-house'], k['trade-row'], k.soviet, k.elevator, k['town-ruin']],
-    [game('flak'), game('lightflak'), k['flak-88'], k['flak-85'], k['pak-40'], k['zis-3'], game('panzer4h'), k['gun-pit']],
+    [game('flak'), game('lightflak'), k['flak-88-whole'], k['flak-85-whole'], k['pak-40'], k['zis-3'], game('panzer4h'), k['gun-pit']],
   ], [k.wagon]);
   sheetOf('kursk-assets-preview-2.png', [
     [r['izba-ruin'], r['izba-white-ruin'], r['shed-ruin'], r['cowshed-ruin'], r['church-ruin'], r['windmill-ruin']],

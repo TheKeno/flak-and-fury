@@ -1,14 +1,15 @@
 // Tiny static file server for local development: node tools/serve.mjs [port]
 // It also accepts PUT for the tuning panel's "Save to files", limited to existing data/*.json files
 // (and data/outlines/*.json), POST /build-sprites[?plane=x] for the Outline Lab, GET /api/outlines,
+// GET/PUT/DELETE /api/pixels for the Pixel Lab (hand-edited scenery sprites, data/pixels/),
 // and for the Balance Lab GET /api/balance (scenario and result files) and PUT of balance/results/*.json
 // (new runs) and balance/scenarios/*.json.
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { IMAGE_TYPES, MAX_BYTES, libraryDir, listSheets, saveSheet, sheetPath } from './blueprints.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -122,6 +123,55 @@ ${err.message}` : '') }));
   });
 }
 
+// The Pixel Lab (pixel-lab.html): the scenery drawn in tools/kursk-sprites.mjs, to redraw by hand.
+//   GET /api/pixels            { palette: { key: { rgba, name } }, groups: { group: [{ name, rows, edited, inGame }] } }
+//   PUT /api/pixels/<name>     body { rows }: saved as data/pixels/<name>.json; the sprite file is rebuilt if the game uses it
+//   DELETE /api/pixels/<name>  back to the drawn version
+// The drawing module is loaded afresh each time, so an edit shows at once.
+async function pixelApi(req, res) {
+  const json = (code, obj) => {
+    res.writeHead(code, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify(obj));
+  };
+  try {
+    const mod = await import(`${pathToFileURL(join(root, 'tools/kursk-sprites.mjs')).href}?t=${Date.now()}`);
+    const { PALETTE } = await import(pathToFileURL(join(root, 'tools/plane-palette.mjs')).href);
+    const name = decodeURIComponent(new URL(req.url, 'http://x').pathname.slice('/api/pixels'.length)).replace(/^\//, '');
+    if (!name && req.method === 'GET') {
+      // The colours' names are the comments in the palette file.
+      const names = {};
+      for (const line of (await readFile(join(root, 'tools/plane-palette.mjs'), 'utf8')).split('\n')) {
+        const m = /^\s*'?(.)'?: \[[^\]]*\],\s*\/\/\s*(.*)$/.exec(line);
+        if (m) names[m[1]] = m[2];
+      }
+      const palette = Object.fromEntries(Object.entries(PALETTE).map(([k, rgba]) => [k, { rgba, name: names[k] ?? '' }]));
+      const groups = Object.fromEntries(Object.entries(mod.PIXEL_GROUPS).map(([g, set]) => [g, Object.entries(set).map(([n, rows]) => ({ name: n, rows, edited: mod.EDITED.has(n), inGame: n in mod.GAME_SPRITES }))]));
+      return json(200, { palette, groups });
+    }
+    const drawn = mod.DRAWN[name];
+    if (!drawn) return json(404, { error: `No sprite called ${name}` });
+    const file = join(root, 'data/pixels', `${name}.json`);
+    if (req.method === 'PUT') {
+      let body = '';
+      for await (const chunk of req) {
+        body += chunk;
+        if (body.length > 2_000_000) return json(413, { error: 'too large' });
+      }
+      const { rows } = JSON.parse(body);
+      const w = Math.max(...drawn.map((r) => r.length));
+      if (!Array.isArray(rows) || rows.length !== drawn.length || rows.some((r) => typeof r !== 'string' || r.length !== w)) return json(400, { error: `The sprite must stay ${w} x ${drawn.length}` });
+      for (const r of rows) for (const c of r) if (!PALETTE[c]) return json(400, { error: `Unknown colour key ${c}` });
+      await mkdir(join(root, 'data/pixels'), { recursive: true });
+      await writeFile(file, `${JSON.stringify({ _notes: 'Hand-edited in the Pixel Lab (pixel-lab.html): these rows of palette keys (tools/plane-palette.mjs) replace the drawing in tools/kursk-sprites.mjs.', name, rows }, null, 1)}\n`);
+    } else if (req.method === 'DELETE') await rm(file, { force: true });
+    else return json(405, { error: 'method' });
+    if (!(name in mod.GAME_SPRITES)) return json(200, { ok: true, built: false });
+    execFile(process.execPath, ['tools/make-sprites.mjs', name], { cwd: root, timeout: 120_000 }, (err, stdout, stderr) => json(err ? 500 : 200, { ok: !err, built: !err, output: String(stdout) + String(stderr) }));
+  } catch (e) {
+    json(400, { error: String(e.message) });
+  }
+}
+
 // The blueprint library (see tools/blueprints.mjs): GET /api/blueprints, GET /api/blueprints/<name>,
 // PUT /api/blueprints/<name>. Local dev server only, never part of the public game.
 async function blueprintApi(req, res) {
@@ -158,6 +208,7 @@ async function blueprintApi(req, res) {
 
 createServer(async (req, res) => {
   if (req.url.split('?')[0].startsWith('/api/blueprints')) return blueprintApi(req, res);
+  if (req.url.split('?')[0].startsWith('/api/pixels')) return pixelApi(req, res);
   if (req.method === 'POST' && req.url.startsWith('/build-sprites')) {
     try {
       buildSprites(res, new URL(req.url, 'http://x').searchParams.get('plane'));
