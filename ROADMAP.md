@@ -27,6 +27,12 @@ later.
   4. **Make the bands happen in play** (now part of milestone 8, "Direction: the front", 2026-11-16; backlog "Pull fights up"): flak low, high bombers, and a
      second measure, kills and deaths by height in the real arena. Then retry a simple "don't follow down" rule
      for the high planes, which per-band stats should finally make pay.
+     **Tried and dropped (owner, 2026-11-17):** the tactic `followDown` 300 for the Bf 109 and P-47 made both worse in every
+     band (band check: Bf 109 42 / 51 / 61% -> 35 / 42 / 50%, P-47 34 / 44 / 58% -> 25 / 34 / 47%; real matches 45 -> 40% and
+     32 -> 23%; `notes/band-check-2026-11-17.txt`, `notes/height-count-2026-11-17.txt`). It stays off (`followDown` 2000, the
+     default). **Fights are forced into the bands by events and flak, not by bot rules.** Measured with raids and both kinds
+     of flak in: fighters still fall 72% low, 26% mid, 3% high, so the events to come (transports mid, ground attack low)
+     and flak placement have that work to do.
   **Stage 1 measured (2026-11-15, `tools/band-check.mjs --bands low,mid,high --seeds 101-160`, 45 min,
   `notes/band-check-2026-11-15.txt`):** **mid on target** (Spitfire and Zero 55-60% against every visitor, 50/51
   between them). **Low:** B-239 and La-5FN even (53/48) and beat the high planes (61-69%), but lose narrowly to
@@ -483,7 +489,7 @@ later.
     see Done "Milestone 8 step 1"); (2) **light and heavy flak on today's map** (**built 2026-11-16**, see Done "Milestone 8 step 2"; the owner's
     test flight is still open; the light gun's look is approved) (the heavy gun from today's
     `flak`, the new light gun with its outline shown to the owner before data work, one area of each kind placed,
-    bots respect both); (3) **AI bomber raids and the height count on today's map** (**raids, flak reach and the height count built 2026-11-16**, not yet flown by the owner; the long runs and "don't follow down" are left: see `notes/milestone8-step3.md`) (one raid per side every few
+    bots respect both); (3) **AI bomber raids and the height count on today's map** (**built 2026-11-16, measured 2026-11-17**: raids, flak reach, the height count; "don't follow down" tried and dropped; the owner's test flight is still open: see `notes/milestone8-step3.md`) (one raid per side every few
     minutes, high, on the depot or radar, whose effects are built; the Blenheim and Pe-3 stand in; radio call and
     radar marker ahead; kills and deaths by height; then rerun the band check and retry "don't follow down" for
     the high planes); (4) the target chain and its effects on the redesigned map, each target with its own flak

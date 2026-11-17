@@ -34,3 +34,10 @@ The session stopped at the usage limit. Built and committed; the rest is listed 
    numbers as `notes/band-check-2026-11-16.txt`). The rule is not written yet. Ask the owner before applying.
 4. Roadmap: Done entry for step 3 and "built" in the build order once the owner has flown it.
 5. Scratch tool kept: `tools/scratch/raid-probe.mjs [flak|noflak] [seeds] [-v]`.
+
+## Update 2026-11-17
+
+- Items 2 and 3 are done: `tools/step3-runs.cmd` ran the height count as the game is, the same with `followDown` 300 for the
+  Bf 109 and P-47, and the band check with it. The rule made both planes worse everywhere; the owner dropped it. It stays off.
+- The owner's decision: fights are forced into the bands by events and flak, not by bot rules.
+- Still open: the owner's test flight of raids and flak (item 1), and the roadmap Done entry for step 3 once flown (item 4).
