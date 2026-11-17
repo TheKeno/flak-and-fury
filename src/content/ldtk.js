@@ -18,6 +18,7 @@ export const GROUND_ENTITIES = {
   Building: 'building',
   Radar: 'radar',
   Depot: 'depot',
+  Searchlight: 'searchlight',
   // Scenery (no team: nobody fights over it; data/ground.json, sprites from tools/kursk-sprites.mjs).
   Izba: 'izba',
   IzbaWhite: 'izbaWhite',

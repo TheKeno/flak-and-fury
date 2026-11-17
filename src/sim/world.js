@@ -36,6 +36,7 @@ export const DEFAULT_RULES = {
   enemies: 2,
   wingmanSkill: 'normal',
   enemySkill: 'normal',
+  night: false, // searchlights burn and the sky is dark (night fighting to come); ?night in the game
 };
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.

@@ -873,7 +873,9 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
+  const beams = []; // this frame's searchlight beams (drawGround fills it, drawNight draws them)
   function drawGround() {
+    beams.length = 0;
     for (const obj of world.ground) {
       const sx = Math.round(toScreenX(obj.x));
       if (sx < -60 || sx > bw + 60) continue;
@@ -894,7 +896,7 @@ export function createRenderer(canvas, world, assets) {
       const sy = Math.round(toScreenY(surfaceAt(world, obj.x))) + 2;
       const left = sx - Math.round(img.width / 2);
       const dir = facingOf(obj);
-      const turns = obj.type === 'flak' || obj.type === 'lightFlak' || obj.type === 'mgNest' || obj.type === 'tank';
+      const turns = obj.type === 'flak' || obj.type === 'lightFlak' || obj.type === 'mgNest' || obj.type === 'tank' || obj.type === 'searchlight';
       const gun = turns && obj.type !== 'tank';
       // Each nation's own tank (obj.model, set by the sim), drawn from its Outline Lab layers.
       const veh = obj.type === 'tank' && assets.vehicles?.[obj.model ?? obj.def.sprite];
@@ -936,7 +938,7 @@ export function createRenderer(canvas, world, assets) {
       // A gun's barrel: a nation's own gun (def.looks) brings its barrel as a sprite, drawn level pointing right,
       // which is turned about its pivot to the aim; the plain guns have a drawn line.
       const look = lookOf(obj);
-      const plainGun = { flak: [14, 6, 20, 3, '#3e4630'], lightFlak: [13, 5, 12, 1, '#24261f'], mgNest: [13, 2, 9, 1, '#24261f'] }[obj.type];
+      const plainGun = { flak: [14, 6, 20, 3, '#3e4630'], lightFlak: [13, 5, 12, 1, '#24261f'], mgNest: [13, 2, 9, 1, '#24261f'], searchlight: [15, 7, 6, 5, '#3e4630'] }[obj.type];
       const [fpx, fpy] = look?.pivot ?? plainGun ?? [0, 0];
       const barrelImg = look?.barrel?.sprite ? assets.images[look.barrel.sprite] : null;
       let flen = plainGun?.[2] ?? 0;
@@ -949,6 +951,8 @@ export function createRenderer(canvas, world, assets) {
         if (Math.cos(aim) < 0) ctx.scale(1, -1); // pointing left: keep it the right way up
         ctx.drawImage(barrelImg, -bx - 0.5, -by - 0.5);
         ctx.restore();
+        // A searchlight's beam leaves the lens; drawn over everything once the night is laid (drawNight).
+        if (obj.type === 'searchlight' && world.rules.night && obj.alive) beams.push({ x: pivot(fpx) + Math.cos(aim) * flen, y: top + fpy - Math.sin(aim) * flen, aim, half: obj.def.beam, lit: obj.lit != null });
       } else if (gun && plainGun) drawBarrel(pivot(fpx), top + fpy, aim, plainGun[2], plainGun[3], plainGun[4]);
       const flash = groundFlashes.get(obj.id);
       if (gun && flash > 0) {
@@ -1307,6 +1311,82 @@ export function createRenderer(canvas, world, assets) {
       }
     }
     ctx.globalAlpha = 1;
+  }
+  // Rain (world.cloud.rain, rolled per match): grey streaks falling from the layer's banks to the ground, slanting
+  // with the drift, and a faint veil under the heaviest of it. Kept subtle; drawn over the planes.
+  const rainHash = (n) => {
+    let h = Math.imul(n | 0, 2654435761) >>> 0;
+    h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0;
+    return ((h ^ (h >>> 13)) >>> 0) / 4294967296;
+  };
+  function drawRain() {
+    const rain = world.cloud?.rain;
+    if (!rain) return;
+    const t = performance.now() / 1000;
+    const cell = 3; // world units between streaks
+    const fall = 260; // units a second
+    const x0 = Math.floor(cam.x / cell) - 2;
+    const x1 = Math.ceil((cam.x + bw / SCALE) / cell) + 2;
+    ctx.strokeStyle = 'rgba(170,182,196,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = x0; i <= x1; i++) {
+      const wx = i * cell;
+      const l = layerAt(world, wx);
+      if (l.solid < 0.35 || rainHash(i * 7 + 3) > rain * l.solid) continue;
+      const ground = world.terrain.heightAt(wx);
+      const span = l.bottom - ground;
+      if (span < 20) continue;
+      for (let k = 0; k < 2; k++) {
+        const phase = rainHash(i * 13 + k * 101);
+        const drop = (t * fall * (0.85 + 0.3 * phase) + phase * span) % span;
+        const wy = l.bottom - drop;
+        const sx = toScreenX(wx + drop * 0.12);
+        const sy = toScreenY(wy);
+        if (sx < -4 || sx > bw + 4 || sy < -8 || sy > bh + 8) continue;
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + 1.5, sy + 7);
+      }
+    }
+    ctx.stroke();
+    // The veil: the air under a raining bank is a touch greyer.
+    const step = 6;
+    for (let sx = 0; sx < bw; sx += step) {
+      const l = layerAt(world, cam.x + (sx + step / 2) / SCALE);
+      if (l.solid < 0.35) continue;
+      const y0 = Math.max(0, Math.round(toScreenY(l.bottom)));
+      if (y0 >= bh) continue;
+      ctx.fillStyle = `rgba(120,128,136,${(0.07 * rain * l.solid).toFixed(3)})`;
+      ctx.fillRect(sx, y0, step, bh - y0);
+    }
+  }
+  // Night (world.rules.night): the scene darkened, and the searchlights' beams cut through it.
+  function drawNight() {
+    if (!world.rules.night) return;
+    ctx.fillStyle = 'rgba(4,8,20,0.74)';
+    ctx.fillRect(0, 0, bw, bh);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const reach = Math.hypot(bw, bh) * 1.2;
+    for (const b of beams) {
+      const ux = Math.cos(b.aim);
+      const uy = -Math.sin(b.aim);
+      const spread = Math.tan(b.half);
+      const ex = b.x + ux * reach;
+      const ey = b.y + uy * reach;
+      const g = ctx.createLinearGradient(b.x, b.y, ex, ey);
+      g.addColorStop(0, `rgba(230,224,190,${b.lit ? 0.42 : 0.3})`);
+      g.addColorStop(0.5, 'rgba(200,196,170,0.12)');
+      g.addColorStop(1, 'rgba(200,196,170,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(b.x - uy * 1.5, b.y + ux * 1.5);
+      ctx.lineTo(ex - uy * reach * spread, ey + ux * reach * spread);
+      ctx.lineTo(ex + uy * reach * spread, ey - ux * reach * spread);
+      ctx.lineTo(b.x + uy * 1.5, b.y - ux * 1.5);
+      ctx.fill();
+    }
+    ctx.restore();
   }
   // How much of a plane shows to the player: an enemy in cloud fades out (shownShare), and one that comes very
   // close fades in fast and fully (clouds.closeRange, closeFade): the surprise. Friends, the player's own plane
@@ -1838,6 +1918,8 @@ export function createRenderer(canvas, world, assets) {
       drawCloudLayer(false);
       if (!skip.has('planes')) for (const p of world.planes) drawPlane(p, focus);
       drawCloudLayer(true);
+      drawRain();
+      drawNight();
       prof.mark('planes');
       for (const c of world.crew ?? []) drawCrew(c);
       for (const c of world.parachutes ?? []) drawParachute(c, focus);

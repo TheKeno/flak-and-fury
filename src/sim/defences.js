@@ -13,11 +13,11 @@ import { damagePlane } from './weapons.js';
 import { angleDiff } from './math.js';
 import { ignite } from './fire.js';
 import { surfaceAt, mountPoint, radarHealth } from './ground.js';
-import { fixThrough } from './clouds.js';
+import { fixThrough, showsItself } from './clouds.js';
 
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
-const MUZZLE = { flak: [5, 10], lightFlak: [4, 6], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5] };
+const MUZZLE = { flak: [5, 10], lightFlak: [4, 6], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5], searchlight: [6.5, 4.5] };
 const TANK_AA = [10.5, 3, -2]; // roof MG: pivot height, barrel length, offset along the hull
 const TRACER_EVERY = 4;
 const MAX_TURN = 0.06; // fire only when the barrel is this close to the aim point (rad)
@@ -267,11 +267,62 @@ function stepInfantry(world, obj, dt) {
   }
 }
 
+// Searchlights (for night fighting to come): they only burn at night (world.rules.night). With nothing caught the
+// beam sweeps the sky over the gun; a plane that crosses it is caught and held while the light can follow it.
+// A caught plane is marked (p.litBy = the light's id, cleared every tick), for the guns and the drawing. Cloud hides
+// a plane from the light as from an eye. Deterministic: the sweep runs on the light's own clock.
+function canLight(world, obj, p, x, y) {
+  const def = obj.def;
+  if (p.team === obj.team || p.state !== 'air' || p.dying || p.wreck) return false;
+  if ((p.cloud ?? 0) > 0.5 && !showsItself(world, p)) return false;
+  const h = p.y - world.terrain.heightAt(p.x);
+  return h >= (def.minAltitude ?? 0) && Math.hypot(p.x - x, p.y - y) < def.range;
+}
+function stepSearchlight(world, obj, dt) {
+  const def = obj.def;
+  const [h] = MUZZLE.searchlight;
+  const x = obj.x;
+  const y = surfaceAt(world, obj.x) + h;
+  obj.lit = null;
+  if (!world.rules.night) {
+    obj.target = null;
+    swing(obj, obj.x < world.map.width / 2 ? 1.2 : Math.PI - 1.2, dt); // switched off, pointing up and away
+    return;
+  }
+  const bearing = (p) => Math.atan2(p.y - y, p.x - x);
+  let target = world.planes.find((p) => p.id === obj.target);
+  if (!target || !canLight(world, obj, target, x, y)) {
+    target = null;
+    obj.target = null;
+    // Anything inside the beam now is caught.
+    for (const p of world.planes) {
+      if (canLight(world, obj, p, x, y) && Math.abs(angleDiff(bearing(p), obj.aim)) < def.beam) {
+        target = p;
+        obj.target = p.id;
+        break;
+      }
+    }
+  }
+  if (target) {
+    swing(obj, bearing(target), dt);
+    if (Math.abs(angleDiff(bearing(target), obj.aim)) < def.beam * 1.5) {
+      obj.lit = target.id;
+      target.litBy = obj.id;
+    }
+    return;
+  }
+  // Sweeping: a slow swing to and fro across the sky over the gun.
+  obj.sweep = (obj.sweep ?? 0) + dt;
+  swing(obj, Math.PI / 2 + def.sweepArc * Math.sin((obj.sweep * 2 * Math.PI) / def.sweepTime + obj.id), dt);
+}
+
 export function stepDefences(world, dt) {
+  if (world.rules.night) for (const p of world.planes) p.litBy = null;
   for (const obj of world.ground) {
     if (!obj.alive) continue;
     if (obj.type === 'flak') stepFlak(world, obj, dt);
     else if (obj.type === 'mgNest' || obj.type === 'lightFlak' || obj.type === 'tank') stepMg(world, obj, dt);
+    if (obj.type === 'searchlight') stepSearchlight(world, obj, dt);
     if (obj.type === 'tank') stepTankAa(world, obj, dt);
     else if (obj.type === 'infantry') stepInfantry(world, obj, dt);
   }

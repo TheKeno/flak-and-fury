@@ -181,7 +181,10 @@
     "closeFade": 0.2,
     "fireReveal": 1.5,
     "smokeHp": 0.4,
-    "fixFactor": 0.5
+    "fixFactor": 0.5,
+    "rainChance": 0.35,
+    "rainMin": 0.3,
+    "rainMax": 1
   },
   "pads": {
     "margin": 4,

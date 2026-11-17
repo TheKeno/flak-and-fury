@@ -15,7 +15,8 @@ import { clamp } from './math.js';
 // closeRange: nearer than this a hidden plane shows. fireReveal: seconds a plane shows after firing.
 // smokeHp: a plane below this share of its hit points smokes and cannot hide. fixFactor: how fast heavy
 // flak's fix builds through solid cloud (1 = as in clear air).
-export const DEFAULT_CLOUDS = { on: false, base: 750, top: 850, soft: 22, coverMin: 0.4, coverMax: 0.8, cell: 260, drift: 5, closeRange: 45, fireReveal: 1.5, smokeHp: 0.4, fixFactor: 0.5 };
+// rainChance: the chance a match has rain, falling from the layer's banks; rainMin, rainMax: how heavy, if it has.
+export const DEFAULT_CLOUDS = { rainChance: 0.35, rainMin: 0.3, rainMax: 1, on: false, base: 750, top: 850, soft: 22, coverMin: 0.4, coverMax: 0.8, cell: 260, drift: 5, closeRange: 45, fireReveal: 1.5, smokeHp: 0.4, fixFactor: 0.5 };
 
 const hash = (n, seed) => {
   let h = Math.imul(n ^ Math.imul(seed | 0, 2654435761), 2246822519) >>> 0;
@@ -38,7 +39,8 @@ export function createClouds(world) {
   }
   // cover: this match's share of sky under cloud. offset: how far the layer has drifted.
   // (Rounded as a snapshot rounds it, so an online guest draws exactly the host's sky.)
-  world.cloud = { cover: Math.round((cfg.coverMin + (cfg.coverMax - cfg.coverMin) * hash(7, world.seed)) * 1000) / 1000, offset: 0 };
+  const rain = hash(13, world.seed) < (cfg.rainChance ?? 0) ? cfg.rainMin + (cfg.rainMax - cfg.rainMin) * hash(17, world.seed) : 0;
+  world.cloud = { cover: Math.round((cfg.coverMin + (cfg.coverMax - cfg.coverMin) * hash(7, world.seed)) * 1000) / 1000, offset: 0, rain: Math.round(rain * 1000) / 1000 };
 }
 
 // The layer over one place along the map: how solid it is there (0 a gap .. 1 solid) and its ragged lower

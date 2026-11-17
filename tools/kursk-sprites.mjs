@@ -854,6 +854,70 @@ function mgNest(soviet) {
   return g.rowsOut();
 }
 
+// --- Searchlights ---------------------------------------------------------------------------------------------
+// The mount stands on the ground; the drum is its own sprite (like a gun's barrel), drawn pointing right with
+// the lens on the right, and the game turns it about its trunnion to where the light points. About 1.4 times
+// the real size, like the light flak. Mount 30x20, trunnion (15, 7); drum 18x13, its pivot (8, 6).
+
+// German 150 cm Flakscheinwerfer 34 emplaced: the cross-shaped platform off its two-wheeled trailer, a squat
+// pedestal, the fork holding the drum, the cable reel and the crewman at the control handles.
+function searchlightGermany() {
+  const g = grid(30, 20);
+  g.box(2, 17, 27, 18, 'I'); // the cross platform, legs out
+  g.box(0, 18, 3, 19, 'i');
+  g.box(26, 18, 29, 19, 'i');
+  g.box(12, 16, 18, 19, 'i');
+  for (let y = 11; y <= 16; y++) g.span(y, 15 - Math.round(2 + (y - 11) * 0.5), 15 + Math.round(2 + (y - 11) * 0.5), (x) => (x < 15 ? 'v' : 'V'));
+  g.box(10, 4, 11, 11, 'V'); // the fork's arms, either side of the drum
+  g.box(19, 4, 20, 11, 'V');
+  g.box(10, 10, 20, 11, 'v');
+  g.disc(4, 14, 2.5, 'e'); // the cable reel
+  g.disc(4, 14, 1, 'I');
+  g.box(22, 7, 24, 8, 'V'); // the operator: Stahlhelm, tunic
+  g.box(21, 9, 24, 9, 'V');
+  g.box(22, 10, 24, 14, 'q');
+  g.box(22, 15, 22, 16, 'I');
+  g.box(24, 15, 24, 16, 'I');
+  g.outline();
+  return g.rowsOut();
+}
+
+// Soviet Z-15-4 (150 cm): the drum on a heavier, squarer stand on its four-wheeled trailer jacked level,
+// the fork on a turntable, cooling louvres on the drum.
+function searchlightUssr() {
+  const g = grid(30, 20);
+  g.box(2, 15, 27, 16, 'v'); // the trailer bed
+  g.box(1, 17, 28, 17, 'I');
+  for (const cx of [5, 24]) {
+    g.disc(cx, 17.5, 2, 'e');
+    g.disc(cx, 17.5, 0.8, 'I');
+  }
+  for (const x of [10, 19]) g.box(x, 18, x, 19, 'I'); // jacks
+  g.box(11, 12, 19, 14, 'V'); // turntable
+  g.box(10, 4, 11, 12, 'V');
+  g.box(19, 4, 20, 12, 'V');
+  g.box(23, 8, 25, 9, 'v'); // the operator: the round helmet, a gymnastyorka
+  g.box(23, 10, 25, 13, 'K');
+  g.box(23, 14, 23, 14, 'I');
+  g.box(25, 14, 25, 14, 'I');
+  g.outline();
+  return g.rowsOut();
+}
+
+// The drum: a short wide cylinder, the lens glass at the front (right), the lamp house's vents on top.
+function searchlightDrum(soviet) {
+  const g = grid(18, 13);
+  g.box(2, 1, 13, 11, (x, y) => (y < 3 ? 'v' : y > 9 ? 'V' : x % 4 === 0 && soviet ? 'V' : 'v'));
+  g.box(0, 3, 1, 9, 'V'); // the back of the lamp house
+  g.box(14, 0, 15, 12, 'I'); // the front ring
+  g.box(16, 1, 16, 11, 'c'); // the lens
+  g.box(17, 3, 17, 9, '4');
+  g.box(5, 0, 9, 0, soviet ? 'V' : 'I'); // vents
+  g.disc(8, 6, 1.2, 'I'); // the trunnion boss
+  g.outline('c4');
+  return g.rowsOut();
+}
+
 // --- Trees of the steppe -------------------------------------------------------------------------------------
 
 // A planted tree belt (lesopolosa) along a field's edge: a row of poplars and acacias grown together. It
@@ -1705,7 +1769,7 @@ function flatWagon() {
 
 // The two hangars with their door steps, the guns the game turns (mounts and barrels), the steppe's trees.
 export const KURSK_HANGARS = { ...hangarSet('hangar-germany', hangarGermany), ...hangarSet('hangar-ussr', hangarUssr) };
-export const KURSK_GUNS = { ...BARRELS, 'flak-38': flak38(), 'flak-61k': flak61k(), 'mgnest-germany': mgNest(false), 'mgnest-ussr': mgNest(true) };
+export const KURSK_GUNS = { ...BARRELS, 'searchlight-germany': searchlightGermany(), 'searchlight-ussr': searchlightUssr(), 'searchlight-germany-drum': searchlightDrum(false), 'searchlight-ussr-drum': searchlightDrum(true), 'flak-38': flak38(), 'flak-61k': flak61k(), 'mgnest-germany': mgNest(false), 'mgnest-ussr': mgNest(true) };
 export const KURSK_TREES = { 'tree-belt': treeBelt(), oak: oak(), poplar: poplar() };
 export const KURSK_EXTRA = {
   'para-germany-stream': paraStream('K', 'q', 'V', 'q'),
@@ -1742,8 +1806,8 @@ const CATEGORIES = [
   ['Hangar doors: Germany', (n) => n.startsWith('hangar-germany')],
   ['Hangar doors: USSR', (n) => n.startsWith('hangar-ussr')],
   ['Wrecks', (n) => n.endsWith('-ruin') || n.endsWith('-burnt') || n === 'town-ruin'],
-  ['Guns: barrels', (n) => n.endsWith('-barrel')],
-  ['Guns: mounts', (n) => /^(flak-|mgnest-|pak-|zis-)/.test(n) && !n.endsWith('-nest')],
+  ['Guns: barrels', (n) => n.endsWith('-barrel') || n.endsWith('-drum')],
+  ['Guns: mounts', (n) => /^(flak-|mgnest-|pak-|zis-|searchlight-)/.test(n) && !n.endsWith('-nest')],
   ['Bunkers and positions', (n) => /^(dzot|bunker-|tank-dug-in|pillbox|trench-|wire|mine-sign|dugout|hedgehog|gun-pit)/.test(n) || n.endsWith('-nest')],
   ['Airfield and supply', (n) => /^(depot-|radar-|windsock|stores)/.test(n)],
   ['Village', (n) => /^(izba|shed|well|haystack|wattle)/.test(n)],

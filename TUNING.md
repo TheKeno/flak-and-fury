@@ -563,7 +563,14 @@ smoking below `smokeHp` of its hit points (0.3 – 0.5); over a gap; and nearer 
 fades in fully in `closeFade` seconds (0.1 – 0.3). Radar plots it as always, so with your radar standing it shows as
 its radar outline. Heavy flak never stops firing for cloud: its fix only builds `fixFactor` as fast through solid cloud
 (0.4 – 0.7), and at full speed when its side's radar works. The Bf 109 and P-47 bots patrol in the layer. No cloud in
-the air-only arena.
+the air-only arena. **Rain** (looks only): a match has rain with `rainChance` (0.2 – 0.5), as heavy as a roll between
+`rainMin` and `rainMax`; it falls from the layer's banks to the ground, with a faint veil under them.
+
+**Searchlights** (`searchlight` in `data/ground.json`, for night fighting to come): they burn only with `rules.night`
+(`?night` in the game). With nothing caught the beam sweeps `sweepArc` either side of straight up, there and back in
+`sweepTime` seconds; a plane above `minAltitude` and within `range` that crosses the beam (`beam`, its half width in
+radians) is caught and followed at `turnRate` while it can be (cloud hides it, as from an eye). A caught plane is marked
+`litBy`, for the guns to use when night comes. One per nation: the German 150 cm Flakscheinwerfer and the Soviet Z-15-4.
 
 `pads` (in `data/settings.json`, the tuning panel's **Structure pads**): every structure placed on the
 map (anything with a `sprite`: guns, tents, towers, buildings, radar, depots) stands on a level pad, so

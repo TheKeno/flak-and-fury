@@ -875,6 +875,15 @@ later.
 
 ## Done
 
+- **Rain and searchlights (Gameplay, 2026-11-17):** **rain**, looks only: a match has it with `clouds.rainChance` (0.35),
+  as heavy as a roll from its seed; thin grey streaks fall from the layer's banks to the ground with a faint veil under
+  them (`?rain` forces it). **Searchlights** for night fighting to come: `searchlight` in `data/ground.json` and a piece in
+  LDtk; the German 150 cm Flakscheinwerfer and the Soviet Z-15-4 (mount plus a drum that turns, both in the Pixel Lab).
+  They burn only with `rules.night` (`?night` darkens the scene): sweep the sky, catch a plane that crosses the beam and
+  follow it; a caught plane is marked `litBy` for the guns when night comes; cloud hides a plane from them.
+  `tests/searchlight.test.mjs`. Seen in the game: the night with a beam, the rain under a bank. Not yet: a night map,
+  what being lit does (flak at night), searchlights placed on a map.
+
 - **Cloud layer (Gameplay, 2026-11-17):** as decided (Decisions, "Clouds"): `src/sim/clouds.js`, settings `clouds`, tuning
   panel **Clouds**, `tests/clouds.test.mjs`. One broken layer at 750-850 drifting along the map; each match rolls its cover
   (0.4-0.8) from its seed. A plane inside is hidden from bots' and gunners' eyes and fades out on the other players'

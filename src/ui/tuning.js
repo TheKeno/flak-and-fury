@@ -258,6 +258,14 @@ const DEFENCE_FIELDS = {
     ['fixSteady', 'Counts as straight', 0, 60, 1, 'Change of velocity (world units per second, each second) the gunners can follow. A plane changing course or speed faster than this shakes the fix off.'],
     ['fixLoss', 'Fix lost by turning', 0, 0.2, 0.005, 'How fast the fix falls for each unit of change beyond that. Higher: one jink loses it all.'],
   ],
+  searchlight: [
+    ['range', 'Beam reach', 300, 3000, 10, 'How far its beam catches a plane. It burns only at night.'],
+    ['minAltitude', 'Not below', 0, 400, 5, 'Planes lower than this above the ground are below the beam.'],
+    ['beam', 'Beam half width', 0.01, 0.15, 0.005, 'Half the width of the beam (rad): wider catches more easily.'],
+    ['turnRate', 'Follows at', 0.1, 2, 0.05, 'How fast it swings (rad/s): a fast crossing plane can slip out.'],
+    ['sweepArc', 'Sweep either side', 0, 1.4, 0.05, 'How far either side of straight up it sweeps with nothing caught (rad).'],
+    ['sweepTime', 'Sweep time', 4, 40, 1, 'Seconds a sweep there and back takes.'],
+  ],
   lightFlak: [
     ['range', 'Reach', 50, 800, 5, 'How far it can shoot.'],
     ['maxAltitude', 'Ceiling', 50, 800, 5, 'Planes higher than this above the ground are left alone: fly above it.'],
@@ -378,6 +386,9 @@ const CLOUD_FIELDS = [
   ['closeFade', 'Surprise fade-in', 0.05, 1, 0.05, 'Seconds that fade-in takes. Short is a fright.'],
   ['fireReveal', 'Shows after firing', 0, 5, 0.1, 'Seconds a plane in cloud stays visible after it has fired its guns.'],
   ['smokeHp', 'Smokes below', 0, 1, 0.05, 'A plane with less than this share of its hit points trails smoke and cannot hide. A burning plane never can.'],
+  ['rainChance', 'Chance of rain', 0, 1, 0.05, 'The chance a match has rain, falling from the layer\'s banks. Looks only. Applies to the next match.'],
+  ['rainMin', 'Lightest rain', 0, 1, 0.05, 'How heavy the rain is at least, when a match has it.'],
+  ['rainMax', 'Heaviest rain', 0, 1, 0.05, 'How heavy it is at most.'],
   ['fixFactor', 'Flak fix through cloud', 0, 1, 0.05, 'How fast heavy flak\'s fix builds through solid cloud, as a share of clear air. The gun never stops firing; a working radar on its side makes it 1.'],
 ];
 const WAVE_FIELDS = [

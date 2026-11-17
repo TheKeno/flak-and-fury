@@ -33,6 +33,9 @@ const content = await loadContent('countryside');
 // ?style=steppe dresses today's map as the steppe (low horizon, steppe trees, izba villages), to look at
 // before the Kursk map exists. Single player only: a guest's map must be the host's.
 if (new URLSearchParams(location.search).has('style')) content.map.style = new URLSearchParams(location.search).get('style');
+// ?rain: this match has rain (if it has a cloud layer). ?night: dark, the searchlights burn. Single player looks.
+if (new URLSearchParams(location.search).has('rain')) content.settings.clouds.rainChance = 1;
+if (new URLSearchParams(location.search).has('night')) content.settings.rules.night = true;
 const world = createWorld({
   hangarStart: true,
   seed: (Math.random() * 0x100000000) >>> 0, // new match, new random bot planes
@@ -410,6 +413,8 @@ if (params.has('showcase')) {
     world.ground.push(makeGroundObject(world, type, null, x));
     x += def.width / 2;
   }
+  // And a searchlight of each side at the end of the row (they burn with ?night).
+  for (const team of [0, 1]) world.ground.push(makeGroundObject(world, 'searchlight', team, (x += 30)));
   // ?showcase=<x> also starts in free look there (the row runs from about 1300 to 2250).
   // (?showcase=<x>,<y> looks at that height instead of the ground there, e.g. 1500,800 for the cloud layer.)
   const [at, atY] = (params.get('showcase') ?? '').split(',').map(Number);
