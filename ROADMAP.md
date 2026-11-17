@@ -875,6 +875,10 @@ later.
 
 ## Done
 
+- **Returning vehicles keep a gap (Gameplay, 2026-11-17):** trucks (and engineers) driving home used to skip the
+  column queue and could drive through each other. `holdUp` in `src/sim/army.js` now gives a returning unit a
+  queue check against others of its side heading the same way (it follows the one ahead at its pace, gap from the
+  def); outgoing units and ones heading the other way are still ignored. Test in `tests/trucks.test.mjs`.
 - **A6M5 Zero sprites (Planes, 2026-11-17):** the Zero flies as a plane of its own, no longer with the Ki-43's
   sprites. Outline measured off the owner's 3-view and approved (`data/outlines/a6m5.json`; guessed: the belly
   under the wing and the canopy width); model `a6m5` in `tools/plane-models.mjs`: black cowl, the Model 52's
@@ -1338,8 +1342,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Truck engine sound (Sound):** trucks play the tank engine for now (`updateTanks` in `src/audio/soundscape.js`); give
   them a sound of their own in the Sound Lab (Opel Blitz and ZIS-5 first). The tank layers' `speed` driver tops out at 10,
   below the new tank speed 12: check the tank sounds' speed range in the Lab.
-- **Empty trucks driving home overlap (Gameplay):** returning trucks skip the column queue, so two heading home can drive
-  through each other. Minor; let them keep a gap among themselves.
 - **Vehicle headlights at night (Gameplay):** when the night maps and the lighting layer (item 14) are done, light the trucks' headlamps (and tank lamps) from the `lights` list in each truck's sprite json (pixel centre and radius, beam pointing forward).
 - **Tank detail list (Planes):** hand-placed extras on a tank outline (tools on the mudguards, exhaust, hatches, spare track links, headlamp), rectangles and circles at d and h, edited in the Lab like the markings.
 - **Infantry at real scale (Planes):** the squad drawing (`drawSquad`, 13 scenery pixels, 2.6 m) is 1.5 times too big for the planes' scale; redraw them as 0.1 m pixel sprites (17 px) from the Lab, then drop the tank's `spriteScale`.

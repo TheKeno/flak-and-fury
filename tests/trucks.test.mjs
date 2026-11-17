@@ -197,3 +197,25 @@ test('the pace: the first tanks reach the middle of the map in about two minutes
   });
   assert.ok(reached && reached < 140, `west tanks near the middle at ${reached} s`);
 });
+
+test('two trucks driving home keep a gap and never pass through each other', () => {
+  const world = quietWorld();
+  // A slow one ahead (as if it had been hit and crawls) and a fast one close behind, both heading west.
+  const make = (x) => {
+    const t = makeGroundObject(world, 'truck', 0, x, { mobile: true });
+    Object.assign(t, { dir: -1, moving: false, returning: true, held: 0, passengers: [] });
+    world.ground.push(t);
+    return t;
+  };
+  const front = make(1500);
+  const back = make(1540);
+  front.def = { ...front.def, speed: 8 }; // own copy: the shared def stays untouched
+  let minClear = Infinity;
+  run(world, 10, () => {
+    if (!front.alive || !back.alive) return;
+    minClear = Math.min(minClear, (back.x - front.x) - front.def.width / 2 - back.def.width / 2);
+  });
+  assert.ok(front.x < 1500 && back.x < 1540, 'both moved west');
+  assert.ok(back.x > front.x, 'the rear truck stayed behind the front one');
+  assert.ok(minClear > -1, `no overlap (min clear ${minClear.toFixed(1)})`);
+});

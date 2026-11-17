@@ -79,6 +79,19 @@ function spawnWave(world, team, side, depot) {
 // What stops a unit moving on: null if nothing.
 function holdUp(world, u) {
   const dir = u.dir;
+  // Units driving home only keep a gap to others heading the same way (nothing else holds them up).
+  if (u.returning) {
+    const half = halfLength(u);
+    for (const o of world.ground) {
+      if (o === u || !o.mobile || !o.alive || !o.returning || o.team !== u.team || o.dir !== dir) continue;
+      const ahead = (o.x - u.x) * dir;
+      if (ahead > 0 && ahead - half - halfLength(o) < u.def.gap) {
+        blocker = o;
+        return 'queue';
+      }
+    }
+    return null;
+  }
   const engineers = u.type === 'engineers';
   const half = halfLength(u);
   for (const o of world.ground) {
@@ -428,7 +441,7 @@ export function stepArmy(world, dt) {
     if (u.type === 'truck' && !u.returning && !u.unloading && (!u.passengers.length || shouldUnload(world, u))) u.unloading = true;
     if (u.unloading) stepUnload(world, u, dt);
     blocker = null;
-    const why = u.working ? 'working' : u.forming ? 'forming' : u.unloading ? 'unloading' : u.returning ? null : holdUp(world, u);
+    const why = u.working ? 'working' : u.forming ? 'forming' : u.unloading ? 'unloading' : holdUp(world, u);
     // A lead tank in a firefight keeps creeping forward as it shoots, making room for the tanks
     // behind to come into range, until it's close to the enemy.
     const creep = why === 'fight' && u.type === 'tank' && u.hasShot && enemyAhead(world, u) > (u.def.creepHold ?? Infinity);
