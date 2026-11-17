@@ -1583,6 +1583,17 @@ function hullOf(g, nose, d0, d1, top, bottom, { rib = false, belly = 3 } = {}) {
   }
 }
 const lerp = (a, b, k) => a + (b - a) * Math.min(1, Math.max(0, k));
+// The near wing as a side view really shows it: the wing rises towards its tip (dihedral), so from the side its
+// underside is seen as a band from the root chord (d from le0 to te0 at row y0) up to the tip chord (le1 to te1 at
+// row y1, shorter and further back). Pale underside, a darker trailing third, the leading edge and tip in the wing colour.
+function wingBand(g, nose, [le0, te0, y0], [le1, te1, y1]) {
+  for (let y = y1; y <= y0; y++) {
+    const k = (y0 - y) / (y0 - y1);
+    const le = Math.round(lerp(le0, le1, k));
+    const te = Math.round(lerp(te0, te1, k));
+    for (let d = le; d <= te; d++) g.set(nose - d, y, d <= le + 1 || y === y1 ? 'W' : d > le + (te - le) * 0.68 ? '1' : 'U');
+  }
+}
 
 // Junkers Ju 52/3m: 18.9 m long, the corrugated box fuselage, three radials (one in the nose, one on each
 // wing, the wing engines toed out), the raised cockpit, seven square cabin windows, the thick low wing with
@@ -1613,10 +1624,10 @@ function ju52() {
   g.box(nose - 141, cy - 9, nose - 141, cy + 5, 'e');
   g.box(nose - 133, cy - 9, nose - 133, cy + 5, 'e');
   // The wing root (thick, low) and the flap behind and below it.
-  for (let d = 38; d <= 94; d++) g.box(nose - d, cy + 8 - Math.round(2 * Math.sin(((d - 38) / 56) * Math.PI) ** 0.6), nose - d, cy + 12 - Math.round(((d - 38) / 56) * 3), 'W');
-  g.box(nose - 104, cy + 11, nose - 88, cy + 12, 'W');
+  wingBand(g, nose, [38, 92, cy + 12], [60, 88, cy - 3]);
+  for (let y = cy - 1; y <= cy + 13; y++) g.box(nose - Math.round(lerp(100, 91, (cy + 13 - y) / 14)), y, nose - Math.round(lerp(96, 88, (cy + 13 - y) / 14)), y, '1'); // the flap, clear of the wing
   // The near wing engine: cowl ring ahead of the wing, its nacelle fairing back into it.
-  for (let d = 30; d <= 62; d++) g.box(nose - d, Math.round(lerp(cy - 1, cy + 7, (d - 30) / 32)), nose - d, Math.round(lerp(cy + 13, cy + 11, (d - 30) / 32)), d < 40 ? 'B' : 'W');
+  for (let d = 30; d <= 50; d++) g.box(nose - d, Math.round(lerp(cy - 1, cy + 6, (d - 30) / 20)), nose - d, Math.round(lerp(cy + 13, cy + 12, (d - 30) / 20)), d < 40 ? 'B' : 'W');
   g.box(nose - 31, cy - 1, nose - 28, cy + 13, 'e'); // the ring cowl, open at the front
   g.box(nose - 30, cy - 2, nose - 29, cy + 14, 'I');
   g.box(nose - 34, cy + 1, nose - 33, cy + 11, 'S');
@@ -1660,10 +1671,10 @@ function li2() {
   g.disc(nose - 78, cy - 14, 3.5, 'C');
   g.line(nose - 81, cy - 16, nose - 88, cy - 18, 'e');
   // Wing root, then the near engine and its nacelle over it, the wheel showing under.
-  for (let d = 58; d <= 112; d++) g.box(nose - d, cy + 8 - Math.round(2 * Math.sin(((d - 58) / 54) * Math.PI) ** 0.6), nose - d, cy + 13 - Math.round(((d - 58) / 54) * 4), 'W');
-  for (let d = 38; d <= 96; d++) {
+  wingBand(g, nose, [56, 112, cy + 13], [86, 110, cy]);
+  for (let d = 38; d <= 78; d++) {
     const round = d < 42 ? 42 - d : 0; // the cowl's rounded lip
-    g.box(nose - d, Math.round(d < 52 ? cy + 1 : lerp(cy + 1, cy + 9, (d - 52) / 44)) + round, nose - d, Math.round(d < 70 ? cy + 16 : lerp(cy + 16, cy + 11, (d - 70) / 26)) - round, d < 40 ? 'e' : d < 50 ? 'B' : d < 52 ? 'e' : 'W');
+    g.box(nose - d, Math.round(d < 52 ? cy + 1 : lerp(cy + 1, cy + 10, (d - 52) / 26)) + round, nose - d, Math.round(d < 70 ? cy + 16 : lerp(cy + 16, cy + 13, (d - 70) / 8)) - round, d < 40 ? 'e' : d < 50 ? 'B' : d < 52 ? 'e' : 'W');
   }
   g.box(nose - 37, cy + 6, nose - 34, cy + 10, 'I'); // hub
   g.disc(nose - 64, cy + 17, 5, 'e');
@@ -1796,8 +1807,8 @@ function preview() {
     return im;
   };
   sheetOf('kursk-assets-preview-4.png', [
-    [painted(KURSK_PLANES.ju52, { B: [70, 78, 60, 255], S: [54, 60, 48, 255], W: [46, 52, 42, 255], U: [116, 134, 142, 255] })],
-    [painted(KURSK_PLANES.li2, { B: [66, 80, 52, 255], S: [50, 62, 42, 255], W: [44, 54, 36, 255], U: [124, 144, 158, 255] })],
+    [painted(KURSK_PLANES.ju52, { B: [70, 78, 60, 255], S: [54, 60, 48, 255], W: [46, 52, 42, 255], U: [116, 134, 142, 255], 1: [92, 108, 116, 255] })],
+    [painted(KURSK_PLANES.li2, { B: [66, 80, 52, 255], S: [50, 62, 42, 255], W: [44, 54, 36, 255], U: [124, 144, 158, 255], 1: [98, 116, 130, 255] })],
     [game('blenheim'), game('bf109g6')],
   ]);
   const e = img(KURSK_EXTRA);
