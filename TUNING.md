@@ -491,7 +491,7 @@ their own tanks.
 
 | Field | What it does | Try |
 |---|---|---|
-| `range` | Reach along the ground. Longer than a tank's `gunRange` (170) gives free shots at an oncoming column. Trucks stop and unload about 300 short of it (`truck.dismountRange`), out of reach. | 220 – 320 |
+| `range` | Reach along the ground. Longer than a tank's `gunRange` (170) gives free shots at an oncoming column. Trucks stop and unload about 300 short of any other enemy (`truck.dismountRange`); an anti-tank gun does not count for that, so a truck drives on into its reach. | 220 – 320 |
 | `interval` | Seconds between shots with the whole crew. | 4 – 7 |
 | `shellDamage`, `shellRadius` | Each shell's burst: a tank (hp 120) takes it in full, so 60 is two hits. | 45 – 80, 4 – 8 |
 | `gunVelocity`, `spread`, `turnRate` | Muzzle speed, aim error (rad), laying speed (rad/s). | 300 – 450, 0.004 – 0.015, 0.3 – 1 |
@@ -525,7 +525,7 @@ depot to the front: the nation's truck from the Outline Lab (`sprites`: Opel Bli
 Bedford for the UK and so on), most with the tarp up, some open with the men on the benches (`waves.openTrucks`,
 rolled per truck). A truck behind a slower unit keeps its pace. It stops and the men climb out over the tailgate
 one by one (the sprite's `exit` dot), walk to their places behind it and march on as a squad, when an enemy is
-within `dismountRange` ahead, after `holdDismount` seconds stuck behind its column, or once hit below
+within `dismountRange` ahead (anti-tank guns excepted, so the guns can shell it), after `holdDismount` seconds stuck behind its column, or once hit below
 `hurtDismount` of its hit points. Then the empty truck turns and drives home, still a target. Knocked out with
 men aboard, each dies with `passengerLoss`, the rest jump clear. Rounds striking an open truck hit a man on the
 bed with `openHit` times the share of `seats` taken; a blast hurts men in an open truck fully, under a tarp
@@ -548,7 +548,7 @@ map the first columns meet at about 2.5 minutes (it was about 5).
 | `range`, `mgAltitude` | Tank coaxial MG: reach, and only planes lower than this above the ground. | 100 – 200, 20 – 80 |
 | `wreckBlock` | Seconds a knocked-out tank blocks the road; 0 lets tanks drive over wrecks. | 0 – 60 |
 | `creepSpeed`, `creepHold` | A lead tank keeps rolling forward at this share of its speed while it fights (so the tanks behind get into range), until this close to the enemy. | 0.1 – 0.3, 30 – 80 |
-| `dismountRange`, `dismountTime` | Truck: unloads when an enemy is this close ahead; seconds per man climbing out. | 200 – 400, 0.3 – 1 |
+| `dismountRange`, `dismountTime` | Truck: unloads when an enemy (not an anti-tank gun) is this close ahead; seconds per man climbing out. | 200 – 400, 0.3 – 1 |
 | `holdDismount`, `hurtDismount` | Truck: unloads after this many seconds stuck behind its column, or below this share of its hit points. | 1 – 5, 0.3 – 0.7 |
 | `passengerLoss`, `openHit`, `tarpShield`, `seats` | Truck: chance each man aboard dies with it; open bed, chance a round that strikes it hits a man (times seats taken / `seats`); share of a blast men under a tarp take; seats for that sum. | 0.4 – 0.8, 0.3 – 0.7, 0.3 – 0.7, 6 |
 | `combatHold`, `gunnerHold` | Tank crew (one man): seconds he stays inside after the last ground fight (no MG at planes meanwhile), and seconds he stays at the MG after it last fired at a plane. | 3 – 6, 2 – 4 |

@@ -140,11 +140,11 @@ function stepCrew(world, u, dt, why) {
 }
 
 // Clear distance to the nearest enemy on the ground ahead (Infinity if none).
-function enemyAhead(world, u) {
+function enemyAhead(world, u, skipType = null) {
   let best = Infinity;
   const half = halfLength(u);
   for (const o of world.ground) {
-    if (!o.alive || o.team == null || o.team === u.team) continue;
+    if (!o.alive || o.team == null || o.team === u.team || o.type === skipType) continue;
     const ahead = (o.x - u.x) * u.dir;
     if (ahead > 0) best = Math.min(best, ahead - half - halfLength(o));
   }
@@ -343,7 +343,9 @@ function addSoldier(world, sq, hp, fromX) {
 // Time to get out: close to the enemy, stuck behind the column for a while, or badly hit.
 function shouldUnload(world, u) {
   const d = u.def;
-  return enemyAhead(world, u) < d.dismountRange || u.held > d.holdDismount || u.hp < u.maxHp * d.hurtDismount;
+  // An anti-tank gun doesn't count: dismounting 300 short of one would keep the truck out of its reach (260),
+  // so the guns would never shell trucks. Stuck at the gun (held) or hit still unloads it.
+  return enemyAhead(world, u, 'atGun') < d.dismountRange || u.held > d.holdDismount || u.hp < u.maxHp * d.hurtDismount;
 }
 
 // The men climb out over the tailgate one every dismountTime seconds; then the truck turns for home.

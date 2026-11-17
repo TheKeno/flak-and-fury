@@ -875,6 +875,11 @@ later.
 
 ## Done
 
+- **Trucks drive into anti-tank guns' reach (Gameplay, 2026-11-17):** trucks unloaded about 300 short of any enemy,
+  out of a gun's reach (260), so the guns almost never shelled a truck. `shouldUnload` in `src/sim/army.js` now
+  leaves anti-tank guns out of the dismount-range check (`enemyAhead(world, u, 'atGun')`); a truck still unloads for
+  other enemies, when stuck at the gun (`holdDismount`) or when hit. Owner chose this option (2026-11-17) over a longer
+  gun reach. Test in `tests/atgun.test.mjs`; `TUNING.md` updated.
 - **Outline Lab "Build sprites" error text (Planes, 2026-11-17):** the failure ("Command failed: make-sprites.mjs blenheim") did not reproduce on a fresh server, so it was most likely a stale `tools/serve.mjs` (restart it). The server (`buildSprites`) now sends the generator's own output and the failure (`error`: exit code, timeout) apart, buffer 64 MB, and the lab shows the last four output lines.
 - **Easy bots no longer crash on their own after flak damage (Gameplay, 2026-11-17):** re-measured, not rebuilt: 0 own-fault
   crashes in 70 easy-bot runs (40 German, 30 British, 180 s each, bots still hit by flak), so the guns, damage and flak passes
@@ -1335,7 +1340,6 @@ Then: more themes, co-op missions, matchmaking.
 
 
 
-- **Anti-tank guns and trucks (Gameplay)** (session "Gameplay — anti-tank guns vs trucks"): trucks stop to unload about 300 short of any enemy (`truck.dismountRange`), out of an anti-tank gun's reach (260), so the guns almost never shell a truck; settle the fix with the owner, then build.
 
 ## Backlog
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.

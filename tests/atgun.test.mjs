@@ -156,3 +156,19 @@ test('each nation\'s gun has its sprites, in the Pixel Lab, and guns of both sid
   assert.deepEqual([...new Set(guns.map((o) => o.team))].sort(), [0, 1]);
   for (const o of guns) assert.equal(o.gunners.length, def.crew);
 });
+
+test('a loaded truck drives on into a gun\'s reach instead of unloading out of it', () => {
+  const world = makeWorld();
+  const g = gun(world);
+  const t = makeGroundObject(world, 'truck', 1, GUN_X + 450, { mobile: true });
+  Object.assign(t, { dir: -1, moving: true, held: 0, passengers: Array(6).fill(world.groundDefs.infantry.hp) });
+  world.ground.push(t);
+  let unloadAt = null;
+  let shotWhileLoaded = false;
+  run(world, 40, () => {
+    if (unloadAt == null && t.unloading) unloadAt = t.x - GUN_X;
+    if (unloadAt == null && t.alive && world.events.some((e) => e.type === 'tankFire' && e.id === g.id)) shotWhileLoaded = true;
+  });
+  // Either the gun got it before it unloaded, or it unloaded inside the gun's reach.
+  assert.ok(shotWhileLoaded || (unloadAt != null && unloadAt < g.def.range), `unloaded at ${unloadAt}, shot ${shotWhileLoaded}`);
+});
