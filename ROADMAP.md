@@ -7,6 +7,23 @@ later.
 
 ## Decisions
 
+- **Cloud layer look: heaped banks (decided 2026-11-18, discussion; not built yet):** the owner disliked the bank ends
+  (a see-through fading curtain) and the four flat stripes that copy the outline. Chosen look, from the mock-ups
+  `notes/cloud-edge-mockups.png` (top right), `notes/cloud-body-mockups.png` (top right) and
+  `notes/cloud-top-mockups.png` (**top right, "calmer light"**), painted by `notes/cloud-mockups.mjs`
+  (`heaps(true, false, 5, 'lobes', { rim: 0.45, crown: 0.75 })`):
+  - **Ends:** a bank closes up instead of fading: its height shrinks to nothing and it ends in a few small heaps.
+    (The loose puffs past the end barely showed in the mock-up; try them, drop them if they look like noise.)
+  - **Top:** round heaps of mixed sizes from noise, not the two sine waves. Light comes mostly from height in the
+    cloud, with only a weak highlight per heap, so the heaps run together instead of looking like separate balls.
+  - **Body:** heaps all the way down: rows of large dim heaps inside the bank, darker lower down. **Belly:** rounded
+    bulges, shaded underneath, not a ruler line.
+  - **Pixels:** five muted tones blended with a 4×4 Bayer dither; no smooth gradients, no 3-pixel columns.
+  - **Hiding follows the drawing:** `layerAt` in `src/sim/clouds.js` closes the same way at the ends, so a plane hides
+    where you see cloud. Cover, drift and the hiding rules don't change. The veil over the planes stays.
+  - Still painted once into the chunk cache (it must stay cheap). The frayed edges (bottom row of the top mock-ups)
+    were left out "for now"; revisit after seeing it in the game.
+
 - **Pull fights up: flak and high bombers closed (decided 2026-11-17, discussion; nothing to build):** the backlog item
   "Pull fights up" is mostly built: heavy flak (`flak`, from 400 up, fix builds on a plane flying straight), light flak
   (`lightFlak`, `maxAltitude`), AI bomber raids and the cloud layer (Done, milestone 8 step 3 and "Cloud layer").
