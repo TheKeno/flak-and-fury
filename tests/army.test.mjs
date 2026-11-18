@@ -231,3 +231,23 @@ test('tank armour takes bombFactor of a bomb: a 250 kg direct hit leaves it aliv
   blastGround(world, (l + r) / 2, t, { blastRadius: 12, blastDamage: 30 }, null, 0, { spareNeutral: true });
   assert.equal(shelled.hp, 90, 'a tank shell does full damage');
 });
+
+test('squads down to their rear men are measured by the men left, not by where the fallen stood', () => {
+  // Two squads whose front men have fallen, 30 apart centre to centre: by full width they touch, but
+  // their survivors are 56 apart. With no shot at each other (rifles silenced here, a crest in the
+  // game) they must close in, not stand "in a fight" for good with everyone queued behind them.
+  const world = makeWorld({ first: 9999 });
+  const quiet = { ...load('data/ground.json').infantry, range: 0 };
+  const squads = [[0, 1], [1, -1]].map(([team, dir], i) => {
+    const sq = makeGroundObject(world, 'infantry', team, 2300 + i * 30, { squad: 6, mobile: true });
+    sq.dir = dir;
+    sq.def = quiet;
+    for (const s of sq.soldiers) if (s.dx * dir > -12) s.hp = 0; // all but the rear man
+    world.ground.push(sq);
+    return sq;
+  });
+  const start = squads.map((s) => s.x);
+  run(world, 1);
+  assert.ok(squads[0].x > start[0] + 2, `left squad held up: ${squads[0].why}`);
+  assert.ok(squads[1].x < start[1] - 2, `right squad held up: ${squads[1].why}`);
+});

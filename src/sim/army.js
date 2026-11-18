@@ -27,6 +27,20 @@ const MAX_CANDIDATES = 4; // targets a gunner considers before giving up for now
 // Half the length of a ground object along the ground.
 const halfLength = (o) => (o.soldiers ? squadHalf(o) : (o.width ?? o.def.width) / 2);
 
+// How far a unit reaches from its x towards side (+1 right, -1 left). A squad counts only its living
+// men: a lone survivor at the back of a squad is not where its fallen front men stood, so two such
+// squads measured by their full width counted as touching across a crest, neither could see the other
+// to shoot, and both (and everyone queued behind) stood there for good.
+function reach(o, side) {
+  if (!o.soldiers) return halfLength(o);
+  let m = -Infinity;
+  for (const s of o.soldiers) if (s.hp > 0) m = Math.max(m, s.dx * side);
+  return (m === -Infinity ? 0 : m) + o.def.width / 2;
+}
+
+// Clear ground between unit u's front and o, which is ahead of it.
+const clearTo = (u, o) => (o.x - u.x) * u.dir - reach(u, u.dir) - reach(o, -u.dir);
+
 // The own unit a queueing unit waits behind (set by holdUp), so it can keep pace instead of stop-go.
 let blocker = null;
 
@@ -81,11 +95,10 @@ function holdUp(world, u) {
   const dir = u.dir;
   // Units driving home only keep a gap to others heading the same way (nothing else holds them up).
   if (u.returning) {
-    const half = halfLength(u);
     for (const o of world.ground) {
       if (o === u || !o.mobile || !o.alive || !o.returning || o.team !== u.team || o.dir !== dir) continue;
       const ahead = (o.x - u.x) * dir;
-      if (ahead > 0 && ahead - half - halfLength(o) < u.def.gap) {
+      if (ahead > 0 && clearTo(u, o) < u.def.gap) {
         blocker = o;
         return 'queue';
       }
@@ -100,7 +113,7 @@ function holdUp(world, u) {
     if (ahead <= 0) continue;
     // Scenery and the side's own buildings never hold a unit up: skip them before measuring (speed).
     if (!o.alive ? o.type !== 'tank' : o.team == null || (o.team === u.team && !o.mobile)) continue;
-    const clear = ahead - half - halfLength(o);
+    const clear = clearTo(u, o);
     // Engineers slip through their own column, and nobody queues behind them.
     if (o.mobile && o.alive && o.team === u.team && !engineers && o.type !== 'engineers' && !o.returning && clear < u.def.gap) {
       blocker = o;
@@ -142,11 +155,10 @@ function stepCrew(world, u, dt, why) {
 // Clear distance to the nearest enemy on the ground ahead (Infinity if none).
 function enemyAhead(world, u, skipType = null) {
   let best = Infinity;
-  const half = halfLength(u);
   for (const o of world.ground) {
     if (!o.alive || o.team == null || o.team === u.team || o.type === skipType) continue;
     const ahead = (o.x - u.x) * u.dir;
-    if (ahead > 0) best = Math.min(best, ahead - half - halfLength(o));
+    if (ahead > 0) best = Math.min(best, clearTo(u, o));
   }
   return best;
 }
