@@ -27,9 +27,11 @@ function makeWorld({ seed = 3, clouds = {}, rules = { bots: 'off' } } = {}) {
     seed,
   });
 }
-// A place along the map where the layer is as wanted (solid 1, or 0 for a gap).
+// A place along the map where the layer is as wanted (solid 1, or 0 for a gap), well away from a bank's end
+// (a bank thins out over `taper` there).
 const find = (world, want) => {
-  for (let x = 600; x < world.map.width - 600; x += 10) if (want(layerAt(world, x).solid)) return x;
+  const span = world.clouds.taper + 20;
+  for (let x = 600; x < world.map.width - 600; x += 10) if ([-span, 0, span].every((d) => want(layerAt(world, x + d).solid))) return x;
   throw new Error('no such place in the layer');
 };
 const mid = (world) => (world.clouds.base + world.clouds.top) / 2;

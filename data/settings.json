@@ -176,6 +176,7 @@
     "coverMin": 0.4,
     "coverMax": 0.8,
     "cell": 260,
+    "taper": 60,
     "drift": 5,
     "closeRange": 45,
     "closeFade": 0.2,

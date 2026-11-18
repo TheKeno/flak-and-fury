@@ -396,6 +396,7 @@ const CLOUD_FIELDS = [
   ['coverMin', 'Least cloud', 0, 1, 0.05, 'The least share of the sky under cloud a match can roll (a broken day). Applies to the next match.'],
   ['coverMax', 'Most cloud', 0, 1, 0.05, 'The most a match can roll (a heavy day). Applies to the next match.'],
   ['cell', 'Size of banks and holes', 80, 800, 10, 'How long the banks of cloud and the gaps between them are.'],
+  ['taper', 'Bank ends', 10, 200, 5, 'How far from its end a bank of cloud thins out to nothing: bigger is longer, thinner tips.'],
   ['drift', 'Drift', 0, 30, 0.5, 'How fast the layer slides along the map, so no hole stays over one place.'],
   ['closeRange', 'Shows when this close', 0, 200, 5, 'An enemy hidden in cloud fades in fully when it is nearer than this: the surprise.'],
   ['closeFade', 'Surprise fade-in', 0.05, 1, 0.05, 'Seconds that fade-in takes. Short is a fright.'],

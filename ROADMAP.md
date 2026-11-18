@@ -7,7 +7,7 @@ later.
 
 ## Decisions
 
-- **Cloud layer look: heaped banks (decided 2026-11-18, discussion; not built yet):** the owner disliked the bank ends
+- **Cloud layer look: heaped banks (decided 2026-11-18, discussion; built the same day, see Done "Cloud layer look"; the ends were changed then):** the owner disliked the bank ends
   (a see-through fading curtain) and the four flat stripes that copy the outline. Chosen look, from the mock-ups
   `notes/cloud-edge-mockups.png` (top right), `notes/cloud-body-mockups.png` (top right) and
   `notes/cloud-top-mockups.png` (**top right, "calmer light"**), painted by `notes/cloud-mockups.mjs`
@@ -920,6 +920,17 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+
+- **Cloud layer look: heaped banks (Gameplay, 2026-11-18; Decisions, "Cloud layer look"):** the column painter with
+  four stripes is replaced by heaped banks, painted pixel by pixel into the chunk cache (`cloudChunk` in
+  `src/render/renderer.js`): crowns, three rows of dim heaps inside, a bulging belly, five tones with a 4×4 Bayer dither,
+  calmer light (`CLOUD_RIM` 0.45, `CLOUD_CROWN` 0.75), a few loose puffs past an end. **Ends, changed from the mock-up
+  after seeing it in the game** (a pointed tip read as a wedge, a round one as a wall): like cumulus, the base stays nearly
+  flat and the top comes down over it. `layerAt` (`src/sim/clouds.js`) makes that shape over `taper` (new setting, 60
+  world units, tuning panel "Bank ends") from the nearest gap, and `cloudAt` now counts depth only, so a plane hides
+  where cloud is drawn. Chunks are 256 px (about 5 ms each to paint) and the next one at each side is painted ahead, one
+  a frame; per-frame cost about 0.02 ms. `?skip=cloudcache` is gone. Pictures: `notes/cloud-heaped-ingame.jpg`,
+  `notes/cloud-heaped-strip.png`. Not yet flown through by the owner.
 
 - **Kursk map, first pass (Gameplay, 2026-11-17; Decisions, "Direction: the front", "Kursk map, first pass"):** a
   blockout to fly before the rest of step 4 is discussed. **`?map=<name>`** picks a map from `maps/` (default

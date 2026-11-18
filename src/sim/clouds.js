@@ -12,11 +12,12 @@ import { clamp } from './math.js';
 // base, top: the layer's height band (world y). soft: how far its upper and lower edges fade over.
 // coverMin, coverMax: the share of the sky it covers, picked per match between these.
 // cell: the size of its holes and banks (world units along the map). drift: how fast it slides (units/s).
+// taper: how far from its end a bank thins out to nothing (world units along the map).
 // closeRange: nearer than this a hidden plane shows. fireReveal: seconds a plane shows after firing.
 // smokeHp: a plane below this share of its hit points smokes and cannot hide. fixFactor: how fast heavy
 // flak's fix builds through solid cloud (1 = as in clear air).
 // rainChance: the chance a match has rain, falling from the layer's banks; rainMin, rainMax: how heavy, if it has.
-export const DEFAULT_CLOUDS = { rainChance: 0.35, rainMin: 0.3, rainMax: 1, on: false, base: 750, top: 850, soft: 22, coverMin: 0.4, coverMax: 0.8, cell: 260, drift: 5, closeRange: 45, fireReveal: 1.5, smokeHp: 0.4, fixFactor: 0.5 };
+export const DEFAULT_CLOUDS = { rainChance: 0.35, rainMin: 0.3, rainMax: 1, on: false, base: 750, top: 850, soft: 22, coverMin: 0.4, coverMax: 0.8, cell: 260, taper: 60, drift: 5, closeRange: 45, fireReveal: 1.5, smokeHp: 0.4, fixFactor: 0.5 };
 
 const hash = (n, seed) => {
   let h = Math.imul(n ^ Math.imul(seed | 0, 2654435761), 2246822519) >>> 0;
@@ -45,30 +46,58 @@ export function createClouds(world) {
 
 // The layer over one place along the map: how solid it is there (0 a gap .. 1 solid) and its ragged lower
 // and upper edges. The drawing uses this too, so what you see is what hides you.
+// How solid the layer is at a place along the drifted layer (`at` = x - offset).
+function solidAt(world, at) {
+  const cfg = world.clouds;
+  // Two sizes of noise: the banks and holes, and their ragged edges. The threshold turns it into cover.
+  const n = noise(at, cfg.cell, world.seed) * 0.8 + noise(at, cfg.cell * 0.27, world.seed + 11) * 0.2;
+  // (The blend bunches towards the middle; stretch it back so the covered share is about `cover`.)
+  const spread = clamp((n - 0.5) * 1.5 + 0.5, 0, 1);
+  return clamp((world.cloud.cover - spread) / 0.08 + 0.5, 0, 1);
+}
+
 export function layerAt(world, x) {
   const cfg = world.clouds;
   const c = world.cloud;
   if (!c) return { solid: 0, bottom: 0, top: 0 };
   const at = x - c.offset;
-  // Two sizes of noise: the banks and holes, and their ragged edges. The threshold turns it into cover.
-  const n = noise(at, cfg.cell, world.seed) * 0.8 + noise(at, cfg.cell * 0.27, world.seed + 11) * 0.2;
-  // (The blend bunches towards the middle; stretch it back so the covered share is about `cover`.)
-  const spread = clamp((n - 0.5) * 1.5 + 0.5, 0, 1);
-  const solid = clamp((c.cover - spread) / 0.08 + 0.5, 0, 1);
+  const solid = solidAt(world, at);
   const thick = cfg.top - cfg.base;
-  const swell = (noise(at, cfg.cell * 0.4, world.seed + 23) - 0.5) * thick * 0.5;
   const mid = (cfg.base + cfg.top) / 2;
-  const half = (thick / 2) * (0.55 + 0.45 * solid) + swell * 0.5;
-  return { solid, bottom: mid - half, top: mid + half };
+  if (solid <= 0) return { solid, bottom: mid, top: mid };
+  // A bank closes up at its ends instead of turning see-through: it thins to nothing over `taper` from the
+  // nearest gap, however steeply the noise ends it. (Looked for in eighths, then narrowed down, so the slope is smooth.)
+  const taper = cfg.taper ?? 60;
+  const gap = (d) => solidAt(world, at - d) <= 0 || solidAt(world, at + d) <= 0;
+  let end = taper;
+  for (let k = 1; k <= 8; k++) {
+    let hi = (taper * k) / 8;
+    if (!gap(hi)) continue;
+    let lo = hi - taper / 8;
+    for (let j = 0; j < 5; j++) {
+      const m = (lo + hi) / 2;
+      if (gap(m)) hi = m;
+      else lo = m;
+    }
+    end = (lo + hi) / 2;
+    break;
+  }
+  const swell = (noise(at, cfg.cell * 0.4, world.seed + 23) - 0.5) * thick * 0.5;
+  // Like a cumulus: the base stays nearly flat (rising a little at the very end) and the top comes down over it.
+  const e = clamp(end / taper, 0, 1);
+  const half = thick / 2 + swell * 0.5;
+  const bottom = mid - half + 0.35 * half * (1 - e) * (1 - e);
+  return { solid, bottom, top: bottom + (mid + half - bottom) * (0.5 * e * (2 - e) + 0.5 * smooth(e)) };
 }
 
-// How deep in cloud a point is: 0 clear air .. 1 fully inside.
+// How deep in cloud a point is: 0 clear air .. 1 fully inside. Only the depth counts, not how solid the bank is:
+// it is drawn solid wherever it is, so a thin tip hides a plane as far as it is thick.
 export function cloudAt(world, x, y) {
   if (!world.cloud) return 0;
   const { solid, bottom, top } = layerAt(world, x);
   if (solid <= 0 || y <= bottom || y >= top) return 0;
   const soft = world.clouds.soft;
-  return solid * smooth(clamp(Math.min(y - bottom, top - y) / soft, 0, 1));
+  return smooth(clamp(Math.min(y - bottom, top - y) / soft, 0, 1));
 }
 
 // A plane that cloud cannot hide, wherever it is: one that just fired, burns, or trails smoke.

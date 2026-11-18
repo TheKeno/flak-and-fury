@@ -1309,87 +1309,169 @@ export function createRenderer(canvas, world, assets) {
     }
   }
 
-  // The cloud layer (src/sim/clouds.js), column by column from the same function that decides who is hidden.
-  // Drawn twice: its body behind the planes, then a thinner veil over them, so a plane in it is in it.
-  // One column of the layer into g, `step` pixels wide at x; y0, y1 its top and bottom rows (y1 > y0).
-  const CLOUD_BANDS = [['#8a9094', 0.16], ['#787e82', 0.34], ['#6a7074', 0.3], ['#585e62', 0.2]];
-  function paintCloudColumn(g, front, x, step, y0, y1, solid) {
-    const h = y1 - y0;
-    if (front) {
-      // The veil over the planes: thin, so one inside is dimmed, not painted out (its own fade hides it).
-      g.globalAlpha = 0.3 * solid;
-      g.fillStyle = '#7c8286';
-      g.fillRect(x, y0, step, h);
-      return;
-    }
-    // Four tones, lit crown to dark belly.
-    g.globalAlpha = 0.92 * solid;
-    let y = y0;
-    for (const [tone, share] of CLOUD_BANDS) {
-      const part = Math.max(1, Math.round(h * share));
-      g.fillStyle = tone;
-      g.fillRect(x, y, step, Math.min(part, y1 - y));
-      y += part;
-      if (y >= y1) break;
-    }
-  }
-  // The layer's shape at a place `at` along the drifted layer (x - offset): how solid, and its top and bottom
-  // with the heaped tops (rounded lumps of two sizes) over a flatter, wispy belly.
-  function cloudColumn(at) {
-    const l = layerAt(world, at + world.cloud.offset);
-    const heap = Math.abs(Math.sin(at * 0.085)) * 7 + Math.abs(Math.sin(at * 0.029 + 1.1)) * 6;
-    const wisp = Math.sin(at * 0.11) * 1.5 + Math.sin(at * 0.041 + 2) * 2.5;
-    return { solid: l.solid, top: l.top + heap * l.solid, bottom: l.bottom - wisp };
-  }
-  // The layer only drifts, so it is painted once into chunks laid along the drifted layer (world pixels, row 0
-  // = rows above height 0 at `topPx`) and copied each frame, like the terrain: ~950 rectangles a frame become
-  // a few copies. Its columns now sit on the drifting layer instead of the screen: the same look.
-  // ?skip=cloudcache paints it column by column every frame, as before.
-  const CLOUD_CHUNK = 510; // a multiple of the 3-pixel column
+  // The cloud layer (src/sim/clouds.js; ROADMAP Decisions, "Cloud layer look"): heaped banks over the shape that
+  // decides who is hidden, which closes up at a bank's ends. Drawn twice: its body behind the planes, then a thin
+  // veil over them, so a plane in it is in it. Round crowns of mixed sizes along a bank's top and rows of large dim
+  // heaps inside it, lit mostly by height so they run together; a lumpy belly shaded underneath; five muted tones
+  // blended by a 4x4 Bayer dither. Painted once into chunks laid along the drifted layer (world pixels, row 0 =
+  // rows above height 0 at `topPx`) and copied each frame, like the terrain. Everything comes from the layer's
+  // place and the seed, so a heap across two chunks is painted the same in both.
+  const CLOUD_TONES = ['#565c60', '#636a6e', '#71777b', '#7f8589', '#8e9498'].map((h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)));
+  const CLOUD_VEIL = [124, 130, 134];
+  const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
+  const CLOUD_RIM = 0.45; // how much each heap has its own light (1 = a ball each, which looked cartoonish)
+  const CLOUD_CROWN = 0.75; // how much brighter the crowns are than the rest
+  // A multiple of 4, so the dither lines up from chunk to chunk; narrow, as one takes a few ms to paint.
+  const CLOUD_CHUNK = 256;
   const cloudChunks = new Map(); // index -> { back, front, used }
   let cloudKey = '';
+  const cloudHash = (n, salt) => {
+    let h = Math.imul((n * 2 | 0) ^ Math.imul((world.seed | 0) + salt * 7919, 2654435761), 2246822519) >>> 0;
+    h = Math.imul(h ^ (h >>> 15), 3266489917) >>> 0;
+    return ((h ^ (h >>> 13)) >>> 0) / 4294967296;
+  };
+  // How far the belly hangs below the layer's bottom at layer pixel gx: rounded bulges of mixed widths.
+  function cloudBelly(gx) {
+    let d = 0;
+    const k0 = Math.floor(gx / 22);
+    for (let k = k0 - 3; k <= k0 + 3; k++) {
+      const c = (k + cloudHash(k, 1)) * 22;
+      const w = 14 + cloudHash(k, 2) * 30;
+      const t = (gx - c) / w;
+      if (Math.abs(t) < 1) d = Math.max(d, (3 + cloudHash(k, 3) * 9) * Math.sqrt(1 - t * t));
+    }
+    return d;
+  }
+  // One column of the bank in chunk rows: top and bottom of the hiding shape, `body` where the crowns sit.
+  function cloudProfile(gx, topPx) {
+    const l = layerAt(world, (gx + 0.5) / SCALE + world.cloud.offset);
+    if (l.solid <= 0) return null;
+    const top = topPx - l.top * SCALE;
+    const bottom = topPx - l.bottom * SCALE + cloudBelly(gx) * l.solid;
+    if (bottom - top < 1) return null;
+    return { s: l.solid, top, bottom, body: top + 0.12 * (bottom - top) };
+  }
+  // The heaps that may reach the layer pixels x0..x1, in the order they are painted (lower first).
+  function cloudHeaps(x0, x1, topPx) {
+    const crowns = [];
+    const lobes = [];
+    const loose = [];
+    const solidAt = (gx) => layerAt(world, gx / SCALE + world.cloud.offset).solid;
+    for (let k = Math.floor((x0 - 60) / 18); k * 18 < x1 + 60; k++) {
+      const x = (k + cloudHash(k, 4)) * 18;
+      const p = cloudProfile(x, topPx);
+      if (!p) {
+        // A few loose puffs just past a bank's end.
+        if ((solidAt(x - 60) > 0 || solidAt(x + 60) > 0) && cloudHash(k, 5) < 0.3) {
+          const mid = topPx - ((world.clouds.base + world.clouds.top) / 2) * SCALE;
+          const r = 3 + cloudHash(k, 6) * 5;
+          loose.push({ x, y: mid + (cloudHash(k, 7) - 0.5) * 40, rx: r, ry: r * 0.8, k });
+        }
+        continue;
+      }
+      if (p.s < 0.1) continue;
+      // (No bigger than the bank is thick there, so a thin end has small heaps and none stick out past it.)
+      const r = Math.min((16 + cloudHash(k, 8) * 24) * (0.3 + 0.7 * p.s), 0.45 * (p.bottom - p.top));
+      crowns.push({ x, y: p.body + r * 0.3 + (cloudHash(k, 9) - 0.5) * 10, rx: r, ry: r, k });
+      if (p.s > 0.6 && cloudHash(k, 10) < 0.45) {
+        const r2 = r * (0.5 + cloudHash(k, 11) * 0.3);
+        crowns.push({ x: x + (cloudHash(k, 12) - 0.5) * r, y: p.body - r * 0.6, rx: r2, ry: r2, k: k + 0.5 });
+      }
+    }
+    [0.18, 0.42, 0.66].forEach((f, row) => {
+      for (let k = Math.floor((x0 - 60) / 44); k * 44 < x1 + 60; k++) {
+        const x = (k + cloudHash(k, 20 + row) * 0.6) * 44;
+        const p = cloudProfile(x, topPx);
+        if (!p || p.s < 0.15) continue;
+        const r = (16 + cloudHash(k, 30 + row) * 22) * (0.4 + 0.6 * p.s);
+        lobes.push({ x, y: p.body + f * (p.bottom - p.body) + (cloudHash(k, 40 + row) - 0.5) * 10, rx: r * 1.35, ry: r * 0.8, k: k + row / 4 });
+      }
+    });
+    const order = (a, b) => b.y - a.y || a.k - b.k;
+    return { crowns: crowns.sort(order), lobes: lobes.sort(order), loose };
+  }
   function cloudChunk(i, topPx, rows) {
     let c = cloudChunks.get(i);
     if (c) return c;
     c = { back: makeCanvas(CLOUD_CHUNK, rows), front: makeCanvas(CLOUD_CHUNK, rows), used: frame };
-    const gb = c.back.getContext('2d');
-    const gf = c.front.getContext('2d');
-    const step = 3;
-    for (let x = 0; x < CLOUD_CHUNK; x += step) {
-      const k = cloudColumn((i * CLOUD_CHUNK + x + step / 2) / SCALE);
-      if (k.solid <= 0.03) continue;
-      const y0 = topPx - Math.round(k.top * SCALE);
-      const y1 = topPx - Math.round(k.bottom * SCALE);
-      if (y1 <= y0) continue;
-      paintCloudColumn(gb, false, x, step, y0, y1, k.solid);
-      paintCloudColumn(gf, true, x, step, y0, y1, k.solid);
+    const back = new ImageData(CLOUD_CHUNK, rows);
+    const front = new ImageData(CLOUD_CHUNK, rows);
+    const gx0 = i * CLOUD_CHUNK;
+    const cols = Array.from({ length: CLOUD_CHUNK }, (_, x) => cloudProfile(gx0 + x, topPx));
+    const put = (x, y, v, a = 242) => {
+      const lv = Math.max(0, Math.min(0.999, v));
+      const tone = CLOUD_TONES[Math.min(4, Math.floor(lv * 4 + BAYER4[(y & 3) * 4 + ((gx0 + x) & 3)]))];
+      const o = (y * CLOUD_CHUNK + x) * 4;
+      back.data[o] = tone[0];
+      back.data[o + 1] = tone[1];
+      back.data[o + 2] = tone[2];
+      back.data[o + 3] = a;
+      front.data[o] = CLOUD_VEIL[0];
+      front.data[o + 1] = CLOUD_VEIL[1];
+      front.data[o + 2] = CLOUD_VEIL[2];
+      front.data[o + 3] = 77; // the veil over the planes: thin, so one inside is dimmed, not painted out
+    };
+    // One heap pixel by pixel; `shade` gives the light at a point (nx, ny: -1..1 across the heap), or null to skip it.
+    const paint = (q, shade, a) => {
+      const xa = Math.max(0, Math.floor(q.x - q.rx - gx0));
+      const xb = Math.min(CLOUD_CHUNK - 1, Math.ceil(q.x + q.rx - gx0));
+      const ya = Math.max(0, Math.floor(q.y - q.ry));
+      const yb = Math.min(rows - 1, Math.ceil(q.y + q.ry));
+      for (let y = ya; y <= yb; y++) {
+        for (let x = xa; x <= xb; x++) {
+          const nx = (gx0 + x + 0.5 - q.x) / q.rx;
+          const ny = (y + 0.5 - q.y) / q.ry;
+          if (nx * nx + ny * ny > 1) continue;
+          const v = shade(nx, ny, cols[x], y);
+          if (v != null) put(x, y, v, a);
+        }
+      }
+    };
+    // The body: light from above, darkest at the belly and under each bulge.
+    for (let x = 0; x < CLOUD_CHUNK; x++) {
+      const p = cols[x];
+      if (!p) continue;
+      for (let y = Math.max(0, Math.ceil(p.body)); y < Math.min(rows, p.bottom); y++) {
+        const t = (y - p.body) / (p.bottom - p.body);
+        put(x, y, 0.62 - 0.6 * t * t - 0.12 * Math.max(0, Math.min(1, (y - (p.bottom - 6)) / 6)));
+      }
     }
+    const { crowns, lobes, loose } = cloudHeaps(gx0, gx0 + CLOUD_CHUNK, topPx);
+    // Large dim heaps inside the bank, so it is heaps all the way down.
+    for (const q of lobes) {
+      paint(q, (nx, ny, p, y) => {
+        if (!p || y < p.body || y >= p.bottom - 3) return null;
+        const t = (y - p.body) / (p.bottom - p.body);
+        return 0.57 - 0.55 * t * t - 0.16 * CLOUD_RIM * ny;
+      });
+    }
+    // The crowns, lit by height: the full bank's crowns brightest, a thin end's lower ones darker.
+    const cfg = world.clouds;
+    const thick = (cfg.top - cfg.base) * SCALE;
+    const lit = topPx - ((cfg.base + cfg.top) / 2) * SCALE - thick / 2 + 0.12 * thick - 45;
+    for (const q of crowns) {
+      paint(q, (nx, ny, p, y) => {
+        if (!p || y > p.bottom) return null; // nothing past the bank: its end is its shape
+        const g = Math.max(0, Math.min(1, 1 - (y - lit) / 90));
+        return 0.55 * CLOUD_CROWN * g + 0.3 + 0.55 * (1 - CLOUD_CROWN) * 0.5 - CLOUD_RIM * (0.18 * ny * Math.abs(ny) + 0.05 * nx);
+      });
+    }
+    for (const q of loose) paint(q, (nx, ny) => 0.35 - 0.3 * ny, 204);
+    c.back.getContext('2d').putImageData(back, 0, 0);
+    c.front.getContext('2d').putImageData(front, 0, 0);
     cloudChunks.set(i, c);
     return c;
   }
   function drawCloudLayer(front) {
     if (!world.cloud) return;
-    const step = 3;
-    if (skip.has('cloudcache')) {
-      for (let sx = 0; sx < bw; sx += step) {
-        const k = cloudColumn(cam.x + (sx + step / 2) / SCALE - world.cloud.offset);
-        if (k.solid <= 0.03) continue;
-        const y0 = Math.round(toScreenY(k.top));
-        const y1 = Math.round(toScreenY(k.bottom));
-        if (y1 < 0 || y0 > bh || y1 <= y0) continue;
-        paintCloudColumn(ctx, front, sx, step, y0, y1, k.solid);
-      }
-      ctx.globalAlpha = 1;
-      return;
-    }
-    // The band the layer can reach (layerAt: half its thickness swells to 0.625 of it; heaps 13, wisps 4).
+    // The band the layer can reach (layerAt: half its thickness swells to 0.625 of it; crowns 15 above, belly 8 below).
     const cfg = world.clouds;
     const mid = (cfg.base + cfg.top) / 2;
     const reach = (cfg.top - cfg.base) * 0.625;
     const topPx = Math.ceil((mid + reach + 15) * SCALE);
-    const rows = topPx - Math.floor((mid - reach - 6) * SCALE);
+    const rows = topPx - Math.floor((mid - reach - 8) * SCALE);
     // Anything that changes the layer's shape starts the chunks again (a new match, the tuning panel).
-    const key = `${world.seed}|${world.cloud.cover}|${cfg.base}|${cfg.top}|${cfg.cell}`;
+    const key = `${world.seed}|${world.cloud.cover}|${cfg.base}|${cfg.top}|${cfg.cell}|${cfg.taper}`;
     if (key !== cloudKey) {
       cloudChunks.clear();
       cloudKey = key;
@@ -1397,12 +1479,21 @@ export function createRenderer(canvas, world, assets) {
     const dy = bh + Math.round(cam.y * SCALE) - topPx;
     if (dy >= bh || dy + rows <= 0) return;
     const px0 = (cam.x - world.cloud.offset) * SCALE; // the screen's left edge along the drifted layer
-    for (let i = Math.floor(px0 / CLOUD_CHUNK); i * CLOUD_CHUNK < px0 + bw; i++) {
+    const first = Math.floor(px0 / CLOUD_CHUNK);
+    const last = Math.ceil((px0 + bw) / CLOUD_CHUNK) - 1;
+    const had = cloudChunks.size;
+    for (let i = first; i <= last; i++) {
       const c = cloudChunk(i, topPx, rows);
       c.used = frame;
       ctx.drawImage(front ? c.front : c.back, Math.round(i * CLOUD_CHUNK - px0), dy);
     }
-    if (cloudChunks.size > 12) for (const [i, c] of cloudChunks) if (frame - c.used > 300) cloudChunks.delete(i);
+    // Paint the next chunk on either side ahead of time, one a frame and only in a frame that painted none,
+    // so scrolling or drifting into it costs nothing.
+    if (!front && cloudChunks.size === had) {
+      const next = [last + 1, first - 1].find((i) => !cloudChunks.has(i));
+      if (next != null) cloudChunk(next, topPx, rows).used = frame;
+    }
+    if (cloudChunks.size > 24) for (const [i, c] of cloudChunks) if (frame - c.used > 300) cloudChunks.delete(i);
   }
   // Rain (world.cloud.rain, rolled per match): grey streaks falling from the layer's banks to the ground, slanting
   // with the drift, and a faint veil under the heaviest of it. Kept subtle; drawn over the planes.
