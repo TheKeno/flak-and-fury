@@ -598,13 +598,17 @@ radians) is caught and followed at `turnRate` while it can be (cloud hides it, a
 `pads` (in `data/settings.json`, the tuning panel's **Structure pads**): every structure placed on the
 map (anything with a `sprite`: guns, tents, towers, buildings, radar, depots) stands on a level pad, so
 none tilts on a hillside. The pad is level at the average ground height under the object; on a steep
-slope it cuts into the high side and builds up the low side. Applies when the map is loaded (reload the
-page).
+slope it cuts into the high side and builds up the low side. Structures closer together than `merge`
+share one pad at one level (own pads at their own heights made steps between them, and a building between two
+pads hung over the step). Small pieces marked `"pad": false` in `data/ground.json` (trees, wire, hedgehogs,
+poles, stooks, sunflowers, the windsock...) get no pad: they follow the slope, set on its lower end so the
+upper end sinks in instead of the lower end floating. Applies when the map is loaded (reload the page).
 
 | Field | What it does | Try |
 |---|---|---|
 | `margin` | Extra flat ground on each side of the object. | 2 – 10 |
-| `blend` | How far the pad eases back into the hill (smaller = sharper cut). | 10 – 40 |
+| `blend` | How far the pad eases back into the hill (smaller = sharper cut). 50. | 30 – 80 |
+| `merge` | Structures closer than this share one pad. 15: touching pieces; much more joins whole villages, whose one level pushes ramps into neighbouring fields. | 0 – 30 |
 
 ## Gunsight: `data/settings.json` → `hud`
 
@@ -671,8 +675,10 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   hills kept, `fieldTilt` and `fieldSwell` give each field its own gentle tilt and long low roll, and
   `blend` is how far one kind of ground eases into the next (neighbouring zones crossfade). A `Balka` is a
   dry steppe ravine: its rims are levelled and its floor cut `balkaDepth` (22) below them, the sides sloping
-  down over `balkaSide` (40) units; a gun placed in it stands on the floor. Redraw the
-  guide picture after moving zones.
+  down over `balkaSide` (60) units; a gun placed in it stands on the floor. Redraw the
+  guide picture after moving zones. Last, the whole ground is rounded off: `smooth` (8) is how many units
+  either side each point is averaged over, `smoothPasses` (3) how often (0 turns it off); pads, runways and river
+  channels keep their shape.
 - **`Bridge`** puts a river under itself with a bridge across: stretch it to set the river's width. It
   belongs to neither side. Redraw the guide picture after moving it.
 - **The hills** aren't stored in the map; the game builds them from `seed`. The picture behind the

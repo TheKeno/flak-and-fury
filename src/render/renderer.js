@@ -920,7 +920,15 @@ export function createRenderer(canvas, world, assets) {
       }
       const [name, img] = spriteOf(obj);
       if (!img) continue;
-      const sy = Math.round(toScreenY(surfaceAt(world, obj.x))) + 2;
+      // A piece on a slope (no level pad: trees, wire, poles, pad false; or the izbas and barns the game places in
+      // the zones itself) stands on its lower end, so the upper end sinks into the hill instead of the lower end
+      // hanging in the air. On a pad the ground is level and this changes nothing.
+      let ground = surfaceAt(world, obj.x);
+      if (!obj.mobile && obj.def?.width) {
+        const half = obj.def.width * 0.4;
+        ground = Math.min(ground, surfaceAt(world, obj.x - half), surfaceAt(world, obj.x + half));
+      }
+      const sy = Math.round(toScreenY(ground)) + 2;
       const left = sx - Math.round(img.width / 2);
       const dir = facingOf(obj);
       const turns = obj.type === 'flak' || obj.type === 'lightFlak' || obj.type === 'mgNest' || obj.type === 'tank' || obj.type === 'searchlight' || obj.type === 'atGun';

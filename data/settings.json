@@ -189,7 +189,8 @@
   },
   "pads": {
     "margin": 4,
-    "blend": 40
+    "blend": 50,
+    "merge": 15
   },
   "zones": {
     "open": 0.75,
@@ -201,7 +202,9 @@
     "fieldSwell": 3,
     "blend": 120,
     "balkaDepth": 22,
-    "balkaSide": 40
+    "balkaSide": 60,
+    "smooth": 8,
+    "smoothPasses": 3
   },
   "decor": {
     "hedgeDamage": 6,

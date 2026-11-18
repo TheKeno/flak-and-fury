@@ -921,6 +921,20 @@ later.
 
 ## Done
 
+- **Smoother ground, nothing floating (Gameplay, 2026-11-18; the owner's look at the Kursk map: sharp steps, one
+  too-steep slope, buildings half in the air):** structures closer than `pads.merge` (15) share one level pad (own
+  pads at their own heights made terraces with cliffs between, and overlapping pieces such as the trade row and the
+  ruin hung over the step); pads ease into the hill over 50 (was 40); small pieces (`"pad": false` in
+  `data/ground.json`: trees, wire, hedgehogs, poles, stooks, sunflowers, windsock, haystack, wattle, hedge, wall) get
+  no pad and follow the slope; every static piece is drawn standing on the lower end of its footprint (izbas the
+  game places in villages had no pad and hung by up to 3); the finished ground is rounded off (`zones.smooth` 8,
+  `smoothPasses` 3; pads, runways and rivers keep their shape); balka sides slope over 60 (was 40). Measured on
+  Kursk: steep spots (slope over 0.6) 9 → 1 (the hill's foot by the station, 0.68), pieces hanging over 2 units
+  2 → 0 (worst 1.2, a tree). Countryside fields all still landable (436-500). Tuning panel (Structure pads: Share a
+  pad within; Landscape zones: Ground smoothing, passes), TUNING.md, guide pictures redrawn. Two tests fixed that
+  depended on the old ground by chance: the truck test now checks "not passed" when the second truck unloads (both
+  drive home empty afterwards), the patrol test allows a 2 s brush with flak reach (backlog "Bots creep into heavy
+  flak on patrol"). Not seen in the game after the last change (the browser pane was hidden); checked by numbers.
 - **Cloud layer look: heaped banks (Gameplay, 2026-11-18; Decisions, "Cloud layer look"):** the column painter with
   four stripes is replaced by heaped banks, painted pixel by pixel into the chunk cache (`cloudChunk` in
   `src/render/renderer.js`): crowns, three rows of dim heaps inside, a bulging belly, five tones with a 4×4 Bayer dither,
@@ -1418,6 +1432,7 @@ Then: more themes, co-op missions, matchmaking.
 - **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 14).
 
 ## Backlog
+- **Bots creep into heavy flak on patrol (Gameplay):** turning round over the top at the end of the patrol beat, a bot climbs a little each time; at 900-1000 up it is inside heavy flak reach, which the beat ignores (`flakLine` in `src/sim/ai.js` judges at cruise height, 220, where heavy guns can't reach; the cloud perch has the same gap). Measured 2026-11-18 in the bots test over 8 seeds: a normal Bf 109 up to 18-19 s in reach in 180 s, old and new ground alike; the test allows 2 s for now.
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Fly the Stuka fix (Gameplay):** part 3e made dive bombers reach `bots.bomberRange` and bomb tanks under flak (headless: 0.8 → 8.8 bombs a run, no patrol sawtooth); the owner hasn't flown it yet. Check: `?plane=spitfire&enemy=ju87`, do the Stukas go for tanks and bomb?
 - **Bots too easy against the player (Gameplay):** after part 3e (bots now fight the player instead of running) the owner found them maybe too easy to play against (2026-11-12). Player-only knobs keep the balance tools clean: `bots.playerPull`, or a level's aim/evade numbers against humans. After part 4.

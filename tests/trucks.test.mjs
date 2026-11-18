@@ -106,16 +106,24 @@ test('a badly hit truck unloads at once, and one stuck behind it unloads after a
   const back = truckAt(world, 1470);
   let frontOut = null;
   let backOut = null;
+  let stoppedAt = null; // where the hit truck stood to unload (afterwards it turns for home, back past the other)
+  let passed = null;
   run(world, 10, (events) => {
     for (const e of events.filter((ev) => ev.type === 'truckUnloaded')) {
-      if (e.id === front.id) frontOut = world.tick / 60;
-      if (e.id === back.id) backOut = world.tick / 60;
+      if (e.id === front.id) {
+        frontOut = world.tick / 60;
+        stoppedAt = front.x;
+      }
+      if (e.id === back.id) {
+        backOut = world.tick / 60;
+        passed = back.x >= stoppedAt;
+      }
     }
   });
   assert.ok(frontOut, 'the hit truck unloaded');
   assert.ok(frontOut < 6 * front.def.dismountTime + 0.5, 'straight away');
   assert.ok(backOut, 'the one behind unloaded');
-  assert.ok(back.x < front.x, 'without passing it');
+  assert.equal(passed, false, 'without passing it');
 });
 
 test('a truck knocked out with men aboard: some die in it, the rest jump clear', () => {

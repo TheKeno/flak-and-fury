@@ -8,21 +8,34 @@ const RIVER_DEPTH = 16; // channel bed below the banks
 const RIVER_SIDE = 6; // width of the steep channel sides
 const RIVER_WATER = 6; // water surface below the banks
 
-export const DEFAULT_PADS = { margin: 4, blend: 40 };
+export const DEFAULT_PADS = { margin: 4, blend: 50, merge: 15 };
 
 // How the map's zones shape the ground. open, field, village, wood, ridge: share of the hills' ups and
 // downs kept (around the zone's own average height; open is ground in no zone). fieldTilt: steepest
 // gentle slope across a field (rise per unit); fieldSwell: height of a field's long, low roll.
 // blend: distance over which one kind of ground eases into the next. balkaDepth, balkaSide: a balka (a dry
 // steppe ravine) is cut this far below its rims, its sides sloping down over balkaSide units on each edge.
-export const DEFAULT_ZONES = { open: 0.75, field: 0.05, village: 0.05, wood: 0.5, ridge: 0.85, fieldTilt: 0.025, fieldSwell: 3, blend: 120, balkaDepth: 22, balkaSide: 40 };
+// smooth, smoothPasses: the finished ground is rounded by averaging over smooth units either side, smoothPasses
+// times (no sharp crests or corners where pads, balkas and hills meet); pads, runways and rivers keep their shape.
+export const DEFAULT_ZONES = { open: 0.75, field: 0.05, village: 0.05, wood: 0.5, ridge: 0.85, fieldTilt: 0.025, fieldSwell: 3, blend: 120, balkaDepth: 22, balkaSide: 60, smooth: 8, smoothPasses: 3 };
 
 // Level ground for each structure placed on the map (guns, tents, buildings...: anything drawn with a
-// sprite), so none stands tilted on a hillside. Squads and the bridge stand on the ground as it is.
+// sprite), so none stands tilted on a hillside. Squads and the bridge stand on the ground as it is, and so
+// do small pieces marked pad: false in data/ground.json (trees, wire, poles: they follow the slope).
+// Structures closer than cfg.merge share one pad at one level: separate pads at their own heights made
+// terraces with steps between them, and a building between two pads hung over the step.
 export function structurePads(map, groundDefs, cfg = DEFAULT_PADS) {
-  return (map.ground ?? [])
-    .filter((o) => groundDefs[o.type]?.sprite)
-    .map((o) => ({ x: o.x, half: groundDefs[o.type].width / 2, margin: cfg.margin, blend: cfg.blend }));
+  const spans = (map.ground ?? [])
+    .filter((o) => groundDefs[o.type]?.sprite && groundDefs[o.type].pad !== false)
+    .map((o) => [o.x - groundDefs[o.type].width / 2, o.x + groundDefs[o.type].width / 2])
+    .sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  for (const [a, b] of spans) {
+    const last = merged[merged.length - 1];
+    if (last && a - last[1] < (cfg.merge ?? DEFAULT_PADS.merge) + 2 * cfg.margin) last[1] = Math.max(last[1], b);
+    else merged.push([a, b]);
+  }
+  return merged.map(([a, b]) => ({ x: (a + b) / 2, half: (b - a) / 2, margin: cfg.margin, blend: cfg.blend }));
 }
 
 const smooth = (t) => t * t * (3 - 2 * t);
@@ -154,6 +167,27 @@ export function buildTerrain(map, pads = [], zones = DEFAULT_ZONES) {
     }
   }
   for (let x = 0; x <= width; x++) if (weight[x] > 0) heights[x] = lerp(heights[x], levelSum[x] / weight[x], reach[x]);
+
+  // Round off the ground: what stands on it keeps its level (pads, runways), the rest is averaged. Each column
+  // keeps itself in the share it is held (1 on a pad or runway, easing to 0 over a few units around them).
+  const hold = new Float32Array(width + 1);
+  for (const pad of pads) {
+    for (let x = Math.max(0, Math.floor(pad.x - pad.half - pad.margin)); x <= Math.min(width, Math.ceil(pad.x + pad.half + pad.margin)); x++) hold[x] = 1;
+  }
+  for (const af of map.airfields) for (let x = Math.max(0, af.x); x <= Math.min(width, af.x + af.width); x++) hold[x] = 1;
+  const r = Math.round(zones.smooth ?? DEFAULT_ZONES.smooth);
+  if (r > 0) {
+    const sums = new Float64Array(width + 2);
+    for (let pass = 0; pass < (zones.smoothPasses ?? DEFAULT_ZONES.smoothPasses); pass++) {
+      for (let x = 0; x <= width; x++) sums[x + 1] = sums[x] + heights[x];
+      for (let x = 0; x <= width; x++) {
+        if (hold[x] >= 1) continue;
+        const a = Math.max(0, x - r);
+        const b = Math.min(width, x + r);
+        heights[x] = lerp((sums[b + 1] - sums[a]) / (b - a + 1), heights[x], hold[x]);
+      }
+    }
+  }
 
   // Rivers: level banks blended into the hills (like airfields), with a steep-sided channel between
   // them. river.bank is the height of both banks (and of a bridge's deck); river.water the surface.

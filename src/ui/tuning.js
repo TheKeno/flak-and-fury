@@ -355,7 +355,8 @@ const DEFENCE_FIELDS = {
 };
 const PAD_FIELDS = [
   ['margin', 'Level ground beyond', 0, 30, 1, 'Extra flat ground on each side of a structure. Applies when the page is reloaded (after Save to files).'],
-  ['blend', 'Blend into the hill', 1, 80, 1, 'How far the flat pad eases back into the slope. Applies when the page is reloaded (after Save to files).'],
+  ['merge', 'Share a pad within', 0, 150, 5, 'Structures closer than this stand on one shared level pad instead of each on its own (own pads at their own heights make steps). Applies on reload.'],
+  ['blend', 'Blend into the hill', 1, 160, 1, 'How far the flat pad eases back into the slope. Applies when the page is reloaded (after Save to files).'],
 ];
 const DECOR_FIELDS = [
   ['hedgeDamage', 'Hedge: damage', 0, 50, 1, 'Hit points a plane loses ploughing through a hedge (on the ground or skimming it).'],
@@ -374,6 +375,8 @@ const ZONE_FIELDS = [
   ['ridge', 'Ridge: hills kept', 0, 1.5, 0.05, 'Share of the hills kept in a Ridge zone. Above 1 = steeper than the noise. Applies on reload.'],
   ['balkaDepth', 'Balka: depth', 0, 60, 1, 'How far a Balka zone (a dry ravine) is cut below its rims. Applies on reload.'],
   ['balkaSide', 'Balka: side slope', 5, 120, 1, 'Distance over which a balka’s sides slope down to its floor (smaller = steeper). Applies on reload.'],
+  ['smooth', 'Ground smoothing', 0, 40, 1, 'The finished ground is averaged over this many units either side to round off crests and corners (pads, runways and rivers keep their shape). 0: off. Applies on reload.'],
+  ['smoothPasses', 'Smoothing passes', 1, 6, 1, 'How many times the smoothing runs (more = rounder). Applies on reload.'],
   ['blend', 'Zone blend', 10, 300, 5, 'Distance over which one kind of ground eases into the next. Applies on reload.'],
 ];
 const RAID_FIELDS = [
