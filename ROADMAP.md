@@ -967,6 +967,12 @@ later.
 
 ## Done
 
+- **Kursk railway scenery (Design, 2026-11-24, `594e9d2`):** step (a) of "Kursk map: longer, spaced out, a railway,
+  tanks by train": whole track and torn track (48-unit lengths that tile and are drawn turned to the slope, `tilt` in
+  `data/ground.json`), a timber trestle bridge drawn for an 80-wide balka and its wreck; sprites in
+  `tools/kursk-sprites.mjs`, ground types, LDtk pieces `Track`, `TrackTorn`, `RailBridge`; looks approved by the owner
+  (`notes/railway-preview.png`). Placing rules for the map session are in that Decisions entry.
+
 - **Troops no longer stand still for good (Gameplay, 2026-11-18, `c8af0c7`):** two squads down to their rear men
   counted as touching (measured by full width, fallen men included), so behind a crest neither could shoot and both
   stood "in a fight" forever with every squad behind queued up. `holdUp`/`enemyAhead` in `src/sim/army.js` now
