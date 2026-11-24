@@ -2078,94 +2078,483 @@ function dropContainer() {
   return g.rowsOut();
 }
 
-// --- The engine of the railway -----------------------------------------------------------------------------
+// --- The trains (build 2 of the Kursk railway: tanks by train) ---------------------------------------------
+// Drawn at the tanks' scale, 10 pixels a metre (the Lab tanks, assets/sprites/panzer4h.json), so a tank sprite
+// stands on a flatcar pixel for pixel; the game draws them like the tanks (sprite pixels / DETAIL, times the
+// tank's spriteScale). Facing right (the front at the right edge). The bottom row is the lowest pixel of the
+// wheels: the rail head is the line just under it. From published dimensions (BR 52: 22.975 m over buffers with
+// its 2'2'T30 tub tender, 4.40 m high, wheels 0.85 / 1.40 / 0.93 m, 19.0 m wheelbase; the Er: 1.32 m wheels,
+// coupled wheelbase 5.8 m, the Russian gauge's taller loading gauge); wagons from their types' usual sizes.
+// Every buffer's middle is 1.06 m above the rail, so any two pieces couple. TRAINS_META says where things are.
+const PXM = 10;
+// A drawing helper for one train piece: x from the front buffer face (d metres back), rows from heights (metres
+// above the rail head).
+function piece(w, h) {
+  const g = grid(w, h);
+  g.X = (d) => Math.round(w - 1 - d * PXM);
+  g.Y = (m) => Math.round(h - m * PXM);
+  return g;
+}
 
-// Goods locomotive of the E class (0-10-0), the commonest engine on Soviet lines: a long black boiler, five
-// small coupled wheels, a tall chimney, steam and sand domes, a cab with a curved roof; facing right.
-// Drawn to the size of the wagon. 96x44; then the tender. Rail level is the bottom row.
-function locomotive() {
-  const g = grid(96, 44);
-  g.box(6, 31, 90, 33, 'I'); // frame
-  g.box(22, 13, 82, 28, (x, y) => (y < 16 ? 'i' : y > 25 ? 'u' : x % 14 === 8 ? 'u' : 'e')); // boiler, with its bands
-  g.box(22, 13, 82, 13, 'I');
-  g.box(83, 12, 90, 29, 'I'); // smokebox
-  g.disc(90, 20.5, 2, 'i'); // its door handle wheel
-  g.box(84, 2, 88, 11, 'e'); // chimney
-  g.box(83, 2, 89, 3, 'I');
-  g.disc(58, 11, 4, 'e'); // steam dome
-  g.box(54, 11, 62, 13, 'e');
-  g.box(38, 9, 44, 13, 'I'); // sand dome
-  g.box(70, 9, 72, 13, 'i'); // whistle and safety valves
-  g.box(91, 14, 93, 17, '5'); // headlamp, dull
-  // Cab.
-  g.box(4, 8, 21, 31, 'e');
-  for (let x = 3; x <= 22; x++) {
-    g.set(x, 7 - Math.round(1.5 * Math.sin(((x - 3) / 19) * Math.PI)), 'I');
-    g.set(x, 8, 'I');
+// A locomotive's spoked wheel: the worn tyre, the spokes, a counterweight crescent, the hub and crank pin.
+function spokedWheel(g, cx, dia, { centre = '&', spoke = 'e', tyre = 'i', weight = 0 } = {}) {
+  const r = (dia * PXM) / 2;
+  const cy = g.h - r;
+  g.disc(cx, cy, r, 'I');
+  g.disc(cx, cy, r - 1, centre);
+  for (let k = 0; k < 10; k++) {
+    const a = (k / 10) * Math.PI * 2 + 0.3;
+    g.line(cx, cy, cx + Math.cos(a) * (r - 1.2), cy + Math.sin(a) * (r - 1.2), spoke);
   }
-  g.box(8, 12, 15, 18, 'n');
-  g.box(11, 12, 11, 18, 'I');
-  g.box(4, 22, 21, 22, 'i'); // the line of the number board
-  // Running board, cylinders, buffer beam.
-  g.box(22, 29, 90, 30, 'i');
-  g.box(76, 31, 86, 37, 'I');
-  g.box(76, 33, 86, 34, 'i');
-  g.box(91, 30, 94, 34, 'm');
-  g.box(95, 31, 95, 32, 'i');
-  for (const cx of [28, 39, 50, 61, 72]) {
-    g.disc(cx, 37.5, 5, 'I');
-    g.disc(cx, 37.5, 3.5, 'm'); // wheel centres, dull red
-    g.disc(cx, 37.5, 1, 'i');
-    for (const [dx, dy] of [[3, 0], [-3, 0], [0, 3], [0, -3]]) g.set(cx + dx, 37.5 + dy, 'I');
+  if (weight) for (let y = Math.floor(cy - r); y <= cy + r; y++) for (let x = Math.floor(cx - r); x <= cx + r; x++) {
+    const dx = x - cx;
+    const dy = y - cy;
+    if (dx * dx + dy * dy < (r - 1.2) ** 2 && dy < -r * 0.35) g.set(x, y, centre); // the counterweight, opposite the crank
   }
-  g.box(28, 39, 72, 39, 'i'); // coupling rod
-  g.line(61, 39, 80, 35, 'i'); // connecting rod to the crosshead
-  g.box(8, 34, 16, 41, 'I'); // steps and ash pan
+  for (let x = Math.floor(cx - r); x <= cx + r; x++) for (let y = Math.floor(cy - r); y <= cy + r; y++) {
+    const d2 = (x - cx) ** 2 + (y - cy) ** 2;
+    if (d2 <= r * r && d2 > (r - 1) ** 2 && y > cy) g.set(x, y, tyre); // the tyre's lower half catches the light
+  }
+  g.disc(cx, cy, 1, 'i');
+  return cy;
+}
+
+// A wagon wheel: plain disc, tyre and hub.
+function discWheel(g, cx, dia) {
+  const r = (dia * PXM) / 2;
+  const cy = g.h - r;
+  g.disc(cx, cy, r, 'I');
+  g.disc(cx, cy, r - 1, '&');
+  g.disc(cx, cy, r - 2.2, 'e');
+  g.disc(cx, cy, 0.8, 'i');
+  return cy;
+}
+
+// A bogie of two axles. German: pressed plate side frames; Soviet: the diamond frame of bars and its springs.
+function bogie(g, cx, base, dia, soviet) {
+  const half = Math.round((base * PXM) / 2);
+  let cy = 0;
+  for (const x of [cx - half, cx + half]) cy = discWheel(g, x, dia);
+  const top = Math.round(cy - (dia * PXM) / 2 + 1);
+  const ay = Math.round(cy);
+  if (soviet) {
+    g.line(cx - half - 1, ay - 1, cx, top, 'I'); // the diamond's upper bars
+    g.line(cx, top, cx + half + 1, ay - 1, 'I');
+    g.line(cx - half, ay + 1, cx + half, ay + 1, '&'); // the lower bar
+    g.box(cx - 3, top, cx + 3, ay, '&'); // bolster and springs
+    for (let y = top + 1; y < ay; y += 2) g.span(y, cx - 2, cx + 2, 'J');
+  } else {
+    g.box(cx - half - 3, top, cx + half + 3, top + 2, '&'); // the plate frame over the wheels
+    g.box(cx - 4, top, cx + 4, ay, '&');
+    g.box(cx - 3, top + 3, cx + 3, top + 3, 'e');
+  }
+  for (const x of [cx - half, cx + half]) g.box(x - 2, ay - 2, x + 2, ay + 1, 'I'); // axle boxes
+}
+
+// Buffers at one end: the stem and the round head. left: at the left edge, else the right.
+function buffers(g, left, beam = '$') {
+  const cy = g.h - 10.6; // the buffers' middle, 1.06 m up
+  const y0 = Math.round(cy - 2.5);
+  const y1 = Math.round(cy + 1.5);
+  if (left) {
+    g.box(0, y0, 1, y1, 'i');
+    g.box(2, y0 + 1, 4, y1 - 1, 'I');
+    g.box(5, y0 - 3, 6, y1 + 3, beam);
+  } else {
+    g.box(g.w - 2, y0, g.w - 1, y1, 'i');
+    g.box(g.w - 5, y0 + 1, g.w - 3, y1 - 1, 'I');
+    g.box(g.w - 7, y0 - 3, g.w - 6, y1 + 3, beam);
+  }
+}
+
+// A boiler barrel from x0 to x1, top..bottom rows: lit along the top, dark beneath, bands and a handrail.
+function boiler(g, x0, x1, top, bottom, bands = [], rail = -1) {
+  for (let y = top; y <= bottom; y++) {
+    const k = (y - top) / (bottom - top);
+    g.span(y, x0, x1, k < 0.1 ? 'u' : k < 0.25 ? 'e' : k < 0.8 ? '&' : 'd');
+  }
+  for (const x of bands) g.box(x, top + 1, x, bottom, 'e');
+  if (rail >= 0) g.span(rail, x0 + 2, x1 - 2, 'I');
+}
+
+// A dome: a rounded bump on the boiler top, x0..x1, its crown at row top, its base at row base.
+function dome(g, x0, x1, top, base, c = '&') {
+  const mid = (x0 + x1) / 2;
+  const half = (x1 - x0) / 2;
+  for (let x = x0; x <= x1; x++) {
+    const t = Math.abs(x - mid) / half;
+    const y = Math.round(top + (t > 0.6 ? (t - 0.6) * 5 : 0));
+    g.box(x, y, x, base, y === top ? 'u' : c);
+  }
+}
+
+// DR class 52, the Kriegslok (1942): the stripped war engine, a 2-10-0 with a plain round-topped boiler, a short
+// stovepipe chimney, sand dome and steam dome, a closed cab with two windows, bar frames; no smoke deflectors (most
+// came without). Locomotive 13.6 m over its front buffers to the drawbar, 4.40 m high. 136x45.
+function br52() {
+  const g = piece(136, 45);
+  const { X, Y } = g;
+  // Frame, running board, buffer beam.
+  g.box(X(13.3), Y(1.75), X(0.9), Y(1.25), '&');
+  g.box(X(12.9), Y(1.95), X(0.9), Y(1.85), 'e');
+  g.span(Y(1.95), X(9.6), X(1.0), 'I');
+  buffers(g, false);
+  g.box(X(13.6), Y(1.15), X(13.0), Y(0.95), 'I'); // drawbar
+  // Smokebox, saddle and cylinders.
+  boiler(g, X(2.95), X(1.25), Y(4.0), Y(1.95));
+  g.box(X(1.25) + 1, Y(3.9), X(1.25) + 1, Y(2.05), 'I'); // the door's rim
+  g.box(X(2.6), Y(1.95), X(1.4), Y(1.6), 'd');
+  g.box(X(2.7), Y(1.65), X(0.85), Y(1.0), 'e');
+  g.span(Y(1.65), X(2.7), X(0.85), 'i');
+  g.box(X(0.85), Y(1.6), X(0.85), Y(1.05), 'I');
+  g.box(X(2.5), Y(1.95), X(1.1), Y(1.7), '&'); // valve chest
+  // Chimney, short and plain, with its lip; the turbo-generator behind it; the top lamp.
+  g.box(X(2.25), Y(4.3), X(1.6), Y(3.9), 'd');
+  g.box(X(2.35), Y(4.4), X(1.5), Y(4.3), 'e');
+  g.box(X(3.05), Y(4.15), X(2.75), Y(3.95), 'I');
+  g.box(X(1.15), Y(3.7), X(1.0), Y(3.5), 'J');
+  // Boiler barrel and firebox.
+  boiler(g, X(9.6), X(2.95), Y(3.85), Y(2.1), [X(4.3), X(6.0), X(7.7)], Y(3.0));
+  g.box(X(10.0), Y(3.8), X(9.6), Y(1.95), 'd');
+  g.box(X(11.6), Y(1.85), X(10.4), Y(1.25), 'd'); // ash pan
+  dome(g, X(4.75), X(4.05), Y(4.2), Y(3.8)); // sand dome
+  dome(g, X(6.65), X(5.75), Y(4.25), Y(3.8)); // steam dome
+  g.box(X(8.6), Y(4.1), X(8.45), Y(3.85), 'I'); // safety valves
+  g.box(X(9.3), Y(4.2), X(9.2), Y(3.85), 'I'); // whistle
+  g.box(X(3.6), Y(3.3), X(3.15), Y(2.25), 'e'); // air pump on the smokebox side
+  g.span(Y(2.8), X(3.6), X(3.15), 'I');
+  // Cab: closed, two windows, the roof with its vent.
+  g.box(X(12.9), Y(4.2), X(9.85), Y(1.85), '&');
+  g.box(X(12.9), Y(4.2), X(12.9), Y(1.85), 'e');
+  g.span(Y(4.35), X(13.0), X(9.75), 'e');
+  g.span(Y(4.25), X(13.05), X(9.7), 'I');
+  g.box(X(11.9), Y(4.45), X(11.2), Y(4.35), 'e');
+  for (const [a, b] of [[12.6, 11.75], [11.45, 10.4]]) {
+    g.box(X(a), Y(3.75), X(b), Y(3.05), 'n');
+    g.span(Y(3.4), X(a), X(b), 'I');
+  }
+  g.span(Y(2.55), X(12.9), X(9.85), 'e'); // the cab's lower edge and number plate
+  g.box(X(11.6), Y(2.45), X(11.0), Y(2.25), 'i');
+  for (let m = 1.6; m >= 0.9; m -= 0.35) g.span(Y(m), X(12.7), X(12.2), 'I'); // steps
+  // Wheels: the leading truck, five coupled wheels; rods.
+  spokedWheel(g, X(2.3), 0.85);
+  const drivers = [4.9, 6.55, 8.2, 9.85, 11.5].map((d) => X(d));
+  let cy = 0;
+  for (const x of drivers) cy = spokedWheel(g, x, 1.4, { weight: 1 });
+  g.box(X(4.0), Y(1.35), X(2.7), Y(1.3), 'I'); // slide bars
+  g.line(X(3.4), Math.round(Y(1.3)), drivers[2], Math.round(cy + 3), 'i'); // the main rod to the third axle
+  g.span(Math.round(cy + 3), drivers[4], drivers[0], 'I'); // coupling rod
+  for (const x of drivers) g.set(x, Math.round(cy + 3), 'i');
   g.outline('n');
   return g.rowsOut();
 }
 
-// Its tender: a water tank on three axles with the coal heaped at the front. 60x40.
-function tender() {
-  const g = grid(60, 40);
-  g.box(3, 12, 56, 28, (x) => (x % 13 === 3 ? 'u' : 'e'));
-  g.box(3, 12, 56, 13, 'I');
-  for (let x = 30; x <= 55; x++) {
-    const top = Math.round(11 - 4 * Math.sin(((x - 30) / 25) * Math.PI) - noise(x * 7, 1.5));
-    for (let y = top; y <= 11; y++) g.set(x, y, noise(x * 3 + y * 5, 1) < 0.35 ? 'u' : 'd'); // coal
+// Its 2'2'T30 tender: the welded tub (Wannentender, round-ended, like a tank wagon) on two bogies, the coal bunker
+// heaped at the front. 9.4 m, 3.85 m high. 94x39.
+function tenderBr52() {
+  const g = piece(94, 39);
+  const { X, Y } = g;
+  g.box(X(9.0), Y(1.35), X(0.2), Y(1.0), '&'); // sole bar
+  buffers(g, true);
+  g.box(X(0.35), Y(1.15), X(0), Y(0.95), 'I'); // drawbar
+  // The tub: rounded at the rear end.
+  const [t0, t1] = [Y(3.35), Y(1.35)];
+  for (let x = X(8.9); x <= X(0.5); x++) {
+    const fromRear = x - X(8.9);
+    const cut = fromRear < 6 ? Math.round(6 - Math.sqrt(36 - (6 - fromRear) ** 2)) : 0;
+    for (let y = t0 + cut; y <= t1 - cut; y++) {
+      const k = (y - t0) / (t1 - t0);
+      g.set(x, y, k < 0.08 ? 'u' : k < 0.2 ? 'e' : k > 0.85 ? 'd' : '&');
+    }
   }
-  g.box(2, 29, 57, 31, 'I');
-  g.box(0, 29, 1, 31, 'i');
-  g.box(58, 29, 59, 31, 'i');
-  for (const cx of [11, 30, 49]) {
-    g.disc(cx, 34.5, 4.5, 'I');
-    g.disc(cx, 34.5, 3, 'm');
-    g.disc(cx, 34.5, 1, 'i');
-    g.box(cx - 4, 30, cx + 4, 31, 'e');
+  g.span(Math.round((t0 + t1) / 2), X(8.6), X(0.6), 'e'); // welded seam
+  g.box(X(7.9), Y(3.5), X(7.3), Y(3.35), 'I'); // water filler
+  // Coal bunker at the front: its side plates rise forward, the coal heaped above them.
+  for (let x = X(4.2); x <= X(0.5); x++) {
+    const k = (x - X(4.2)) / (X(0.5) - X(4.2));
+    const top = Math.round(Y(3.35 + 0.35 * Math.min(1, k * 2)));
+    g.box(x, top, x, t0, 'e');
+    g.set(x, top, 'I');
+    const heap = Math.round(top - 2 - 2 * Math.sin(k * Math.PI) - noise(x * 7, 1.2));
+    for (let y = heap; y < top; y++) g.set(x, y, noise(x * 3 + y * 5, 1) < 0.35 ? 'u' : 'd');
   }
+  g.box(X(0.6), Y(3.75), X(0.5), Y(1.35), 'I'); // the front plate
+  for (const [d, base] of [[2.7, 1.8], [6.8, 1.8]]) bogie(g, X(d), base, 0.93, false);
   g.outline('d');
   return g.rowsOut();
 }
 
-// An open wagon with a load under a tarpaulin (tanks came up to Kursk like this). 68x24.
-function flatWagon() {
-  const g = grid(68, 24);
-  g.box(2, 15, 65, 17, 'I');
-  g.box(4, 9, 63, 14, (x) => (x % 3 === 0 ? 'D' : 'E')); // low drop sides
-  for (let x = 12; x <= 56; x++) {
-    const top = Math.round(8 - 6 * Math.sin(((x - 12) / 44) * Math.PI) ** 0.4 - (x > 40 && x < 50 ? 2 : 0));
-    g.box(x, top, x, 9, noise(x * 5, 1) < 0.3 ? 'q' : 'K');
+// Soviet class Er (Эр, 1935): the E family's 0-10-0, the commonest goods engine of the war. The broad gauge's taller
+// loading gauge shows: the boiler pitched high over the wheels, a tall thin chimney, the big electric headlamp on
+// the smokebox, a tall sand dome and steam dome, a roomy cab with a rounded roof, the red running gear (worn dull).
+// 11.7 m over the front buffers to the drawbar, 5.05 m high. 117x51.
+function er() {
+  const g = piece(117, 51);
+  const { X, Y } = g;
+  g.box(X(11.4), Y(1.7), X(0.8), Y(1.2), '&'); // frame
+  g.box(X(8.7), Y(1.85), X(0.8), Y(1.7), 'e'); // running board
+  g.span(Y(1.85), X(8.7), X(0.8), 'I');
+  buffers(g, false, '$');
+  g.box(X(11.7), Y(1.15), X(11.3), Y(0.95), 'I');
+  boiler(g, X(2.75), X(0.9), Y(4.15), Y(2.25));
+  g.box(X(0.9) + 1, Y(4.05), X(0.9) + 1, Y(2.35), 'I');
+  g.box(X(2.3), Y(2.25), X(1.2), Y(1.85), 'd'); // saddle
+  g.box(X(2.2), Y(1.6), X(0.75), Y(0.95), 'e'); // cylinders
+  g.span(Y(1.6), X(2.2), X(0.75), 'i');
+  g.box(X(2.1), Y(1.85), X(0.9), Y(1.6), '&');
+  // The tall chimney, the headlamp on the smokebox front.
+  g.box(X(1.95), Y(4.95), X(1.45), Y(4.1), 'd');
+  g.box(X(2.05), Y(5.05), X(1.35), Y(4.95), 'e');
+  g.box(X(1.2), Y(4.6), X(0.75), Y(4.15), 'e');
+  g.box(X(0.75), Y(4.5), X(0.7), Y(4.25), 'J');
+  g.box(X(0.6), Y(2.15), X(0.3), Y(1.85), 'I'); // front footplate
+  // Boiler, firebox, domes.
+  boiler(g, X(8.6), X(2.75), Y(4.05), Y(2.25), [X(3.9), X(5.4), X(7.0)], Y(3.2));
+  g.box(X(9.0), Y(4.0), X(8.6), Y(1.95), 'd');
+  dome(g, X(4.0), X(3.3), Y(4.65), Y(4.0)); // sand dome
+  dome(g, X(5.55), X(4.6), Y(4.75), Y(4.0)); // steam dome
+  g.box(X(7.6), Y(4.35), X(7.45), Y(4.05), 'I'); // safety valves
+  g.box(X(8.25), Y(4.5), X(8.15), Y(4.05), 'I'); // whistle
+  // Cab with its rounded roof and big windows.
+  g.box(X(11.3), Y(4.55), X(8.85), Y(1.85), '&');
+  g.box(X(11.3), Y(4.55), X(11.3), Y(1.85), 'e');
+  for (let x = X(11.45); x <= X(8.75); x++) {
+    const t = (x - X(11.45)) / (X(8.75) - X(11.45));
+    const y = Y(4.6 + 0.15 * Math.sin(t * Math.PI));
+    g.set(x, y, 'I');
+    g.set(x, y + 1, 'e');
   }
-  g.box(0, 15, 1, 16, 'i');
-  g.box(66, 15, 67, 16, 'i');
-  for (const cx of [15, 52]) {
-    g.disc(cx, 19.5, 3, 'I');
-    g.disc(cx, 19.5, 1, 'i');
-    g.box(cx - 3, 16, cx + 3, 17, 'e');
+  for (const [a, b] of [[11.0, 10.25], [9.95, 9.1]]) {
+    g.box(X(a), Y(4.1), X(b), Y(3.25), 'n');
+    g.span(Y(3.65), X(a), X(b), 'I');
+  }
+  g.span(Y(2.75), X(11.3), X(8.85), 'e');
+  g.box(X(10.4), Y(2.65), X(9.6), Y(2.45), 'i'); // number plate
+  for (let m = 1.6; m >= 0.9; m -= 0.35) g.span(Y(m), X(11.1), X(10.6), 'I');
+  const drivers = [2.9, 4.35, 5.8, 7.25, 8.7].map((d) => X(d));
+  let cy = 0;
+  for (const x of drivers) cy = spokedWheel(g, x, 1.32, { centre: '$', spoke: 'F', weight: 1 });
+  g.box(X(3.6), Y(1.3), X(2.25), Y(1.25), 'I');
+  g.line(X(2.9), Math.round(Y(1.25)), drivers[2], Math.round(cy + 3), 'i');
+  g.span(Math.round(cy + 3), drivers[4], drivers[0], 'I');
+  for (const x of drivers) g.set(x, Math.round(cy + 3), 'i');
+  g.outline('n');
+  return g.rowsOut();
+}
+
+// The Er's four-axle tender: a plain riveted tank on two diamond-frame bogies, the coal space's sides flared
+// outwards at the front. 8.9 m, 3.9 m high. 89x39.
+function tenderEr() {
+  const g = piece(89, 39);
+  const { X, Y } = g;
+  g.box(X(8.6), Y(1.4), X(0.2), Y(1.05), '&');
+  buffers(g, true, '$');
+  g.box(X(0.35), Y(1.15), X(0), Y(0.95), 'I');
+  for (let y = Y(3.3); y <= Y(1.4); y++) {
+    const k = (y - Y(3.3)) / (Y(1.4) - Y(3.3));
+    g.span(y, X(8.5), X(0.4), k < 0.06 ? 'u' : k < 0.18 ? 'e' : k > 0.88 ? 'd' : '&');
+  }
+  g.span(Y(3.3), X(8.5), X(0.4), 'I'); // the top bead
+  for (let x = X(8.3); x <= X(0.6); x += 4) g.set(x, Y(2.35), 'e'); // rivets along the seam
+  g.box(X(7.6), Y(3.45), X(7.0), Y(3.3), 'I'); // water hatch
+  for (let x = X(4.6); x <= X(0.4); x++) {
+    const k = (x - X(4.6)) / (X(0.4) - X(4.6));
+    const top = Y(3.3 + 0.45 * Math.min(1, k * 4));
+    g.box(x, top, x, Y(3.3), 'e'); // flared coal boards
+    g.set(x, top, 'I');
+    const heap = Math.round(top - 1 - 1.5 * Math.sin(k * Math.PI) - noise(x * 5, 1.2));
+    for (let y = heap; y < top; y++) g.set(x, y, noise(x * 3 + y * 7, 1) < 0.35 ? 'u' : 'd');
+  }
+  for (const d of [2.45, 6.45]) bogie(g, X(d), 1.7, 1.05, true);
+  g.outline('d');
+  return g.rowsOut();
+}
+
+// A flatcar for one tank. German SSys (the four-axle Rungenwagen the Panzer IV travelled on): a steel frame in the
+// Reichsbahn's red-brown, a plank deck 1.25 m up, the stakes taken out (their pockets along the side), wooden
+// chocks either side of the tank's tracks. Soviet: the four-axle 50-tonne platform on diamond-frame bogies, its low
+// side boards let down. The tank is a sprite of its own on top (TRAINS_META: load). 13.0 / 14.0 m.
+function flatcar(soviet) {
+  const w = soviet ? 140 : 130;
+  const g = piece(w, 17);
+  const { Y } = g;
+  const deck = Y(1.3); // the deck's top row
+  const mid = Math.round(w / 2);
+  const centres = soviet ? [mid - 45, mid + 45] : [mid - 40, mid + 40];
+  for (const cx of centres) bogie(g, cx, soviet ? 1.85 : 1.8, soviet ? 1.0 : 0.94, soviet);
+  buffers(g, true, soviet ? '&' : 'F');
+  buffers(g, false, soviet ? '&' : 'F');
+  g.box(7, deck, w - 8, deck + 1, (x) => (x % 5 === 0 ? 'D' : 'E')); // planks
+  if (soviet) {
+    // Side boards let down, hanging on their hinges below the deck.
+    g.box(8, deck + 2, w - 9, deck + 5, (x, y) => (x % 23 === 0 ? 'I' : y === deck + 5 ? 'D' : (x + y) % 9 === 0 ? 'D' : 'E'));
+    for (let x = 14; x < w - 9; x += 23) g.box(x, deck + 2, x + 1, deck + 2, 'I'); // hinges
+    g.box(7, deck + 6, w - 8, deck + 6, '&'); // the frame under them
+  } else {
+    g.box(7, deck + 2, w - 8, deck + 4, 'F'); // the side channel
+    g.span(deck + 2, 7, w - 8, 'f');
+    for (let x = 13; x < w - 8; x += 13) g.box(x, deck + 2, x + 1, deck + 4, '&'); // stake pockets
+    g.box(7, deck - 3, 8, deck - 1, 'T'); // end boards, low
+    g.box(w - 9, deck - 3, w - 8, deck - 1, 'T');
+  }
+  // Chocks nailed down at the ends of the tank's tracks.
+  for (const x of [mid - 32, mid + 30]) {
+    g.box(x, deck - 2, x + 2, deck - 1, 'T');
+    g.set(x + (x < mid ? 2 : 0), deck - 2, '.');
   }
   g.outline();
   return g.rowsOut();
 }
+
+// German Flakwagen: a two-axle wagon (10.0 m, 6.0 m wheelbase) with a 2 cm Flakvierling 38 behind waist-high
+// armour plates, the gunlayer in his seat, a loader with a magazine, ammunition boxes on the ledge. The four
+// barrels are their own sprite (flakvierling-barrels) on the pivot, turned by the game. 100x34.
+function flakwagenGermany() {
+  const g = piece(100, 34);
+  const { Y } = g;
+  const deck = Y(1.25);
+  for (const x of [20, 80]) {
+    const cy = discWheel(g, x, 1.0);
+    g.box(x - 3, Math.round(cy) - 2, x + 3, Math.round(cy) + 1, 'I'); // axle box
+    for (let k = -8; k <= 8; k++) g.set(x + k, Math.round(cy - 5 + (k * k) / 24), '&'); // leaf spring
+  }
+  buffers(g, true, 'F');
+  buffers(g, false, 'F');
+  g.box(7, deck, 92, deck + 1, (x) => (x % 5 === 0 ? 'D' : 'E'));
+  g.box(7, deck + 2, 92, deck + 4, 'F');
+  g.span(deck + 2, 7, 92, 'f');
+  // The mount: its cross base hidden, the pedestal and carriage over the plates, the shield, the gunlayer.
+  g.box(47, deck - 12, 53, deck - 1, 'V');
+  g.box(44, deck - 15, 56, deck - 12, 'v');
+  g.disc(50, Y(2.55), 2.6, 'v'); // the trunnion: the barrels' pivot (50, Y(2.55))
+  for (let y = Y(3.15); y <= Y(2.0); y++) g.span(y, 57 + (y < Y(3.0) ? 1 : 0), 59, 'V'); // the shield, cut at its top
+  g.box(40, Y(2.95), 43, Y(2.75), 'V'); // gunlayer: Stahlhelm, rim, grey tunic
+  g.box(39, Y(2.75), 44, Y(2.7), 'V');
+  g.box(40, Y(2.7), 43, Y(2.2), 'q');
+  g.box(44, Y(2.45), 46, Y(2.4), 'q'); // his arm on the handwheel
+  g.box(24, Y(3.0), 27, Y(2.85), 'V'); // loader, standing
+  g.box(23, Y(2.85), 28, Y(2.8), 'V');
+  g.box(24, Y(2.8), 27, Y(2.2), 'q');
+  g.box(28, Y(2.6), 30, Y(2.3), 'v'); // a magazine in his hands
+  // Armour plates, waist high, bolted, with a hinged middle flap let down.
+  g.box(8, Y(2.35), 91, deck - 1, (x, y) => ((x - 8) % 21 === 0 ? 'Q' : y === Y(2.35) ? 'i' : 'h'));
+  for (let x = 12; x < 91; x += 7) g.set(x, Y(2.25), 'Q');
+  for (let x = 12; x < 91; x += 7) g.set(x, deck - 2, 'Q');
+  g.box(64, Y(2.55), 70, Y(2.35), 'v'); // ammunition boxes on the ledge
+  g.box(72, Y(2.5), 77, Y(2.35), 'V');
+  g.outline();
+  return g.rowsOut();
+}
+
+// Soviet flak wagon: a two-axle platform (9.2 m, 4.5 m wheelbase) walled with sandbags, a 4M quad Maxim (four
+// Maxims on one pedestal, the commonest train flak of 1943) with its gunner standing at the handles, a second man
+// with a belt box. The guns are their own sprite (maxim-quad-barrels). 92x32.
+function flakwagenUssr() {
+  const g = piece(92, 32);
+  const { Y } = g;
+  const deck = Y(1.3);
+  for (const x of [24, 68]) {
+    const cy = discWheel(g, x, 1.05);
+    g.box(x - 3, Math.round(cy) - 2, x + 3, Math.round(cy) + 1, 'I');
+    for (let k = -7; k <= 7; k++) g.set(x + k, Math.round(cy - 5.5 + (k * k) / 22), '&');
+  }
+  buffers(g, true, '&');
+  buffers(g, false, '&');
+  g.box(7, deck, 84, deck + 1, (x) => (x % 5 === 0 ? 'D' : 'E'));
+  g.box(7, deck + 2, 84, deck + 3, '&');
+  // The pedestal and the gunner behind it, the loader.
+  g.box(44, Y(2.3), 47, deck - 1, 'V');
+  g.box(41, deck - 2, 50, deck - 1, 'V');
+  g.disc(46, Y(2.4), 1.8, 'v'); // the pivot (46, Y(2.4))
+  g.box(35, Y(3.05), 38, Y(2.85), 'v'); // gunner: the round helmet, khaki
+  g.box(35, Y(2.85), 38, Y(2.25), 'K');
+  g.box(39, Y(2.65), 41, Y(2.55), 'K'); // arms to the handles
+  g.box(20, Y(2.75), 23, Y(2.55), 'p'); // loader in his pilotka, a belt box
+  g.box(20, Y(2.55), 23, Y(2.15), 'K');
+  g.box(24, Y(2.4), 26, Y(2.2), 'V');
+  // Sandbags, two courses staggered, waist high.
+  for (let y = Y(2.2); y < deck; y++) {
+    const row = y - Y(2.2);
+    for (let x = 8; x <= 83; x++) {
+      const course = Math.floor(row / 3);
+      const seam = (x + course * 4) % 8 === 0;
+      g.set(x, y, row % 3 === 2 || seam ? '>' : 'q');
+    }
+  }
+  g.outline();
+  return g.rowsOut();
+}
+
+// The guns, drawn level and pointing right like the other barrels (data/ground.json barrel { sprite, pivot }).
+// Flakvierling 38: the four 2 cm guns in two pairs, seen from the side as two, their receivers and magazines,
+// flash hiders. 34x9, pivot (8, 4).
+function flakvierlingBarrels() {
+  const g = grid(34, 9);
+  g.box(2, 1, 13, 7, 'V'); // the cradle and receivers
+  g.box(3, 2, 12, 2, 'v');
+  g.box(3, 6, 12, 6, 'v');
+  g.box(5, 0, 8, 0, 'v'); // magazines
+  g.box(5, 8, 8, 8, 'v');
+  for (const y of [2, 6]) {
+    g.span(y, 14, 30, 'e');
+    g.box(30, y - 1, 32, y + 1, 'I');
+  }
+  g.box(14, 3, 17, 5, 'V');
+  g.outline();
+  return g.rowsOut();
+}
+// 4M: four Maxims in a square frame, two seen from the side: the fat water jackets, the ring sight. 20x11,
+// pivot (5, 6).
+function maximQuadBarrels() {
+  const g = grid(20, 11);
+  g.box(1, 3, 7, 9, 'V');
+  g.box(2, 5, 6, 5, 'v');
+  for (const y of [3, 7]) {
+    g.box(8, y, 15, y + 1, 'v');
+    for (let x = 9; x <= 15; x += 2) g.set(x, y + 1, 'V');
+    g.box(16, y, 17, y + 1, 'I');
+  }
+  g.line(12, 2, 12, 3, 'I'); // the ring sight on its post
+  g.box(11, 0, 13, 0, 'I');
+  g.set(10, 1, 'I');
+  g.set(14, 1, 'I');
+  g.outline('I');
+  return g.rowsOut();
+}
+
+export const KURSK_TRAINS = {
+  'loco-br52': br52(),
+  'tender-br52': tenderBr52(),
+  'flatcar-germany': flatcar(false),
+  'flakwagen-germany': flakwagenGermany(),
+  'flakvierling-barrels': flakvierlingBarrels(),
+  'loco-er': er(),
+  'tender-er': tenderEr(),
+  'flatcar-ussr': flatcar(true),
+  'flakwagen-ussr': flakwagenUssr(),
+  'maxim-quad-barrels': maximQuadBarrels(),
+};
+
+// What build 2 needs to put them on the track, in sprite pixels (x from the left edge, rows from the top; the
+// rail head is under the bottom row, row h). axles: every axle's x; supports: the two points that rest on the
+// rail (bogie centres, or the outer axles of a rigid wheelbase), for tilting with the bed; buffers: the row of
+// the buffers' middle; load: where a tank's middle goes and the row its tracks stand on; gun: the barrels'
+// sprite and the pivot they turn on in this sprite. Kept beside the drawings: change one, change the other.
+const flatMeta = (w, centres, base) => {
+  const half = Math.round((base * PXM) / 2);
+  return { size: [w, 17], length: w / PXM, axles: centres.flatMap((c) => [c - half, c + half]), supports: centres, buffers: 17 - 10.6, load: { x: Math.round(w / 2), row: 17 - 13 } };
+};
+export const TRAINS_META = {
+  'loco-br52': { size: [136, 45], length: 13.6, axles: [112, 86, 70, 53, 37, 20], supports: [20, 112], buffers: 45 - 10.6, drivers: [86, 70, 53, 37, 20] },
+  'tender-br52': { size: [94, 39], length: 9.4, axles: [75, 57, 34, 16], supports: [25, 66], buffers: 39 - 10.6 },
+  'flatcar-germany': flatMeta(130, [25, 105], 1.8),
+  'flakwagen-germany': { size: [100, 34], length: 10.0, axles: [20, 80], supports: [20, 80], buffers: 34 - 10.6, gun: { sprite: 'flakvierling-barrels', at: [50, 9], pivot: [8, 4] } },
+  'loco-er': { size: [117, 51], length: 11.7, axles: [87, 73, 58, 44, 29], supports: [29, 87], buffers: 51 - 10.6, drivers: [87, 73, 58, 44, 29] },
+  'tender-er': { size: [89, 39], length: 8.9, axles: [73, 55, 33, 15], supports: [24, 64], buffers: 39 - 10.6 },
+  'flatcar-ussr': flatMeta(140, [25, 115], 1.85),
+  'flakwagen-ussr': { size: [92, 32], length: 9.2, axles: [24, 68], supports: [24, 68], buffers: 32 - 10.6, gun: { sprite: 'maxim-quad-barrels', at: [46, 8], pivot: [5, 6] } },
+};
+
 
 // The two hangars with their door steps, the guns the game turns (mounts and barrels), the steppe's trees.
 export const KURSK_HANGARS = { ...hangarSet('hangar-germany', hangarGermany), ...hangarSet('hangar-ussr', hangarUssr) };
@@ -2181,16 +2570,13 @@ export const KURSK_EXTRA = {
   'para-ussr-stream': paraStream('4', 'Y', 'p', 'K'),
   'para-ussr': paraOpen(false, '4', 'Y', 'p', 'K'),
   'para-ussr-landed': paraLanded('4', 'Y', 'p', 'K'),
-  locomotive: locomotive(),
-  tender: tender(),
-  'flat-wagon': flatWagon(),
 };
 
 // Hand-edited versions. The Pixel Lab (pixel-lab.html) saves a sprite the owner has redrawn as
 // data/pixels/<name>.json { rows }: from then on those rows are the sprite, here and in the game, and the
 // drawing code above is only what "Revert to drawn" goes back to. (A wreck worked out from a building is
 // worked out from the drawn building, not from an edited one: edit the wreck itself.)
-const SETS = [KURSK, KURSK_RUINS, KURSK_FIELD, KURSK_MILITARY, KURSK_TENTS, KURSK_HANGARS, KURSK_GUNS, KURSK_TREES, KURSK_EXTRA];
+const SETS = [KURSK, KURSK_RUINS, KURSK_FIELD, KURSK_MILITARY, KURSK_TENTS, KURSK_HANGARS, KURSK_GUNS, KURSK_TREES, KURSK_EXTRA, KURSK_TRAINS];
 export const DRAWN = {}; // name -> the rows as the code draws them
 export const EDITED = new Set(); // names that have a hand-edited version
 for (const set of SETS) {
@@ -2215,7 +2601,8 @@ const CATEGORIES = [
   ['Village', (n) => /^(izba|shed|well|haystack|wattle)/.test(n)],
   ['Farm and church', (n) => /^(cowshed|church|windmill|stooks|sunflowers)/.test(n)],
   ['Town', (n) => /^(town-house|trade-row|soviet|elevator)/.test(n)],
-  ['Railway', (n) => /^(station|water-tower|telegraph-pole|track|rail-bridge|wagon|flat-wagon|locomotive|tender)/.test(n)],
+  ['Trains (build 2)', (n) => /^(loco-|tender-|flatcar-|flakwagen-|flakvierling-|maxim-quad-)/.test(n)],
+  ['Railway', (n) => /^(station|water-tower|telegraph-pole|track|rail-bridge|wagon)/.test(n)],
   ['Trees', (n) => /^(apple-tree|birch|oak|poplar|tree-belt)/.test(n)],
   ['Fire, dust and fields', (n) => /^(wheat|stubble|dust-|smoke-)/.test(n)],
   ['Paratroopers', (n) => /^(para-|drop-container)/.test(n)],
@@ -2577,9 +2964,8 @@ function preview() {
   const e = img(KURSK_EXTRA);
   sheetOf('kursk-assets-preview-3.png', [
     [e['para-germany-stream'], e['para-germany'], e['para-germany-landed'], e['drop-container'], e['para-ussr-stream'], e['para-ussr'], e['para-ussr-landed'], game('opel-blitz')],
-    [e['flat-wagon'], k.wagon, e.tender, e.locomotive],
     [game('panzer4h'), game('tiger'), game('t34-76'), game('su-152')],
-  ], [e['flat-wagon'], k.wagon, e.tender, e.locomotive]);
+  ]);
 }
 
 // The railway pieces as the game lays them (notes/railway-preview.png): track lengths end to end on the ground
@@ -2636,7 +3022,136 @@ function railwayPreview() {
   console.log(`notes/railway-preview.png (${W * Z}x${H * Z})`);
 }
 
+// The trains (notes/trains-preview.png): top, every piece alone four times enlarged (the outlines to check: the
+// flatcars with their tank on, the flak guns raised); below, the two trains made up and coupled on the track,
+// twice enlarged, at their real size beside the station: German from the left, Soviet from the right.
+function trainsPreview() {
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  const nations = JSON.parse(readFileSync(`${root}data/nations.json`, 'utf8'));
+  const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16), 255];
+  const shade = (c, k) => [Math.round(c[0] * k), Math.round(c[1] * k), Math.round(c[2] * k), 255];
+  const tankOf = (name, nation) => {
+    const p = nations[nation].tankPaint;
+    const base = hex(p.base);
+    const under = hex(p.under);
+    const paint = { B: base, S: shade(base, 0.78), W: shade(base, 0.62), U: under, 1: shade(under, 0.75), N: hex(p.nose), 2: shade(hex(p.nose), 0.75), M: hex(p.marking), 6: base, 7: base };
+    const im = readPng(`${root}assets/sprites/${name}.png`);
+    for (let i = 0; i < im.px.length; i += 4) {
+      const key = Object.keys(paint).find((c) => PALETTE[c].every((v, n) => v === im.px[i + n]));
+      if (key) im.px.set(paint[key], i);
+    }
+    const meta = JSON.parse(readFileSync(`${root}assets/sprites/${name}.json`, 'utf8'));
+    im.mid = Math.round(meta.pivot[0] - (meta.length * meta.pixelsPerMetre) / 2);
+    return im;
+  };
+  // An image to draw into: pixels set by put(), the rest left clear.
+  const canvas = (w, h) => ({ w, h, px: new Uint8Array(w * h * 4) });
+  const put = (dst, im, left, top, flip = false) => {
+    for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) {
+      const i = (y * im.w + x) * 4;
+      if (!im.px[i + 3]) continue;
+      const dx = left + (flip ? im.w - 1 - x : x);
+      const dy = top + y;
+      if (dx >= 0 && dy >= 0 && dx < dst.w && dy < dst.h) dst.px.set(im.px.subarray(i, i + 4), (dy * dst.w + dx) * 4);
+    }
+  };
+  // A barrel sprite turned up by ang about its pivot (nearest pixel), drawn with that pivot at (px, py).
+  const putTurned = (dst, im, pivot, px, py, ang) => {
+    const [c, s] = [Math.cos(ang), Math.sin(ang)];
+    const R = Math.ceil(Math.hypot(im.w, im.h));
+    for (let y = -R; y <= R; y++) for (let x = -R; x <= R; x++) {
+      const sx = Math.round(c * x - s * y + pivot[0]);
+      const sy = Math.round(s * x + c * y + pivot[1]);
+      if (sx < 0 || sy < 0 || sx >= im.w || sy >= im.h) continue;
+      const i = (sy * im.w + sx) * 4;
+      const dx = px + x;
+      const dy = py + y;
+      if (im.px[i + 3] && dx >= 0 && dy >= 0 && dx < dst.w && dy < dst.h) dst.px.set(im.px.subarray(i, i + 4), (dy * dst.w + dx) * 4);
+    }
+  };
+  // One finished piece: the wagon with its tank or its gun on it. Its bottom row stands on the rail.
+  const T = Object.fromEntries(Object.entries(KURSK_TRAINS).map(([n, rows]) => [n, toImage(rows)]));
+  const tanks = { germany: tankOf('panzer4h', 'germany'), ussr: tankOf('t34-76', 'ussr') };
+  const made = (name, nation) => {
+    const im = T[name];
+    const meta = TRAINS_META[name];
+    const tank = name.startsWith('flatcar') ? tanks[nation] : null;
+    const head = tank ? tank.h : 14;
+    const out = canvas(im.w, im.h + head);
+    put(out, im, 0, head);
+    if (tank) put(out, tank, meta.load.x - tank.mid, head + meta.load.row - tank.h);
+    if (meta.gun) putTurned(out, T[meta.gun.sprite], meta.gun.pivot, meta.gun.at[0], head + meta.gun.at[1], 0.45);
+    return out;
+  };
+  const SKY = [96, 104, 108, 255];
+  const EARTH = [58, 52, 40, 255];
+  const GRASS = [66, 72, 46, 255];
+  // Scenery pixels are half a train pixel: doubled, to stand beside them.
+  const doubled = (im) => {
+    const out = canvas(im.w * 2, im.h * 2);
+    for (let y = 0; y < out.h; y++) for (let x = 0; x < out.w; x++) out.px.set(im.px.subarray(((y >> 1) * im.w + (x >> 1)) * 4, ((y >> 1) * im.w + (x >> 1)) * 4 + 4), (y * out.w + x) * 4);
+    return out;
+  };
+  const track2 = doubled(toImage(KURSK.track));
+  const station2 = doubled(toImage(KURSK.station));
+  // Ground with track laid along it (the track's bottom two scenery rows sunk in, as the game draws it).
+  const ground = (dst, top, h, groundRow) => {
+    for (let y = 0; y < h; y++) for (let x = 0; x < dst.w; x++) dst.px.set(y < groundRow ? SKY : y === groundRow ? GRASS : EARTH, ((top + y) * dst.w + x) * 4);
+    const g = top + groundRow;
+    for (let x = 0; x < dst.w; x += track2.w) put(dst, track2, x, g + 4 - track2.h);
+    return g + 4 - track2.h; // the rail head's top row
+  };
+  // Part 1: the pieces, each standing on the rail; the guns alone at the end of their row.
+  const sides = [['germany', ['loco-br52', 'tender-br52', 'flakwagen-germany', 'flatcar-germany'], ['flakvierling-barrels']],
+    ['ussr', ['loco-er', 'tender-er', 'flakwagen-ussr', 'flatcar-ussr'], ['maxim-quad-barrels']]];
+  const GAP = 12;
+  const rowsP = sides.map(([nation, names, guns]) => [...names.map((n) => made(n, nation)), ...guns.map((n) => T[n])]);
+  const W1 = Math.max(...rowsP.map((r) => r.reduce((n, im) => n + im.w + GAP, GAP)));
+  const rowH = rowsP.map((r) => Math.max(...r.map((im) => im.h)) + 14);
+  const p1 = canvas(W1, rowH.reduce((a, b) => a + b, 0));
+  let top = 0;
+  rowsP.forEach((r, i) => {
+    const rail = ground(p1, top, rowH[i], rowH[i] - 6);
+    let x = GAP;
+    r.forEach((im, k) => {
+      put(p1, im, x, k >= sides[i][1].length ? top + 20 : rail - im.h);
+      x += im.w + GAP;
+    });
+    top += rowH[i];
+  });
+  // Part 2: the trains coupled, German (the engine at the front, right) and Soviet (mirrored, coming from the right).
+  const de = ['flatcar-germany', 'flatcar-germany', 'flakwagen-germany', 'tender-br52', 'loco-br52'].map((n) => made(n, 'germany'));
+  const su = ['flatcar-ussr', 'flatcar-ussr', 'flakwagen-ussr', 'tender-er', 'loco-er'].map((n) => made(n, 'ussr'));
+  const len = (c) => c.reduce((n, im) => n + im.w, 0);
+  const W2 = Math.max(len(de), len(su)) + station2.w + 60;
+  const H2 = Math.max(...[...de, ...su, station2].map((im) => im.h)) + 16;
+  const p2 = canvas(W2, H2 * 2);
+  [[de, false], [su, true]].forEach(([c, flip], i) => {
+    const rail = ground(p2, i * H2, H2, H2 - 6);
+    put(p2, station2, flip ? 20 : W2 - 20 - station2.w, i * H2 + H2 - 6 + 1 - station2.h);
+    let x = flip ? W2 - 20 - len(c) : 20;
+    for (const im of flip ? [...c].reverse() : c) {
+      put(p2, im, x, rail - im.h, flip);
+      x += im.w;
+    }
+  });
+  const enlarge = (im, Z) => {
+    const out = canvas(im.w * Z, im.h * Z);
+    for (let y = 0; y < out.h; y++) for (let x = 0; x < out.w; x++) out.px.set(im.px.subarray((((y / Z) | 0) * im.w + ((x / Z) | 0)) * 4, (((y / Z) | 0) * im.w + ((x / Z) | 0)) * 4 + 4), (y * out.w + x) * 4);
+    return out;
+  };
+  const a = enlarge(p1, 4);
+  const b = enlarge(p2, 2);
+  const sheet = canvas(Math.max(a.w, b.w), a.h + b.h);
+  for (let i = 0; i < sheet.px.length; i += 4) sheet.px.set([40, 40, 40, 255], i);
+  put(sheet, a, 0, 0);
+  put(sheet, b, 0, a.h);
+  writeFileSync(`${root}notes/trains-preview.png`, encodePngRgba(sheet.w, sheet.h, sheet.px));
+  console.log(`notes/trains-preview.png (${sheet.w}x${sheet.h})`);
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (process.argv[2] === 'railway') railwayPreview();
+  else if (process.argv[2] === 'trains') trainsPreview();
   else preview();
 }

@@ -52,6 +52,21 @@ later.
   at the bridge's ends (bridge x +- 46). Not a level-pad piece and not a crossing: no train runs yet. A 130-wide
   battery balka needs its own, narrower balka beside it for the line. Looks: `notes/railway-preview.png`
   (`node tools/kursk-sprites.mjs railway`). In `?showcase` the bridge stands on flat ground, its outer piles in the air.
+  **(c) done 2026-11-24, for build 2:** train sprites approved by the owner (`notes/trains-preview.png`, `node
+  tools/kursk-sprites.mjs trains`), drafts in `KURSK_TRAINS` (`tools/kursk-sprites.mjs`, not `GAME_SPRITES`; Pixel Lab
+  group "Trains (build 2)"). **Drawn at the tanks' scale, 10 px a metre**, facing right, so a tank sprite stands on a
+  flatcar pixel for pixel: draw them like the tanks (sprite px / DETAIL, times the tank's `spriteScale` 1.5, or the
+  tanks won't fit their flatcars). The bottom row is the wheels' lowest pixel: the rail head is just under it (the
+  track's rail top is 2.5 units above the ground line, its bottom two scenery rows sunk in). Every buffer's middle is
+  1.06 m up, so pieces couple end to end at their widths. Sprites (w x h px): German `loco-br52` 136x45,
+  `tender-br52` 94x39, `flatcar-germany` 130x17, `flakwagen-germany` 100x34 + `flakvierling-barrels` 34x9;
+  Soviet `loco-er` 117x51, `tender-er` 89x39, `flatcar-ussr` 140x17, `flakwagen-ussr` 92x32 +
+  `maxim-quad-barrels` 20x11. **`TRAINS_META`** beside them gives each piece's axles' x, the two **supports** to
+  tilt on (bogie centres, or the outer axles of a rigid wheelbase), the buffer row, a flatcar's **load** (the tank's
+  middle x and the deck row its tracks stand on) and a flak wagon's **gun** (barrel sprite, its pivot, where it sits).
+  Make a Soviet train by mirroring (it comes from the right). Still to do in build 2: wrecks of each piece, smoke and
+  steam, the wheels' turning (the drivers are drawn still), the gun crews' sizes checked beside the infantry. The Er's
+  length and height are estimates (no reliable source found); the BR 52 is from its published figures.
 
 - **Cloud layer look: heaped banks (decided 2026-11-18, discussion; built the same day, see Done "Cloud layer look"; the ends were changed then):** the owner disliked the bank ends
   (a see-through fading curtain) and the four flat stripes that copy the outline. Chosen look, from the mock-ups
@@ -987,6 +1002,12 @@ later.
   crest, track over the bridge: `notes/kursk-long-town.jpg`, `notes/kursk-long-bridge.jpg`); frame rate not measured on a visible screen (186 more sprites). **Not yet:** the
   owner's flight; then build 2 (tanks by train).
 
+- **Kursk train sprites (Design, 2026-11-24):** step (c) of "Kursk map: longer, spaced out, a railway, tanks by
+  train": a BR 52 Kriegslok and a Soviet Er 0-10-0, their tenders, a flatcar each carrying the Panzer IV H / T-34
+  sprite, a Flakvierling flak wagon and a quad Maxim one (guns as turnable sprites), at the tanks' 10 px a metre;
+  in `tools/kursk-sprites.mjs` (`KURSK_TRAINS`, `TRAINS_META`), editable in the Pixel Lab, not in the game until
+  build 2 (what it needs: that Decisions entry). The old locomotive, tender and flat-wagon drafts are gone. Looks
+  approved by the owner (`notes/trains-preview.png`).
 - **Kursk railway scenery (Design, 2026-11-24, `594e9d2`):** step (a) of "Kursk map: longer, spaced out, a railway,
   tanks by train": whole track and torn track (48-unit lengths that tile and are drawn turned to the slope, `tilt` in
   `data/ground.json`), a timber trestle bridge drawn for an 80-wide balka and its wreck; sprites in
