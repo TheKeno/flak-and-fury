@@ -170,3 +170,14 @@ Profile (`node --cpu-prof`): the ground war takes most of it: `stepArmy` 18%, `h
   session at the same time, so left alone). Worth it only if bigger armies come.
 - Radar: ~260 small calls a frame (0.15 ms); its noise is random every frame by design.
 - Owner: check fps with F3 on your own screen with `?rain&night` in a fight.
+
+## Firefox at 30 fps after the map stretch (2026-11-24)
+
+The owner's Firefox ran 30 fps (gap 33 ms) on the 10,000-wide Kursk map, Edge 120. Firefox can be run from a
+script with a throwaway profile (`firefox -no-remote -profile <scratch dir> --kiosk http://localhost:8080/?mute&bench`),
+and `?bench` puts its result in the tab title, which PowerShell reads (`(Get-Process firefox).MainWindowTitle`).
+Result at 2560x1440 (fps, one part left out per run): all 109, ridges as one long strip 25, everything else 120.
+The near ridge strip was 10,728 px wide (map width x 0.45 parallax), past Firefox's GPU canvas size, so each frame's
+copy from it was slow. Fix: ridges cut into 2048-px tiles. Edge (same bench): 110-120 with tiles or the strip.
+Rule for later: keep any cached canvas under ~4096 px a side (terrain and cloud chunks are 512 wide; the sky strip
+is 2 x ~4400 tall, fine so far).

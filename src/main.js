@@ -641,7 +641,14 @@ async function start() {
   started = true;
   // The first plane is chosen in the hangar: every pilot's plane waits behind the shut doors (as when parked in) and the
   // panel opens by itself (below); closing it rolls the plane out.
-  if (!guest) for (const p of world.planes) if (!p.seats[0].controller.startsWith('bot') && p.exitPhase === 'wait') p.hold = p.holdNew = true;
+  if (!guest && !params.has('bench')) for (const p of world.planes) if (!p.seats[0].controller.startsWith('bot') && p.exitPhase === 'wait') p.hold = p.holdNew = true;
+  // The bench (?bench, below) starts without a click: no mouse grab, and no sound (the browser holds audio back).
+  if (!params.has('bench')) await startSound();
+  last = performance.now();
+  requestAnimationFrame(frame);
+  if (host) keepTicking();
+}
+async function startSound() {
   mouse.capture();
   mixer = await createMixer(content.settings.audio, content.sound.space);
   mixer.recordings = createRecordings(mixer, content.sound);
@@ -658,9 +665,6 @@ async function start() {
     mixer.applyLevels();
     sound.liveUpdate(data.sound, data.final);
   };
-  last = performance.now();
-  requestAnimationFrame(frame);
-  if (host) keepTicking();
 }
 
 // Browsers stop animation frames in a hidden tab. A host's world must go on for their guests, so a
@@ -942,4 +946,51 @@ $('join-go').addEventListener('click', async () => {
 });
 
 renderer.render(player, 0, { showHelp });
+// ?bench: starts by itself and times the frame with one part of the drawing left out at a time (the ?skip=
+// switches in src/render/renderer.js), for a browser Claude can't drive (Firefox ran at 30 fps, 2026-11-24).
+// The table shows on the page and in the tab's title when done. Open as localhost:8080/?mute&bench.
+if (params.has('bench')) runBench();
+async function runBench() {
+  const RUNS = [['all drawn', ''], ['ridges one strip', 'ridgetiles'], ['no ridges', 'ridges'], ['no sky fill', 'skyfill'],
+    ['no far clouds', 'bgclouds'], ['no sky (all)', 'sky'], ['no terrain', 'terrain'], ['no ground', 'ground'],
+    ['no planes', 'planes'], ['no hud+radar', 'hud,radar'], ['no present', 'present'], ['all drawn again', '']];
+  const keep = new Set(renderer.skip);
+  const el = document.createElement('pre');
+  el.style.cssText = 'position:fixed;right:8px;top:8px;margin:0;padding:6px 10px;background:rgba(0,0,0,.8);color:#e0e8c0;font:14px/1.35 monospace;z-index:30';
+  document.body.appendChild(el);
+  const lines = [`BENCH ${navigator.userAgent.match(/(Firefox|Edg|Chrome)\/\d+/)?.[0] ?? ''} ${canvas.width}x${canvas.height}`];
+  const show = (extra = '') => (el.textContent = [...lines, extra].join('\n'));
+  const frames = (ms) => new Promise((done) => {
+    const gaps = [];
+    let last = 0;
+    const end = performance.now() + ms;
+    const tick = (now) => {
+      if (last) gaps.push(now - last);
+      last = now;
+      if (now < end) requestAnimationFrame(tick);
+      else done(gaps);
+    };
+    requestAnimationFrame(tick);
+  });
+  await start();
+  await frames(3000); // warm up: sprites, chunks, JIT
+  const short = [];
+  for (const [name, off] of RUNS) {
+    renderer.skip.clear();
+    for (const k of keep) renderer.skip.add(k);
+    for (const k of off.split(',')) if (k) renderer.skip.add(k);
+    show(`${name}...`);
+    await frames(1000);
+    const gaps = await frames(3000);
+    const avg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    lines.push(`${name.padEnd(17)} ${(1000 / avg).toFixed(0).padStart(4)} fps  gap ${avg.toFixed(1).padStart(5)} ms  worst ${Math.max(...gaps).toFixed(1).padStart(5)}`);
+    short.push(`${off || 'all'}=${(1000 / avg).toFixed(0)}`);
+    show();
+  }
+  renderer.skip.clear();
+  for (const k of keep) renderer.skip.add(k);
+  lines.push('done');
+  show();
+  document.title = `BENCH ${short.join(' ')}`;
+}
 window.__game = { world, renderer, get player() { return player; }, get mixer() { return mixer; }, get host() { return host; }, get guest() { return guest; } };

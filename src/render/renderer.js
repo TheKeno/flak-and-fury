@@ -137,7 +137,8 @@ export function createRenderer(canvas, world, assets) {
   let autoZoom = 1; // the camera's own zoom (speed, dogfight, looking around)
 
   // Test switch for finding what costs frames: ?skip=sky,terrain,ground,planes,hud,radar,present
-  // leaves those out.
+  // leaves those out; inside sky: skyfill (the gradient), bgclouds (the far clouds), ridges (the hills).
+  // ?bench (src/main.js) runs through them by itself.
   const skip = new Set((new URLSearchParams(location.search).get('skip') ?? '').split(','));
 
   // Match the screen canvas to its displayed size, so the final scale-up is sharp.
@@ -345,11 +346,13 @@ export function createRenderer(canvas, world, assets) {
   }
 
   function drawBackground() {
-    sky.pattern.setTransform(new DOMMatrix().translate(0, -(sky.height - cam.y * SCALE - bh)));
-    ctx.fillStyle = sky.pattern;
-    ctx.fillRect(0, 0, bw, bh);
+    if (!skip.has('skyfill')) {
+      sky.pattern.setTransform(new DOMMatrix().translate(0, -(sky.height - cam.y * SCALE - bh)));
+      ctx.fillStyle = sky.pattern;
+      ctx.fillRect(0, 0, bw, bh);
+    }
 
-    for (const c of clouds) {
+    if (!skip.has('bgclouds')) for (const c of clouds) {
       const sx = Math.round((c.x - cam.x * 0.6) * SCALE);
       const sy = Math.round(bh - (c.y - cam.y * 0.6) * SCALE);
       if (sx > bw || sx + c.img.width < 0 || sy > bh || sy + c.img.height < 0) continue;
@@ -366,33 +369,52 @@ export function createRenderer(canvas, world, assets) {
         }
         return;
       }
-      // One copy from the ridge's strip instead of a rectangle per column (perf: ~1900 draw calls a frame).
-      const strip = ridgeStrip(heights, colour);
-      const dy = bh - strip.height + Math.round(cam.y * parallax * SCALE);
-      if (dy < bh) ctx.drawImage(strip, ox, 0, bw, strip.height, 0, dy, bw, strip.height);
+      // Copies from the ridge's tiles instead of a rectangle per column (perf: ~1900 draw calls a frame).
+      const tiles = ridgeTiles(heights, colour);
+      const rows = tiles[0].height;
+      const dy = bh - rows + Math.round(cam.y * parallax * SCALE);
+      if (dy >= bh) return;
+      for (let i = Math.floor(ox / tiles.size); i * tiles.size < ox + bw && i < tiles.length; i++) {
+        const sx = Math.max(0, ox - i * tiles.size);
+        const w = Math.min(tiles[i].width, ox + bw - i * tiles.size) - sx;
+        if (w > 0) ctx.drawImage(tiles[i], sx, 0, w, rows, i * tiles.size + sx - ox, dy, w, rows);
+      }
     };
-    ridge(farRidge, 0.2, steppe ? '#565c50' : '#5f6a70');
-    ridge(nearRidge, 0.45, steppe ? '#4a4c38' : '#3f4a3c');
+    if (!skip.has('ridges')) {
+      ridge(farRidge, 0.2, steppe ? '#565c50' : '#5f6a70');
+      ridge(nearRidge, 0.45, steppe ? '#4a4c38' : '#3f4a3c');
+    }
   }
-  // A ridge painted once into a canvas as long as the ridge, its bottom row at height 0 (the screen's bottom
-  // is never below that), so a frame copies it in one go. A column's top can land a pixel off the per-column
-  // drawing (rounded in two steps); ?skip=ridgecache draws it the old way for comparison.
+  // A ridge painted once into canvases RIDGE_TILE wide laid end to end, their bottom row at height 0 (the
+  // screen's bottom is never below that), so a frame copies one or two. Tiles, not one strip as long as the
+  // ridge: on the 10,000-wide Kursk map the near ridge was 10,700 px wide, too big for Firefox's GPU canvas,
+  // and Firefox fell to 30 fps (2026-11-24). ?skip=ridgetiles goes back to the one long strip for comparison.
+  // A column's top can land a pixel off the per-column drawing (rounded in two steps); ?skip=ridgecache
+  // draws it the old way.
+  const RIDGE_TILE = 2048;
   const ridgeStrips = new Map();
-  function ridgeStrip(heights, colour) {
-    let c = ridgeStrips.get(heights);
-    if (!c) {
+  function ridgeTiles(heights, colour) {
+    const size = skip.has('ridgetiles') ? heights.length : RIDGE_TILE;
+    let tiles = ridgeStrips.get(heights);
+    if (!tiles || tiles.size !== size) {
       let high = 0;
       for (const h of heights) high = Math.max(high, h);
-      c = makeCanvas(heights.length, Math.ceil(high * SCALE) + 1);
-      const g = c.getContext('2d');
-      g.fillStyle = colour;
-      for (let x = 0; x < heights.length; x++) {
-        const top = c.height - Math.round(heights[x] * SCALE);
-        g.fillRect(x, top, 1, c.height - top);
+      const rows = Math.ceil(high * SCALE) + 1;
+      tiles = [];
+      tiles.size = size;
+      for (let x0 = 0; x0 < heights.length; x0 += size) {
+        const c = makeCanvas(Math.min(size, heights.length - x0), rows);
+        const g = c.getContext('2d');
+        g.fillStyle = colour;
+        for (let x = 0; x < c.width; x++) {
+          const top = rows - Math.round(heights[x0 + x] * SCALE);
+          g.fillRect(x, top, 1, rows - top);
+        }
+        tiles.push(c);
       }
-      ridgeStrips.set(heights, c);
+      ridgeStrips.set(heights, tiles);
     }
-    return c;
+    return tiles;
   }
 
   // One buffer-pixel column of ground into g at x, its top row at `top`: grass (or runway, or scorched

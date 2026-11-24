@@ -982,6 +982,15 @@ later.
 
 ## Done
 
+- **Firefox back to 120 fps (UI, 2026-11-24):** the owner's Firefox fell to 30 fps after the Kursk map was
+  stretched to 10,000, Edge stayed at 120. Cause: the hill ridges were cached as one canvas as long as the ridge,
+  and the near ridge grew to 10,700 px wide (far ridge 5,700; before the stretch 7,100 and 4,100), too big for
+  Firefox's GPU canvas. Now each ridge is cut into 2048-px tiles and a frame copies one or two
+  (`ridgeTiles` in `src/render/renderer.js`); the look is the same. New A/B tools: `?bench` (starts by itself
+  without sound, times 4 s per run with one part left out, table on the page and in the tab title) and finer
+  `?skip=` names: `skyfill`, `bgclouds`, `ridges`, `ridgetiles` (the old one long strip). Bench at 2560x1440
+  full screen, fresh profiles: Firefox 109-120 fps with tiles, 25 with the long strip; Edge 110-120 either way.
+  Owner to confirm with F3 in their own Firefox.
 - **Kursk map stretched to 10,000 (Design, 2026-11-24):** step (b), build 1 of "Kursk map: longer, spaced out, a
   railway, tanks by train". `maps/kursk.ldtk` made once more by `tools/scratch/make-kursk.mjs` (the owner had not
   edited it; it is theirs again now) and its guide redrawn. Germany left; each half from the edge: airfield
@@ -1540,7 +1549,6 @@ Then: more themes, co-op missions, matchmaking.
 - **Planes — truck follow-ups:** all six truck outlines are traced and built (2026-11-08: Opel Blitz, Bedford QLD, GMC CCKW, ZIS-5, Isuzu Type 94, Ford V3000S; see Done). Left: wheel-spin frames for the trucks, a Lab handle for the trucks' national markings (the GMC's star is edited in the file), a driver in the cab; the game lighting the trucks' headlights on night maps (the sprite json has `lights`: part of the lighting layer, item 14).
 
 ## Backlog
-- **Firefox runs the game at 30 fps (UI):** the same page runs 120 fps in Edge but 30 in the owner's Firefox (2026-11-24; WebRender on the GPU, not software). F3 there: CPU 5.3 ms a frame, gap 33 ms, so the cost is in Firefox's drawing, not the code; `sky` is the biggest CPU section (2.84 ms). Find which layer Firefox chokes on (full-screen sky and hills, scaled canvas, filters) and make it cheap.
 - **Bots creep into heavy flak on patrol (Gameplay):** turning round over the top at the end of the patrol beat, a bot climbs a little each time; at 900-1000 up it is inside heavy flak reach, which the beat ignores (`flakLine` in `src/sim/ai.js` judges at cruise height, 220, where heavy guns can't reach; the cloud perch has the same gap). Measured 2026-11-18 in the bots test over 8 seeds: a normal Bf 109 up to 18-19 s in reach in 180 s, old and new ground alike; the test allows 2 s for now.
 - **Hangar work noises (Sound):** while your plane is inside the hangar (behind the doors, the hangar panel open), play the crew at work: tools, metal, voices, a muffled engine run-up; ambience under the panel, gone once the doors open.
 - **Fly the Stuka fix (Gameplay):** part 3e made dive bombers reach `bots.bomberRange` and bomb tanks under flak (headless: 0.8 → 8.8 bombs a run, no patrol sawtooth); the owner hasn't flown it yet. Check: `?plane=spitfire&enemy=ju87`, do the Stukas go for tanks and bomb?
