@@ -8,7 +8,7 @@ later.
 ## Decisions
 
 - **Kursk map: longer, spaced out, a railway, tanks by train (decided 2026-11-24, discussion "Design — map size"; build 1
-  built 2026-11-24, see Done "Kursk map stretched to 10,000"; build 2 waits for the owner to fly it):** flying the Kursk map, the areas blend together and the map is too short (6000 wide: about 40 s end to end,
+  built 2026-11-24, see Done "Kursk map stretched to 10,000"; build 2 built the same day, see Done "Tanks by train"):** flying the Kursk map, the areas blend together and the map is too short (6000 wide: about 40 s end to end,
   about 15 s from an airfield to the front; ten areas touching, five landmarks within 200 of each other in the
   station town). The fix is length added as **gaps**, not bigger areas. **Build 1, the map stretch:** (1) **10,000
   wide**, Germany on the left, ceiling 1200 unchanged. Each half from the edge inward: airfield, a long open run
@@ -981,6 +981,33 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Tanks by train (Gameplay, 2026-11-24):** build 2 of "Kursk map: longer, spaced out, a railway, tanks by train".
+  On a map with a railway (Kursk) every side's tanks come by train; the waves bring only the trucks, which still
+  leave the depot. `src/sim/trains.js`: `world.trains` (one a side on the line at a time) and `world.railway`
+  (schedule, station held, line repaired); the wagons (`loco`, `tender`, `flatcar`, `flakWagon` in
+  `data/ground.json`, sizes and supports matching `TRAINS_META`) are ground objects with `train` set, so hits,
+  wrecks, drawing and online play work as for anything else (guests get them by the snapshot rules; test). A
+  train comes in over its own edge, runs on the **bed** (the straight line along each drawn length of track, rim
+  to rim over a bridge; each wagon tilts between its supports), stops at its **railhead**: the depot, or the
+  middle station while that is `stationMargin` behind the side's front (the Balance Lab's front: halfway between
+  both sides' most forward tanks or squads; held until the front is `stationMargin` back the other side, so it
+  doesn't flap). The first time, the torn track from the depot to the station is laid again (torn lengths made
+  whole, the missing ones put back). The tanks roll off one at a time down a **side ramp** (new sprite
+  `unload-ramp`, drawn in `tools/kursk-sprites.mjs`, not yet seen by the owner), the train creeping a wagon
+  forward each time; then it backs out. A blast hurts only the wagon nearest it (`blastGround`); a wrecked flatcar
+  loses its tank; engine and tender are `indestructible` (the line can't be cut yet). The flak wagon shoots at
+  planes like light flak, barrels turning. Dark coal smoke from the engine. New settings `trains` (tuning panel
+  **Trains (Kursk)**, TUNING.md): first 15, interval 120, speed 30, flatcars 4 (capped by `waves.maxTanks`). The
+  countryside map keeps its waves (tests, Balance Lab). Tests: `tests/trains.test.mjs`. Flown muted:
+  `notes/kursk-train-unloading.jpg`. **Wave timings and depots checked** (headless 20-minute matches, 4 bots a
+  side, seeds 1-3): the first trains stop at their depots at 20 s and are empty by 50 s; the first tanks meet at
+  **3.8 - 4.1 minutes** (x 4750 - 5075), because the ramps (2390 / 7610) are 2,600 from the middle and tanks drive
+  12 a second; later trains bring 1 - 3 tanks (the cap of 4 out). One side or the other holds the station from
+  about minute 3 - 6 on, and its trains then unload at 4860 / 5040, right at the front. A swing of the front
+  still stops a train short now and then (twice in seed 1). Depots left where they are; the slow first contact
+  is the owner's call (start the first train nearer the middle, faster tanks, or depots further forward).
+  **Not yet:** wreck sprites per wagon, steam and turning wheels, train sound, radio calls and radar markers
+  (directors), bombing the track or a bridge.
 - **Stalemate in the station town fixed (Gameplay, 2026-11-24):** the front stuck at Hill 252.2 with nobody dying.
   Rifle, MG and tank-MG rounds stopped in the scenery (station, elevator, trade row, ruins, even the track: thousands
   of rounds a match); now rounds fired from the ground pass scenery (`b.cause` in `bulletHitsGround`), planes' still

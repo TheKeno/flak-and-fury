@@ -7,6 +7,7 @@ import { rearmFully } from '../sim/airfield.js';
 import { ignite } from '../sim/fire.js';
 import { createGround } from '../sim/ground.js';
 import { createArmy } from '../sim/army.js';
+import { createTrains } from '../sim/trains.js';
 import { TACTIC_FIELDS, tacticsIn } from '../sim/tactics.js';
 import { levelTop } from '../sim/air.js';
 
@@ -353,6 +354,7 @@ const DEFENCE_FIELDS = {
     ['spread', 'Spread', 0, 0.2, 0.005, 'Random aim error (rad).'],
   ],
 };
+DEFENCE_FIELDS.flakWagon = DEFENCE_FIELDS.lightFlak; // the trains' flak wagon shoots like light flak
 const PAD_FIELDS = [
   ['margin', 'Level ground beyond', 0, 30, 1, 'Extra flat ground on each side of a structure. Applies when the page is reloaded (after Save to files).'],
   ['merge', 'Share a pad within', 0, 150, 5, 'Structures closer than this stand on one shared level pad instead of each on its own (own pads at their own heights make steps). Applies on reload.'],
@@ -419,6 +421,18 @@ const WAVE_FIELDS = [
   ['squadSize', 'Soldiers per squad', 1, 12, 1, 'Men in each truck.'],
   ['openTrucks', 'Trucks without tarp', 0, 1, 0.05, 'Chance a truck has an open bed: its men show and can be shot. The rest have the tarp up.'],
   ['engineers', 'Engineers', 0, 8, 1, 'Engineers sent with a wave when the bridge is down (0 = none).'],
+];
+const TRAIN_FIELDS = [
+  ['first', 'First train stops after', 0, 120, 5, 'Seconds from the start before the first train of each side stops at its railhead (it starts on the line). Applies to the next match.'],
+  ['interval', 'Time between trains', 30, 400, 5, 'Seconds between trains leaving the map edge from an undamaged depot (up to 2.5 times as long from a damaged one). The next waits while one is still on the line.'],
+  ['flatcars', 'Tanks per train', 1, 8, 1, 'Flatcars, one tank each. Fewer from a damaged depot, and never more tanks out than Max tanks per side (Tank waves).'],
+  ['speed', 'Train speed', 5, 80, 1, 'World units a second on the line (tanks drive 12, trucks 20).'],
+  ['accel', 'Train acceleration', 0.5, 10, 0.5, 'How fast it gets up to speed and brakes, units a second each second.'],
+  ['rampTime', 'Down the ramp', 1, 15, 0.5, 'Seconds a tank takes to drive off its flatcar and down the ramp.'],
+  ['creepSpeed', 'Creep to the ramp', 1, 30, 1, 'How fast the train inches forward to bring the next flatcar to the ramp.'],
+  ['stationMargin', 'Station held by', 0, 600, 10, "How far behind a side's front the middle station must be before its trains run on to it (the front: halfway between both sides' most forward tanks or squads)."],
+  ['depotRamp', 'Depot ramp ahead', 0, 200, 5, 'Where the ramp is, this far ahead of the depot towards the enemy.'],
+  ['stationRamp', 'Station ramp short', 0, 200, 5, "Where the ramp is, this far short of the station on the side's own side."],
 ];
 const GORE_FIELDS = [
   ['blood', 'Blood amount', 0, 3, 0.1, 'Multiplier on the drops sprayed when soldiers are hit or killed.'],
@@ -709,6 +723,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     ...COLLISION_FIELDS.map((f) => add(slider(settings.collisions, f))),
   );
   const waveSection = section('Tank waves', false, ...WAVE_FIELDS.map((f) => add(slider(settings.waves, f))));
+  const trainSection = settings.trains ? section('Trains (Kursk)', false, ...TRAIN_FIELDS.map((f) => add(slider(settings.trains, f)))) : null;
   const cloudBox = el('input', { type: 'checkbox', onchange: () => (settings.clouds.on = cloudBox.checked) });
   cloudBox.checked = !!settings.clouds.on;
   const cloudSection = section('Clouds', false, el('label', { class: 'row check', title: 'One layer of cloud between the mid and high bands that planes can hide in. Applies to the next match.' }, el('span', {}, 'Cloud layer'), cloudBox), ...CLOUD_FIELDS.map((f) => add(slider(settings.clouds, f))));
@@ -745,6 +760,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
   const restoreTargets = () => {
     createGround(world);
     createArmy(world);
+    createTrains(world);
     say('Ground targets restored; tank waves start again');
   };
   const groundSection = section(
@@ -855,6 +871,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     Object.assign(settings.flight, saved.settings.flight);
     Object.assign(settings.damage, saved.settings.damage);
     Object.assign(settings.waves, saved.settings.waves);
+    if (settings.trains) Object.assign(settings.trains, saved.settings.trains);
     Object.assign(settings.raids, saved.settings.raids);
     Object.assign(settings.clouds, saved.settings.clouds);
     Object.assign(settings.pads, saved.settings.pads);
@@ -936,6 +953,7 @@ export function createTuningPanel({ content, world, player, choice, placeBots, g
     botSection,
     groundSection,
     waveSection,
+    ...(trainSection ? [trainSection] : []),
     raidSection,
     cloudSection,
     zoneSection,

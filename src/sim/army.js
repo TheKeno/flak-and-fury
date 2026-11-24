@@ -64,7 +64,8 @@ function spawnWave(world, team, side, depot) {
   const units = [];
   // Tanks support the infantry: no more than maxTanks a side on the field at once.
   const out = world.ground.filter((o) => o.type === 'tank' && o.mobile && o.alive && o.team === team).length;
-  const tanks = Math.min(Math.max(1, Math.round(cfg.tanks * health)), (cfg.maxTanks ?? Infinity) - out);
+  // On a map with a railway the tanks come by train instead (trains.js).
+  const tanks = world.trains ? 0 : Math.min(Math.max(1, Math.round(cfg.tanks * health)), (cfg.maxTanks ?? Infinity) - out);
   for (let i = 0; i < tanks; i++) units.push(['tank']);
   // Infantry ride in trucks, one squad each; on foot if there are no trucks in the data.
   const carrier = world.groundDefs.truck ? 'truck' : 'infantry';
@@ -442,6 +443,7 @@ export function stepArmy(world, dt) {
       if (world.tick - u.wreckedAt > (u.soldiers ? CLEAR_SQUAD : CLEAR_WRECK) * 60) world.ground.splice(i, 1);
       continue;
     }
+    if (u.ramp) continue; // a tank still coming down the ramp from its train (trains.js)
     if (u.type === 'engineers') stepEngineers(world, u, dt);
     // Engineers back at their depot are done.
     if (u.returning) {

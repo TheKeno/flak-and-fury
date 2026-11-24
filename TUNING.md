@@ -520,6 +520,24 @@ destroyed, it sends no more. Tanks cross the river only while the `bridge` stand
 each side sends `engineers` with its next wave to rebuild it, and they're easy pickings while they work.
 Wave sizes and timing are in `data/settings.json` under `waves` (the tuning panel's **Tank waves**).
 
+**Tanks by train** (a map with a railway: Kursk; `src/sim/trains.js`). There the waves bring only trucks, and each
+side's tanks come by train from its own map edge: locomotive, tender, a flatcar per tank (`loco`, `tender`,
+`flatcar`, `flakWagon` in `data/ground.json`; each nation's sprite and its sizes under `looks`, which must match
+`TRAINS_META` in `tools/kursk-sprites.mjs`) and a flak wagon at the back that shoots at planes like light flak
+(its own numbers in the tuning panel's Ground objects → Flak wagon). It stops at its railhead, the depot, or the
+middle station while that station is more than `stationMargin` behind the side's front (halfway between both
+sides' most forward tanks or squads); the first time, the torn track from the depot to the station is laid
+again. The tanks roll off one at a time down a ramp beside the line, the train creeping forward a wagon each time,
+then it backs out. A blast hurts only the wagon nearest it; a wrecked flatcar's tank is lost; the engine and
+tender can't be wrecked. `trains` (in `data/settings.json`, the tuning panel's **Trains (Kursk)**): `first`
+(seconds before the first trains stop at their railheads; they start on the line, 0 – 60), `interval` (seconds
+between trains leaving the edge, 2.5 times as long from a badly damaged depot; one train a side on the line at a
+time, 90 – 180), `flatcars` (tanks a train brings at most; fewer from a damaged depot, never more out than
+`waves.maxTanks`, 2 – 4), `speed` (world units a second, 20 – 40; edge to depot takes about 80 s at 30, to the
+station about 170 s), `accel` (2 – 5), `rampTime` (seconds down the ramp, 3 – 6), `creepSpeed` (to the next
+flatcar, 5 – 15), `stationMargin` (100 – 300), `depotRamp` and `stationRamp` (where the ramps stand, ahead of the
+depot and short of the station, 20 – 120).
+
 **Trucks** (`truck` in `data/ground.json`, tuning panel: Ground objects → Truck) carry one squad each from the
 depot to the front: the nation's truck from the Outline Lab (`sprites`: Opel Blitz for Germany, ZIS-5 for the USSR,
 Bedford for the UK and so on), most with the tarp up, some open with the men on the benches (`waves.openTrucks`,

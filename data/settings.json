@@ -150,6 +150,18 @@
     "engineers": 0,
     "openTrucks": 0.25
   },
+  "trains": {
+    "first": 15,
+    "interval": 120,
+    "speed": 30,
+    "accel": 3,
+    "flatcars": 4,
+    "rampTime": 4,
+    "creepSpeed": 10,
+    "stationMargin": 150,
+    "depotRamp": 40,
+    "stationRamp": 90
+  },
   "raids": {
     "first": 100,
     "interval": 200,

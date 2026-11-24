@@ -71,6 +71,9 @@ cmd window).
   screen goes in `POSE` there.
 - `src/sim/seats.js` holds who flies where (players replace bots; `MAX_PER_SIDE`, `MAX_PLAYERS`) and
   `src/sim/bailout.js` leaving a plane (wreck, parachute, soldier). `src/ui/setup.js` only draws the table.
+- `src/sim/trains.js` — tanks by train on a map with a railway (Kursk): `world.trains`, the wagons as ground objects
+  with `train` set, the bed (`bedAt`), railhead at the depot or the held middle station. Without track (countryside)
+  the tanks come with the waves (`army.js`).
 - `src/render/` — scenery, ground sprites and effects at `SCALE` = 2 pixels per world unit, planes at
   `PLANE_SCALE` = 4 (the buffer has `DETAIL` = 2× finer pixels; all else draws through a ×2 transform). World units are what all
   gameplay numbers use. HUD on its own 480×270 layer. Radar is a soft CRT canvas.

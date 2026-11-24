@@ -21,7 +21,7 @@ const SHELL_DROP = 0.25; // as army.js's tank shells, which the anti-tank guns f
 
 // Where the rounds leave the gun, in world units: height of the barrel's pivot above the ground and
 // barrel length (match the sprites).
-const MUZZLE = { flak: [5, 10], lightFlak: [4, 6], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5], searchlight: [6.5, 4.5], atGun: [4, 14] };
+const MUZZLE = { flak: [5, 10], lightFlak: [4, 6], flakWagon: [9, 8], mgNest: [3, 4.5], infantry: [5, 1], tank: [7, 5], searchlight: [6.5, 4.5], atGun: [4, 14] };
 const TANK_AA = [10.5, 3, -2]; // roof MG: pivot height, barrel length, offset along the hull
 const TRACER_EVERY = 4;
 const MAX_TURN = 0.06; // fire only when the barrel is this close to the aim point (rad)
@@ -381,6 +381,7 @@ export function stepDefences(world, dt) {
     if (!obj.alive) continue;
     if (obj.type === 'flak') stepFlak(world, obj, dt);
     else if (obj.type === 'mgNest' || obj.type === 'lightFlak' || obj.type === 'tank') stepMg(world, obj, dt);
+    else if (obj.type === 'flakWagon') stepMg(world, obj, dt, obj, obj.def, obj.muzzle ?? MUZZLE.flakWagon); // its own gun's height (trains.js)
     if (obj.type === 'searchlight') stepSearchlight(world, obj, dt);
     else if (obj.type === 'atGun') stepAtGun(world, obj, dt);
     if (obj.type === 'tank') stepTankAa(world, obj, dt);

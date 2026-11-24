@@ -176,7 +176,8 @@ export function groundBox(world, obj) {
     const bank = riverOf(world, obj)?.bank ?? world.terrain.heightAt(obj.x);
     return [obj.x - half, bank - obj.def.height, obj.x + half, bank + 1];
   }
-  const y = surfaceAt(world, obj.x);
+  // A train's wagon stands on the rails (trains.js sets baseY).
+  const y = obj.train != null ? obj.baseY : surfaceAt(world, obj.x);
   return [obj.x - half, y - 1, obj.x + half, y + (obj.height ?? obj.def.height)];
 }
 
@@ -284,7 +285,7 @@ export function hurtGunner(world, obj, i, amount, byId, how = {}) {
 }
 
 export function damageGround(world, obj, amount, byId) {
-  if (!obj.alive || amount <= 0) return;
+  if (!obj.alive || amount <= 0 || obj.def.indestructible) return;
   obj.hp -= amount;
   if (obj.hp <= 0) destroy(world, obj, byId);
 }
@@ -367,10 +368,26 @@ export function bombStrikesGround(world, bomb) {
 // Blast damage falls off with the distance to the nearest point of each object.
 // spareNeutral: leaves bridges alone (tank shells, so tanks don't knock down the bridge they need).
 // bomb: a bomb's blast, which armour shrugs off in part (the def's bombFactor; tank shells are not cut).
+// A train's wagons take it one at a time: only the wagon nearest the blast is hurt, so a good attack thins a
+// train without wiping it out.
 export function blastGround(world, x, y, def, ownerId, team, { spareNeutral = false, bomb = false } = {}) {
+  let wagon = null;
+  if (world.trains?.length) {
+    let best = def.blastRadius;
+    for (const obj of world.ground) {
+      if (obj.train == null || !isEnemy(world, obj, team)) continue;
+      const [l, b, r, t] = groundBox(world, obj);
+      const d = Math.hypot(x - clamp(x, l, r), y - clamp(y, b, t));
+      if (d < best) {
+        best = d;
+        wagon = obj;
+      }
+    }
+  }
   for (const obj of world.ground) {
     if (!obj.alive || !isEnemy(world, obj, team)) continue;
     if (spareNeutral && obj.team == null) continue;
+    if (obj.train != null && obj !== wagon) continue;
     if (obj.soldiers) {
       for (const s of obj.soldiers) {
         const gy = surfaceAt(world, obj.x + s.dx);

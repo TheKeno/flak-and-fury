@@ -2522,7 +2522,32 @@ function maximQuadBarrels() {
   return g.rowsOut();
 }
 
+// The unloading ramp at a railhead (build 2): a side ramp of earth held by a timber crib, the plank top level with a
+// flatcar's deck at its left end (beside the wagon) and running down to the steppe on the right, the way the tank
+// drives off (mirrored for a train coming from the right). At the scenery's 2 px a unit, not the trains' scale:
+// the platform's middle (x 10) stands at the ramp, the deck 15 rows (7.4 units: rail 2.5 + deck 4.9) up. 72x16.
+function unloadRamp() {
+  const g = grid(72, 16);
+  const top = (x) => (x < 20 ? 1 : Math.round(1 + ((x - 20) * 14) / 51)); // the plank top's row at x
+  for (let x = 0; x < 72; x++) {
+    const t = top(x);
+    g.set(x, t, noise(x * 7, 3) < 0.2 ? 'D' : 'T'); // the planks, worn by the tracks
+    if (t + 1 < 16) g.set(x, t + 1, 'A');
+    for (let y = t + 2; y < 16; y++) {
+      const n = noise(x * 3 + y * 13, 4);
+      g.set(x, y, n < 0.35 ? '^' : n < 0.7 ? 'u' : 'A'); // the earth fill, dark and trodden
+    }
+  }
+  // The crib's face: a post every 8 px, two rails of rough timber across them, under the platform and the top of the slope.
+  for (let x = 1; x < 44; x += 8) for (let y = top(x) + 1; y < 16; y++) g.set(x, y, y % 5 === 0 ? 'A' : 'D');
+  for (const y of [6, 11]) for (let x = 0; x < 40; x++) if (y > top(x) + 1) g.set(x, y, noise(x * 5 + y, 2) < 0.3 ? 'A' : 'E');
+  g.box(0, 1, 0, 15, 'D'); // the end post beside the wagon
+  g.outline();
+  return g.rowsOut();
+}
+
 export const KURSK_TRAINS = {
+  'unload-ramp': unloadRamp(),
   'loco-br52': br52(),
   'tender-br52': tenderBr52(),
   'flatcar-germany': flatcar(false),
@@ -2643,6 +2668,7 @@ export const GAME_SPRITES = {
   ...KURSK_TENTS,
   ...KURSK_GUNS,
   ...KURSK_TREES,
+  ...KURSK_TRAINS, // build 2 of the railway: the trains (tanks' scale, 10 px a metre) and the unloading ramp
 };
 
 // --- The transports of the paratroop drops ------------------------------------------------------------------

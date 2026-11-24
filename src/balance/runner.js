@@ -35,6 +35,7 @@ export function buildWorld(content, { map = 'countryside', seed = 1, tactics = c
     flight: { ...s.flight },
     damage: { ...s.damage },
     waves: { ...s.waves },
+    trains: { ...s.trains },
     raids: { ...s.raids },
     clouds: { ...s.clouds },
     pads: s.pads,

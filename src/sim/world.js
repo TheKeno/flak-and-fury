@@ -14,6 +14,7 @@ import { DEFAULT_FIRE } from './fire.js';
 import { DEFAULT_EMERGENCY } from './emergency.js';
 import { DEFAULT_FLIGHT } from './air.js';
 import { createArmy, stepArmy, DEFAULT_WAVES } from './army.js';
+import { createTrains, stepTrains, DEFAULT_TRAINS } from './trains.js';
 import { DEFAULT_DECOR } from './decor.js';
 import { changeSeat } from './seats.js';
 import { createClouds, stepClouds, DEFAULT_CLOUDS } from './clouds.js';
@@ -41,6 +42,7 @@ export const DEFAULT_RULES = {
 
 // servicing: ground-crew timings, kept as the caller's object so the tuning panel can edit it live.
 // waves: how often and how big the tank columns are (src/sim/army.js).
+// trains: the trains that bring the tanks on a map with a railway (src/sim/trains.js).
 // raids: the directors' bomber raids (src/sim/director.js).
 // clouds: the cloud layer planes can hide in (src/sim/clouds.js).
 // fire: how fires burn and are put out (src/sim/fire.js).
@@ -66,6 +68,7 @@ export function createWorld({
   flight = { ...DEFAULT_FLIGHT },
   damage = { ...DEFAULT_DAMAGE },
   waves = { ...DEFAULT_WAVES },
+  trains = { ...DEFAULT_TRAINS },
   raids = { ...DEFAULT_RAIDS },
   clouds = { ...DEFAULT_CLOUDS },
   pads = { ...DEFAULT_PADS },
@@ -95,6 +98,7 @@ export function createWorld({
     flight,
     damage,
     waves,
+    trainsCfg: trains,
     raids,
     clouds,
     landing,
@@ -121,6 +125,7 @@ export function createWorld({
   world.terrain = buildTerrain(world.map, structurePads(world.map, groundDefs, pads), zones);
   createGround(world);
   createArmy(world);
+  createTrains(world);
   createDirector(world);
   createClouds(world);
   return world;
@@ -246,6 +251,7 @@ export function stepWorld(world, commands) {
   stepHangarDoors(world, DT);
   stepCrew(world, DT);
   stepArmy(world, DT);
+  stepTrains(world, DT);
   stepDefences(world, DT);
   stepBullets(world, DT);
   stepShells(world, DT);

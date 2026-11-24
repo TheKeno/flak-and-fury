@@ -21,6 +21,7 @@ import { prof } from '../ui/perfstats.js';
 import { fireStage } from '../sim/fire.js';
 import { drawSightShape } from './sight.js';
 import { surfaceAt } from '../sim/ground.js';
+import { rampsOf } from '../sim/trains.js';
 import { localToWorld, bombDepression } from '../sim/weapons.js';
 import { attitude, mainWheelContact, isUpright, wheelGeometry, DEFAULT_WHEELS } from '../sim/plane.js';
 
@@ -751,6 +752,91 @@ export function createRenderer(canvas, world, assets) {
     return spriteCache.get(key);
   }
 
+  // A train's wagon (src/sim/trains.js): its nation's sprite at the tanks' scale, standing on the rail head
+  // (obj.baseY) and turned to the bed's slope between its supports; mirrored for a train going left. A loaded
+  // flatcar carries its side's tank, a flak wagon turns its barrels. A wreck is the wagon burnt dark.
+  function wagonWreck(name, img) {
+    const key = `${name}|burnt`;
+    if (!spriteCache.has(key)) {
+      const c = makeCanvas(img.width, img.height);
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      g.globalCompositeOperation = 'source-atop';
+      g.fillStyle = 'rgba(26,20,16,0.74)';
+      g.fillRect(0, 0, img.width, img.height);
+      spriteCache.set(key, c);
+    }
+    return spriteCache.get(key);
+  }
+  function drawWagon(obj, sx) {
+    const look = lookOf(obj);
+    if (!look) return;
+    const img = assets.images[look.sprite];
+    const dir = obj.dir ?? 1;
+    const big = obj.def.spriteScale ?? 1;
+    const [w, h] = [img.width, img.height];
+    ctx.save();
+    ctx.translate(sx, Math.round(toScreenY(obj.baseY ?? surfaceAt(world, obj.x))));
+    ctx.rotate(-(obj.tilt ?? 0));
+    ctx.scale((dir * big) / DETAIL, big / DETAIL);
+    ctx.translate(-Math.round(w / 2), -h);
+    ctx.drawImage(obj.alive ? img : wagonWreck(look.sprite, img), 0, 0);
+    if (obj.alive && obj.load && look.load) drawDeckTank(obj, look.load.x, look.load.row);
+    const barrel = look.barrel?.sprite && assets.images[look.barrel.sprite];
+    if (obj.alive && barrel && look.gun) {
+      const [gx, gy] = look.gun.at;
+      const [bx, by] = look.barrel.pivot;
+      const rel = (obj.aim ?? 0.8) - (obj.tilt ?? 0);
+      const a = dir > 0 ? rel : Math.PI - rel; // in the wagon's own (unmirrored) frame
+      ctx.save();
+      ctx.translate(gx, gy);
+      ctx.rotate(-a);
+      if (Math.cos(a) < 0) ctx.scale(1, -1);
+      ctx.drawImage(barrel, -bx, -by);
+      ctx.restore();
+      const flash = groundFlashes.get(obj.id);
+      if (flash > 0) {
+        groundFlashes.set(obj.id, flash - 1);
+        const len = barrel.width - bx + 2;
+        ctx.fillStyle = '#ffd870';
+        ctx.fillRect(Math.round(gx + Math.cos(a) * len) - 3, Math.round(gy - Math.sin(a) * len) - 3, 6, 6);
+      }
+    }
+    ctx.restore();
+  }
+  // The side's tank chained down on a flatcar, in the wagon's frame: its tracks' middle at the load's x, standing on
+  // the deck row; gun level, the commander up.
+  function drawDeckTank(obj, lx, row) {
+    const def = world.groundDefs.tank;
+    const model = def?.sprites?.[nationOf(obj.team)] ?? def?.sprite;
+    const v = assets.vehicles?.[model];
+    if (!v) return;
+    const m = v.meta;
+    const L = vehicleSet(model, v, obj.team);
+    const [cw, ch] = m.cell;
+    const mid = Math.round(m.pivot[0] - (m.length * m.pixelsPerMetre) / 2);
+    ctx.save();
+    ctx.translate(lx - mid, row - Math.round(m.ground));
+    ctx.drawImage(L.hull, 0, 0, cw, ch, 0, 0, cw, ch);
+    ctx.drawImage(L.turret, 0, 0);
+    ctx.drawImage(L.gun, 0, 0);
+    ctx.drawImage(L.commander, 0, 0);
+    ctx.restore();
+  }
+  // The unloading ramps beside the line (trains.js rampsOf): the platform's middle at the ramp, sloping down the way
+  // the tanks drive off. In front of the train, behind a tank coming down.
+  function drawRamps() {
+    const img = assets.images['unload-ramp'];
+    if (!img || !world.railway) return;
+    for (const r of rampsOf(world)) {
+      const sx = Math.round(toScreenX(r.x));
+      if (sx < -80 || sx > bw + 80) continue;
+      const sy = Math.round(toScreenY(surfaceAt(world, r.x))) + 2;
+      if (r.dir > 0) ctx.drawImage(img, sx - 10, sy - img.height);
+      else ctx.drawImage(flipped('unload-ramp', img), sx + 10 - img.width, sy - img.height);
+    }
+  }
+
   function drawBarrel(x, y, angle, length, thick, colour) {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
@@ -941,6 +1027,11 @@ export function createRenderer(canvas, world, assets) {
         drawTruck(obj, sx);
         continue;
       }
+      if (obj.train != null) {
+        drawWagon(obj, sx);
+        continue;
+      }
+      if (obj.ramp) continue; // a tank coming off its train: drawn over the ramp, below
       const [name, img] = spriteOf(obj);
       if (!img) continue;
       // A length of railway track (def.tilt) is turned to the slope between its ends and stands on the line
@@ -1040,10 +1131,27 @@ export function createRenderer(canvas, world, assets) {
       if (obj.type === 'radar' && !look) drawAerial(left + 26, top + 5, true);
       if (obj.type === 'tower') drawPennant(left + 10, top, obj.team);
     }
+    drawRamps();
+    for (const obj of world.ground) {
+      if (!obj.ramp) continue;
+      const veh = assets.vehicles?.[obj.model ?? obj.def.sprite];
+      const sx = Math.round(toScreenX(obj.x));
+      if (veh && sx > -60 && sx < bw + 60) drawVehicle(obj, veh, sx, Math.round(toScreenY(obj.baseY ?? surfaceAt(world, obj.x))) + 2, facingOf(obj));
+    }
   }
 
   // Damaged objects smoke; wrecks burn, then smoulder for a while.
   function emitGroundEffects(dt) {
+    // A locomotive's smoke: a steady drift from the chimney, thicker as it works harder; it trails behind a moving train.
+    for (const t of world.trains ?? []) {
+      const loco = world.ground.find((o) => o.id === t.cars[0]);
+      if (!loco || loco.type !== 'loco') continue;
+      if (Math.random() < dt * (3 + t.v * 0.25)) {
+        const x = loco.x + t.dir * (loco.width ?? loco.def.width) * 0.32;
+        const back = t.phase === 'back' ? 1 : -1; // the smoke streams behind it the way it goes
+        particles.spawn('blacksmoke', x, (loco.baseY ?? 0) + (loco.height ?? loco.def.height) + 1, back * t.dir * t.v * 0.6 + (Math.random() - 0.5) * 2, 7, 1.2 + Math.random(), 1.4); // coal smoke, dark
+      }
+    }
     for (const obj of world.ground) {
       if (obj.soldiers || obj.type === 'bridge') continue;
       const gy = surfaceAt(world, obj.x);

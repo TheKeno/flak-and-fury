@@ -52,6 +52,7 @@ const world = createWorld({
   flight: content.settings.flight,
   damage: content.settings.damage,
   waves: content.settings.waves,
+  trains: content.settings.trains,
   raids: content.settings.raids,
   clouds: content.settings.clouds,
   pads: content.settings.pads,

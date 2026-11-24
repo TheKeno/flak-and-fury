@@ -55,6 +55,7 @@ export async function loadContent(mapName) {
     'hangar-shut',
     ...Array.from({ length: 14 }, (_, i) => `hangar-d${i + 1}`), // door steps, see hangarSteps in tools/make-sprites.mjs
     'bomb',
+    'unload-ramp', // the railheads' ramp (src/sim/trains.js)
   ];
   const images = Object.fromEntries(
     await Promise.all(spriteNames.map(async (n) => [n, await loadImage(`assets/sprites/${n}.png`)])),
