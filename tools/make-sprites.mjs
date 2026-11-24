@@ -128,13 +128,19 @@ function barn() {
 }
 
 // Bomb, nose to the right. 14x6; pivot (7, 3).
+// A general-purpose bomb of 1943 (the SC 250 and FAB-250 share the shape), nose to the right: a blunt ogive nose
+// with its fuze, a plain cylinder in dull dark green with a stencilled band, the tail cone tapering into a box
+// fin. Drawn about 1.4 times its real size so it reads in flight, like the light flak. 14x6; pivot (7, 3).
 function bomb() {
-  const g = grid(14, 6);
-  g.rows({ 0: [0, 1], 1: [0, 4], 4: [0, 4], 5: [0, 1] }, 'k');
-  g.rows({ 1: [4, 10], 2: [3, 12], 3: [3, 12], 4: [4, 10] }, 'b');
-  g.outline('kl');
-  g.span(2, 5, 9, 'l');
-  return g.rowsOut();
+  // o outline, l lit top, b body, k shade, i fuze and band, I fins.
+  return [
+    'II............',
+    'IoI.ooooooo...',
+    'I.Ioollllilo..',
+    'IIIkbbbbbbIbbi',
+    'I.Iokkkkkiko..',
+    'IoI.ooooooo...',
+  ];
 }
 
 // Arched (Nissen-style) hangar seen from the front. 88x36 (44 x 18 world units; the doorway is 22 wide, so
