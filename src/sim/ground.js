@@ -110,10 +110,11 @@ export function mountPoint(world, obj, forward, up) {
   return [obj.x + Math.cos(t) * fx - Math.sin(t) * up, y + Math.sin(t) * fx + Math.cos(t) * up];
 }
 
-// Half a squad's length: its men stand either side of its x (while forming up, not evenly).
+// Half a squad's length: its men stand either side of its x (while forming up, not evenly). Only the
+// living count: a box stretched over the fallen made tank shells burst among the dead, far from anyone.
 export function squadHalf(obj) {
   let m = 0;
-  for (const s of obj.soldiers) m = Math.max(m, Math.abs(s.dx));
+  for (const s of obj.soldiers) if (s.hp > 0) m = Math.max(m, Math.abs(s.dx));
   return m + obj.def.width / 2;
 }
 
@@ -323,6 +324,9 @@ export function bulletHitsGround(world, b, ox, oy, pass = null) {
   for (let i = 0; i < ground.length; i++) {
     const obj = ground[i];
     if (!obj.alive || !isEnemy(world, obj, b.team)) continue;
+    // Rounds from the ground (b.cause: infantry, MGs, tanks) pass the scenery: the men fight past the
+    // houses, they don't shoot them down. Planes' rounds (no cause) still wreck it.
+    if (b.cause && obj.team == null) continue;
     // Nowhere near it along the ground: skip the box (speed; the 1 keeps rounding out of it).
     const half = halfIn(halves, obj, i);
     if (right < obj.x - half - 1 || left > obj.x + half + 1) continue;

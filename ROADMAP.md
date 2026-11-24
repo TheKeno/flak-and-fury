@@ -981,6 +981,11 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+- **Stalemate in the station town fixed (Gameplay, 2026-11-24):** the front stuck at Hill 252.2 with nobody dying.
+  Rifle, MG and tank-MG rounds stopped in the scenery (station, elevator, trade row, ruins, even the track: thousands
+  of rounds a match); now rounds fired from the ground pass scenery (`b.cause` in `bulletHitsGround`), planes' still
+  wreck it. Tank shells burst far from anyone because a squad's hit box still spanned its fallen men; `squadHalf`
+  now counts only the living. Test in `tests/kursk.test.mjs`.
 
 - **Firefox back to 120 fps (UI, 2026-11-24):** the owner's Firefox fell to 30 fps after the Kursk map was
   stretched to 10,000, Edge stayed at 120. Cause: the hill ridges were cached as one canvas as long as the ridge,

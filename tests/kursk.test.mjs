@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, stepWorld } from '../src/sim/world.js';
+import { bulletHitsGround, groundBox, squadHalf } from '../src/sim/ground.js';
 
 const load = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const settings = load('data/settings.json');
@@ -75,4 +76,18 @@ test('the middle is a hill, and both sides send waves on the Kursk map', () => {
   assert.ok(h(5000) > h(4400) + 10 && h(5000) > h(5750) + 10, 'Hill 252.2 stands above the wheat and the farm');
   for (let i = 0; i < 60 * 40; i++) stepWorld(world, {});
   for (const team of [0, 1]) assert.ok(world.ground.some((o) => o.mobile && o.alive && o.team === team), `team ${team} sent a wave`);
+});
+
+test('the fight in the station town: ground fire passes the houses, shells burst among the living', () => {
+  const world = makeWorld();
+  const station = world.ground.find((o) => o.type === 'station');
+  const [l, b, r, t] = groundBox(world, station);
+  const y = (b + t) / 2;
+  const round = (cause) => ({ team: 0, x: r + 2, y, vx: 300, vy: 0, damage: 1, cause });
+  // A rifleman's round flies on past the station; a plane's still strikes it.
+  assert.equal(bulletHitsGround(world, round('infantry'), l - 2, y), false);
+  assert.equal(bulletHitsGround(world, round(undefined), l - 2, y), true);
+  // A squad's box covers only its living men, not the fallen lying further out.
+  const squad = { soldiers: [{ dx: 0, hp: 3 }, { dx: 2, hp: 3 }, { dx: 40, hp: 0 }], def: { width: 3 } };
+  assert.equal(squadHalf(squad), 3.5);
 });
