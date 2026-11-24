@@ -34,6 +34,8 @@ export const PALETTE = {
   s: [170, 152, 112, 255], // sandbag
   z: [134, 118, 86, 255], // sandbag shade
   K: [156, 144, 100, 255], // tent canvas
+  '*': [100, 96, 70, 255], // Soviet tarpaulin, faded khaki
+  '?': [76, 74, 54, 255], // tarpaulin shade, seams
   q: [120, 110, 76, 255], // canvas shade
   t: [128, 94, 62, 255], // timber
   T: [88, 64, 42, 255], // timber dark

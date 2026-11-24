@@ -237,22 +237,6 @@ function mgnest() {
   return g.rowsOut();
 }
 
-// Ridge tent with the door flap tied back. 32x16.
-function tent() {
-  const g = grid(32, 16);
-  for (let y = 1; y <= 15; y++) {
-    const half = Math.round(1 + y * 0.98);
-    g.span(y, 16 - half, 15 + half, y % 5 === 0 ? 'q' : 'K');
-  }
-  // Shaded far slope and the door.
-  for (let y = 1; y <= 15; y++) g.set(16 + Math.round(y * 0.98), y, 'q');
-  g.rows({ 9: [14, 17], 10: [13, 18], 11: [13, 18], 12: [12, 19], 13: [12, 19], 14: [12, 19], 15: [12, 19] }, 'd');
-  // Pole tip and guy-rope pegs.
-  g.set(16, 0, 'T');
-  g.outline('d');
-  return g.rowsOut();
-}
-
 // Wooden watchtower: four legs with cross bracing and a roofed lookout. 20x60.
 function tower() {
   const g = grid(20, 60);
@@ -405,7 +389,6 @@ const SPRITES = {
   flak: flak(),
   lightflak: lightflak(),
   mgnest: mgnest(),
-  tent: tent(),
   tower: tower(),
   building: building(),
   radar: radar(),

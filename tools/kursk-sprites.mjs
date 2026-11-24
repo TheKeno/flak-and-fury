@@ -1631,6 +1631,107 @@ export const KURSK_FIELD = {
   'dust-3': dust(2),
   'smoke-column': smokeColumn(),
 };
+// --- Tents, by nation: 32x16 (6.4 m long, 3.2 m high), seen from the long side ---------------------------------
+// A ridge tent on two poles: the canvas sags between them, short walls under the eaves, guy ropes out to pegs.
+// paint(x, y, part) colours the canvas ('roof', 'wall', 'hem'); walls: rows of wall under the eaves; rolled: a
+// stretch of wall [x0, x1] rolled up to the eaves, showing the dark inside.
+function ridgeTent(g, { ridge: [rx0, rx1, ry], eave: [ex0, ex1, ey], walls, rolled, paint }) {
+  for (let y = ry; y <= ey; y++) {
+    const k = (y - ry) / (ey - ry);
+    const l = Math.round(rx0 + (ex0 - rx0) * k);
+    const r = Math.round(rx1 + (ex1 - rx1) * k);
+    for (let x = l; x <= r; x++) g.set(x, y, y === ey ? paint(x, y, 'hem') : paint(x, y, 'roof'));
+  }
+  const bottom = g.h - 1;
+  for (let y = ey + 1; y <= bottom; y++) for (let x = ex0 + 1; x <= ex1 - 1; x++) g.set(x, y, y === ey + 1 ? paint(x, y, 'hem') : paint(x, y, 'wall'));
+  // The canvas sags between the poles: the middle of the ridge dips a pixel.
+  for (let x = rx0 + 4; x <= rx1 - 4; x++) g.set(x, ry, '.');
+  if (rolled) {
+    g.box(rolled[0], ey + 2, rolled[1], bottom, 'd');
+    g.span(ey + 1, rolled[0] - 1, rolled[1] + 1, paint(0, 0, 'hem')); // the rolled canvas, tied under the eave
+  }
+  // Pole tips above the ridge.
+  g.set(rx0, ry - 1, 'T');
+  g.set(rx1, ry - 1, 'T');
+  return bottom;
+}
+// Guy ropes from the eave corners and the poles out to pegs; drawn after the outline so they stay thin.
+function guyRopes(g, ropes) {
+  for (const [x0, y0, x1, y1] of ropes) {
+    g.line(x0, y0, x1, y1, 'J');
+    g.set(x1, y1, 'T');
+  }
+}
+
+// German tent of Zeltbahn 31 panels buttoned together, in the splinter pattern (brown and dark green splinters on
+// field-grey green), low walls, the front panel rolled up. 32x16.
+function tentGermany() {
+  const g = grid(32, 16);
+  const splinter = (x, y) => {
+    const n = noise(Math.floor((x * 2 + y * 3) / 4) * 13 + Math.floor((x - y * 2) / 5) * 7, 1);
+    return n < 0.25 ? 'H' : n < 0.42 ? 'E' : 'V';
+  };
+  ridgeTent(g, {
+    ridge: [8, 23, 3],
+    eave: [2, 29, 11],
+    rolled: [13, 17],
+    paint: (x, y, part) => (part === 'hem' ? 'H' : part === 'wall' && y === 15 ? '^' : (x - 2) % 9 === 0 && part === 'roof' ? 'H' : splinter(x, y)),
+  });
+  g.outline('d');
+  guyRopes(g, [[2, 11, 0, 15], [29, 11, 31, 15], [8, 2, 1, 14]]);
+  return g.rowsOut();
+}
+
+// Soviet army tent: a big canvas wall tent in faded khaki tarpaulin, seams down the roof, the stovepipe of its
+// little iron stove through a sleeve, a stretch of wall rolled up. 32x16.
+function tentUssr() {
+  const g = grid(32, 16);
+  ridgeTent(g, {
+    ridge: [7, 24, 2],
+    eave: [2, 29, 8],
+    rolled: [19, 24],
+    paint: (x, y, part) => {
+      if (part === 'hem') return '?';
+      if (part === 'wall') return y === 15 ? '^' : x % 6 === 4 ? '?' : noise(x * 5 + y * 11, 1) < 0.1 ? '?' : '*';
+      return x % 6 === 1 ? '?' : y <= 3 ? 'q' : noise(x * 7 + y * 3, 1) < 0.12 ? '?' : '*';
+    },
+  });
+  // Stovepipe with its tin sleeve, a wisp of smoke.
+  g.box(18, 0, 18, 3, 'I');
+  g.set(17, 3, 'i');
+  g.set(19, 3, 'i');
+  g.outline('d');
+  g.set(19, 0, '(');
+  guyRopes(g, [[2, 8, 0, 15], [29, 8, 31, 15], [24, 1, 30, 13]]);
+  return g.rowsOut();
+}
+
+// A tent brought down: the poles snapped, the canvas a slumped heap with one end still hanging off a pole stump,
+// scorched along the edge. from: the standing tent, for its colours.
+function tentDown(rows, seed) {
+  const g = grid(32, 16);
+  const colours = [...rows.join('')].filter((c) => !'.oJTdI(i'.includes(c));
+  for (let x = 1; x <= 30; x++) {
+    const top = Math.round(15 - 3.2 * Math.sin(((x - 1) / 29) * Math.PI) ** 0.7 - (x > 20 && x < 26 ? 3 * Math.sin(((x - 20) / 6) * Math.PI) : 0) + noise(x * 3 + seed, 1.4));
+    for (let y = top; y <= 15; y++) {
+      const n = noise(x * 13 + y * 7 + seed, 1);
+      g.set(x, y, n < 0.12 ? '&' : colours[Math.floor(noise(x * 5 + y * 3 + seed, 1) * colours.length)]);
+    }
+  }
+  g.box(23, 8, 23, 12, 'T'); // the pole stump the canvas hangs from
+  g.line(6, 12, 9, 10, 'T'); // the other pole, broken and leaning
+  g.outline();
+  return g.rowsOut();
+}
+const TENT_GERMANY = tentGermany();
+const TENT_USSR = tentUssr();
+export const KURSK_TENTS = {
+  'tent-germany': TENT_GERMANY,
+  'tent-ussr': TENT_USSR,
+  'tent-germany-ruin': tentDown(TENT_GERMANY, 3),
+  'tent-ussr-ruin': tentDown(TENT_USSR, 8),
+};
+
 export const KURSK_MILITARY = {
   'flak-88': flak88(false), // the mounts as the game draws them: the barrel is its own piece that swings
   'flak-85': flak85(false),
@@ -1845,7 +1946,7 @@ export const KURSK_EXTRA = {
 // data/pixels/<name>.json { rows }: from then on those rows are the sprite, here and in the game, and the
 // drawing code above is only what "Revert to drawn" goes back to. (A wreck worked out from a building is
 // worked out from the drawn building, not from an edited one: edit the wreck itself.)
-const SETS = [KURSK, KURSK_RUINS, KURSK_FIELD, KURSK_MILITARY, KURSK_HANGARS, KURSK_GUNS, KURSK_TREES, KURSK_EXTRA];
+const SETS = [KURSK, KURSK_RUINS, KURSK_FIELD, KURSK_MILITARY, KURSK_TENTS, KURSK_HANGARS, KURSK_GUNS, KURSK_TREES, KURSK_EXTRA];
 export const DRAWN = {}; // name -> the rows as the code draws them
 export const EDITED = new Set(); // names that have a hand-edited version
 for (const set of SETS) {
@@ -1866,7 +1967,7 @@ const CATEGORIES = [
   ['Guns: barrels', (n) => n.endsWith('-barrel') || n.endsWith('-drum')],
   ['Guns: mounts', (n) => /^(flak-|mgnest-|pak-|zis-|searchlight-)/.test(n) && !n.endsWith('-nest')],
   ['Bunkers and positions', (n) => /^(dzot|bunker-|tank-dug-in|pillbox|trench-|wire|mine-sign|dugout|hedgehog|gun-pit)/.test(n) || n.endsWith('-nest')],
-  ['Airfield and supply', (n) => /^(depot-|radar-|windsock|stores)/.test(n)],
+  ['Airfield and supply', (n) => /^(depot-|radar-|windsock|stores|tent-)/.test(n)],
   ['Village', (n) => /^(izba|shed|well|haystack|wattle)/.test(n)],
   ['Farm and church', (n) => /^(cowshed|church|windmill|stooks|sunflowers)/.test(n)],
   ['Town', (n) => /^(town-house|trade-row|soviet|elevator)/.test(n)],
@@ -1908,6 +2009,7 @@ export const GAME_SPRITES = {
     'water-tower-ruin', 'trade-row-ruin', 'soviet-ruin', 'elevator-ruin', 'depot-germany-ruin', 'depot-ussr-ruin']),
   ...pick(KURSK_MILITARY, ['flak-88', 'flak-85', 'depot-germany', 'depot-ussr', 'radar-germany', 'radar-ussr', 'windsock', 'stores', 'wire', 'mine-sign']),
   ...KURSK_HANGARS,
+  ...KURSK_TENTS,
   ...KURSK_GUNS,
   ...KURSK_TREES,
 };

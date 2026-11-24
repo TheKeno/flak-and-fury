@@ -423,6 +423,12 @@ if (params.has('showcase')) {
   }
   // And a searchlight of each side at the end of the row (they burn with ?night).
   for (const team of [0, 1]) world.ground.push(makeGroundObject(world, 'searchlight', team, (x += 30)));
+  // A tent of each side, standing and brought down.
+  for (const team of [0, 1]) for (const down of [false, true]) {
+    const tent = makeGroundObject(world, 'tent', team, (x += 26));
+    if (down) tent.alive = false;
+    world.ground.push(tent);
+  }
   // ?showcase=<x> also starts in free look there (the row runs from about 1300 to 2250).
   // (?showcase=<x>,<y> looks at that height instead of the ground there, e.g. 1500,800 for the cloud layer.)
   const [at, atY] = (params.get('showcase') ?? '').split(',').map(Number);
