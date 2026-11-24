@@ -955,6 +955,12 @@ later.
 
 ## Done
 
+- **Troops no longer stand still for good (Gameplay, 2026-11-18, `c8af0c7`):** two squads down to their rear men
+  counted as touching (measured by full width, fallen men included), so behind a crest neither could shoot and both
+  stood "in a fight" forever with every squad behind queued up. `holdUp`/`enemyAhead` in `src/sim/army.js` now
+  measure units by their living men (`reach`, `clearTo`); test in `tests/army.test.mjs`. Checked: tank shells are
+  not stopped by buildings (only enemy units and the ground); misses on Kursk were hills.
+
 - **Last old sprites on Kursk replaced (Design, 2026-11-24; the owner disliked the triangle tents):** tents by
   nation in `tools/kursk-sprites.mjs` (`KURSK_TENTS`, 32x16 as before): `tent-germany` (Zeltbahn panels in the
   splinter pattern, low walls, front rolled up) and `tent-ussr` (khaki wall tent with a stovepipe; also the plain
