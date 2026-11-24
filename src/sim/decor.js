@@ -52,7 +52,7 @@ export function addDecor(world) {
           else if (put('wattle', x + out * -8) && rng.next() < 0.5) put('poplar', x + out * 16);
         }
       } else if (z.type === 'wood') {
-        for (let x = z.x + 6; x < end - 6; x += cfg.woodSpacing * (0.9 + rng.next() * 0.8)) put(pick(['oak', 'birch', 'birch', 'tree']), x);
+        for (let x = z.x + 6; x < end - 6; x += cfg.woodSpacing * (0.9 + rng.next() * 0.8)) put(pick(['oak', 'birch', 'birch']), x);
       } else if (z.type === 'ridge') {
         for (let x = z.x + 20; x < end - 20; x += 50) if (rng.next() < 0.3) put(pick(['oak', 'birch']), x + (rng.next() - 0.5) * 20);
       } else if (z.type === 'village') {
