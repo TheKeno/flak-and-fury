@@ -905,7 +905,8 @@ export function createRenderer(canvas, world, assets) {
     beams.length = 0;
     for (const obj of world.ground) {
       const sx = Math.round(toScreenX(obj.x));
-      if (sx < -60 || sx > bw + 60) continue;
+      const reach = Math.max(60, (obj.def?.width ?? 0) + 4); // half a sprite in pixels (2 a unit): the railway bridge is 184 wide
+      if (sx < -reach || sx > bw + reach) continue;
       if (obj.soldiers) {
         drawSquad(obj, sx, frame);
         continue;
@@ -920,6 +921,20 @@ export function createRenderer(canvas, world, assets) {
       }
       const [name, img] = spriteOf(obj);
       if (!img) continue;
+      // A length of railway track (def.tilt) is turned to the slope between its ends and stands on the line
+      // between them, so lengths laid end to end follow the ground without steps; its wreck the same way.
+      if (obj.def?.tilt) {
+        const half = obj.def.width / 2;
+        const back = surfaceAt(world, obj.x - half);
+        const front = surfaceAt(world, obj.x + half);
+        const sprite = obj.alive ? img : assets.images[obj.def.wreck] ?? wreckOf(name, img);
+        ctx.save();
+        ctx.translate(sx, Math.round(toScreenY((back + front) / 2)) + 2);
+        ctx.rotate(-Math.atan2(front - back, half * 2));
+        ctx.drawImage(sprite, -Math.round(sprite.width / 2), -sprite.height);
+        ctx.restore();
+        continue;
+      }
       // A piece on a slope (no level pad: trees, wire, poles, pad false; or the izbas and barns the game places in
       // the zones itself) stands on its lower end, so the upper end sinks into the hill instead of the lower end
       // hanging in the air. On a pad the ground is level and this changes nothing.

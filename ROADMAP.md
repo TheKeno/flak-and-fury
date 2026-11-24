@@ -40,6 +40,18 @@ later.
   owner, wired in as scenery pieces), since the map is made only once; then in parallel (b) the map stretch (layout,
   ground, placing; does not touch drawings) and (c) the train sprites (locomotive, tender, flatcar with a tank, flak
   wagon; drawings approved by the owner, not in the game until build 2; does not touch the map).
+  **(a) done 2026-11-24, for the map session:** three scenery pieces (LDtk entity, ground type, sprite; all no team,
+  `pad: false`, so no level pad is dug under them): **`Track`** (`track`, 48 x 3 units, 96 x 7 px) and **`TrackTorn`**
+  (`trackTorn`, 48 x 9, 96 x 18): lay them **end to end, one every 48 units** (x = the middle of each length); they have
+  `tilt`, so each is drawn turned to the slope between its ends and the line follows the ground (gentle slopes only).
+  Bombing a whole length leaves torn track. About 170 lengths for the whole line, so check the frame rate.
+  **`RailBridge`** (`railBridge`, 92 x 25 units, 184 x 50 px; wreck `rail-bridge-ruin`): a timber trestle drawn for a
+  **Balka zone exactly 80 units wide** (today's `balkaDepth` 22, `balkaSide` 60, smoothing 8 x 3; change those and
+  the drawing needs redrawing): put the bridge's x at the **balka's middle** (zone x + 40). The game draws it on the
+  balka floor, its rails then meet the track on the rims; the track stops at the rims, with its lengths' outer ends
+  at the bridge's ends (bridge x +- 46). Not a level-pad piece and not a crossing: no train runs yet. A 130-wide
+  battery balka needs its own, narrower balka beside it for the line. Looks: `notes/railway-preview.png`
+  (`node tools/kursk-sprites.mjs railway`). In `?showcase` the bridge stands on flat ground, its outer piles in the air.
 
 - **Cloud layer look: heaped banks (decided 2026-11-18, discussion; built the same day, see Done "Cloud layer look"; the ends were changed then):** the owner disliked the bank ends
   (a see-through fading curtain) and the four flat stripes that copy the outline. Chosen look, from the mock-ups

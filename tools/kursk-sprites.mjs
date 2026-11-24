@@ -460,16 +460,257 @@ function wagon() {
   return g.rowsOut();
 }
 
-// Railway track: rails on sleepers in ballast, a length that tiles end to end. 48x5.
+// Railway track: rails on creosoted sleepers in a low bank of ballast, a length that tiles end to end
+// (96 pixels: 48 units, about 19 m). The game turns each length to the slope under it (tilt in
+// data/ground.json), so laid end to end they follow the ground. 96x7; the bottom two rows sink into the earth.
 function track() {
-  const g = grid(48, 5);
-  g.span(0, 0, 47, 'I'); // the rail head
-  g.span(1, 0, 47, 'e');
-  for (let x = 0; x <= 47; x++) {
-    if (x % 6 < 3) g.box(x, 2, x, 3, 'A'); // sleepers
-    else g.box(x, 2, x, 3, 'J');
-    g.set(x, 4, noise(x * 3, 1) < 0.5 ? 'J' : 'u'); // ballast
+  const g = grid(96, 7);
+  g.span(0, 0, 95, (x) => (noise(x * 11, 1) < 0.12 ? 'I' : 'i')); // the rail head, worn bright in places
+  g.span(1, 0, 95, 'I');
+  g.box(38, 1, 43, 1, 'e'); // a rail joint: the fishplate and its bolts
+  g.set(39, 0, 'I');
+  for (let x = 0; x <= 95; x++) {
+    const sleeper = x % 6 < 3;
+    g.set(x, 2, sleeper ? 'T' : 'u');
+    g.set(x, 3, sleeper ? 'A' : noise(x * 5, 1) < 0.5 ? 'J' : 'u');
+    for (let y = 4; y <= 6; y++) {
+      const n = noise(x * 3 + y * 17, 1);
+      g.set(x, y, y === 6 && n < 0.3 ? '^' : n < 0.45 ? 'J' : n < 0.75 ? 'u' : 'j'); // ballast
+    }
   }
+  return g.rowsOut();
+}
+
+// Torn-up track for no man's land: in 1943 the retreating side ripped its lines up behind it (the German
+// "rail wolf" hook broke every sleeper in two), and the shelling did the rest. A rail prised up in a bow and
+// twisted off at its end, the far rail lying askew, sleepers snapped, tipped or gone, a shell hole's lip of
+// thrown-up earth. Same length and ground line as the whole track (its bottom seven rows line up with it),
+// so the two join. 96x18.
+function trackTorn() {
+  const g = grid(96, 18);
+  const B = 11; // the whole track's top row
+  // Ballast, scattered and thinner than on a whole line.
+  for (let x = 0; x <= 95; x++) for (let y = B + 4; y <= B + 6; y++) {
+    const n = noise(x * 3 + y * 17, 1);
+    if (y === B + 4 && n < 0.35) continue;
+    g.set(x, y, y === B + 6 && n < 0.4 ? '^' : n < 0.5 ? 'J' : n < 0.8 ? 'u' : 'j');
+  }
+  // The shell hole's lip: earth thrown up either side of where the line was hit (x 62..86).
+  for (let x = 56; x <= 92; x++) {
+    const lip = Math.max(0, 5 - Math.abs(x - 61) * 0.9) + Math.max(0, 4 - Math.abs(x - 87) * 0.8);
+    const dip = x > 64 && x < 84;
+    for (let y = B + 6 - Math.round(lip); y <= B + 6; y++) {
+      if (dip && y < B + 6) continue;
+      g.set(x, y, noise(x * 7 + y * 3, 1) < 0.5 ? '~' : '^');
+    }
+  }
+  // Sleepers: snapped in two, the halves tipped up; some gone, none in the shell hole.
+  for (let x = 0; x <= 95; x += 6) {
+    const n = noise(x * 13, 1);
+    if (x > 62 && x < 86) continue;
+    if (n < 0.25) continue; // gone
+    if (n < 0.55) {
+      g.box(x, B + 2, x + 2, B + 2, 'T');
+      g.box(x, B + 3, x + 2, B + 3, 'A');
+    } else if (n < 0.8) {
+      g.line(x, B + 3, x + 3, B + 1, 'A'); // a half tipped on end
+      g.line(x + 1, B + 3, x + 4, B + 1, 'T');
+    } else {
+      g.box(x - 1, B + 3, x + 1, B + 3, '&'); // a broken stump, charred
+      g.set(x + 2, B + 2, 'A');
+    }
+  }
+  // The far rail: dark, lying slewed on the ballast, ending at the shell hole.
+  g.line(0, B, 22, B + 2, 'I');
+  g.line(0, B + 1, 22, B + 3, 'e');
+  g.line(23, B + 3, 60, B + 3, 'I');
+  g.line(56, B + 2, 62, B, 'I'); // its torn end kinked up
+  // The near rail: prised up in a bow from the left end and twisted off over the shell hole.
+  for (let x = 0; x <= 58; x++) {
+    const t = Math.max(0, (x - 8) / 50);
+    const y = Math.round(B - 9 * Math.sin(Math.PI * Math.min(1, t * 0.82)) ** 1.2);
+    g.set(x, y, 'i');
+    g.set(x, y + 1, 'I');
+  }
+  g.line(58, B - 3, 63, B - 1, 'I'); // the twisted end, hanging down
+  g.line(63, B - 1, 64, B + 1, 'e');
+  // Past the hole the line lies whole again, both rails at their height.
+  g.span(B, 84, 95, 'i');
+  g.span(B + 1, 84, 95, 'I');
+  g.line(86, B + 1, 84, B - 2, 'I'); // the rail's end bent up where the blast tore it
+  for (let x = 84; x <= 95; x++) if (x % 6 < 3) { g.set(x, B + 2, 'T'); g.set(x, B + 3, 'A'); }
+  return g.rowsOut();
+}
+
+// The ground of the balka the railway bridge stands in, as the game cuts it (src/sim/terrain.js: cutBalkas, then
+// the smoothing): a Balka zone 80 units wide on level ground, balkaDepth 22 and balkaSide 60 (so its sides are
+// half its width: a steep V), smoothed over 8 units 3 times. Height above the rims at dx units from the middle.
+const BRIDGE_BALKA = 80;
+const balkaDrop = (() => {
+  const R = 120;
+  let h = Array.from({ length: 2 * R + 1 }, (_, i) => {
+    const inside = BRIDGE_BALKA / 2 - Math.abs(i - R);
+    if (inside <= 0) return 0;
+    const t = Math.min(1, inside / Math.min(60, BRIDGE_BALKA / 2));
+    return -22 * t * t * (3 - 2 * t);
+  });
+  for (let pass = 0; pass < 3; pass++) {
+    const sums = [0];
+    for (const v of h) sums.push(sums[sums.length - 1] + v);
+    h = h.map((_, x) => {
+      const a = Math.max(0, x - 8);
+      const b = Math.min(2 * R, x + 8);
+      return (sums[b + 1] - sums[a]) / (b - a + 1);
+    });
+  }
+  return (dx) => {
+    const x = Math.min(2 * R, Math.max(0, dx + R));
+    const i = Math.floor(x);
+    return h[i] + (h[Math.min(2 * R, i + 1)] - h[i]) * (x - i);
+  };
+})();
+
+// Railway bridge over a balka: a timber trestle, the kind the Red Army's railway troops threw across every
+// ravine as they rebuilt the lines behind the front in 1943. Seven bents of piles, each down to the slope under
+// it, braced crosswise between them and tied with a girt halfway down; a cap beam, two stringers, close-laid
+// sleepers and the rails; a plank walk with a handrail on the near side; log cribs at the abutments. Drawn to
+// stand in a Balka zone exactly 80 units wide, at its middle: the game draws it on the balka floor (its lowest
+// ground), and then the rails come level with the track on the rims. 184x50 (92 units, the gap and 6 each side).
+const BRIDGE_W = 184;
+const BRIDGE_H = 50;
+const BRIDGE_RAIL = 5; // the rail head's row (the track's top row, on the rims)
+// The row of the ground surface under column c of the bridge sprite.
+const bridgeGround = (c) => BRIDGE_H - 2 - 2 * (balkaDrop((c + 0.5 - BRIDGE_W / 2) / 2) - balkaDrop(0));
+const BENTS = [-64, -42, -20, 0, 20, 42, 64].map((d) => BRIDGE_W / 2 - 1 + d); // left post column of each
+function bridgeDeck(g, x0, x1, { rails = true } = {}) {
+  const R = BRIDGE_RAIL;
+  for (let x = x0; x <= x1; x++) {
+    if (rails) {
+      g.set(x, R, noise(x * 11, 1) < 0.12 ? 'I' : 'i');
+      g.set(x, R + 1, 'I');
+    }
+    g.set(x, R + 2, x % 4 < 3 ? 'T' : 'A'); // sleepers laid close on a bridge
+    g.set(x, R + 3, x % 4 < 3 ? 'A' : 'd');
+    g.set(x, R + 4, (x + 1) % 9 === 0 ? 'D' : 'E'); // the stringers
+    g.set(x, R + 5, 'D');
+    g.set(x, R + 6, 'A');
+  }
+}
+function railBridge() {
+  const g = grid(BRIDGE_W, BRIDGE_H);
+  const R = BRIDGE_RAIL;
+  const ground = (c) => Math.round(bridgeGround(c));
+  const capY = R + 7;
+  // Cross bracing in each bay between bents, from the cap down to the girt or the slope, behind the posts.
+  const girt = (c) => Math.min(ground(c) - 1, capY + 15);
+  for (let i = 0; i + 1 < BENTS.length; i++) {
+    const a = BENTS[i] + 1;
+    const b = BENTS[i + 1];
+    const bottom = Math.min(ground(a), ground(b)) - 1;
+    const mid = Math.min(capY + 15, bottom);
+    g.line(a, capY + 1, b, mid, 'D');
+    g.line(a, mid, b, capY + 1, 'D');
+    if (bottom - mid > 6) {
+      g.line(a, mid, b, bottom, 'D');
+      g.line(a, bottom, b, mid, 'D');
+    }
+  }
+  // The girt: a horizontal tie halfway down the tall bents.
+  g.span(capY + 15, BENTS[1], BENTS[5] + 1, (x) => (ground(x) > capY + 16 ? 'D' : g.get(x, capY + 15)));
+  // The bents: two-pixel piles, lit side and shade, from the cap into the ground; a stone under each.
+  for (const x of BENTS) {
+    const foot = Math.max(ground(x), ground(x + 1)) + 1;
+    g.box(x, capY, x, foot, 'a');
+    g.box(x + 1, capY, x + 1, foot, 'A');
+    g.box(x - 2, capY, x + 3, capY, 'D'); // the cap beam
+    g.box(x - 1, Math.min(ground(x), ground(x + 1)), x + 2, foot, 'J');
+  }
+  // Log cribs at the abutments, filled with stone, from the deck down to the rim.
+  for (const [a, b] of [[4, 17], [BRIDGE_W - 18, BRIDGE_W - 5]]) {
+    for (let x = a; x <= b; x++) {
+      for (let y = capY; y <= ground(x) + 1; y++) {
+        const log = (y - capY) % 3;
+        g.set(x, y, x === a || x === b ? 'A' : log === 0 ? 'a' : log === 1 ? (noise(x * 5 + y, 1) < 0.5 ? 'j' : 'J') : 'u');
+      }
+    }
+  }
+  bridgeDeck(g, 0, BRIDGE_W - 1);
+  // The plank walk and handrail along the near side, over the gap.
+  for (let x = 10; x <= BRIDGE_W - 11; x++) {
+    g.set(x, R - 4, 'D');
+    if (x % 10 === 0 || x === 10 || x === BRIDGE_W - 11) g.box(x, R - 3, x, R - 1, 'D');
+  }
+  // A few stones and a dry runnel on the floor.
+  for (let x = BRIDGE_W / 2 - 8; x <= BRIDGE_W / 2 + 8; x++) if (noise(x * 19, 1) < 0.35) g.set(x, ground(x) - 1, 'J');
+  return g.rowsOut();
+}
+
+// The bridge brought down: the middle spans burnt through and fallen into the balka, the deck ends hanging off
+// the outer bents, charred stumps of the middle piles, timbers and a twisted rail on the floor.
+function railBridgeRuin() {
+  const g = grid(BRIDGE_W, BRIDGE_H);
+  const R = BRIDGE_RAIL;
+  const ground = (c) => Math.round(bridgeGround(c));
+  const capY = R + 7;
+  const char = (x, y) => (noise(x * 7 + y * 13, 1) < 0.45 ? '&' : null);
+  // The outer bents stand, scorched; the middle ones are stumps.
+  for (const [i, x] of BENTS.entries()) {
+    const foot = Math.max(ground(x), ground(x + 1)) + 1;
+    const top = i === 0 || i === 6 ? capY : i === 1 || i === 5 ? capY + 6 + i : foot - 3 - (i % 2) * 3;
+    for (let y = top; y <= foot; y++) {
+      g.set(x, y, char(x, y) ?? 'a');
+      g.set(x + 1, y, char(x + 1, y) ?? 'A');
+    }
+    if (i === 0 || i === 6) g.box(x - 2, capY, x + 3, capY, 'A');
+    g.box(x - 1, Math.min(ground(x), ground(x + 1)), x + 2, foot, 'J');
+  }
+  // Bracing left in the outer bays only.
+  for (const [a, b] of [[BENTS[0] + 1, BENTS[1]], [BENTS[5] + 1, BENTS[6]]]) {
+    const bottom = Math.min(ground(a), ground(b)) - 1;
+    g.line(a, capY + 1, b, Math.min(capY + 12, bottom), 'D');
+  }
+  // The cribs.
+  for (const [a, b] of [[4, 17], [BRIDGE_W - 18, BRIDGE_W - 5]]) {
+    for (let x = a; x <= b; x++) for (let y = capY; y <= ground(x) + 1; y++) {
+      const log = (y - capY) % 3;
+      g.set(x, y, x === a || x === b ? 'A' : log === 0 ? (char(x, y) ?? 'a') : log === 1 ? 'J' : 'u');
+    }
+  }
+  // The deck stands as far as the second bent each side, then breaks.
+  bridgeDeck(g, 0, BENTS[1] + 3);
+  bridgeDeck(g, BENTS[5] - 4, BRIDGE_W - 1);
+  for (let x = BENTS[1] - 6; x <= BENTS[1] + 3; x++) for (let y = R + 2; y <= R + 6; y++) if (char(x, y)) g.set(x, y, '&');
+  // The fallen spans: from each break down the slope into the floor, burnt black at the broken ends.
+  const fallen = (x0, y0, x1, sag) => {
+    const n = Math.abs(x1 - x0);
+    for (let k = 0; k <= n; k++) {
+      const x = x0 + Math.sign(x1 - x0) * k;
+      const y = Math.min(ground(x) - 2, Math.round(y0 + (ground(x1) - 2 - y0) * (k / n) + sag * Math.sin((Math.PI * k) / n)));
+      for (let d = 0; d < 3; d++) g.set(x, y + d, char(x, y + d) ?? (d === 0 ? 'A' : d === 1 ? 'D' : 'T'));
+      if (k > 3 && k < n - 6) g.set(x, y - 1, noise(x * 3, 1) < 0.85 ? 'I' : '.'); // the rail, still on it
+    }
+  };
+  fallen(BENTS[1] + 4, R + 4, BRIDGE_W / 2 - 4, 4);
+  fallen(BENTS[5] - 5, R + 4, BRIDGE_W / 2 + 6, -2);
+  // A rail torn loose, twisted across the floor, and loose timbers.
+  for (let x = BRIDGE_W / 2 - 14; x <= BRIDGE_W / 2 + 16; x++) {
+    const y = ground(x) - 2 - Math.round(3 * Math.abs(Math.sin((x - BRIDGE_W / 2) / 5)));
+    g.set(x, y, 'I');
+  }
+  for (let x = BRIDGE_W / 2 - 4; x <= BRIDGE_W / 2 + 4; x++) g.set(x, ground(x) - 1 - Math.round((x - BRIDGE_W / 2) * 0.3), 'A');
+  // Nothing hangs in the air: only what still joins the ground stays.
+  const w = BRIDGE_W;
+  const h = BRIDGE_H;
+  const seen = new Set();
+  const stack = [];
+  for (let x = 0; x < w; x++) for (let y = ground(x) - 1; y < h; y++) if (g.get(x, y) !== '.') stack.push([x, y]);
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    if (seen.has(y * w + x) || g.get(x, y) === '.') continue;
+    seen.add(y * w + x);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]]) stack.push([x + dx, y + dy]);
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!seen.has(y * w + x)) g.set(x, y, '.');
   return g.rowsOut();
 }
 
@@ -1053,6 +1294,8 @@ export const KURSK = {
   hedgehog: hedgehog(),
   wagon: wagon(),
   track: track(),
+  'track-torn': trackTorn(),
+  'rail-bridge': railBridge(),
   shed: shed(),
   church: church(),
   'flak-88-whole': flak88(),
@@ -1619,6 +1862,7 @@ export const KURSK_RUINS = {
   'wagon-burnt': wagonBurnt(),
   'depot-germany-ruin': ruin(depotGermany(), { keep: 0.45, seed: 13 }),
   'depot-ussr-ruin': ruin(depotUssr(), { keep: 0.55, seed: 14 }),
+  'rail-bridge-ruin': railBridgeRuin(),
 };
 export const KURSK_FIELD = {
   wheat: wheat(),
@@ -1971,7 +2215,7 @@ const CATEGORIES = [
   ['Village', (n) => /^(izba|shed|well|haystack|wattle)/.test(n)],
   ['Farm and church', (n) => /^(cowshed|church|windmill|stooks|sunflowers)/.test(n)],
   ['Town', (n) => /^(town-house|trade-row|soviet|elevator)/.test(n)],
-  ['Railway', (n) => /^(station|water-tower|telegraph-pole|track|wagon|flat-wagon|locomotive|tender)/.test(n)],
+  ['Railway', (n) => /^(station|water-tower|telegraph-pole|track|rail-bridge|wagon|flat-wagon|locomotive|tender)/.test(n)],
   ['Trees', (n) => /^(apple-tree|birch|oak|poplar|tree-belt)/.test(n)],
   ['Fire, dust and fields', (n) => /^(wheat|stubble|dust-|smoke-)/.test(n)],
   ['Paratroopers', (n) => /^(para-|drop-container)/.test(n)],
@@ -2004,9 +2248,9 @@ const pick = (set, names) => Object.fromEntries(names.map((n) => [n, set[n]]));
 export const GAME_SPRITES = {
   ...pick(KURSK, ['izba', 'izba-white', 'izba-burnt', 'shed', 'cowshed', 'church', 'windmill', 'well', 'haystack', 'wattle', 'station',
     'water-tower', 'telegraph-pole', 'apple-tree', 'birch', 'sunflowers', 'stooks', 'dugout', 'hedgehog', 'town-house', 'trade-row',
-    'soviet', 'elevator', 'town-ruin']),
+    'soviet', 'elevator', 'town-ruin', 'track', 'track-torn', 'rail-bridge']),
   ...pick(KURSK_RUINS, ['izba-ruin', 'izba-white-ruin', 'shed-ruin', 'cowshed-ruin', 'church-ruin', 'windmill-ruin', 'station-ruin',
-    'water-tower-ruin', 'trade-row-ruin', 'soviet-ruin', 'elevator-ruin', 'depot-germany-ruin', 'depot-ussr-ruin']),
+    'water-tower-ruin', 'trade-row-ruin', 'soviet-ruin', 'elevator-ruin', 'depot-germany-ruin', 'depot-ussr-ruin', 'rail-bridge-ruin']),
   ...pick(KURSK_MILITARY, ['flak-88', 'flak-85', 'depot-germany', 'depot-ussr', 'radar-germany', 'radar-ussr', 'windsock', 'stores', 'wire', 'mine-sign']),
   ...KURSK_HANGARS,
   ...KURSK_TENTS,
@@ -2251,8 +2495,8 @@ function sheetOf(file, rows, onTrack = []) {
     let x = GAP;
     for (const s of r) {
       const railed = onTrack.includes(s);
-      if (railed) for (let tx = x - 6; tx < x + s.w + 6; tx++) for (let ty = 0; ty < 5; ty++) sheet.set(COLOURS[KURSK.track[ty][((tx % 48) + 48) % 48]], ((ground - 2 + ty) * W + tx) * 4);
-      const base = railed ? ground - 2 : ground;
+      if (railed) for (let tx = x - 6; tx < x + s.w + 6; tx++) for (let ty = 0; ty < 7; ty++) sheet.set(COLOURS[KURSK.track[ty][((tx % 96) + 96) % 96]], ((ground - 5 + ty) * W + tx) * 4);
+      const base = railed ? ground - 5 : ground;
       for (let sy = 0; sy < s.h; sy++)
         for (let sx = 0; sx < s.w; sx++) {
           const a = s.px[(sy * s.w + sx) * 4 + 3];
@@ -2338,4 +2582,61 @@ function preview() {
   ], [e['flat-wagon'], k.wagon, e.tender, e.locomotive]);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) preview();
+// The railway pieces as the game lays them (notes/railway-preview.png): track lengths end to end on the ground
+// line (their bottom two rows sunk in, as the game draws them), the bridge standing in an 80-wide balka at its
+// middle (drawn on the balka floor), the same with the bridge wrecked, and torn track between whole lengths.
+function railwayPreview() {
+  const root = fileURLToPath(new URL('..', import.meta.url));
+  const SKY = [96, 104, 108, 255];
+  const EARTH = [58, 52, 40, 255];
+  const GRASS = [66, 72, 46, 255];
+  const tank = readPng(`${root}assets/sprites/t34-76.png`);
+  const paint = { B: [66, 80, 52, 255], S: [50, 62, 42, 255], W: [44, 54, 36, 255], U: [124, 144, 158, 255], 1: [98, 116, 130, 255] };
+  for (let i = 0; i < tank.px.length; i += 4) {
+    const key = Object.keys(paint).find((c) => PALETTE[c].every((v, n) => v === tank.px[i + n]));
+    if (key) tank.px.set(paint[key], i);
+  }
+  const T = toImage(KURSK.track);
+  const torn = toImage(KURSK['track-torn']);
+  const scenes = [
+    { bridge: toImage(KURSK['rail-bridge']) },
+    { bridge: toImage(KURSK_RUINS['rail-bridge-ruin']) },
+    { pieces: [T, torn, torn, T] },
+  ];
+  const W = 2 * 96 + BRIDGE_W + 2 * 96 + 16;
+  const SH = 100;
+  const H = SH * scenes.length;
+  const sheet = new Uint8Array(W * H * 4);
+  const put = (im, left, sy, top) => {
+    for (let y = 0; y < im.h; y++) for (let x = 0; x < im.w; x++) {
+      const a = im.px[(y * im.w + x) * 4 + 3];
+      const py = sy - im.h + y;
+      if (a && py >= top && py < top + SH) sheet.set(im.px.subarray((y * im.w + x) * 4, (y * im.w + x) * 4 + 4), (py * W + left + x) * 4);
+    }
+  };
+  scenes.forEach((sc, i) => {
+    const top = i * SH;
+    const base = top + 44; // the ground line's row
+    const mid = 8 + 2 * 96 + BRIDGE_W / 2;
+    const surf = (x) => (sc.bridge ? base - Math.round(2 * balkaDrop((x + 0.5 - mid) / 2)) : base);
+    for (let x = 0; x < W; x++) for (let y = top; y < top + SH; y++) sheet.set(y < surf(x) ? SKY : y === surf(x) ? GRASS : EARTH, (y * W + x) * 4);
+    if (sc.bridge) {
+      for (const left of [8, 8 + 96, mid + BRIDGE_W / 2, mid + BRIDGE_W / 2 + 96]) put(T, left, base + 2, top);
+      put(sc.bridge, mid - BRIDGE_W / 2, surf(mid) + 2, top);
+    } else {
+      let x = 8;
+      for (const p of sc.pieces) { put(p, x, base + 2, top); x += p.w; }
+      put(tank, x + 12, base + 2, top);
+    }
+  });
+  const Z = 4;
+  const big = new Uint8Array(W * Z * H * Z * 4);
+  for (let y = 0; y < H * Z; y++) for (let x = 0; x < W * Z; x++) big.set(sheet.subarray(((y / Z | 0) * W + (x / Z | 0)) * 4, ((y / Z | 0) * W + (x / Z | 0)) * 4 + 4), (y * W * Z + x) * 4);
+  writeFileSync(`${root}notes/railway-preview.png`, encodePngRgba(W * Z, H * Z, big));
+  console.log(`notes/railway-preview.png (${W * Z}x${H * Z})`);
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  if (process.argv[2] === 'railway') railwayPreview();
+  else preview();
+}
