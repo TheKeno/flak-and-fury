@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import { importLdtk } from '../src/content/ldtk.js';
 import { createWorld, addPlane, stepWorld, DT } from '../src/sim/world.js';
 import { mainWheelContact } from '../src/sim/plane.js';
+import { stepBullets } from '../src/sim/weapons.js';
 import { placeBots, changeSeat, freeSide, playersOn, isBot } from '../src/sim/seats.js';
 import { engineSoundFor } from '../src/audio/sound-data.js';
 import { encodeWorld, diff, applyPatch, staticRefs } from '../src/net/snapshot.js';
@@ -290,4 +291,18 @@ test('a new plane mid-flight comes out of the hangar like a respawn (game worlds
   run(world, 20, { p1: IDLE });
   assert.equal(p.exitTo, null, 'rolled out');
   assert.ok(Math.abs(p.x - world.map.airfields[0].x) < world.map.airfields[0].width, 'on its own airfield');
+});
+
+test('a plane wreck on the ground: rifle rounds pass it, a plane\'s rounds still strike it', () => {
+  const { world } = setup();
+  stepWorld(world, { p1: { ...IDLE, abandon: true } });
+  const wreck = world.planes.find((o) => o.wreck);
+  const round = (cause) => {
+    world.bullets = [{ id: world.nextId++, owner: -1, team: 1 - wreck.team, x: wreck.x - 4, y: wreck.y, vx: 300, vy: 0, life: 1, drop: 0, damage: 1, cause }];
+    const hp = wreck.hp;
+    stepBullets(world, DT);
+    return wreck.hp < hp;
+  };
+  assert.equal(round('infantry'), false);
+  assert.equal(round(undefined), true);
 });

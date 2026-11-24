@@ -479,6 +479,8 @@ export function stepBullets(world, dt) {
     if (!gone) {
       for (const p of world.planes) {
         if (!canHit(world, b.team, b.owner, p)) continue;
+        // Rounds from the ground (b.cause) pass a plane wreck lying there: the men fight past it.
+        if (b.cause && p.state === 'ground' && (p.wreck || p.dying)) continue;
         // Wing gun rounds off to the side (z) miss: the target is depthSize times as deep
         // (its inner wings) as high.
         const r = p.def.hitRadius;

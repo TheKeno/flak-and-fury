@@ -986,6 +986,9 @@ later.
   of rounds a match); now rounds fired from the ground pass scenery (`b.cause` in `bulletHitsGround`), planes' still
   wreck it. Tank shells burst far from anyone because a squad's hit box still spanned its fallen men; `squadHalf`
   now counts only the living. Test in `tests/kursk.test.mjs`.
+  Plane wrecks lying on the ground (burning after a crash-landing or bail-out) also caught ground fire; those
+  rounds now pass too (`stepBullets` in `src/sim/weapons.js`), planes' rounds still strike them. Test in
+  `tests/bailout.test.mjs`. Tank and gun wrecks never caught rounds (the hit checks skip anything destroyed).
 
 - **Firefox back to 120 fps (UI, 2026-11-24):** the owner's Firefox fell to 30 fps after the Kursk map was
   stretched to 10,000, Edge stayed at 120. Cause: the hill ridges were cached as one canvas as long as the ridge,
