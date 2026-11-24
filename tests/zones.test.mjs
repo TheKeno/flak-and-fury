@@ -140,3 +140,20 @@ test('a balka is a ravine cut below level rims, and a gun in it stands on the fl
   assert.ok(gun, 'gun placed');
   assert.ok(rim - h(gun.x) > settings.zones.balkaDepth - 2, 'the gun stands down on the floor');
 });
+
+test('a rise lifts the ground gently by its height at the middle, a negative one makes a dip', () => {
+  const base = importLdtk(load('maps/countryside.ldtk'));
+  const terrainWith = (zones) => {
+    const map = structuredClone(base);
+    map.zones = map.zones.concat(zones);
+    map.ground = [];
+    return createWorld({ map, planeDefs: load('data/planes.json'), weapons: load('data/weapons.json'), groundDefs: {}, zones: { ...settings.zones }, waves: { first: 1e6 }, rules: { bots: 'off' } }).terrain.heightAt;
+  };
+  const flat = terrainWith([]);
+  const up = terrainWith([{ type: 'rise', x: 1000, width: 1000, height: 40 }]);
+  const down = terrainWith([{ type: 'rise', x: 1000, width: 1000, height: -12 }]);
+  assert.ok(Math.abs(up(1500) - flat(1500) - 40) < 1, 'lifted 40 at the middle');
+  assert.ok(Math.abs(down(1500) - flat(1500) + 12) < 1, 'a dip of 12');
+  assert.ok(Math.abs(up(990) - flat(990)) < 0.5 && Math.abs(up(2010) - flat(2010)) < 0.5, 'nothing past its ends');
+  for (let x = 1000; x < 2000; x += 10) assert.ok(Math.abs((up(x + 5) - flat(x + 5)) - (up(x - 5) - flat(x - 5))) / 10 < (40 * Math.PI) / 1000 + 0.01, 'no steeper than height x pi / width');
+});

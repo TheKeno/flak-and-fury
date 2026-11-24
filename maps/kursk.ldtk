@@ -8,10 +8,10 @@
 		"appVersion": "1.5.3",
 		"url": "https://ldtk.io"
 	},
-	"iid": "63e78748-e843-4727-9e45-94999fb9a8f5",
+	"iid": "b9d11299-9ffe-450e-a90e-b57d7f7a79c4",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
-	"nextUid": 81,
+	"nextUid": 83,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "Free",
@@ -1310,8 +1310,86 @@
 				"fieldDefs": []
 			},
 			{
+				"identifier": "Rise",
+				"uid": 80,
+				"tags": [],
+				"exportToToc": false,
+				"allowOutOfBounds": false,
+				"doc": "A long, gentle swell of the land laid over the ground (half a cosine wave over its width), or a shallow dip.",
+				"width": 200,
+				"height": 8,
+				"resizableX": true,
+				"resizableY": false,
+				"minWidth": 40,
+				"maxWidth": null,
+				"minHeight": null,
+				"maxHeight": null,
+				"keepAspectRatio": false,
+				"tileOpacity": 1,
+				"fillOpacity": 0.35,
+				"lineOpacity": 1,
+				"hollow": false,
+				"color": "#7A6A48",
+				"renderMode": "Rectangle",
+				"showName": true,
+				"tilesetId": null,
+				"tileRenderMode": "FitInside",
+				"tileRect": null,
+				"uiTileRect": null,
+				"nineSliceBorders": [],
+				"maxCount": 0,
+				"limitScope": "PerLevel",
+				"limitBehavior": "MoveLastOne",
+				"pivotX": 0,
+				"pivotY": 1,
+				"fieldDefs": [
+					{
+						"identifier": "height",
+						"doc": "How far the ground is lifted at the middle (negative: a dip). Steepest slope: height x 3.14 / width.",
+						"__type": "Int",
+						"uid": 79,
+						"type": "F_Int",
+						"isArray": false,
+						"canBeNull": false,
+						"arrayMinLength": null,
+						"arrayMaxLength": null,
+						"editorDisplayMode": "NameAndValue",
+						"editorDisplayScale": 1,
+						"editorDisplayPos": "Beneath",
+						"editorLinkStyle": "StraightArrow",
+						"editorDisplayColor": null,
+						"editorAlwaysShow": false,
+						"editorShowInWorld": true,
+						"editorCutLongValues": true,
+						"editorTextSuffix": null,
+						"editorTextPrefix": null,
+						"useForSmartColor": false,
+						"exportToToc": false,
+						"searchable": false,
+						"min": -60,
+						"max": 200,
+						"regex": null,
+						"acceptFileTypes": null,
+						"defaultOverride": {
+							"id": "V_Int",
+							"params": [
+								40
+							]
+						},
+						"textLanguageMode": null,
+						"symmetricalRef": false,
+						"autoChainRef": false,
+						"allowOutOfLevelRef": true,
+						"allowedRefs": "OnlySame",
+						"allowedRefsEntityUid": null,
+						"allowedRefTags": [],
+						"tilesetUid": null
+					}
+				]
+			},
+			{
 				"identifier": "Balka",
-				"uid": 75,
+				"uid": 78,
 				"tags": [],
 				"exportToToc": false,
 				"allowOutOfBounds": false,
@@ -2429,111 +2507,111 @@
 				"pivotY": 1,
 				"fieldDefs": []
 			},
-      {
-      	"identifier": "Track",
-      	"uid": 78,
-      	"tags": [],
-      	"exportToToc": false,
-      	"allowOutOfBounds": false,
-      	"doc": "Scenery: Railway track. No team: nobody fights over it; bombs and crashing planes wreck it.",
-      	"width": 48,
-      	"height": 3,
-      	"resizableX": false,
-      	"resizableY": false,
-      	"minWidth": null,
-      	"maxWidth": null,
-      	"minHeight": null,
-      	"maxHeight": null,
-      	"keepAspectRatio": false,
-      	"tileOpacity": 1,
-      	"fillOpacity": 0.45,
-      	"lineOpacity": 1,
-      	"hollow": false,
-      	"color": "#6A645A",
-      	"renderMode": "Rectangle",
-      	"showName": true,
-      	"tilesetId": null,
-      	"tileRenderMode": "FitInside",
-      	"tileRect": null,
-      	"uiTileRect": null,
-      	"nineSliceBorders": [],
-      	"maxCount": 0,
-      	"limitScope": "PerLevel",
-      	"limitBehavior": "MoveLastOne",
-      	"pivotX": 0.5,
-      	"pivotY": 1,
-      	"fieldDefs": []
-      },
-      {
-      	"identifier": "TrackTorn",
-      	"uid": 79,
-      	"tags": [],
-      	"exportToToc": false,
-      	"allowOutOfBounds": false,
-      	"doc": "Scenery: Torn-up track. No team: nobody fights over it; bombs and crashing planes wreck it.",
-      	"width": 48,
-      	"height": 9,
-      	"resizableX": false,
-      	"resizableY": false,
-      	"minWidth": null,
-      	"maxWidth": null,
-      	"minHeight": null,
-      	"maxHeight": null,
-      	"keepAspectRatio": false,
-      	"tileOpacity": 1,
-      	"fillOpacity": 0.45,
-      	"lineOpacity": 1,
-      	"hollow": false,
-      	"color": "#6A645A",
-      	"renderMode": "Rectangle",
-      	"showName": true,
-      	"tilesetId": null,
-      	"tileRenderMode": "FitInside",
-      	"tileRect": null,
-      	"uiTileRect": null,
-      	"nineSliceBorders": [],
-      	"maxCount": 0,
-      	"limitScope": "PerLevel",
-      	"limitBehavior": "MoveLastOne",
-      	"pivotX": 0.5,
-      	"pivotY": 1,
-      	"fieldDefs": []
-      },
-      {
-      	"identifier": "RailBridge",
-      	"uid": 80,
-      	"tags": [],
-      	"exportToToc": false,
-      	"allowOutOfBounds": false,
-      	"doc": "Scenery: Railway bridge. No team: nobody fights over it; bombs and crashing planes wreck it.",
-      	"width": 92,
-      	"height": 25,
-      	"resizableX": false,
-      	"resizableY": false,
-      	"minWidth": null,
-      	"maxWidth": null,
-      	"minHeight": null,
-      	"maxHeight": null,
-      	"keepAspectRatio": false,
-      	"tileOpacity": 1,
-      	"fillOpacity": 0.45,
-      	"lineOpacity": 1,
-      	"hollow": false,
-      	"color": "#7A6A52",
-      	"renderMode": "Rectangle",
-      	"showName": true,
-      	"tilesetId": null,
-      	"tileRenderMode": "FitInside",
-      	"tileRect": null,
-      	"uiTileRect": null,
-      	"nineSliceBorders": [],
-      	"maxCount": 0,
-      	"limitScope": "PerLevel",
-      	"limitBehavior": "MoveLastOne",
-      	"pivotX": 0.5,
-      	"pivotY": 1,
-      	"fieldDefs": []
-      }
+			{
+				"identifier": "Track",
+				"uid": 75,
+				"tags": [],
+				"exportToToc": false,
+				"allowOutOfBounds": false,
+				"doc": "Scenery: Railway track. No team: nobody fights over it; bombs and crashing planes wreck it.",
+				"width": 48,
+				"height": 3,
+				"resizableX": false,
+				"resizableY": false,
+				"minWidth": null,
+				"maxWidth": null,
+				"minHeight": null,
+				"maxHeight": null,
+				"keepAspectRatio": false,
+				"tileOpacity": 1,
+				"fillOpacity": 0.45,
+				"lineOpacity": 1,
+				"hollow": false,
+				"color": "#6A645A",
+				"renderMode": "Rectangle",
+				"showName": true,
+				"tilesetId": null,
+				"tileRenderMode": "FitInside",
+				"tileRect": null,
+				"uiTileRect": null,
+				"nineSliceBorders": [],
+				"maxCount": 0,
+				"limitScope": "PerLevel",
+				"limitBehavior": "MoveLastOne",
+				"pivotX": 0.5,
+				"pivotY": 1,
+				"fieldDefs": []
+			},
+			{
+				"identifier": "TrackTorn",
+				"uid": 76,
+				"tags": [],
+				"exportToToc": false,
+				"allowOutOfBounds": false,
+				"doc": "Scenery: Torn-up track. No team: nobody fights over it; bombs and crashing planes wreck it.",
+				"width": 48,
+				"height": 9,
+				"resizableX": false,
+				"resizableY": false,
+				"minWidth": null,
+				"maxWidth": null,
+				"minHeight": null,
+				"maxHeight": null,
+				"keepAspectRatio": false,
+				"tileOpacity": 1,
+				"fillOpacity": 0.45,
+				"lineOpacity": 1,
+				"hollow": false,
+				"color": "#6A645A",
+				"renderMode": "Rectangle",
+				"showName": true,
+				"tilesetId": null,
+				"tileRenderMode": "FitInside",
+				"tileRect": null,
+				"uiTileRect": null,
+				"nineSliceBorders": [],
+				"maxCount": 0,
+				"limitScope": "PerLevel",
+				"limitBehavior": "MoveLastOne",
+				"pivotX": 0.5,
+				"pivotY": 1,
+				"fieldDefs": []
+			},
+			{
+				"identifier": "RailBridge",
+				"uid": 77,
+				"tags": [],
+				"exportToToc": false,
+				"allowOutOfBounds": false,
+				"doc": "Scenery: Railway bridge. No team: nobody fights over it; bombs and crashing planes wreck it.",
+				"width": 92,
+				"height": 25,
+				"resizableX": false,
+				"resizableY": false,
+				"minWidth": null,
+				"maxWidth": null,
+				"minHeight": null,
+				"maxHeight": null,
+				"keepAspectRatio": false,
+				"tileOpacity": 1,
+				"fillOpacity": 0.45,
+				"lineOpacity": 1,
+				"hollow": false,
+				"color": "#7A6A52",
+				"renderMode": "Rectangle",
+				"showName": true,
+				"tilesetId": null,
+				"tileRenderMode": "FitInside",
+				"tileRect": null,
+				"uiTileRect": null,
+				"nineSliceBorders": [],
+				"maxCount": 0,
+				"limitScope": "PerLevel",
+				"limitBehavior": "MoveLastOne",
+				"pivotX": 0.5,
+				"pivotY": 1,
+				"fieldDefs": []
+			}
 		],
 		"tilesets": [],
 		"enums": [
@@ -2863,7 +2941,7 @@
 				"identifier": "style",
 				"doc": "The look of the country: 'steppe' or empty.",
 				"__type": "String",
-				"uid": 76,
+				"uid": 81,
 				"type": "F_String",
 				"isArray": false,
 				"canBeNull": false,
@@ -2901,12 +2979,12 @@
 	"levels": [
 		{
 			"identifier": "Kursk",
-			"iid": "3f09f55c-390a-4de9-9d88-b8b8d45d56a7",
+			"iid": "902ef6f3-b123-461f-b5ee-1e864f44f71d",
 			"uid": 32,
 			"worldX": 0,
 			"worldY": 0,
 			"worldDepth": 0,
-			"pxWid": 6000,
+			"pxWid": 10000,
 			"pxHei": 800,
 			"__bgColor": "#9CC4D8",
 			"bgColor": null,
@@ -2928,7 +3006,7 @@
 				"cropRect": [
 					0,
 					0,
-					6000,
+					10000,
 					800
 				]
 			},
@@ -2937,14 +3015,14 @@
 				{
 					"__identifier": "seed",
 					"__type": "Int",
-					"__value": 2093,
+					"__value": 1995,
 					"__tile": null,
 					"defUid": 3,
 					"realEditorValues": [
 						{
 							"id": "V_Int",
 							"params": [
-								2093
+								1995
 							]
 						}
 					]
@@ -2982,14 +3060,14 @@
 				{
 					"__identifier": "terrainAmplitude",
 					"__type": "Int",
-					"__value": 60,
+					"__value": 12,
 					"__tile": null,
 					"defUid": 6,
 					"realEditorValues": [
 						{
 							"id": "V_Int",
 							"params": [
-								60
+								12
 							]
 						}
 					]
@@ -3044,7 +3122,7 @@
 					"__type": "String",
 					"__value": "steppe",
 					"__tile": null,
-					"defUid": 76,
+					"defUid": 81,
 					"realEditorValues": [
 						{
 							"id": "V_String",
@@ -3059,7 +3137,7 @@
 				{
 					"__identifier": "Objects",
 					"__type": "Entities",
-					"__cWid": 3000,
+					"__cWid": 5000,
 					"__cHei": 400,
 					"__gridSize": 2,
 					"__opacity": 1,
@@ -3067,7 +3145,7 @@
 					"__pxTotalOffsetY": 0,
 					"__tilesetDefUid": null,
 					"__tilesetRelPath": null,
-					"iid": "dc65e0c9-79ba-4931-886e-4889377f32f4",
+					"iid": "d475d1e5-e453-4735-bb34-749374689cc9",
 					"levelId": 32,
 					"layerDefUid": 31,
 					"pxOffsetX": 0,
@@ -3084,7 +3162,7 @@
 							"__identifier": "Airfield",
 							"__grid": [
 								70,
-								367
+								382
 							],
 							"__pivot": [
 								0,
@@ -3093,13 +3171,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#9C9A8E",
-							"iid": "f7372812-1ae1-4549-9e0e-e07d37777545",
+							"iid": "e9add0d0-06b1-4d36-bc64-1a883b098d29",
 							"width": 420,
 							"height": 8,
 							"defUid": 12,
 							"px": [
 								140,
-								735
+								764
 							],
 							"fieldInstances": [
 								{
@@ -3137,8 +3215,8 @@
 						{
 							"__identifier": "Airfield",
 							"__grid": [
-								2720,
-								368
+								4720,
+								381
 							],
 							"__pivot": [
 								0,
@@ -3147,13 +3225,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#9C9A8E",
-							"iid": "c3c2ae0d-1bfb-4ada-9425-ac84c0634e29",
+							"iid": "16ad3987-6783-4ba2-86c4-4e6f49600e33",
 							"width": 420,
 							"height": 8,
 							"defUid": 12,
 							"px": [
-								5440,
-								737
+								9440,
+								763
 							],
 							"fieldInstances": [
 								{
@@ -3189,10 +3267,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								12,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "03b26adc-9c5c-43b5-9135-a39cb1987b2f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								24,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Radar",
 							"__grid": [
 								30,
-								369
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -3201,13 +3302,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#60C0E0",
-							"iid": "17feacd0-043d-4d9c-adb2-3ccf5125ceb4",
+							"iid": "2f7176e8-8176-4e58-a994-129e0d2fccbc",
 							"width": 18,
 							"height": 40,
 							"defUid": 27,
 							"px": [
 								60,
-								739
+								765
 							],
 							"fieldInstances": [
 								{
@@ -3228,10 +3329,286 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								35,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "4958628f-d1b6-46ec-8bed-98a4b3d5c95b",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								71,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								59,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "adc3709a-3707-49b3-9f0e-192a853e7734",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								118,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								82,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "cdec7ba5-e765-480d-9b3e-e42247c1075b",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								165,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								106,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "927cc72e-8af1-472a-96d6-022354957b32",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								212,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								129,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7221c674-330b-4cea-ac06-684484c2d38c",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								259,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								153,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "6789b835-12ca-4c9b-b7ee-780df192b2ea",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								306,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								176,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "79f21112-6bf6-41dc-8c31-eeb9b3d1d1ae",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								353,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								200,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "ea755c50-fe95-4967-8c94-8bf551ff9b07",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								401,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								224,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "6682df87-286e-4513-a356-7c480019af06",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								448,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								247,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a49c48e6-457f-4885-80a6-3d6280518d2e",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								495,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								271,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "063070de-75a3-436e-969a-e26c18318ec8",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								542,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								294,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "be6c1803-ece4-4cc8-a5da-78e6949b3715",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								589,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Windsock",
 							"__grid": [
 								300,
-								367
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -3240,13 +3617,36 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8A7A5A",
-							"iid": "c60bac78-84c7-4b71-a2cf-e25355bafc85",
+							"iid": "091bcaca-4888-45aa-832f-0886a3fffb9f",
 							"width": 9,
 							"height": 20,
 							"defUid": 66,
 							"px": [
 								600,
-								734
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								318,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "45bbb8d7-e850-48ed-b430-9174f3b45d31",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								636,
+								763
 							],
 							"fieldInstances": []
 						},
@@ -3254,7 +3654,7 @@
 							"__identifier": "Flak",
 							"__grid": [
 								320,
-								366
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -3263,13 +3663,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E05040",
-							"iid": "abe324e1-1b64-427e-ab9a-8d19f4eb3dd7",
+							"iid": "3eabf55b-3ff0-4970-8139-b8b112d424ec",
 							"width": 14,
 							"height": 9,
 							"defUid": 14,
 							"px": [
 								640,
-								732
+								763
 							],
 							"fieldInstances": [
 								{
@@ -3290,10 +3690,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								341,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "14e2647e-74e3-4a4e-aa18-460a4ae2b519",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								683,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "LightFlak",
 							"__grid": [
 								350,
-								369
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -3302,13 +3725,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E0A040",
-							"iid": "3d9f07b6-698d-4bd9-baf6-bca3de576223",
+							"iid": "70d9f765-6bfd-4db5-91f9-b50fcdd0ce38",
 							"width": 13,
 							"height": 6,
 							"defUid": 38,
 							"px": [
 								700,
-								738
+								765
 							],
 							"fieldInstances": [
 								{
@@ -3329,10 +3752,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								365,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "02399f9c-b8a3-436a-a637-8e33c0aeb013",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								730,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Flak",
 							"__grid": [
 								385,
-								370
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -3341,13 +3787,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E05040",
-							"iid": "aa7899f0-3d5e-46cd-aaef-ff13efe5211d",
+							"iid": "869e4436-ec29-4c5b-a59e-383c8ca62b3c",
 							"width": 14,
 							"height": 9,
 							"defUid": 14,
 							"px": [
 								770,
-								740
+								764
 							],
 							"fieldInstances": [
 								{
@@ -3368,10 +3814,56 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								388,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e1e34623-4667-47bd-96f0-2dbf0f48d1d9",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								777,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								412,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "9d53e872-197e-45fd-8e29-264b30e15140",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								824,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Tent",
 							"__grid": [
 								415,
-								371
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -3380,13 +3872,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#C8C090",
-							"iid": "3844c850-d7d4-40c6-b089-097be958d139",
+							"iid": "f49fa17e-f06d-4e22-b25b-ff6ecb4d59d1",
 							"width": 16,
 							"height": 8,
 							"defUid": 21,
 							"px": [
 								830,
-								742
+								763
 							],
 							"fieldInstances": [
 								{
@@ -3410,7 +3902,7 @@
 							"__identifier": "Tent",
 							"__grid": [
 								430,
-								372
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -3419,13 +3911,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#C8C090",
-							"iid": "e6555495-b630-4a73-b2ee-b1c5de9c906f",
+							"iid": "3001d7a8-517e-422d-a4b6-8740acd94a31",
 							"width": 16,
 							"height": 8,
 							"defUid": 21,
 							"px": [
 								860,
-								745
+								763
 							],
 							"fieldInstances": [
 								{
@@ -3444,916 +3936,34 @@
 									]
 								}
 							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								435,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "34262fe3-9269-4764-bc0a-d3b9a9fbdb92",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								871,
+								763
+							],
+							"fieldInstances": []
 						},
 						{
 							"__identifier": "Stores",
 							"__grid": [
 								447,
-								372
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "700921a2-74ea-4bc2-a49a-5e136d434114",
-							"width": 22,
-							"height": 8,
-							"defUid": 67,
-							"px": [
-								895,
-								744
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Flak",
-							"__grid": [
-								565,
-								379
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#E05040",
-							"iid": "a0d70805-6597-4386-a927-fcc1d2a92a9f",
-							"width": 14,
-							"height": 9,
-							"defUid": 14,
-							"px": [
-								1130,
-								759
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 13,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "Depot",
-							"__grid": [
-								600,
-								377
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8C9070",
-							"iid": "3ca9b952-df59-48d6-8f9f-b6ffb9002ca2",
-							"width": 34,
-							"height": 16,
-							"defUid": 29,
-							"px": [
-								1200,
-								755
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 28,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "Flak",
-							"__grid": [
-								637,
-								375
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#E05040",
-							"iid": "9d8c4030-3f87-49a4-a487-e6705eae03bd",
-							"width": 14,
-							"height": 9,
-							"defUid": 14,
-							"px": [
-								1275,
-								751
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 13,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "Tent",
-							"__grid": [
-								660,
-								376
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#C8C090",
-							"iid": "2ea659cd-8643-4a27-8d61-b66559adf0bd",
-							"width": 16,
-							"height": 8,
-							"defUid": 21,
-							"px": [
-								1320,
-								752
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 20,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "Windmill",
-							"__grid": [
-								785,
-								373
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "79c792e3-c1ef-44d2-9df7-6e60d855caae",
-							"width": 38,
-							"height": 42,
-							"defUid": 46,
-							"px": [
-								1570,
-								747
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "LightFlak",
-							"__grid": [
-								825,
-								368
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#E0A040",
-							"iid": "4800e708-e95e-41e3-aa96-0d38b73a797c",
-							"width": 13,
-							"height": 6,
-							"defUid": 38,
-							"px": [
-								1650,
-								736
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 39,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "LightFlak",
-							"__grid": [
-								895,
-								368
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#E0A040",
-							"iid": "937a6360-4f88-4887-b52f-f7a3ef9cba1d",
-							"width": 13,
-							"height": 6,
-							"defUid": 38,
-							"px": [
-								1790,
-								737
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 39,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "MgNest",
-							"__grid": [
-								922,
-								370
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#E0A040",
-							"iid": "8aff0c66-4612-468c-a427-37c3f6182780",
-							"width": 12,
-							"height": 5,
-							"defUid": 16,
-							"px": [
-								1845,
-								741
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 15,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "AppleTree",
-							"__grid": [
-								935,
-								375
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "0c0c7086-e668-42ff-8989-41585fed1f4f",
-							"width": 15,
-							"height": 14,
-							"defUid": 58,
-							"px": [
-								1870,
-								750
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "AppleTree",
-							"__grid": [
-								941,
-								375
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "daad019f-c64f-48e8-8295-35a3098c3141",
-							"width": 15,
-							"height": 14,
-							"defUid": 58,
-							"px": [
-								1882,
-								750
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Infantry",
-							"__grid": [
-								952,
-								374
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#C8B060",
-							"iid": "ff32c260-a4c0-4c47-a366-86c52acae28c",
-							"width": 22,
-							"height": 6,
-							"defUid": 19,
-							"px": [
-								1905,
-								749
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 17,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								},
-								{
-									"__identifier": "squad",
-									"__type": "Int",
-									"__value": 8,
-									"__tile": null,
-									"defUid": 18,
-									"realEditorValues": [
-										{
-											"id": "V_Int",
-											"params": [
-												8
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "LightFlak",
-							"__grid": [
-								967,
-								375
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#E0A040",
-							"iid": "3ba63cd6-eac5-4191-914d-ccc8a5e3cd28",
-							"width": 13,
-							"height": 6,
-							"defUid": 38,
-							"px": [
-								1935,
-								750
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 39,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "AppleTree",
-							"__grid": [
-								979,
-								376
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "bebbb47c-b47d-4914-bba5-7aa62ba0c28e",
-							"width": 15,
-							"height": 14,
-							"defUid": 58,
-							"px": [
-								1958,
-								752
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "AppleTree",
-							"__grid": [
-								984,
-								376
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "be20bf89-12c3-4288-9aff-8f8d969117f9",
-							"width": 15,
-							"height": 14,
-							"defUid": 58,
-							"px": [
-								1968,
-								752
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "AtGun",
-							"__grid": [
-								995,
-								376
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#A07850",
-							"iid": "8ae8dd22-aec5-46dc-aee4-12a30b17dcc5",
-							"width": 33,
-							"height": 11,
-							"defUid": 73,
-							"px": [
-								1990,
-								753
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 74,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "AppleTree",
-							"__grid": [
-								1009,
-								376
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "3c779a5d-98a8-4bc4-9143-37e899877a73",
-							"width": 15,
-							"height": 14,
-							"defUid": 58,
-							"px": [
-								2018,
-								752
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "AppleTree",
-							"__grid": [
-								1015,
-								375
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "853acd8e-2f82-44c8-8e36-2ca291821e38",
-							"width": 15,
-							"height": 14,
-							"defUid": 58,
-							"px": [
-								2030,
-								751
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "AtGun",
-							"__grid": [
-								1027,
-								373
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#A07850",
-							"iid": "5a25c16f-f877-48ed-b031-19fe3ec55179",
-							"width": 33,
-							"height": 11,
-							"defUid": 73,
-							"px": [
-								2055,
-								746
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 74,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "AppleTree",
-							"__grid": [
-								1039,
-								370
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "6800cc0c-ecda-4031-8677-be2a199d52b0",
-							"width": 15,
-							"height": 14,
-							"defUid": 58,
-							"px": [
-								2078,
-								741
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Dugout",
-							"__grid": [
-								1050,
-								370
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "8e79b9bb-ed2f-45fb-b29e-cf78063fc262",
-							"width": 24,
-							"height": 7,
-							"defUid": 62,
-							"px": [
-								2100,
-								740
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "MgNest",
-							"__grid": [
-								1065,
-								370
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#E0A040",
-							"iid": "d47df800-58af-4c1c-9350-c8dba07d61c4",
-							"width": 12,
-							"height": 5,
-							"defUid": 16,
-							"px": [
-								2130,
-								740
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 15,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "Infantry",
-							"__grid": [
-								1080,
-								368
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#C8B060",
-							"iid": "fa5b9e13-69c3-402d-948e-79d7d4a96fc2",
-							"width": 22,
-							"height": 6,
-							"defUid": 19,
-							"px": [
-								2160,
-								737
-							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_0",
-									"__tile": null,
-									"defUid": 17,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_0"
-											]
-										}
-									]
-								},
-								{
-									"__identifier": "squad",
-									"__type": "Int",
-									"__value": 8,
-									"__tile": null,
-									"defUid": 18,
-									"realEditorValues": [
-										{
-											"id": "V_Int",
-											"params": [
-												8
-											]
-										}
-									]
-								}
-							]
-						},
-						{
-							"__identifier": "Wire",
-							"__grid": [
-								1095,
-								367
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "533c2372-eb08-44b6-81bb-076e4fcbf046",
-							"width": 28,
-							"height": 6,
-							"defUid": 64,
-							"px": [
-								2190,
-								735
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Hedgehog",
-							"__grid": [
-								1107,
-								365
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "f1a58697-cad6-455d-a120-072ec9c18d70",
-							"width": 8,
-							"height": 6,
-							"defUid": 63,
-							"px": [
-								2215,
-								730
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Stooks",
-							"__grid": [
-								1113,
-								365
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "79b08947-4fc9-4158-9281-c00de053f180",
-							"width": 20,
-							"height": 6,
-							"defUid": 61,
-							"px": [
-								2226,
-								730
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Stooks",
-							"__grid": [
-								1325,
-								375
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "71c2d8d1-e0e5-46cf-abeb-f5923bdd0314",
-							"width": 20,
-							"height": 6,
-							"defUid": 61,
-							"px": [
-								2650,
-								750
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "TelegraphPole",
-							"__grid": [
-								1327,
-								375
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "4e2b869e-1da0-404c-a596-7e747f8f6e5f",
-							"width": 7,
-							"height": 23,
-							"defUid": 52,
-							"px": [
-								2655,
-								750
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "WaterTower",
-							"__grid": [
-								1345,
-								380
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "72e0473d-3852-4bf0-922a-11f7823d6924",
-							"width": 15,
-							"height": 35,
-							"defUid": 51,
-							"px": [
-								2690,
-								760
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Station",
-							"__grid": [
-								1367,
 								381
 							],
 							"__pivot": [
@@ -4363,20 +3973,43 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8A7A5A",
-							"iid": "94dfe970-c276-4a82-9137-9965cf69c40e",
-							"width": 48,
-							"height": 22,
-							"defUid": 50,
+							"iid": "3e1442e9-5dfe-4a88-b8d1-76c10efd8b45",
+							"width": 22,
+							"height": 8,
+							"defUid": 67,
 							"px": [
-								2735,
-								762
+								895,
+								763
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "Elevator",
+							"__identifier": "Track",
 							"__grid": [
-								1400,
+								459,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "dd3680c6-8599-4aa4-a9bd-a6a8d78d7b2e",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								918,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								482,
 								380
 							],
 							"__pivot": [
@@ -4385,22 +4018,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "af221b45-1766-403f-aeee-eabb54fee0fb",
-							"width": 25,
-							"height": 46,
-							"defUid": 56,
+							"__smartColor": "#6A645A",
+							"iid": "9203a9be-dd71-4abb-96a6-467fd37bdb4f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								2800,
+								965,
 								761
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "TradeRow",
+							"__identifier": "Track",
 							"__grid": [
-								1420,
-								376
+								506,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -4408,22 +4041,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "08abff2f-12a7-4aa4-9116-759a38c1e3f4",
-							"width": 50,
-							"height": 15,
-							"defUid": 54,
+							"__smartColor": "#6A645A",
+							"iid": "64ec352b-2c02-4b4d-b5d9-befb2195cd14",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								2840,
-								752
+								1012,
+								762
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "TownRuin",
+							"__identifier": "Track",
 							"__grid": [
-								1435,
-								368
+								529,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -4431,22 +4064,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "a1f23f2e-eb40-4a87-909b-2a43c14c9b92",
-							"width": 30,
-							"height": 23,
-							"defUid": 57,
+							"__smartColor": "#6A645A",
+							"iid": "9384679a-0c8a-487b-8f9f-2288c7cff284",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								2870,
-								737
+								1059,
+								762
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "TelegraphPole",
+							"__identifier": "Track",
 							"__grid": [
-								1437,
-								368
+								553,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -4454,22 +4087,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "b19eabbf-1fbb-48ba-9e49-304d62b6d3d3",
-							"width": 7,
-							"height": 23,
-							"defUid": 52,
+							"__smartColor": "#6A645A",
+							"iid": "4b10d81a-64d4-4ff8-aac6-78d230c07325",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								2875,
-								737
+								1106,
+								762
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "TelegraphPole",
+							"__identifier": "Track",
 							"__grid": [
-								1567,
-								369
+								577,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -4477,22 +4110,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "d5474921-dff0-419a-ae76-5aac9b0e3655",
-							"width": 7,
-							"height": 23,
-							"defUid": 52,
+							"__smartColor": "#6A645A",
+							"iid": "1863fbb9-c065-4a8d-bb3f-f2e788bb28f8",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								3135,
-								739
+								1154,
+								762
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "Cowshed",
+							"__identifier": "Track",
 							"__grid": [
-								1587,
-								375
+								600,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -4500,22 +4133,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "dd73565c-a1a5-4beb-9603-89b6252324e3",
-							"width": 52,
-							"height": 13,
-							"defUid": 44,
+							"__smartColor": "#6A645A",
+							"iid": "66ad5ad0-5d3e-4b0f-aec6-d653e7ca5772",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								3175,
-								750
+								1201,
+								762
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "Haystack",
+							"__identifier": "Track",
 							"__grid": [
-								1607,
-								377
+								624,
+								380
 							],
 							"__pivot": [
 								0.5,
@@ -4523,318 +4156,510 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "28aa75ba-74e5-446c-9e21-1bf2f4acbe72",
+							"__smartColor": "#6A645A",
+							"iid": "a040e3d9-2b5b-4f3b-973b-7d3c9f588e3e",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1248,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								647,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "00d75bb6-cd3b-475a-9efe-d48da0803a52",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1295,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								671,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e65bc26f-760f-47a7-8aaa-cb6b8604d9b4",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1342,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								694,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "95be32be-d464-4399-97be-2ec68b1720a5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1389,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								718,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "1444ea18-cd65-42ab-b301-d2f046658231",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1436,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								741,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "3d3da0f8-d98e-4787-a201-67b66c1c8dc2",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1483,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								765,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c9180c54-54d6-4656-a08b-ecaad5202243",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1530,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "RailBridge",
+							"__grid": [
+								800,
+								391
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#7A6A52",
+							"iid": "deb66fae-e15a-414b-b996-b146a5e5cb50",
+							"width": 92,
+							"height": 25,
+							"defUid": 77,
+							"px": [
+								1600,
+								783
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								835,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "ca91cadc-1a7f-4816-b737-112930470729",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1670,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								859,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b4293a09-240b-4e90-8c81-41fd958cb857",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1718,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								883,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "2f35f161-52a7-4090-af9f-b52f1f09f80b",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1766,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								907,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "ac37f108-fbf8-42f2-a031-18078251aad6",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1814,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								931,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b5d809d5-7911-4c14-95e4-b3146a429cb3",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1862,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								955,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "5b1782e6-ad6f-414b-95fc-9579c221fdaf",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1910,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								979,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "f0bbcc3c-637a-4d97-b36e-b6380130bcdb",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								1958,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1003,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "1edd712a-8a40-48f3-8917-66292f6b3a85",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2006,
+								760
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1027,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c9829b46-170a-4299-a61d-d4ce8f6a660e",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2054,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1051,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7e781400-9ad3-452c-8dee-654cb5aa94db",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2102,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1075,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "97f76dda-e7d2-4c27-9fd6-62770a517813",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2150,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1099,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "54503fed-c2f7-4ac8-8a59-0e7bb61963e6",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2198,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1123,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b12cd8c5-1582-4fc2-a64d-3240ea3a00c3",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2246,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Flak",
+							"__grid": [
+								1140,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#E05040",
+							"iid": "4b886737-121a-41f6-a8b5-e2812d1ff371",
 							"width": 14,
-							"height": 12,
-							"defUid": 48,
+							"height": 9,
+							"defUid": 14,
 							"px": [
-								3215,
-								755
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Cowshed",
-							"__grid": [
-								1625,
-								377
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "c63f1319-a2df-43c3-9d12-10f2b565eb5a",
-							"width": 52,
-							"height": 13,
-							"defUid": 44,
-							"px": [
-								3250,
-								754
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Shed",
-							"__grid": [
-								1647,
-								377
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "2d02c295-c941-497e-a51f-d8e595996a78",
-							"width": 17,
-							"height": 10,
-							"defUid": 43,
-							"px": [
-								3295,
-								754
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Well",
-							"__grid": [
-								1660,
-								377
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "eaf1ff86-09ff-4b53-af36-150ba3338cca",
-							"width": 22,
-							"height": 20,
-							"defUid": 47,
-							"px": [
-								3320,
-								755
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Sunflowers",
-							"__grid": [
-								1669,
-								377
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "85a63071-c1ff-49dd-a79e-1cc463c3f2f9",
-							"width": 24,
-							"height": 8,
-							"defUid": 60,
-							"px": [
-								3338,
-								754
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "TelegraphPole",
-							"__grid": [
-								1672,
-								377
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "3445d638-4802-480d-8f58-fd0cede8e61c",
-							"width": 7,
-							"height": 23,
-							"defUid": 52,
-							"px": [
-								3345,
-								754
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Sunflowers",
-							"__grid": [
-								1675,
-								377
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "62f02e2c-4c4d-4854-ad8d-2a291a997779",
-							"width": 24,
-							"height": 8,
-							"defUid": 60,
-							"px": [
-								3350,
-								754
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Wire",
-							"__grid": [
-								1886,
-								372
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "2d4ac121-a2df-4fa1-b52f-e56df67f3ca3",
-							"width": 28,
-							"height": 6,
-							"defUid": 64,
-							"px": [
-								3772,
-								745
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Sunflowers",
-							"__grid": [
-								1887,
-								372
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "14c9de12-a508-4bf6-82ac-13e041c70e14",
-							"width": 24,
-							"height": 8,
-							"defUid": 60,
-							"px": [
-								3775,
-								745
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Hedgehog",
-							"__grid": [
-								1892,
-								372
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "62006c63-eb73-41d7-872a-4a3f0cea63e0",
-							"width": 8,
-							"height": 6,
-							"defUid": 63,
-							"px": [
-								3785,
-								745
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Wire",
-							"__grid": [
-								1905,
-								372
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "3d9dc9cc-ba27-426b-8662-b497c2dfa5f0",
-							"width": 28,
-							"height": 6,
-							"defUid": 64,
-							"px": [
-								3810,
-								744
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "MineSign",
-							"__grid": [
-								1917,
-								374
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "ee859226-6bd7-4f41-984f-fe11750cad50",
-							"width": 5,
-							"height": 7,
-							"defUid": 65,
-							"px": [
-								3835,
-								749
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Infantry",
-							"__grid": [
-								1920,
-								374
-							],
-							"__pivot": [
-								0.5,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#C8B060",
-							"iid": "a7f8eeb5-4da7-4bde-b235-b0e0f69c1c0b",
-							"width": 22,
-							"height": 6,
-							"defUid": 19,
-							"px": [
-								3840,
-								749
+								2280,
+								766
 							],
 							"fieldInstances": [
 								{
 									"__identifier": "team",
 									"__type": "LocalEnum.Team",
-									"__value": "Team_1",
+									"__value": "Team_0",
 									"__tile": null,
-									"defUid": 17,
+									"defUid": 13,
 									"realEditorValues": [
 										{
 											"id": "V_String",
 											"params": [
-												"Team_1"
-											]
-										}
-									]
-								},
-								{
-									"__identifier": "squad",
-									"__type": "Int",
-									"__value": 8,
-									"__tile": null,
-									"defUid": 18,
-									"realEditorValues": [
-										{
-											"id": "V_Int",
-											"params": [
-												8
+												"Team_0"
 											]
 										}
 									]
@@ -4842,10 +4667,10 @@
 							]
 						},
 						{
-							"__identifier": "MgNest",
+							"__identifier": "Track",
 							"__grid": [
-								1935,
-								375
+								1147,
+								383
 							],
 							"__pivot": [
 								0.5,
@@ -4853,27 +4678,73 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#E0A040",
-							"iid": "26f4fad6-461d-4f68-a82a-c02e08f42303",
-							"width": 12,
-							"height": 5,
-							"defUid": 16,
+							"__smartColor": "#6A645A",
+							"iid": "ddcfd69a-e847-4a0d-99bb-2c5e3c36e072",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								3870,
-								751
+								2294,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1171,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a7027b1b-60f8-4072-a642-aba4ffe9d2bc",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2342,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Depot",
+							"__grid": [
+								1175,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8C9070",
+							"iid": "6a7024cf-94ea-4815-8b5e-23c3f442be2c",
+							"width": 34,
+							"height": 16,
+							"defUid": 29,
+							"px": [
+								2350,
+								766
 							],
 							"fieldInstances": [
 								{
 									"__identifier": "team",
 									"__type": "LocalEnum.Team",
-									"__value": "Team_1",
+									"__value": "Team_0",
 									"__tile": null,
-									"defUid": 15,
+									"defUid": 28,
 									"realEditorValues": [
 										{
 											"id": "V_String",
 											"params": [
-												"Team_1"
+												"Team_0"
 											]
 										}
 									]
@@ -4881,10 +4752,10 @@
 							]
 						},
 						{
-							"__identifier": "Dugout",
+							"__identifier": "Track",
 							"__grid": [
-								1940,
-								375
+								1195,
+								383
 							],
 							"__pivot": [
 								0.5,
@@ -4892,22 +4763,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "a0879a53-81f6-476d-b5a0-585cc4fadda4",
-							"width": 24,
-							"height": 7,
-							"defUid": 62,
+							"__smartColor": "#6A645A",
+							"iid": "8b54c76f-1c33-42e0-b5eb-cf23412b152f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								3880,
-								751
+								2390,
+								766
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "Dugout",
+							"__identifier": "Flak",
 							"__grid": [
-								1950,
-								376
+								1212,
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -4915,21 +4786,214 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#8A7A5A",
-							"iid": "cbb260f6-e3e7-40cb-b014-8751a95409e4",
-							"width": 24,
-							"height": 7,
-							"defUid": 62,
+							"__smartColor": "#E05040",
+							"iid": "a8fe7766-48ed-42ab-a4f6-96ca21046e83",
+							"width": 14,
+							"height": 9,
+							"defUid": 14,
 							"px": [
-								3900,
-								752
+								2425,
+								765
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 13,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1219,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "13741d11-d2bb-4e2f-adf5-3263f0943811",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2438,
+								764
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "Birch",
+							"__identifier": "Tent",
 							"__grid": [
-								1962,
+								1235,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#C8C090",
+							"iid": "26e23cdd-f454-43e1-9dd4-b2f5a43751f7",
+							"width": 16,
+							"height": 8,
+							"defUid": 21,
+							"px": [
+								2470,
+								763
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 20,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1243,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "33a9a4de-f36d-4330-9232-43ce6771056b",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2486,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1267,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "86d5e7a8-53c0-47ac-a819-363445d1e9d5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2534,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1291,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "9dff1b71-1e26-4924-bd4a-f82664c26ade",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2582,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1315,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b0350af7-8eac-4521-8162-4e92a1b869de",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2630,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1339,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7ee76007-b1ee-4b0f-ba96-c78038a1426a",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2678,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Windmill",
+							"__grid": [
+								1352,
 								382
 							],
 							"__pivot": [
@@ -4939,20 +5003,128 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8A7A5A",
-							"iid": "c4e9cfa9-8bb6-457b-95e5-6c46e8d0012d",
-							"width": 11,
-							"height": 29,
-							"defUid": 59,
+							"iid": "a9cf64c4-69d8-4b2e-b390-e026d2bd3dc4",
+							"width": 38,
+							"height": 42,
+							"defUid": 46,
 							"px": [
-								3925,
-								765
+								2705,
+								764
 							],
 							"fieldInstances": []
 						},
 						{
-							"__identifier": "AtGun",
+							"__identifier": "Track",
 							"__grid": [
-								1972,
+								1363,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "4a279684-8471-4506-902b-2d762a01468c",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2726,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1387,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0770bae3-c94b-430b-9713-a4bdf98f7f12",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2774,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "LightFlak",
+							"__grid": [
+								1392,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#E0A040",
+							"iid": "b5de6b00-35fc-4f38-bc3a-b29b991c405c",
+							"width": 13,
+							"height": 6,
+							"defUid": 38,
+							"px": [
+								2785,
+								767
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 39,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1411,
+								384
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "04f117d7-f837-4b6a-9223-d79e045188ef",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2822,
+								768
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1435,
 								385
 							],
 							"__pivot": [
@@ -4961,38 +5133,22 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#A07850",
-							"iid": "849a88db-0044-4c29-a2fe-a667006732f3",
-							"width": 33,
-							"height": 11,
-							"defUid": 73,
+							"__smartColor": "#6A645A",
+							"iid": "3719a2db-d563-4855-9418-789d5ec613f5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								3945,
-								771
+								2870,
+								770
 							],
-							"fieldInstances": [
-								{
-									"__identifier": "team",
-									"__type": "LocalEnum.Team",
-									"__value": "Team_1",
-									"__tile": null,
-									"defUid": 74,
-									"realEditorValues": [
-										{
-											"id": "V_String",
-											"params": [
-												"Team_1"
-											]
-										}
-									]
-								}
-							]
+							"fieldInstances": []
 						},
 						{
-							"__identifier": "AtGun",
+							"__identifier": "Track",
 							"__grid": [
-								2005,
-								387
+								1459,
+								386
 							],
 							"__pivot": [
 								0.5,
@@ -5000,27 +5156,50 @@
 							],
 							"__tags": [],
 							"__tile": null,
-							"__smartColor": "#A07850",
-							"iid": "1ec0ac02-8f17-4939-87e5-bb3da507735f",
-							"width": 33,
-							"height": 11,
-							"defUid": 73,
+							"__smartColor": "#6A645A",
+							"iid": "856ab8ad-1991-45f6-a10e-62aa18d1a1ce",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
 							"px": [
-								4010,
-								774
+								2918,
+								772
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "LightFlak",
+							"__grid": [
+								1462,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#E0A040",
+							"iid": "d063ea4f-4278-4df4-8084-e034b8947535",
+							"width": 13,
+							"height": 6,
+							"defUid": 38,
+							"px": [
+								2925,
+								772
 							],
 							"fieldInstances": [
 								{
 									"__identifier": "team",
 									"__type": "LocalEnum.Team",
-									"__value": "Team_1",
+									"__value": "Team_0",
 									"__tile": null,
-									"defUid": 74,
+									"defUid": 39,
 									"realEditorValues": [
 										{
 											"id": "V_String",
 											"params": [
-												"Team_1"
+												"Team_0"
 											]
 										}
 									]
@@ -5028,9 +5207,32 @@
 							]
 						},
 						{
-							"__identifier": "LightFlak",
+							"__identifier": "Track",
 							"__grid": [
-								2032,
+								1483,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "5badc0d1-8589-4c7a-81f4-8b07e44504eb",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								2966,
+								773
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "MgNest",
+							"__grid": [
+								1490,
 								387
 							],
 							"__pivot": [
@@ -5040,13 +5242,3017 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E0A040",
-							"iid": "dcc640b0-1fd6-4c0b-b559-b72679fbf917",
+							"iid": "30b2309a-6d62-42bd-aab0-aaf06c9bdf46",
+							"width": 12,
+							"height": 5,
+							"defUid": 16,
+							"px": [
+								2980,
+								774
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 15,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "AppleTree",
+							"__grid": [
+								1502,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "8fb7792b-1021-474f-be1e-add2b9c9231e",
+							"width": 15,
+							"height": 14,
+							"defUid": 58,
+							"px": [
+								3005,
+								774
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1507,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "68ad9062-2da1-44e4-bc78-0ffc98810f1d",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3014,
+								774
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AppleTree",
+							"__grid": [
+								1508,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "66f68d21-21a7-4b49-883e-c270cb32ce49",
+							"width": 15,
+							"height": 14,
+							"defUid": 58,
+							"px": [
+								3017,
+								774
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Infantry",
+							"__grid": [
+								1520,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#C8B060",
+							"iid": "e6b4e9cc-83bd-4206-bda2-38672575cc47",
+							"width": 22,
+							"height": 6,
+							"defUid": 19,
+							"px": [
+								3040,
+								775
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 17,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								},
+								{
+									"__identifier": "squad",
+									"__type": "Int",
+									"__value": 8,
+									"__tile": null,
+									"defUid": 18,
+									"realEditorValues": [
+										{
+											"id": "V_Int",
+											"params": [
+												8
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1531,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "eca40322-c02b-470f-ba37-a414375b8aaf",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3062,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "LightFlak",
+							"__grid": [
+								1535,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#E0A040",
+							"iid": "22a16a62-0478-4194-ac49-4b4540b075e1",
 							"width": 13,
 							"height": 6,
 							"defUid": 38,
 							"px": [
-								4065,
+								3070,
+								775
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 39,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "AppleTree",
+							"__grid": [
+								1546,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "f4a2bd94-9ea1-4efc-bcce-ca233faf4da3",
+							"width": 15,
+							"height": 14,
+							"defUid": 58,
+							"px": [
+								3093,
 								774
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AppleTree",
+							"__grid": [
+								1551,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "5cf5c196-7289-4c31-ad5b-96457b23a872",
+							"width": 15,
+							"height": 14,
+							"defUid": 58,
+							"px": [
+								3103,
+								773
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1555,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "03184246-c962-44ff-811b-d60db2e5d7c8",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3110,
+								773
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AtGun",
+							"__grid": [
+								1562,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#A07850",
+							"iid": "d1c8b179-7201-4c1d-9d84-053eea0d30a5",
+							"width": 33,
+							"height": 11,
+							"defUid": 73,
+							"px": [
+								3125,
+								773
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 74,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "AppleTree",
+							"__grid": [
+								1576,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "a0d704e6-4722-46dd-91b0-c7153a7f84f2",
+							"width": 15,
+							"height": 14,
+							"defUid": 58,
+							"px": [
+								3153,
+								772
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1579,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "cd07817a-88c6-4bf6-acd4-cd65ec956f14",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3158,
+								772
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AppleTree",
+							"__grid": [
+								1582,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "36c3a5c5-5804-4db7-af5c-83e2b156fd8c",
+							"width": 15,
+							"height": 14,
+							"defUid": 58,
+							"px": [
+								3165,
+								771
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AtGun",
+							"__grid": [
+								1595,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#A07850",
+							"iid": "52953e1f-91f0-4cde-9698-4f835e24e937",
+							"width": 33,
+							"height": 11,
+							"defUid": 73,
+							"px": [
+								3190,
+								770
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 74,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1603,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "059abc08-08b0-4435-876f-f783aa8dd913",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3206,
+								770
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AppleTree",
+							"__grid": [
+								1606,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "cfe096c1-e1c4-43ac-8044-b270b4e828d0",
+							"width": 15,
+							"height": 14,
+							"defUid": 58,
+							"px": [
+								3213,
+								770
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Dugout",
+							"__grid": [
+								1617,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "b0032043-3d70-4202-abbc-bf407aff3cfa",
+							"width": 24,
+							"height": 7,
+							"defUid": 62,
+							"px": [
+								3235,
+								770
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1627,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "927314ee-c118-4715-a0a3-b515781d7e62",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3254,
+								770
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "MgNest",
+							"__grid": [
+								1632,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#E0A040",
+							"iid": "1be1c080-9156-4c12-b9f1-67d579730558",
+							"width": 12,
+							"height": 5,
+							"defUid": 16,
+							"px": [
+								3265,
+								770
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 15,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Infantry",
+							"__grid": [
+								1647,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#C8B060",
+							"iid": "6abcba3d-817c-4515-95db-01a15a19287f",
+							"width": 22,
+							"height": 6,
+							"defUid": 19,
+							"px": [
+								3295,
+								770
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_0",
+									"__tile": null,
+									"defUid": 17,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_0"
+											]
+										}
+									]
+								},
+								{
+									"__identifier": "squad",
+									"__type": "Int",
+									"__value": 8,
+									"__tile": null,
+									"defUid": 18,
+									"realEditorValues": [
+										{
+											"id": "V_Int",
+											"params": [
+												8
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1651,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "8e8bd21a-ea8f-4d7c-83de-35c204dcc59f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3302,
+								770
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Wire",
+							"__grid": [
+								1662,
+								384
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "7560498f-baf9-4599-b063-73d5d1bd8c35",
+							"width": 28,
+							"height": 6,
+							"defUid": 64,
+							"px": [
+								3325,
+								769
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Hedgehog",
+							"__grid": [
+								1675,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "490dbcc7-b5b7-4e48-a541-a2c04eda8b28",
+							"width": 8,
+							"height": 6,
+							"defUid": 63,
+							"px": [
+								3350,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1675,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c3da8f4a-2363-42c1-9e9f-5d028d894f8a",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3350,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "RailBridge",
+							"__grid": [
+								1710,
+								393
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#7A6A52",
+							"iid": "e06ed258-5b13-4a01-90de-1390f13ac3d7",
+							"width": 92,
+							"height": 25,
+							"defUid": 77,
+							"px": [
+								3420,
+								786
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								1745,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "de3b26de-9f54-48b8-a1a7-38aa1255468f",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								3490,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								1769,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "4cc0ccf3-2e8f-4a8b-97d6-4e44d0cf39d0",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								3538,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								1817,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "994a538a-e251-440e-a00a-760262b9faf0",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								3634,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								1841,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "fd4923d3-3997-4edf-a9fd-5f52d49763d7",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								3682,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								1865,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "9b9a5258-a7d5-41c3-88c0-eb30ac54e04f",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								3730,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								1913,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7dc8170e-89ed-4cb5-8cab-7aa89afd5e39",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								3826,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Stooks",
+							"__grid": [
+								1918,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "1453c468-e659-4337-89ce-094b9f24868e",
+							"width": 20,
+							"height": 6,
+							"defUid": 61,
+							"px": [
+								3836,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1937,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "54d04d5d-5a84-495e-af4d-b9f27149d8a6",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3874,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1961,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c70a15ba-c7bc-4724-aa17-b5d69bb775e5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3922,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								1985,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c9a57483-1702-487c-a312-43d98c59f5e6",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								3970,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2009,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0e178f0b-c02a-4af9-9700-b43e2b05a3c7",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4018,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2033,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "1f244b31-e376-4179-843f-79228f6431ec",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4066,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2057,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c8698f28-43dd-42ed-9790-053cf7bea572",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4114,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2080,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "ed249e1f-ec73-4248-8b0a-cec2b879a83c",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4161,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2104,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e1b9240a-a9eb-4ac8-b771-f07a8cd9aea1",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4209,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2128,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c39cb16f-f604-4615-836c-1902e496af71",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4257,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Stooks",
+							"__grid": [
+								2147,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "81b64740-843b-49da-b1c3-e3a1ecdf5ecf",
+							"width": 20,
+							"height": 6,
+							"defUid": 61,
+							"px": [
+								4294,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2152,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e0cb56d4-b6d0-4cbf-bb28-6aa346ea5ac6",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4305,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TelegraphPole",
+							"__grid": [
+								2155,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "52eaa076-b5ad-4b0d-8c9d-431869c4f413",
+							"width": 7,
+							"height": 23,
+							"defUid": 52,
+							"px": [
+								4310,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2176,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "09e0c0b8-39c6-4ad5-a753-fcd7c172acb1",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4353,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2200,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "9abcdcd9-8082-4e12-8891-30dfc5329c87",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4401,
+								760
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2224,
+								379
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "02e0032d-2672-41d4-b0e6-1f03c8f3d6e5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4449,
+								758
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2248,
+								377
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c72527d2-4ff6-4c2f-8fa1-71b08287ab18",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4497,
+								755
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2272,
+								375
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "3759320f-6ed9-4cb9-8a19-504ed2dbef31",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4545,
+								751
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2296,
+								374
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "83bd0a60-e7e3-45bc-99f1-9073895eb83b",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4593,
+								748
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TelegraphPole",
+							"__grid": [
+								2300,
+								373
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "03f5efb8-d431-454e-9a15-33ec0ad5f098",
+							"width": 7,
+							"height": 23,
+							"defUid": 52,
+							"px": [
+								4600,
+								747
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2320,
+								372
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7da1d40f-8936-4dd4-a948-8b4469995cb8",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4641,
+								744
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2344,
+								369
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "42ca28ed-4248-4730-b46b-8185e5e56360",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4689,
+								739
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2368,
+								367
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b4c9e452-ecbb-4811-ad05-6a8c6acbee72",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4736,
+								735
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2392,
+								366
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "f1fee761-1824-4d23-abd6-692e3ebaa630",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4784,
+								732
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2416,
+								364
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "03cb40c4-0b48-491a-a9de-e79d9429898a",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4832,
+								729
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2440,
+								362
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "86e1c667-9846-4414-bc6d-0a94ddd9e719",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4880,
+								724
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "WaterTower",
+							"__grid": [
+								2455,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "a778e102-755e-40fb-a6eb-4f1bbc55f65d",
+							"width": 15,
+							"height": 35,
+							"defUid": 51,
+							"px": [
+								4910,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2464,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "01544aee-42a1-4fe8-9428-96f84b7cae73",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4928,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Station",
+							"__grid": [
+								2475,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "d05a9ad5-42fa-49f3-8b52-deab2d7313b2",
+							"width": 48,
+							"height": 22,
+							"defUid": 50,
+							"px": [
+								4950,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2488,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "2355ef67-689a-4e11-81c2-503ed63fc27f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								4976,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Elevator",
+							"__grid": [
+								2500,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "4b04c9f6-394d-4154-9bbf-1707664770a8",
+							"width": 25,
+							"height": 46,
+							"defUid": 56,
+							"px": [
+								5000,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2512,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a18590ec-849a-4bbe-b092-6cfdd2d0523b",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5024,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TradeRow",
+							"__grid": [
+								2522,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "ff618e86-9747-458b-8813-d01bfd4d1067",
+							"width": 50,
+							"height": 15,
+							"defUid": 54,
+							"px": [
+								5045,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2536,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "f5f5b7d7-d2f9-4d86-96a9-109042790d96",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5072,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TownRuin",
+							"__grid": [
+								2545,
+								361
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "0e450683-b8fb-4b3b-b16a-33fb5280219d",
+							"width": 30,
+							"height": 23,
+							"defUid": 57,
+							"px": [
+								5090,
+								723
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2560,
+								362
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b37e149d-45c7-4a1e-86c6-fffb5f10f522",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5120,
+								724
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2584,
+								364
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "caf6c67d-1b26-4fa0-bbcd-1c86c302a7b5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5168,
+								729
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2608,
+								366
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "313803d4-0569-451a-ac68-b973ffcf9953",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5216,
+								732
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2632,
+								368
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "2a927768-3b4c-4f74-a59f-d4d97e9a229f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5264,
+								736
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2655,
+								370
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "38b0ba7c-6fd6-4326-b78c-99a864fa8d62",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5311,
+								740
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2679,
+								372
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "08654950-1647-4f34-8560-70886517abd2",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5359,
+								745
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TelegraphPole",
+							"__grid": [
+								2700,
+								374
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "7c28e0ad-093d-48bb-87e1-387cdffa3b8e",
+							"width": 7,
+							"height": 23,
+							"defUid": 52,
+							"px": [
+								5400,
+								749
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2703,
+								375
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0cdd1192-e5cc-4f70-b16c-b498ce4d70d1",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5407,
+								750
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2727,
+								377
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "2d33f898-6d5e-4bd6-9a65-32835035f9d3",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5455,
+								755
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2751,
+								379
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "4653b792-8cd7-4827-a0f8-d7bf99360590",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5503,
+								758
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TelegraphPole",
+							"__grid": [
+								2770,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "3a7802ac-c9f0-4e9b-a83f-11b223e41565",
+							"width": 7,
+							"height": 23,
+							"defUid": 52,
+							"px": [
+								5540,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2775,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "baa3adbb-5ef2-4060-9435-466e0576c611",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5551,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Cowshed",
+							"__grid": [
+								2792,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "07b37c56-e6f1-40d2-b041-fbf8dedf85ab",
+							"width": 52,
+							"height": 13,
+							"defUid": 44,
+							"px": [
+								5585,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2799,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "8db79a45-ed41-4ff5-bc47-3652fb89f7af",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5599,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Cowshed",
+							"__grid": [
+								2822,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "c0475855-300b-46a3-9251-071f8de33865",
+							"width": 52,
+							"height": 13,
+							"defUid": 44,
+							"px": [
+								5645,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2823,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c3dda887-ca2d-410d-80fe-80a123b9b264",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5647,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Haystack",
+							"__grid": [
+								2841,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "457e9d4a-875d-4a1a-93ba-4c284ca19e3f",
+							"width": 14,
+							"height": 12,
+							"defUid": 48,
+							"px": [
+								5683,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2847,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0238c55e-b705-47d1-a55c-4e99f927885c",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5695,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Well",
+							"__grid": [
+								2850,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "59616662-ba50-464e-ae6e-cbe16beb68ee",
+							"width": 22,
+							"height": 20,
+							"defUid": 47,
+							"px": [
+								5700,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2871,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "534c8c03-2f8c-45f2-adf4-dc647198baa1",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5743,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2895,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c1c0d8b2-0022-4c53-801d-8b28ab3b3dae",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5791,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2919,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e4932b05-f822-4fab-8aa0-67633b3636db",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5839,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2943,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b38bbc23-9342-4c1c-965e-785c38f0f801",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5886,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2967,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "4b9dfa49-7503-4270-bbab-369c8c67e0ff",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5934,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								2991,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "83105d5e-c2f7-49be-9276-b53b85030e5d",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								5982,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3015,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "8e19542c-317c-4242-a455-8459b8831985",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6030,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3039,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "99e08ed7-a76c-45a2-ae9c-db81d69668a7",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6078,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3063,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "86fb5d23-3d76-4b04-8b2d-c8f783909dfb",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6126,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Sunflowers",
+							"__grid": [
+								3080,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "efc5b154-566f-42cd-b122-43cdbde81b27",
+							"width": 24,
+							"height": 8,
+							"defUid": 60,
+							"px": [
+								6160,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Sunflowers",
+							"__grid": [
+								3086,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "ffdc5018-2c23-4161-9dba-7a9c084e7b41",
+							"width": 24,
+							"height": 8,
+							"defUid": 60,
+							"px": [
+								6172,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								3087,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a97f9c19-99ed-4855-9332-4f3063f57b56",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								6174,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								3111,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7bfe7604-d2fd-4070-b03b-dabad2674ef9",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								6222,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								3159,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b4a5ae83-dac3-4023-8a22-4c0b87816af8",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								6318,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								3183,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "011aeec6-a900-444e-85d8-c2bd929465df",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								6366,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								3207,
+								380
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "49bdb3ea-b559-4ba8-bcbc-a1b7027a1bf7",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								6414,
+								761
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "TrackTorn",
+							"__grid": [
+								3255,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "4f55dbe8-237e-492b-afe8-ce2b0989b84c",
+							"width": 48,
+							"height": 9,
+							"defUid": 76,
+							"px": [
+								6510,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "RailBridge",
+							"__grid": [
+								3290,
+								392
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#7A6A52",
+							"iid": "ca247cad-3800-4c48-87fe-9b747e703c03",
+							"width": 92,
+							"height": 25,
+							"defUid": 77,
+							"px": [
+								6580,
+								785
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Wire",
+							"__grid": [
+								3318,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "a19f644e-1fc6-41ef-902e-94e89285c371",
+							"width": 28,
+							"height": 6,
+							"defUid": 64,
+							"px": [
+								6637,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Hedgehog",
+							"__grid": [
+								3325,
+								384
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "2861db86-2902-46e2-ad9c-31d0449ad2cc",
+							"width": 8,
+							"height": 6,
+							"defUid": 63,
+							"px": [
+								6650,
+								768
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3325,
+								384
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "588097e1-a076-488f-976e-173296dc1151",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6650,
+								768
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Wire",
+							"__grid": [
+								3337,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "8fe27625-2bdb-4d46-b533-62eff96d9032",
+							"width": 28,
+							"height": 6,
+							"defUid": 64,
+							"px": [
+								6675,
+								771
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3349,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "64f7b635-008b-4688-8988-eeb3337fc5b2",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6698,
+								773
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "MineSign",
+							"__grid": [
+								3350,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "b17f95eb-c58c-45b1-8a21-a96f8a00b70d",
+							"width": 5,
+							"height": 7,
+							"defUid": 65,
+							"px": [
+								6700,
+								773
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Infantry",
+							"__grid": [
+								3352,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#C8B060",
+							"iid": "d84f01c6-4000-4c68-a84a-81d226d752d2",
+							"width": 22,
+							"height": 6,
+							"defUid": 19,
+							"px": [
+								6705,
+								774
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_1",
+									"__tile": null,
+									"defUid": 17,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_1"
+											]
+										}
+									]
+								},
+								{
+									"__identifier": "squad",
+									"__type": "Int",
+									"__value": 8,
+									"__tile": null,
+									"defUid": 18,
+									"realEditorValues": [
+										{
+											"id": "V_Int",
+											"params": [
+												8
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "MgNest",
+							"__grid": [
+								3367,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#E0A040",
+							"iid": "70ade1fd-50f8-4336-b3ec-41da5aaf0159",
+							"width": 12,
+							"height": 5,
+							"defUid": 16,
+							"px": [
+								6735,
+								775
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_1",
+									"__tile": null,
+									"defUid": 15,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_1"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Dugout",
+							"__grid": [
+								3372,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "f7ab6b87-7b17-469b-813b-0880cc3eaac1",
+							"width": 24,
+							"height": 7,
+							"defUid": 62,
+							"px": [
+								6745,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3373,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e3646049-9e60-4793-badd-1b2f98dc15fe",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6746,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Dugout",
+							"__grid": [
+								3382,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "c03cac86-8d6c-4061-b574-0569c60a0658",
+							"width": 24,
+							"height": 7,
+							"defUid": 62,
+							"px": [
+								6765,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Birch",
+							"__grid": [
+								3395,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A7A5A",
+							"iid": "518622e8-4318-40ad-a93f-b5af6ee931b7",
+							"width": 11,
+							"height": 29,
+							"defUid": 59,
+							"px": [
+								6790,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3397,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a8f4d56d-5938-4d6d-af8a-1aa30e937682",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6794,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AtGun",
+							"__grid": [
+								3405,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#A07850",
+							"iid": "d030ba69-63f2-45cd-9d61-eda9f2260ba3",
+							"width": 33,
+							"height": 11,
+							"defUid": 73,
+							"px": [
+								6810,
+								775
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_1",
+									"__tile": null,
+									"defUid": 74,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_1"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3421,
+								388
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "d3a225c0-81ef-4a84-a9ed-a2e5133ad852",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6842,
+								776
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "AtGun",
+							"__grid": [
+								3437,
+								388
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#A07850",
+							"iid": "f39fa12a-5142-4b3b-8007-c96ca1e33e77",
+							"width": 33,
+							"height": 11,
+							"defUid": 73,
+							"px": [
+								6875,
+								777
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "team",
+									"__type": "LocalEnum.Team",
+									"__value": "Team_1",
+									"__tile": null,
+									"defUid": 74,
+									"realEditorValues": [
+										{
+											"id": "V_String",
+											"params": [
+												"Team_1"
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3445,
+								388
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0bcb4ce8-265d-4b29-9921-8680abb8e6c5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6890,
+								777
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "LightFlak",
+							"__grid": [
+								3465,
+								388
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#E0A040",
+							"iid": "ace27278-4c86-402f-bb67-bbecc76da944",
+							"width": 13,
+							"height": 6,
+							"defUid": 38,
+							"px": [
+								6930,
+								777
 							],
 							"fieldInstances": [
 								{
@@ -5067,10 +8273,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								3469,
+								388
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a9d6b791-d24c-44d4-87a3-4f4a82e6eb62",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6938,
+								777
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Infantry",
 							"__grid": [
-								2047,
-								383
+								3480,
+								388
 							],
 							"__pivot": [
 								0.5,
@@ -5079,13 +8308,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#C8B060",
-							"iid": "c37418f0-86a0-49b9-8df4-125e34d12438",
+							"iid": "6a0c5661-92ab-46e1-9d8a-c9e0d0e53f63",
 							"width": 22,
 							"height": 6,
 							"defUid": 19,
 							"px": [
-								4095,
-								766
+								6960,
+								777
 							],
 							"fieldInstances": [
 								{
@@ -5123,8 +8352,8 @@
 						{
 							"__identifier": "Birch",
 							"__grid": [
-								2060,
-								377
+								3492,
+								388
 							],
 							"__pivot": [
 								0.5,
@@ -5133,21 +8362,44 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8A7A5A",
-							"iid": "f2a8a232-938e-4ff8-9650-8ea93fb5d171",
+							"iid": "e75ba906-7be3-4ca7-b0c5-fcdb5b7a5679",
 							"width": 11,
 							"height": 29,
 							"defUid": 59,
 							"px": [
-								4120,
-								755
+								6985,
+								776
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3493,
+								388
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c1ac534d-0d36-48b6-8abb-f60772df63b1",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								6986,
+								776
 							],
 							"fieldInstances": []
 						},
 						{
 							"__identifier": "MgNest",
 							"__grid": [
-								2077,
-								375
+								3510,
+								387
 							],
 							"__pivot": [
 								0.5,
@@ -5156,13 +8408,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E0A040",
-							"iid": "618b79fc-b0d3-4664-ad98-a50204b33dc1",
+							"iid": "7e2e2e21-ee44-4919-82e3-7a24624a0782",
 							"width": 12,
 							"height": 5,
 							"defUid": 16,
 							"px": [
-								4155,
-								750
+								7020,
+								775
 							],
 							"fieldInstances": [
 								{
@@ -5183,10 +8435,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								3517,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a68659af-f8ac-4da7-bf0e-8b9264ceef41",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7034,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "LightFlak",
 							"__grid": [
-								2105,
-								371
+								3537,
+								387
 							],
 							"__pivot": [
 								0.5,
@@ -5195,13 +8470,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E0A040",
-							"iid": "965920fb-a339-40df-9519-76e39fff7fd8",
+							"iid": "e2cbef51-4d0e-4fb1-8771-1654d0a236dd",
 							"width": 13,
 							"height": 6,
 							"defUid": 38,
 							"px": [
-								4210,
-								742
+								7075,
+								775
 							],
 							"fieldInstances": [
 								{
@@ -5222,10 +8497,79 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								3541,
+								387
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "4e0cafc0-b6c0-4225-aeee-38c33f6261e6",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7082,
+								775
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3565,
+								386
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "654f9831-6a7a-47a3-9a3a-9d1b1f125332",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7130,
+								773
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3589,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0debe2df-b936-4167-986e-c284ce117219",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7178,
+								771
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "LightFlak",
 							"__grid": [
-								2175,
-								370
+								3607,
+								385
 							],
 							"__pivot": [
 								0.5,
@@ -5234,13 +8578,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E0A040",
-							"iid": "8ab615e9-1cb7-4368-9f7a-0ebf38944e53",
+							"iid": "86ceef67-f83d-42c6-a9cc-a15fcdd38294",
 							"width": 13,
 							"height": 6,
 							"defUid": 38,
 							"px": [
-								4350,
-								741
+								7215,
+								770
 							],
 							"fieldInstances": [
 								{
@@ -5259,12 +8603,58 @@
 									]
 								}
 							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3613,
+								385
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "6927f914-dee5-493b-a3dd-641cbfa4066e",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7226,
+								770
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3637,
+								384
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "3dfe01e4-4178-4178-b6db-7c88bd300e97",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7274,
+								768
+							],
+							"fieldInstances": []
 						},
 						{
 							"__identifier": "Church",
 							"__grid": [
-								2215,
-								371
+								3647,
+								384
 							],
 							"__pivot": [
 								0.5,
@@ -5273,21 +8663,136 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8A7A5A",
-							"iid": "84fbae0e-edae-4ee5-92ad-b32ce24f7d60",
+							"iid": "ae232001-50d5-44e6-a38f-e32c8837dfbb",
 							"width": 35,
 							"height": 39,
 							"defUid": 45,
 							"px": [
-								4430,
-								742
+								7295,
+								768
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3661,
+								384
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "58a88be5-5731-4e18-a660-1d0a1fe93543",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7322,
+								768
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3685,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7953eab9-8546-4012-b0d3-6ae198c106e7",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7370,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3709,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "548285b5-226a-444a-b681-61ad8dbda9cb",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7418,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3733,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "bda16f4e-de80-4fc1-935f-15cefcaae4b7",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7466,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3757,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c56bb5ee-d442-4217-ac43-703fc14ca88f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7514,
+								765
 							],
 							"fieldInstances": []
 						},
 						{
 							"__identifier": "Tent",
 							"__grid": [
-								2340,
-								369
+								3765,
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -5296,13 +8801,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#C8C090",
-							"iid": "132954a6-4b38-4c1f-b0b8-864f35ef6eef",
+							"iid": "50b3da16-1f79-4725-971e-78bc8cfa8817",
 							"width": 16,
 							"height": 8,
 							"defUid": 21,
 							"px": [
-								4680,
-								738
+								7530,
+								765
 							],
 							"fieldInstances": [
 								{
@@ -5323,10 +8828,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								3781,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "392f981e-f9b4-4475-82f4-b8be34ec61ee",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7562,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Flak",
 							"__grid": [
-								2362,
-								364
+								3787,
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -5335,13 +8863,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E05040",
-							"iid": "49c77063-1ccf-45f5-ab21-b62f1cf797b2",
+							"iid": "a0466e0d-6e23-4713-9d99-788a264399cb",
 							"width": 14,
 							"height": 9,
 							"defUid": 14,
 							"px": [
-								4725,
-								729
+								7575,
+								765
 							],
 							"fieldInstances": [
 								{
@@ -5362,10 +8890,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								3805,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "2308d911-78bd-4969-ae1d-93cdad78ea17",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7610,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Depot",
 							"__grid": [
-								2400,
-								369
+								3825,
+								383
 							],
 							"__pivot": [
 								0.5,
@@ -5374,13 +8925,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8C9070",
-							"iid": "20cd0f09-c989-4efe-9b61-3b3a6535c7d5",
+							"iid": "51a2bf23-225b-44a0-8f53-713e224b2a2c",
 							"width": 34,
 							"height": 16,
 							"defUid": 29,
 							"px": [
-								4800,
-								738
+								7650,
+								766
 							],
 							"fieldInstances": [
 								{
@@ -5401,10 +8952,56 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								3829,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "d0222dc1-52b1-431e-bb9a-eb0a357ec2e2",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7658,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3853,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "d95fac45-501d-40a7-9e78-cbcbab060f62",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7706,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Flak",
 							"__grid": [
-								2435,
-								378
+								3860,
+								383
 							],
 							"__pivot": [
 								0.5,
@@ -5413,13 +9010,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E05040",
-							"iid": "b8a14cd0-fb54-4ae9-9f89-a41fae95ea60",
+							"iid": "96a0284d-efdc-4eff-bfa2-a3f3bc6d74cf",
 							"width": 14,
 							"height": 9,
 							"defUid": 14,
 							"px": [
-								4870,
-								756
+								7720,
+								766
 							],
 							"fieldInstances": [
 								{
@@ -5440,10 +9037,654 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								3877,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "5de55fd9-5a2b-4d17-a031-264922739e72",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7754,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3901,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "d7b69699-ce20-4dda-9a71-040bc4a08e10",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7802,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3925,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a5ba38fe-f318-45cc-a7c1-3d7a50ea450c",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7850,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3949,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "cc03c40d-e3ec-4602-b5c0-676ee455639f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7898,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3973,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "ae6578aa-f126-42d1-a155-c05c305b3843",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7946,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								3997,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "77a1a239-6dd1-47e3-95b4-3d3b59507082",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								7994,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4021,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e9204456-b467-4c0e-bc00-a692e65d7dd5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8042,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4045,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "146b36ab-e411-4fd1-9628-8907598d2a95",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8090,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4069,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "02c46fc8-e59f-4881-98ae-a099562f9fdf",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8138,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4093,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a3adf985-a9ea-477b-86a3-e7f624fda2bb",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8186,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4117,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0666f2ec-fa24-4a8b-906e-10f81f6dfe6f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8234,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4141,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "f638b555-ed8f-454f-bcab-a0b07973183b",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8282,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4165,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "294528cd-f145-4ba8-9e21-81d76d44a819",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8330,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "RailBridge",
+							"__grid": [
+								4200,
+								391
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#7A6A52",
+							"iid": "663ced44-27b9-4132-8686-46baa66a3656",
+							"width": 92,
+							"height": 25,
+							"defUid": 77,
+							"px": [
+								8400,
+								782
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4235,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "f00a6cdc-29d2-403c-bd55-420fe90672f8",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8470,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4258,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "2b16a167-1f76-4330-b347-10b66469d6fe",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8517,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4282,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "c2738a09-147e-4b11-b743-3005afcb5b17",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8564,
+								762
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4305,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "b0710eb4-74d2-4c94-96c0-af8dc45e14c9",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8611,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4329,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "3a425d56-63d8-473c-9938-03dab1e24bf5",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8658,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4352,
+								384
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "e838d9a3-facc-4e79-a5cf-9e70c792a326",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8705,
+								768
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4376,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "1e7fde79-ba55-48a0-b46e-c4ea84aee382",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8752,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4399,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "cfd83103-c6bd-4eb1-8c36-ab103096aa2d",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8799,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4423,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "21ce44d1-2497-4fb1-8438-becec0b183ad",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8847,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4447,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "480695f5-1cf9-44bd-aed0-2d305f41f7d1",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8894,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4470,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "ec02bb81-f3cb-4f57-845c-a9cab422131c",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8941,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4494,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "347b6ad8-08bd-4d6b-a969-5c0a0eb0dbe0",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								8988,
+								764
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4517,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "2aefb812-6979-4ceb-896d-fc5b2ca65e95",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9035,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4541,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "dc5a7d46-1cad-495e-90a0-421094f6fab2",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9082,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Stores",
 							"__grid": [
-								2552,
-								374
+								4552,
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -5452,21 +9693,44 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8A7A5A",
-							"iid": "da900c47-65cd-4a0a-a922-20fd18612bce",
+							"iid": "dff4f861-e404-4055-94ca-d2e05e100bc2",
 							"width": 22,
 							"height": 8,
 							"defUid": 67,
 							"px": [
-								5105,
-								749
+								9105,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4564,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "26f2d75c-96ae-43a0-8af4-a19d4d40cd6e",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9129,
+								765
 							],
 							"fieldInstances": []
 						},
 						{
 							"__identifier": "Tent",
 							"__grid": [
-								2570,
-								375
+								4570,
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -5475,13 +9739,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#C8C090",
-							"iid": "92c90d6f-aecc-46d2-90fa-8eaebed7ac16",
+							"iid": "4a2aebc2-df8b-45c2-9aaf-bbde4a3f2463",
 							"width": 16,
 							"height": 8,
 							"defUid": 21,
 							"px": [
-								5140,
-								751
+								9140,
+								765
 							],
 							"fieldInstances": [
 								{
@@ -5504,8 +9768,8 @@
 						{
 							"__identifier": "Tent",
 							"__grid": [
-								2585,
-								375
+								4585,
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -5514,13 +9778,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#C8C090",
-							"iid": "ec83ad98-70ca-448d-9024-22c3db1d698f",
+							"iid": "bb818a83-e807-4417-af04-a54952990fd3",
 							"width": 16,
 							"height": 8,
 							"defUid": 21,
 							"px": [
-								5170,
-								750
+								9170,
+								765
 							],
 							"fieldInstances": [
 								{
@@ -5541,10 +9805,56 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								4588,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "d9b3e730-c89c-468b-b59e-0ac5ecedeaeb",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9176,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4611,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "3ca13087-801c-439c-82d2-24f9c2196f17",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9223,
+								767
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Flak",
 							"__grid": [
-								2615,
-								371
+								4615,
+								383
 							],
 							"__pivot": [
 								0.5,
@@ -5553,13 +9863,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E05040",
-							"iid": "81f67ff4-ecba-48ff-bc78-c797eae9eab1",
+							"iid": "85a3e27c-3537-4346-a7db-9b4f9c407529",
 							"width": 14,
 							"height": 9,
 							"defUid": 14,
 							"px": [
-								5230,
-								742
+								9230,
+								767
 							],
 							"fieldInstances": [
 								{
@@ -5580,10 +9890,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								4635,
+								383
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "586a60ef-8deb-45bb-97c6-fa1fad4d5ab1",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9270,
+								766
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "LightFlak",
 							"__grid": [
-								2650,
-								366
+								4650,
+								382
 							],
 							"__pivot": [
 								0.5,
@@ -5592,13 +9925,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E0A040",
-							"iid": "051c5de1-6706-4a2b-a2e8-0632dca138d9",
+							"iid": "57ffc6f4-7991-4e04-b42b-d82cacffaa41",
 							"width": 13,
 							"height": 6,
 							"defUid": 38,
 							"px": [
-								5300,
-								732
+								9300,
+								765
 							],
 							"fieldInstances": [
 								{
@@ -5619,10 +9952,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								4658,
+								382
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "af772da9-0cd2-413f-b0cb-e0c4aa23eb9f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9317,
+								765
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Flak",
 							"__grid": [
-								2680,
-								366
+								4680,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -5631,13 +9987,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#E05040",
-							"iid": "ae9dce99-7566-4911-a3d2-146f4f83a17f",
+							"iid": "3db203d8-c31b-4f36-afb0-5e0ab7fbe304",
 							"width": 14,
 							"height": 9,
 							"defUid": 14,
 							"px": [
-								5360,
-								733
+								9360,
+								763
 							],
 							"fieldInstances": [
 								{
@@ -5658,10 +10014,33 @@
 							]
 						},
 						{
+							"__identifier": "Track",
+							"__grid": [
+								4682,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "ea1868d4-13dc-4f27-9158-4870e34b734a",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9364,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
 							"__identifier": "Windsock",
 							"__grid": [
-								2700,
-								368
+								4700,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -5670,21 +10049,297 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#8A7A5A",
-							"iid": "ea3bb4d0-ab4e-444a-93f4-649d5d517666",
+							"iid": "64d77567-5506-4319-b431-06c4f0852af5",
 							"width": 9,
 							"height": 20,
 							"defUid": 66,
 							"px": [
-								5400,
-								736
+								9400,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4705,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "60d38875-0316-480b-af8d-ae807de341bc",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9411,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4729,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "9e429959-9d2f-4c59-81e9-aa25f945a862",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9458,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4752,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "83c95a11-e8e3-41b4-a3a9-a07bc55aea43",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9505,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4776,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "8397fefb-5d9c-4c66-95fe-96f15d08e395",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9552,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4800,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "de6082ab-c34f-4bfc-b808-2f964cc3f2fd",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9600,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4823,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "45a06262-dab3-4072-a306-2c842b479d6e",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9647,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4847,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "a3c2a70a-68ca-4742-bae0-0f9a094a3513",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9694,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4870,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "7fdbab93-5c69-4fbf-a216-e7d53571c6a3",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9741,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4894,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "f52433a7-042b-4862-9d50-b41c1d61cdcd",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9788,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4917,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "0655497c-34ce-4156-9e91-6447c33c6f17",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9835,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4941,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "761866f0-373b-49ee-872b-ba50a48d4a8d",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9882,
+								763
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4964,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "3a2fd578-8d30-4c6e-934a-1fbf4cf9f80f",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9929,
+								762
 							],
 							"fieldInstances": []
 						},
 						{
 							"__identifier": "Radar",
 							"__grid": [
-								2970,
-								369
+								4970,
+								381
 							],
 							"__pivot": [
 								0.5,
@@ -5693,13 +10348,13 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#60C0E0",
-							"iid": "8a84f1d4-dcc4-457f-b22c-cc648db06c1e",
+							"iid": "12b48128-0861-4918-abc8-5c5feae7010a",
 							"width": 18,
 							"height": 40,
 							"defUid": 27,
 							"px": [
-								5940,
-								738
+								9940,
+								762
 							],
 							"fieldInstances": [
 								{
@@ -5718,13 +10373,36 @@
 									]
 								}
 							]
+						},
+						{
+							"__identifier": "Track",
+							"__grid": [
+								4988,
+								381
+							],
+							"__pivot": [
+								0.5,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#6A645A",
+							"iid": "92ce66d3-019f-494f-b30d-10586d2f7846",
+							"width": 48,
+							"height": 3,
+							"defUid": 75,
+							"px": [
+								9976,
+								762
+							],
+							"fieldInstances": []
 						}
 					]
 				},
 				{
 					"__identifier": "Zones",
 					"__type": "Entities",
-					"__cWid": 3000,
+					"__cWid": 5000,
 					"__cHei": 400,
 					"__gridSize": 2,
 					"__opacity": 1,
@@ -5732,7 +10410,7 @@
 					"__pxTotalOffsetY": 0,
 					"__tilesetDefUid": null,
 					"__tilesetRelPath": null,
-					"iid": "9831f067-f26b-48b3-96bb-357975b024c7",
+					"iid": "129e2042-4ff7-4340-bc6e-53beb0da70a8",
 					"levelId": 32,
 					"layerDefUid": 37,
 					"pxOffsetX": 0,
@@ -5748,7 +10426,7 @@
 						{
 							"__identifier": "Balka",
 							"__grid": [
-								465,
+								780,
 								395
 							],
 							"__pivot": [
@@ -5758,12 +10436,12 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#5A4E3A",
-							"iid": "ff5c41e8-23bb-4c66-8982-4d820e52cd53",
-							"width": 130,
+							"iid": "35bb4431-6ced-49ad-bf53-2381d9835d69",
+							"width": 80,
 							"height": 8,
-							"defUid": 75,
+							"defUid": 78,
 							"px": [
-								930,
+								1560,
 								790
 							],
 							"fieldInstances": []
@@ -5771,7 +10449,7 @@
 						{
 							"__identifier": "Wood",
 							"__grid": [
-								620,
+								1195,
 								395
 							],
 							"__pivot": [
@@ -5781,20 +10459,59 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#4A6A40",
-							"iid": "92913df7-8207-4059-94c1-3f7345d3da86",
+							"iid": "a5f6fb63-2dd3-44bb-a9ab-0fedbaef9282",
 							"width": 70,
 							"height": 8,
 							"defUid": 35,
 							"px": [
-								1240,
+								2390,
 								790
 							],
 							"fieldInstances": []
 						},
 						{
+							"__identifier": "Rise",
+							"__grid": [
+								1275,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#7A6A48",
+							"iid": "e05db482-73e6-42e4-8be3-901303d43def",
+							"width": 1000,
+							"height": 8,
+							"defUid": 80,
+							"px": [
+								2550,
+								790
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "height",
+									"__type": "Int",
+									"__value": -12,
+									"__tile": null,
+									"defUid": 79,
+									"realEditorValues": [
+										{
+											"id": "V_Int",
+											"params": [
+												-12
+											]
+										}
+									]
+								}
+							]
+						},
+						{
 							"__identifier": "Village",
 							"__grid": [
-								795,
+								1362,
 								395
 							],
 							"__pivot": [
@@ -5804,104 +10521,12 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#9A7A60",
-							"iid": "ab221d2a-0b13-47a3-ba35-7421754fc051",
+							"iid": "a89e82ef-c29c-45c4-aa3d-8de513240e54",
 							"width": 230,
 							"height": 8,
 							"defUid": 34,
 							"px": [
-								1590,
-								790
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Field",
-							"__grid": [
-								1120,
-								395
-							],
-							"__pivot": [
-								0,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A8A50",
-							"iid": "339776e5-3b46-4752-bbbb-1c670e620506",
-							"width": 400,
-							"height": 8,
-							"defUid": 33,
-							"px": [
-								2240,
-								790
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Village",
-							"__grid": [
-								1330,
-								395
-							],
-							"__pivot": [
-								0,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#9A7A60",
-							"iid": "f08c5f2b-485e-4e41-95f9-4f43eef7c5cd",
-							"width": 160,
-							"height": 8,
-							"defUid": 34,
-							"px": [
-								2660,
-								790
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Ridge",
-							"__grid": [
-								1440,
-								395
-							],
-							"__pivot": [
-								0,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#7A7A7A",
-							"iid": "7739829e-fed7-40af-be23-2e93a6b18733",
-							"width": 240,
-							"height": 8,
-							"defUid": 36,
-							"px": [
-								2880,
-								790
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Field",
-							"__grid": [
-								1680,
-								395
-							],
-							"__pivot": [
-								0,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#8A8A50",
-							"iid": "366fdbfd-c828-429f-8bbb-ab70750eec94",
-							"width": 400,
-							"height": 8,
-							"defUid": 33,
-							"px": [
-								3360,
+								2725,
 								790
 							],
 							"fieldInstances": []
@@ -5909,7 +10534,7 @@
 						{
 							"__identifier": "Balka",
 							"__grid": [
-								1955,
+								1690,
 								395
 							],
 							"__pivot": [
@@ -5919,20 +10544,82 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#5A4E3A",
-							"iid": "d4577a80-d483-4872-9c73-fe89602f00bc",
-							"width": 220,
+							"iid": "c5884859-bdff-4650-aba0-fb00083966b3",
+							"width": 80,
 							"height": 8,
-							"defUid": 75,
+							"defUid": 78,
 							"px": [
-								3910,
+								3380,
 								790
 							],
 							"fieldInstances": []
 						},
 						{
+							"__identifier": "Field",
+							"__grid": [
+								1925,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A8A50",
+							"iid": "a3c22b20-0a36-4593-b4f2-37daa15ad53e",
+							"width": 430,
+							"height": 8,
+							"defUid": 33,
+							"px": [
+								3850,
+								790
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Rise",
+							"__grid": [
+								2150,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#7A6A48",
+							"iid": "88df7b76-a119-4def-94e8-d43fd98ee3fd",
+							"width": 1400,
+							"height": 8,
+							"defUid": 80,
+							"px": [
+								4300,
+								790
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "height",
+									"__type": "Int",
+									"__value": 40,
+									"__tile": null,
+									"defUid": 79,
+									"realEditorValues": [
+										{
+											"id": "V_Int",
+											"params": [
+												40
+											]
+										}
+									]
+								}
+							]
+						},
+						{
 							"__identifier": "Village",
 							"__grid": [
-								2090,
+								2430,
 								395
 							],
 							"__pivot": [
@@ -5942,43 +10629,151 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#9A7A60",
-							"iid": "e8262aec-8882-486a-93ec-957a8a2bac68",
+							"iid": "ac2be08d-d5f9-472d-bcb4-527c098efcab",
+							"width": 280,
+							"height": 8,
+							"defUid": 34,
+							"px": [
+								4860,
+								790
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Field",
+							"__grid": [
+								2860,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#8A8A50",
+							"iid": "c64e0142-5e51-48d5-ba04-a985094f7abf",
+							"width": 430,
+							"height": 8,
+							"defUid": 33,
+							"px": [
+								5720,
+								790
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Rise",
+							"__grid": [
+								3225,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#7A6A48",
+							"iid": "ab3182f4-5175-40d8-bdf7-66d5af58bc7d",
+							"width": 1000,
+							"height": 8,
+							"defUid": 80,
+							"px": [
+								6450,
+								790
+							],
+							"fieldInstances": [
+								{
+									"__identifier": "height",
+									"__type": "Int",
+									"__value": -12,
+									"__tile": null,
+									"defUid": 79,
+									"realEditorValues": [
+										{
+											"id": "V_Int",
+											"params": [
+												-12
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"__identifier": "Balka",
+							"__grid": [
+								3270,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#5A4E3A",
+							"iid": "f0639ef7-bf71-46e1-8279-6e8dfc6d5c64",
+							"width": 80,
+							"height": 8,
+							"defUid": 78,
+							"px": [
+								6540,
+								790
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Village",
+							"__grid": [
+								3522,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#9A7A60",
+							"iid": "51674188-425c-4697-bdfc-ce4f41e12a08",
 							"width": 230,
 							"height": 8,
 							"defUid": 34,
 							"px": [
+								7045,
+								790
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Wood",
+							"__grid": [
+								3770,
+								395
+							],
+							"__pivot": [
+								0,
+								1
+							],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#4A6A40",
+							"iid": "88c239de-7bf1-4f79-9a25-0af4e66b0543",
+							"width": 70,
+							"height": 8,
+							"defUid": 35,
+							"px": [
+								7540,
+								790
+							],
+							"fieldInstances": []
+						},
+						{
+							"__identifier": "Balka",
+							"__grid": [
 								4180,
-								790
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Wood",
-							"__grid": [
-								2345,
-								395
-							],
-							"__pivot": [
-								0,
-								1
-							],
-							"__tags": [],
-							"__tile": null,
-							"__smartColor": "#4A6A40",
-							"iid": "3f36eccd-a235-4a5d-a75a-7f4fd69b1d75",
-							"width": 70,
-							"height": 8,
-							"defUid": 35,
-							"px": [
-								4690,
-								790
-							],
-							"fieldInstances": []
-						},
-						{
-							"__identifier": "Balka",
-							"__grid": [
-								2470,
 								395
 							],
 							"__pivot": [
@@ -5988,12 +10783,12 @@
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#5A4E3A",
-							"iid": "02d61152-e35a-490f-92f1-52654b02be00",
-							"width": 130,
+							"iid": "9ed01787-9ced-4513-9d52-6affbd516a36",
+							"width": 80,
 							"height": 8,
-							"defUid": 75,
+							"defUid": 78,
 							"px": [
-								4940,
+								8360,
 								790
 							],
 							"fieldInstances": []

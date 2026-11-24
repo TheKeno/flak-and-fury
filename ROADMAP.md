@@ -7,8 +7,8 @@ later.
 
 ## Decisions
 
-- **Kursk map: longer, spaced out, a railway, tanks by train (decided 2026-11-24, discussion "Design — map size"; not
-  built):** flying the Kursk map, the areas blend together and the map is too short (6000 wide: about 40 s end to end,
+- **Kursk map: longer, spaced out, a railway, tanks by train (decided 2026-11-24, discussion "Design — map size"; build 1
+  built 2026-11-24, see Done "Kursk map stretched to 10,000"; build 2 waits for the owner to fly it):** flying the Kursk map, the areas blend together and the map is too short (6000 wide: about 40 s end to end,
   about 15 s from an airfield to the front; ten areas touching, five landmarks within 200 of each other in the
   station town). The fix is length added as **gaps**, not bigger areas. **Build 1, the map stretch:** (1) **10,000
   wide**, Germany on the left, ceiling 1200 unchanged. Each half from the edge inward: airfield, a long open run
@@ -966,6 +966,26 @@ later.
   order hits, explosions, clicks.
 
 ## Done
+
+- **Kursk map stretched to 10,000 (Design, 2026-11-24):** step (b), build 1 of "Kursk map: longer, spaced out, a
+  railway, tanks by train". `maps/kursk.ldtk` made once more by `tools/scratch/make-kursk.mjs` (the owner had not
+  edited it; it is theirs again now) and its guide redrawn. Germany left; each half from the edge: airfield
+  (140-560), an open run of about 1700 with a steep 80-wide balka, the depot (2280-2470, tree belt), the forward
+  position about 250-400 ahead (village with the windmill 2705-2955, orchard Pak line to 3350, the railway balka in
+  front at 3380), about 500 of bare no man's land, the middle 3850-6150: wheat (430, landable), **Hill 252.2 as a
+  long rise** (40 over 1400) with the **station town on its crest, the elevator at exactly 5000**, the collective
+  farm at its Soviet foot, sunflowers (430). The USSR mirrored (church; ZiS-3 battery dug in on the steppe behind
+  its railway balka with birches: an 80-wide balka has no floor for two guns, so the battery left its old wide
+  balka, which the line could not cross). **The railway:** 186 `Track` lengths edge to edge, 12 `TrackTorn` in
+  no man's land (every fourth length missing), a `RailBridge` over each of the four balkas. **Gentle ground:**
+  `terrainAmplitude` 12 (was 60), a shallow dip (-12 over 1000) at each forward position; steepest 0.117 on the
+  track, 0.14 anywhere outside the balkas (was 0.68). New zone **`Rise`** (`src/sim/terrain.js` `addRises`, LDtk
+  piece with a `height` field; `src/content/ldtk.js`): a half-cosine swell or dip laid over the ground. Decor
+  ignores the track lengths when finding room (`src/sim/decor.js`), else the line would block every tree and izba.
+  Tests: `tests/kursk.test.mjs` (crest in the middle, areas apart, line edge to edge, bridges, torn track only in
+  no man's land, no steep track), `tests/zones.test.mjs` (a rise). Seen in the game in free look (town on the
+  crest, track over the bridge: `notes/kursk-long-town.jpg`, `notes/kursk-long-bridge.jpg`); frame rate not measured on a visible screen (186 more sprites). **Not yet:** the
+  owner's flight; then build 2 (tanks by train).
 
 - **Kursk railway scenery (Design, 2026-11-24, `594e9d2`):** step (a) of "Kursk map: longer, spaced out, a railway,
   tanks by train": whole track and torn track (48-unit lengths that tile and are drawn turned to the slope, `tilt` in

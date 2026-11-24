@@ -19,8 +19,9 @@ export function addDecor(world) {
   const { map } = world;
   const cfg = world.decor ?? DEFAULT_DECOR;
   const rng = createRng((map.seed ^ 0xdec0) >>> 0);
-  // Soldiers may stand among the trees; everything else keeps its room.
-  const taken = world.ground.filter((o) => !o.soldiers).map((o) => [o.x, (o.width ?? o.def.width) / 2]);
+  // Soldiers may stand among the trees, and the railway runs past them (its lengths, def.tilt, lie the whole
+  // length of the map); everything else keeps its room.
+  const taken = world.ground.filter((o) => !o.soldiers && !o.def?.tilt).map((o) => [o.x, (o.width ?? o.def.width) / 2]);
   const zones = map.zones ?? [];
   const inField = (x, half) => zones.some((z) => z.type === 'field' && x + half > z.x && x - half < z.x + z.width);
   const blocked = (x, half) =>
@@ -64,7 +65,7 @@ export function addDecor(world) {
         for (let k = 0; k < 3; k++) put('appleTree', z.x + rng.next() * z.width);
       }
     }
-    const inZone = (x) => zones.some((z) => x > z.x - 10 && x < z.x + z.width + 10);
+    const inZone = (x) => zones.some((z) => z.type !== 'rise' && x > z.x - 10 && x < z.x + z.width + 10);
     for (let x = 60; x < map.width - 60; x += 90) {
       const tx = x + (rng.next() - 0.5) * 60;
       if (!inZone(tx) && rng.next() < cfg.loneTrees * 0.6) put(pick(['oak', 'birch', 'haystack']), tx);
@@ -89,7 +90,7 @@ export function addDecor(world) {
     }
   }
   // Lone trees in open country (ground in no zone).
-  const inZone = (x) => zones.some((z) => x > z.x - 10 && x < z.x + z.width + 10);
+  const inZone = (x) => zones.some((z) => z.type !== 'rise' && x > z.x - 10 && x < z.x + z.width + 10);
   for (let x = 60; x < map.width - 60; x += 90) {
     const tx = x + (rng.next() - 0.5) * 60;
     if (!inZone(tx) && rng.next() < cfg.loneTrees) put(tree(), tx);

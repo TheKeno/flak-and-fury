@@ -58,7 +58,7 @@ export const GROUND_ENTITIES = {
 };
 
 // LDtk zone entity -> zone type.
-export const ZONE_ENTITIES = { Field: 'field', Village: 'village', Wood: 'wood', Ridge: 'ridge', Balka: 'balka' };
+export const ZONE_ENTITIES = { Field: 'field', Village: 'village', Wood: 'wood', Ridge: 'ridge', Balka: 'balka', Rise: 'rise' };
 
 const fieldsOf = (instances) => Object.fromEntries((instances ?? []).map((f) => [f.__identifier, f.__value]));
 const teamOf = (v) => (v == null ? null : Number(String(v).replace(/\D/g, '')));
@@ -91,7 +91,9 @@ export function importLdtk(project, levelName) {
         continue;
       }
       if (ZONE_ENTITIES[e.__identifier]) {
-        map.zones.push({ type: ZONE_ENTITIES[e.__identifier], x: left, width: e.width });
+        const zone = { type: ZONE_ENTITIES[e.__identifier], x: left, width: e.width };
+        if (ef.height != null) zone.height = ef.height; // a Rise: how far it lifts the ground at its middle
+        map.zones.push(zone);
         continue;
       }
       if (e.__identifier === 'Bridge') {

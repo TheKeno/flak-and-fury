@@ -55,7 +55,7 @@ function shapeZones(map, heights, cfg) {
   const weight = new Float32Array(width + 1);
   const sum = new Float32Array(width + 1);
   for (const z of map.zones ?? []) {
-    if (z.type === 'balka') continue; // cut into the ground afterwards (cutBalkas)
+    if (z.type === 'balka' || z.type === 'rise') continue; // cut or raised afterwards (cutBalkas, addRises)
     const a = z.x;
     const b = z.x + z.width;
     let total = 0;
@@ -74,6 +74,18 @@ function shapeZones(map, heights, cfg) {
     }
   }
   for (let x = 0; x <= width; x++) if (weight[x] > 0) heights[x] = lerp(heights[x], sum[x] / weight[x], Math.min(1, weight[x]));
+}
+
+// Rises: a long, gentle swell of the land (Kursk's Hill 252.2), or a shallow dip with a negative height. Laid
+// over the ground as it is (half a cosine wave, flat at both ends and at the top), so the zones under it keep
+// their own shape; steepest slope height * pi / width. Before the balkas, so a balka cuts into it.
+function addRises(map, heights) {
+  for (const z of map.zones ?? []) {
+    if (z.type !== 'rise' || !z.height) continue;
+    for (let x = Math.max(0, Math.ceil(z.x)); x <= Math.min(map.width, Math.floor(z.x + z.width)); x++) {
+      heights[x] += z.height * (1 - Math.cos((2 * Math.PI * (x - z.x)) / z.width)) / 2;
+    }
+  }
 }
 
 // Balkas: dry ravines cut into the steppe. The rims are levelled to one height (eased into the country
@@ -124,6 +136,7 @@ export function buildTerrain(map, pads = [], zones = DEFAULT_ZONES) {
     heights[x] = base + amplitude * (0.8 * big(x) + 0.2 * detail(x));
   }
   shapeZones(map, heights, zones);
+  addRises(map, heights);
   cutBalkas(map, heights, zones);
 
   // Flatten airfields, blending smoothly into the surrounding hills.

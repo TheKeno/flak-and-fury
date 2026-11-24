@@ -662,12 +662,16 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   uses x positions), `terrainBase`/`terrainAmplitude` (hill height) and the three sky colours. The
   level's width is the world's width.
   The Kursk map (`maps/kursk.ldtk`, `?map=kursk`) also has `style` (`steppe`: low horizon, steppe trees,
-  izba villages from the Village zones). Its guide picture: `node tools/map-guide.mjs kursk`.
+  izba villages from the Village zones). Its guide picture: `node tools/map-guide.mjs kursk`. It is 10,000
+  wide with `terrainAmplitude` 12 (the steppe's own ups and downs kept small so a train can climb all of it:
+  steepest 0.12 on the track, 0.14 anywhere outside the balkas); the shape comes from the Rises and Balkas.
+  The railway is laid as `Track` lengths end to end every 48 units, `TrackTorn` in no man's land (some lengths
+  missing), and a `RailBridge` in the middle of each 80-wide Balka with the track's ends at its ends (x +- 46).
 - **Objects layer:** `Airfield` (stretch it for a longer runway; `team` and `nation`), `Flak` (the heavy
   gun), `LightFlak`, `MgNest`, `Infantry` (`squad` = number of soldiers), `Tent`, `Tower`, `Building`, `Radar`, `Depot`
   (sends out that side's tank waves). Each has a `team` (Team_0 is the west airfield's side). Only the x
   position matters: the game stands every object on the ground. Every airfield gets a hangar by itself.
-- **Zones layer:** `Field`, `Village`, `Wood`, `Ridge`, `Balka`: stretch each over the ground it covers. A field
+- **Zones layer:** `Field`, `Village`, `Wood`, `Ridge`, `Balka`, `Rise`: stretch each over the ground it covers. A field
   is long, nearly flat farmland (make it at least runway length, 420, to land on), a village is level
   ground for a few farms, a wood is gentle, a ridge keeps the hills. Ground in no zone is rolling
   country. How strongly each shapes the ground is in `settings.json` → `zones` (tuning panel:
@@ -675,7 +679,10 @@ The map is an [LDtk](https://ldtk.io) project: open it in LDtk to move, add or r
   hills kept, `fieldTilt` and `fieldSwell` give each field its own gentle tilt and long low roll, and
   `blend` is how far one kind of ground eases into the next (neighbouring zones crossfade). A `Balka` is a
   dry steppe ravine: its rims are levelled and its floor cut `balkaDepth` (22) below them, the sides sloping
-  down over `balkaSide` (60) units; a gun placed in it stands on the floor. Redraw the
+  down over `balkaSide` (60) units; a gun placed in it stands on the floor. A `Rise` (Kursk only so far) lays
+  a long, smooth swell over the ground whatever zones lie under it: its `height` field is how far it lifts the
+  middle (negative: a shallow dip), half a cosine wave over its width, so its steepest slope is height x 3.14 /
+  width (Kursk: Hill 252.2 is 40 over 1400, 0.09; the forward positions' dips -12 over 1000). Redraw the
   guide picture after moving zones. Last, the whole ground is rounded off: `smooth` (8) is how many units
   either side each point is averaged over, `smoothPasses` (3) how often (0 turns it off); pads, runways and river
   channels keep their shape.
