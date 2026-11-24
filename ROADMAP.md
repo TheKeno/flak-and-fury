@@ -921,6 +921,15 @@ later.
 
 ## Done
 
+- **Last old sprites on Kursk replaced (Design, 2026-11-24; the owner disliked the triangle tents):** tents by
+  nation in `tools/kursk-sprites.mjs` (`KURSK_TENTS`, 32x16 as before): `tent-germany` (Zeltbahn panels in the
+  splinter pattern, low walls, front rolled up) and `tent-ussr` (khaki wall tent with a stovepipe; also the plain
+  tent for every other nation), each with a collapsed `-ruin` as its wreck (`data/ground.json` looks); the old
+  `tent` sprite is deleted. Two palette keys for the Soviet tarpaulin (`*`, `?`). In the Pixel Lab ("Airfield and
+  supply") and at the end of the `?showcase` row (standing and wrecked, both sides). Kursk woods now grow oaks and
+  birches only (no countryside `tree`). The bomb is redrawn as a 1943 general-purpose bomb (ogive nose and fuze,
+  band, box fin; same 14x6 and pivot). Tents seen in the game in the showcase row; the new bomb not watched falling.
+  Preview: `notes/tents-preview.png`.
 - **Smoother ground, nothing floating (Gameplay, 2026-11-18; the owner's look at the Kursk map: sharp steps, one
   too-steep slope, buildings half in the air):** structures closer than `pads.merge` (15) share one level pad (own
   pads at their own heights made terraces with cliffs between, and overlapping pieces such as the trade row and the
