@@ -7,6 +7,36 @@ later.
 
 ## Decisions
 
+- **Kursk map: longer, spaced out, a railway, tanks by train (decided 2026-11-24, discussion "Design — map size"; not
+  built):** flying the Kursk map, the areas blend together and the map is too short (6000 wide: about 40 s end to end,
+  about 15 s from an airfield to the front; ten areas touching, five landmarks within 200 of each other in the
+  station town). The fix is length added as **gaps**, not bigger areas. **Build 1, the map stretch:** (1) **10,000
+  wide**, Germany on the left, ceiling 1200 unchanged. Each half from the edge inward: airfield, a long open run
+  (about 1800), **depot moved forward** (about 400 behind its forward position, so the trains run near the action),
+  forward position, about 500 of no man's land, the middle (about today's size). The gaps are **bare steppe** (owner:
+  empty is fine). (2) **Major areas** (left to right): German airfield, German depot, German forward position
+  (village with the windmill, orchard Pak line), the middle, Soviet forward position (ZiS-3 balka, trenches, village
+  with the church), Soviet depot, Soviet airfield. (3) **Gentle slopes everywhere** (a train must climb all of it).
+  **Hill 252.2 becomes a long gentle rise with the station town on its crest in the exact centre** (it sat on the
+  German side of the hill); the elevator on top is the landmark of the battle, seen from both airfields. **Balkas stay
+  steep** and the track crosses each on a small bridge (a landmark per forward position; a later target). (4) Areas
+  are told apart by gaps, the existing landmarks spread out one per area (windmill, church, station/elevator/water
+  tower; airfield masts or hangars later) and wide ground shapes (flat airfields, a slight dip at each forward
+  position, the rise in the middle); colour and texture per area is a later task of its own. (5) **One railway line
+  the whole length:** whole track from each map edge through the airfield to the depot and on to the station town,
+  torn up in no man's land (twisted rails, craters); scenery only in build 1 (the drafts in `tools/kursk-sprites.mjs`:
+  track, poles). (6) `maps/kursk.ldtk` has never been edited in LDtk (one commit, the blockout), so it is **made once
+  more** by `tools/scratch/make-kursk.mjs` with the new layout; after that the file is the owner's again, never
+  regenerated. Tests pass, flown muted, then the owner flies it. **Build 2, tanks by train (after the owner has flown
+  build 1):** **every tank wave arrives by train** from its own map edge (flatcars carrying the tanks, reusing the tank
+  sprites; a flak wagon) and unloads down a ramp at its **depot, the railhead**, or **at the middle station while the
+  station is behind its side's front** (today's front, where the tanks meet; a target of the target chain later); the
+  rails from the depot to the station are repaired when a side takes it. Flatcars are hit one by one, so a good attack
+  thins a wave without wiping it; the next train comes on schedule. The track cannot be cut at first (bombing the
+  rails or a bridge is a later idea). Infantry still marches from the depot. The train runs on a smoothed bed; the
+  wagons tilt with the ground like tanks. Announced like a director event (radio call, radar marker) once those
+  exist. Wave timings and depot positions are checked after build 2, not build 1.
+
 - **Cloud layer look: heaped banks (decided 2026-11-18, discussion; built the same day, see Done "Cloud layer look"; the ends were changed then):** the owner disliked the bank ends
   (a see-through fading curtain) and the four flat stripes that copy the outline. Chosen look, from the mock-ups
   `notes/cloud-edge-mockups.png` (top right), `notes/cloud-body-mockups.png` (top right) and
