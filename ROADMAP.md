@@ -35,7 +35,11 @@ later.
   thins a wave without wiping it; the next train comes on schedule. The track cannot be cut at first (bombing the
   rails or a bridge is a later idea). Infantry still marches from the depot. The train runs on a smoothed bed; the
   wagons tilt with the ground like tanks. Announced like a director event (radio call, radar marker) once those
-  exist. Wave timings and depot positions are checked after build 2, not build 1.
+  exist. Wave timings and depot positions are checked after build 2, not build 1. **Order (owner, 2026-11-24):**
+  (a) railway scenery sprites first (whole and torn track, a small railway bridge over a balka; looks approved by the
+  owner, wired in as scenery pieces), since the map is made only once; then in parallel (b) the map stretch (layout,
+  ground, placing; does not touch drawings) and (c) the train sprites (locomotive, tender, flatcar with a tank, flak
+  wagon; drawings approved by the owner, not in the game until build 2; does not touch the map).
 
 - **Cloud layer look: heaped banks (decided 2026-11-18, discussion; built the same day, see Done "Cloud layer look"; the ends were changed then):** the owner disliked the bank ends
   (a see-through fading curtain) and the four flat stripes that copy the outline. Chosen look, from the mock-ups
